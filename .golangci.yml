@@ -47,9 +47,6 @@ linters:
     # Modernization
     - modernize      # Suggests modern Go features
 
-    # Import management
-    - gci            # Controls Go package import order
-
     # Additional checks
     - asciicheck     # Non-ASCII identifiers
     - bidichk        # Dangerous unicode characters
@@ -66,7 +63,6 @@ linters:
     - gocognit       # Similar to gocyclo
     - funlen         # Too opinionated about function length
     - gochecknoglobals # Sometimes globals are fine
-    - gomnd          # Magic number detection is too strict
 
 linters-settings:
   # gosec configuration
@@ -118,7 +114,7 @@ linters-settings:
     # Check for error comparison
     comparison: true
 
-  # gci configuration (import order)
+  # gci configuration (import order) - now a formatter in v2
   gci:
     sections:
       - standard  # Standard library
@@ -173,12 +169,12 @@ formatters:
   enable:
     - gofmt          # Standard Go formatter
     - goimports      # Manages imports and formatting
+    - gci            # Import order (golangci-lint v2)
 
 # Output configuration
 output:
   # Format: colored-line-number, line-number, json, tab, checkstyle, code-climate
-  formats:
-    - format: colored-line-number
+  format: colored-line-number
 
   # Print lines of code with issue
   print-issued-lines: true
