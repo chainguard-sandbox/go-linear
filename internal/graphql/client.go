@@ -12,6 +12,8 @@ import (
 type LinearGraphQLClient interface {
 	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
+	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
+	ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
@@ -22,6 +24,8 @@ type LinearGraphQLClient interface {
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
+	GetRoadmap(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetRoadmap, error)
+	ListRoadmaps(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListRoadmaps, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
 	GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error)
@@ -199,6 +203,201 @@ func (t *ListComments_Comments) GetNodes() []*ListComments_Comments_Nodes {
 func (t *ListComments_Comments) GetPageInfo() *ListComments_Comments_PageInfo {
 	if t == nil {
 		t = &ListComments_Comments{}
+	}
+	return &t.PageInfo
+}
+
+type GetCycle_Cycle_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetCycle_Cycle_Team) GetID() string {
+	if t == nil {
+		t = &GetCycle_Cycle_Team{}
+	}
+	return t.ID
+}
+func (t *GetCycle_Cycle_Team) GetKey() string {
+	if t == nil {
+		t = &GetCycle_Cycle_Team{}
+	}
+	return t.Key
+}
+func (t *GetCycle_Cycle_Team) GetName() string {
+	if t == nil {
+		t = &GetCycle_Cycle_Team{}
+	}
+	return t.Name
+}
+
+type GetCycle_Cycle struct {
+	CompletedAt *time.Time          "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CreatedAt   time.Time           "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string             "json:\"description,omitempty\" graphql:\"description\""
+	EndsAt      time.Time           "json:\"endsAt\" graphql:\"endsAt\""
+	ID          string              "json:\"id\" graphql:\"id\""
+	Name        *string             "json:\"name,omitempty\" graphql:\"name\""
+	Number      float64             "json:\"number\" graphql:\"number\""
+	Progress    float64             "json:\"progress\" graphql:\"progress\""
+	StartsAt    time.Time           "json:\"startsAt\" graphql:\"startsAt\""
+	Team        GetCycle_Cycle_Team "json:\"team\" graphql:\"team\""
+	UpdatedAt   time.Time           "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetCycle_Cycle) GetCompletedAt() *time.Time {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.CompletedAt
+}
+func (t *GetCycle_Cycle) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetCycle_Cycle) GetDescription() *string {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.Description
+}
+func (t *GetCycle_Cycle) GetEndsAt() *time.Time {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return &t.EndsAt
+}
+func (t *GetCycle_Cycle) GetID() string {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.ID
+}
+func (t *GetCycle_Cycle) GetName() *string {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.Name
+}
+func (t *GetCycle_Cycle) GetNumber() float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.Number
+}
+func (t *GetCycle_Cycle) GetProgress() float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.Progress
+}
+func (t *GetCycle_Cycle) GetStartsAt() *time.Time {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return &t.StartsAt
+}
+func (t *GetCycle_Cycle) GetTeam() *GetCycle_Cycle_Team {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return &t.Team
+}
+func (t *GetCycle_Cycle) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListCycles_Cycles_Nodes struct {
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	EndsAt    time.Time "json:\"endsAt\" graphql:\"endsAt\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	Name      *string   "json:\"name,omitempty\" graphql:\"name\""
+	Number    float64   "json:\"number\" graphql:\"number\""
+	Progress  float64   "json:\"progress\" graphql:\"progress\""
+	StartsAt  time.Time "json:\"startsAt\" graphql:\"startsAt\""
+}
+
+func (t *ListCycles_Cycles_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListCycles_Cycles_Nodes) GetEndsAt() *time.Time {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return &t.EndsAt
+}
+func (t *ListCycles_Cycles_Nodes) GetID() string {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListCycles_Cycles_Nodes) GetName() *string {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListCycles_Cycles_Nodes) GetNumber() float64 {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return t.Number
+}
+func (t *ListCycles_Cycles_Nodes) GetProgress() float64 {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return t.Progress
+}
+func (t *ListCycles_Cycles_Nodes) GetStartsAt() *time.Time {
+	if t == nil {
+		t = &ListCycles_Cycles_Nodes{}
+	}
+	return &t.StartsAt
+}
+
+type ListCycles_Cycles_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListCycles_Cycles_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListCycles_Cycles_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListCycles_Cycles_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListCycles_Cycles_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListCycles_Cycles struct {
+	Nodes    []*ListCycles_Cycles_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListCycles_Cycles_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListCycles_Cycles) GetNodes() []*ListCycles_Cycles_Nodes {
+	if t == nil {
+		t = &ListCycles_Cycles{}
+	}
+	return t.Nodes
+}
+func (t *ListCycles_Cycles) GetPageInfo() *ListCycles_Cycles_PageInfo {
+	if t == nil {
+		t = &ListCycles_Cycles{}
 	}
 	return &t.PageInfo
 }
@@ -1119,6 +1318,134 @@ func (t *ListProjects_Projects) GetPageInfo() *ListProjects_Projects_PageInfo {
 	return &t.PageInfo
 }
 
+type GetRoadmap_Roadmap struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	SlugID      string    "json:\"slugId\" graphql:\"slugId\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetRoadmap_Roadmap) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetRoadmap_Roadmap{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetRoadmap_Roadmap) GetDescription() *string {
+	if t == nil {
+		t = &GetRoadmap_Roadmap{}
+	}
+	return t.Description
+}
+func (t *GetRoadmap_Roadmap) GetID() string {
+	if t == nil {
+		t = &GetRoadmap_Roadmap{}
+	}
+	return t.ID
+}
+func (t *GetRoadmap_Roadmap) GetName() string {
+	if t == nil {
+		t = &GetRoadmap_Roadmap{}
+	}
+	return t.Name
+}
+func (t *GetRoadmap_Roadmap) GetSlugID() string {
+	if t == nil {
+		t = &GetRoadmap_Roadmap{}
+	}
+	return t.SlugID
+}
+func (t *GetRoadmap_Roadmap) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetRoadmap_Roadmap{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListRoadmaps_Roadmaps_Nodes struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	SlugID      string    "json:\"slugId\" graphql:\"slugId\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *ListRoadmaps_Roadmaps_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListRoadmaps_Roadmaps_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListRoadmaps_Roadmaps_Nodes) GetID() string {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListRoadmaps_Roadmaps_Nodes) GetName() string {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListRoadmaps_Roadmaps_Nodes) GetSlugID() string {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_Nodes{}
+	}
+	return t.SlugID
+}
+func (t *ListRoadmaps_Roadmaps_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListRoadmaps_Roadmaps_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListRoadmaps_Roadmaps_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListRoadmaps_Roadmaps_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListRoadmaps_Roadmaps struct {
+	Nodes    []*ListRoadmaps_Roadmaps_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListRoadmaps_Roadmaps_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListRoadmaps_Roadmaps) GetNodes() []*ListRoadmaps_Roadmaps_Nodes {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps{}
+	}
+	return t.Nodes
+}
+func (t *ListRoadmaps_Roadmaps) GetPageInfo() *ListRoadmaps_Roadmaps_PageInfo {
+	if t == nil {
+		t = &ListRoadmaps_Roadmaps{}
+	}
+	return &t.PageInfo
+}
+
 type GetTeam_Team struct {
 	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
@@ -1683,6 +2010,28 @@ func (t *ListComments) GetComments() *ListComments_Comments {
 	return &t.Comments
 }
 
+type GetCycle struct {
+	Cycle GetCycle_Cycle "json:\"cycle\" graphql:\"cycle\""
+}
+
+func (t *GetCycle) GetCycle() *GetCycle_Cycle {
+	if t == nil {
+		t = &GetCycle{}
+	}
+	return &t.Cycle
+}
+
+type ListCycles struct {
+	Cycles ListCycles_Cycles "json:\"cycles\" graphql:\"cycles\""
+}
+
+func (t *ListCycles) GetCycles() *ListCycles_Cycles {
+	if t == nil {
+		t = &ListCycles{}
+	}
+	return &t.Cycles
+}
+
 type GetIssue struct {
 	Issue GetIssue_Issue "json:\"issue\" graphql:\"issue\""
 }
@@ -1791,6 +2140,28 @@ func (t *ListProjects) GetProjects() *ListProjects_Projects {
 		t = &ListProjects{}
 	}
 	return &t.Projects
+}
+
+type GetRoadmap struct {
+	Roadmap GetRoadmap_Roadmap "json:\"roadmap\" graphql:\"roadmap\""
+}
+
+func (t *GetRoadmap) GetRoadmap() *GetRoadmap_Roadmap {
+	if t == nil {
+		t = &GetRoadmap{}
+	}
+	return &t.Roadmap
+}
+
+type ListRoadmaps struct {
+	Roadmaps ListRoadmaps_Roadmaps "json:\"roadmaps\" graphql:\"roadmaps\""
+}
+
+func (t *ListRoadmaps) GetRoadmaps() *ListRoadmaps_Roadmaps {
+	if t == nil {
+		t = &ListRoadmaps{}
+	}
+	return &t.Roadmaps
 }
 
 type GetTeam struct {
@@ -1931,6 +2302,81 @@ func (c *Client) ListComments(ctx context.Context, first *int64, after *string, 
 
 	var res ListComments
 	if err := c.Client.Post(ctx, "ListComments", ListCommentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetCycleDocument = `query GetCycle ($id: String!) {
+	cycle(id: $id) {
+		id
+		number
+		name
+		description
+		startsAt
+		endsAt
+		completedAt
+		createdAt
+		updatedAt
+		progress
+		team {
+			id
+			name
+			key
+		}
+	}
+}
+`
+
+func (c *Client) GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetCycle
+	if err := c.Client.Post(ctx, "GetCycle", GetCycleDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListCyclesDocument = `query ListCycles ($first: Int, $after: String) {
+	cycles(first: $first, after: $after) {
+		nodes {
+			id
+			number
+			name
+			startsAt
+			endsAt
+			createdAt
+			progress
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListCycles
+	if err := c.Client.Post(ctx, "ListCycles", ListCyclesDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -2305,6 +2751,71 @@ func (c *Client) ListProjects(ctx context.Context, first *int64, after *string, 
 	return &res, nil
 }
 
+const GetRoadmapDocument = `query GetRoadmap ($id: String!) {
+	roadmap(id: $id) {
+		id
+		name
+		description
+		createdAt
+		updatedAt
+		slugId
+	}
+}
+`
+
+func (c *Client) GetRoadmap(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetRoadmap, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetRoadmap
+	if err := c.Client.Post(ctx, "GetRoadmap", GetRoadmapDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListRoadmapsDocument = `query ListRoadmaps ($first: Int, $after: String) {
+	roadmaps(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			description
+			createdAt
+			updatedAt
+			slugId
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListRoadmaps(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListRoadmaps, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListRoadmaps
+	if err := c.Client.Post(ctx, "ListRoadmaps", ListRoadmapsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetTeamDocument = `query GetTeam ($id: String!) {
 	team(id: $id) {
 		id
@@ -2546,6 +3057,8 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 var DocumentOperationNames = map[string]string{
 	GetCommentDocument:         "GetComment",
 	ListCommentsDocument:       "ListComments",
+	GetCycleDocument:           "GetCycle",
+	ListCyclesDocument:         "ListCycles",
 	GetIssueDocument:           "GetIssue",
 	ListIssuesDocument:         "ListIssues",
 	GetLabelDocument:           "GetLabel",
@@ -2556,6 +3069,8 @@ var DocumentOperationNames = map[string]string{
 	GetOrganizationDocument:    "GetOrganization",
 	GetProjectDocument:         "GetProject",
 	ListProjectsDocument:       "ListProjects",
+	GetRoadmapDocument:         "GetRoadmap",
+	ListRoadmapsDocument:       "ListRoadmaps",
 	GetTeamDocument:            "GetTeam",
 	ListTeamsDocument:          "ListTeams",
 	GetUserDocument:            "GetUser",

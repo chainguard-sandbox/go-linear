@@ -1,0 +1,37 @@
+query GetCycle($id: String!) {
+  cycle(id: $id) {
+    id
+    number
+    name
+    description
+    startsAt
+    endsAt
+    completedAt
+    createdAt
+    updatedAt
+    progress
+    team {
+      id
+      name
+      key
+    }
+  }
+}
+
+query ListCycles($first: Int, $after: String) {
+  cycles(first: $first, after: $after) {
+    nodes {
+      id
+      number
+      name
+      startsAt
+      endsAt
+      createdAt
+      progress
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

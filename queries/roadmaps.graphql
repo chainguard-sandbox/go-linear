@@ -1,0 +1,27 @@
+query GetRoadmap($id: String!) {
+  roadmap(id: $id) {
+    id
+    name
+    description
+    createdAt
+    updatedAt
+    slugId
+  }
+}
+
+query ListRoadmaps($first: Int, $after: String) {
+  roadmaps(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+      slugId
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

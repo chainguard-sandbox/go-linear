@@ -249,3 +249,39 @@ func (c *Client) WorkflowStates(ctx context.Context, first *int64, after *string
 	}
 	return &resp.WorkflowStates, nil
 }
+
+// Cycle retrieves a single cycle by ID.
+func (c *Client) Cycle(ctx context.Context, id string) (*intgraphql.GetCycle_Cycle, error) {
+	resp, err := c.gqlClient.GetCycle(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("cycle query failed: %w", err)
+	}
+	return &resp.Cycle, nil
+}
+
+// Cycles retrieves a paginated list of cycles.
+func (c *Client) Cycles(ctx context.Context, first *int64, after *string) (*intgraphql.ListCycles_Cycles, error) {
+	resp, err := c.gqlClient.ListCycles(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("cycles query failed: %w", err)
+	}
+	return &resp.Cycles, nil
+}
+
+// Roadmap retrieves a single roadmap by ID.
+func (c *Client) Roadmap(ctx context.Context, id string) (*intgraphql.GetRoadmap_Roadmap, error) {
+	resp, err := c.gqlClient.GetRoadmap(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("roadmap query failed: %w", err)
+	}
+	return &resp.Roadmap, nil
+}
+
+// Roadmaps retrieves a paginated list of roadmaps.
+func (c *Client) Roadmaps(ctx context.Context, first *int64, after *string) (*intgraphql.ListRoadmaps_Roadmaps, error) {
+	resp, err := c.gqlClient.ListRoadmaps(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("roadmaps query failed: %w", err)
+	}
+	return &resp.Roadmaps, nil
+}
