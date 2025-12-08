@@ -1,0 +1,33 @@
+query GetComment($id: String!) {
+  comment(id: $id) {
+    id
+    body
+    createdAt
+    updatedAt
+    url
+    user {
+      id
+      name
+    }
+    issue {
+      id
+      title
+    }
+  }
+}
+
+query ListComments($first: Int, $after: String) {
+  comments(first: $first, after: $after) {
+    nodes {
+      id
+      body
+      createdAt
+      updatedAt
+      url
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

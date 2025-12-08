@@ -10,12 +10,16 @@ import (
 )
 
 type LinearGraphQLClient interface {
+	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
+	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
+	GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error)
+	ListUsers(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListUsers, error)
 	Viewer(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*Viewer, error)
 }
 
@@ -25,6 +29,170 @@ type Client struct {
 
 func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Options, interceptors ...clientv2.RequestInterceptor) LinearGraphQLClient {
 	return &Client{Client: clientv2.NewClient(cli, baseURL, options, interceptors...)}
+}
+
+type GetComment_Comment_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetComment_Comment_User) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_User{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_User) GetName() string {
+	if t == nil {
+		t = &GetComment_Comment_User{}
+	}
+	return t.Name
+}
+
+type GetComment_Comment_Issue struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetComment_Comment_Issue) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Issue{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Issue) GetTitle() string {
+	if t == nil {
+		t = &GetComment_Comment_Issue{}
+	}
+	return t.Title
+}
+
+type GetComment_Comment struct {
+	Body      string                    "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                 "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                    "json:\"id\" graphql:\"id\""
+	Issue     *GetComment_Comment_Issue "json:\"issue,omitempty\" graphql:\"issue\""
+	UpdatedAt time.Time                 "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string                    "json:\"url\" graphql:\"url\""
+	User      *GetComment_Comment_User  "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *GetComment_Comment) GetBody() string {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.Body
+}
+func (t *GetComment_Comment) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetComment_Comment) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment) GetIssue() *GetComment_Comment_Issue {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.Issue
+}
+func (t *GetComment_Comment) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return &t.UpdatedAt
+}
+func (t *GetComment_Comment) GetURL() string {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.URL
+}
+func (t *GetComment_Comment) GetUser() *GetComment_Comment_User {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.User
+}
+
+type ListComments_Comments_Nodes struct {
+	Body      string    "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListComments_Comments_Nodes) GetBody() string {
+	if t == nil {
+		t = &ListComments_Comments_Nodes{}
+	}
+	return t.Body
+}
+func (t *ListComments_Comments_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListComments_Comments_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListComments_Comments_Nodes) GetID() string {
+	if t == nil {
+		t = &ListComments_Comments_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListComments_Comments_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListComments_Comments_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListComments_Comments_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListComments_Comments_Nodes{}
+	}
+	return t.URL
+}
+
+type ListComments_Comments_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListComments_Comments_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListComments_Comments_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListComments_Comments_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListComments_Comments_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListComments_Comments struct {
+	Nodes    []*ListComments_Comments_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListComments_Comments_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListComments_Comments) GetNodes() []*ListComments_Comments_Nodes {
+	if t == nil {
+		t = &ListComments_Comments{}
+	}
+	return t.Nodes
+}
+func (t *ListComments_Comments) GetPageInfo() *ListComments_Comments_PageInfo {
+	if t == nil {
+		t = &ListComments_Comments{}
+	}
+	return &t.PageInfo
 }
 
 type GetIssue_Issue_State struct {
@@ -743,6 +911,169 @@ func (t *ListTeams_Teams) GetPageInfo() *ListTeams_Teams_PageInfo {
 	return &t.PageInfo
 }
 
+type GetUser_User struct {
+	Active      bool      "json:\"active\" graphql:\"active\""
+	Admin       bool      "json:\"admin\" graphql:\"admin\""
+	AvatarURL   *string   "json:\"avatarUrl,omitempty\" graphql:\"avatarUrl\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	DisplayName string    "json:\"displayName\" graphql:\"displayName\""
+	Email       string    "json:\"email\" graphql:\"email\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetUser_User) GetActive() bool {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.Active
+}
+func (t *GetUser_User) GetAdmin() bool {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.Admin
+}
+func (t *GetUser_User) GetAvatarURL() *string {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.AvatarURL
+}
+func (t *GetUser_User) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetUser_User) GetDisplayName() string {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.DisplayName
+}
+func (t *GetUser_User) GetEmail() string {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.Email
+}
+func (t *GetUser_User) GetID() string {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.ID
+}
+func (t *GetUser_User) GetName() string {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return t.Name
+}
+func (t *GetUser_User) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetUser_User{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListUsers_Users_Nodes struct {
+	Active      bool      "json:\"active\" graphql:\"active\""
+	Admin       bool      "json:\"admin\" graphql:\"admin\""
+	AvatarURL   *string   "json:\"avatarUrl,omitempty\" graphql:\"avatarUrl\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	DisplayName string    "json:\"displayName\" graphql:\"displayName\""
+	Email       string    "json:\"email\" graphql:\"email\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListUsers_Users_Nodes) GetActive() bool {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.Active
+}
+func (t *ListUsers_Users_Nodes) GetAdmin() bool {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.Admin
+}
+func (t *ListUsers_Users_Nodes) GetAvatarURL() *string {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.AvatarURL
+}
+func (t *ListUsers_Users_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListUsers_Users_Nodes) GetDisplayName() string {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.DisplayName
+}
+func (t *ListUsers_Users_Nodes) GetEmail() string {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.Email
+}
+func (t *ListUsers_Users_Nodes) GetID() string {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListUsers_Users_Nodes) GetName() string {
+	if t == nil {
+		t = &ListUsers_Users_Nodes{}
+	}
+	return t.Name
+}
+
+type ListUsers_Users_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListUsers_Users_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListUsers_Users_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListUsers_Users_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListUsers_Users_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListUsers_Users struct {
+	Nodes    []*ListUsers_Users_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListUsers_Users_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListUsers_Users) GetNodes() []*ListUsers_Users_Nodes {
+	if t == nil {
+		t = &ListUsers_Users{}
+	}
+	return t.Nodes
+}
+func (t *ListUsers_Users) GetPageInfo() *ListUsers_Users_PageInfo {
+	if t == nil {
+		t = &ListUsers_Users{}
+	}
+	return &t.PageInfo
+}
+
 type Viewer_Viewer struct {
 	Active      bool      "json:\"active\" graphql:\"active\""
 	Admin       bool      "json:\"admin\" graphql:\"admin\""
@@ -801,6 +1132,28 @@ func (t *Viewer_Viewer) GetName() string {
 		t = &Viewer_Viewer{}
 	}
 	return t.Name
+}
+
+type GetComment struct {
+	Comment GetComment_Comment "json:\"comment\" graphql:\"comment\""
+}
+
+func (t *GetComment) GetComment() *GetComment_Comment {
+	if t == nil {
+		t = &GetComment{}
+	}
+	return &t.Comment
+}
+
+type ListComments struct {
+	Comments ListComments_Comments "json:\"comments\" graphql:\"comments\""
+}
+
+func (t *ListComments) GetComments() *ListComments_Comments {
+	if t == nil {
+		t = &ListComments{}
+	}
+	return &t.Comments
 }
 
 type GetIssue struct {
@@ -869,6 +1222,28 @@ func (t *ListTeams) GetTeams() *ListTeams_Teams {
 	return &t.Teams
 }
 
+type GetUser struct {
+	User GetUser_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *GetUser) GetUser() *GetUser_User {
+	if t == nil {
+		t = &GetUser{}
+	}
+	return &t.User
+}
+
+type ListUsers struct {
+	Users ListUsers_Users "json:\"users\" graphql:\"users\""
+}
+
+func (t *ListUsers) GetUsers() *ListUsers_Users {
+	if t == nil {
+		t = &ListUsers{}
+	}
+	return &t.Users
+}
+
 type Viewer struct {
 	Viewer Viewer_Viewer "json:\"viewer\" graphql:\"viewer\""
 }
@@ -878,6 +1253,77 @@ func (t *Viewer) GetViewer() *Viewer_Viewer {
 		t = &Viewer{}
 	}
 	return &t.Viewer
+}
+
+const GetCommentDocument = `query GetComment ($id: String!) {
+	comment(id: $id) {
+		id
+		body
+		createdAt
+		updatedAt
+		url
+		user {
+			id
+			name
+		}
+		issue {
+			id
+			title
+		}
+	}
+}
+`
+
+func (c *Client) GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetComment
+	if err := c.Client.Post(ctx, "GetComment", GetCommentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListCommentsDocument = `query ListComments ($first: Int, $after: String) {
+	comments(first: $first, after: $after) {
+		nodes {
+			id
+			body
+			createdAt
+			updatedAt
+			url
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListComments
+	if err := c.Client.Post(ctx, "ListComments", ListCommentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
 }
 
 const GetIssueDocument = `query GetIssue ($id: String!) {
@@ -1125,6 +1571,76 @@ func (c *Client) ListTeams(ctx context.Context, first *int64, after *string, int
 	return &res, nil
 }
 
+const GetUserDocument = `query GetUser ($id: String!) {
+	user(id: $id) {
+		id
+		name
+		email
+		displayName
+		createdAt
+		updatedAt
+		admin
+		active
+		avatarUrl
+	}
+}
+`
+
+func (c *Client) GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetUser
+	if err := c.Client.Post(ctx, "GetUser", GetUserDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListUsersDocument = `query ListUsers ($first: Int, $after: String) {
+	users(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			email
+			displayName
+			createdAt
+			admin
+			active
+			avatarUrl
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListUsers(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListUsers, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListUsers
+	if err := c.Client.Post(ctx, "ListUsers", ListUsersDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ViewerDocument = `query Viewer {
 	viewer {
 		id
@@ -1155,11 +1671,15 @@ func (c *Client) Viewer(ctx context.Context, interceptors ...clientv2.RequestInt
 }
 
 var DocumentOperationNames = map[string]string{
+	GetCommentDocument:   "GetComment",
+	ListCommentsDocument: "ListComments",
 	GetIssueDocument:     "GetIssue",
 	ListIssuesDocument:   "ListIssues",
 	GetProjectDocument:   "GetProject",
 	ListProjectsDocument: "ListProjects",
 	GetTeamDocument:      "GetTeam",
 	ListTeamsDocument:    "ListTeams",
+	GetUserDocument:      "GetUser",
+	ListUsersDocument:    "ListUsers",
 	ViewerDocument:       "Viewer",
 }

@@ -1,0 +1,32 @@
+query GetUser($id: String!) {
+  user(id: $id) {
+    id
+    name
+    email
+    displayName
+    createdAt
+    updatedAt
+    admin
+    active
+    avatarUrl
+  }
+}
+
+query ListUsers($first: Int, $after: String) {
+  users(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      email
+      displayName
+      createdAt
+      admin
+      active
+      avatarUrl
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

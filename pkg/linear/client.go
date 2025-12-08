@@ -126,3 +126,39 @@ func (c *Client) Projects(ctx context.Context, first *int64, after *string) (*in
 	}
 	return &resp.Projects, nil
 }
+
+// User retrieves a single user by ID.
+func (c *Client) User(ctx context.Context, id string) (*intgraphql.GetUser_User, error) {
+	resp, err := c.gqlClient.GetUser(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("user query failed: %w", err)
+	}
+	return &resp.User, nil
+}
+
+// Users retrieves a paginated list of users.
+func (c *Client) Users(ctx context.Context, first *int64, after *string) (*intgraphql.ListUsers_Users, error) {
+	resp, err := c.gqlClient.ListUsers(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("users query failed: %w", err)
+	}
+	return &resp.Users, nil
+}
+
+// Comment retrieves a single comment by ID.
+func (c *Client) Comment(ctx context.Context, id string) (*intgraphql.GetComment_Comment, error) {
+	resp, err := c.gqlClient.GetComment(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("comment query failed: %w", err)
+	}
+	return &resp.Comment, nil
+}
+
+// Comments retrieves a paginated list of comments.
+func (c *Client) Comments(ctx context.Context, first *int64, after *string) (*intgraphql.ListComments_Comments, error) {
+	resp, err := c.gqlClient.ListComments(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("comments query failed: %w", err)
+	}
+	return &resp.Comments, nil
+}
