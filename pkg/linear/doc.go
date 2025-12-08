@@ -1,3 +1,5 @@
+//go:generate go run github.com/Yamashou/gqlgenc
+
 // Package linear provides a Go client library for the Linear API.
 //
 // The Linear API is a GraphQL API for managing issues, projects, teams,

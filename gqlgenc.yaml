@@ -1,0 +1,33 @@
+# gqlgenc configuration
+# Documentation: https://github.com/Yamashou/gqlgenc
+# Pattern from: chainguard.dev/mono/bots/fulfilled
+
+# Model generation configuration
+model:
+  package: graphql
+  filename: internal/graphql/models.go
+
+# Client generation configuration
+client:
+  package: graphql
+  filename: internal/graphql/client.go
+
+# GraphQL schema file
+schema:
+  - schema.graphql
+
+# GraphQL query documents
+query:
+  - queries/**/*.graphql
+
+# Client generation options
+generate:
+  clientInterfaceName: "LinearGraphQLClient"
+  structFieldsAlwaysPointers: true  # KEY: Adds omitempty to all fields
+
+# Custom scalar type mappings
+models:
+  Int:
+    model: github.com/99designs/gqlgen/graphql.Int64
+  DateTime:
+    model: github.com/99designs/gqlgen/graphql.Time
