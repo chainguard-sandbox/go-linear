@@ -90,3 +90,39 @@ func (c *Client) Issues(ctx context.Context, first *int64, after *string) (*intg
 	}
 	return &resp.Issues, nil
 }
+
+// Team retrieves a single team by ID.
+func (c *Client) Team(ctx context.Context, id string) (*intgraphql.GetTeam_Team, error) {
+	resp, err := c.gqlClient.GetTeam(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("team query failed: %w", err)
+	}
+	return &resp.Team, nil
+}
+
+// Teams retrieves a paginated list of teams.
+func (c *Client) Teams(ctx context.Context, first *int64, after *string) (*intgraphql.ListTeams_Teams, error) {
+	resp, err := c.gqlClient.ListTeams(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("teams query failed: %w", err)
+	}
+	return &resp.Teams, nil
+}
+
+// Project retrieves a single project by ID.
+func (c *Client) Project(ctx context.Context, id string) (*intgraphql.GetProject_Project, error) {
+	resp, err := c.gqlClient.GetProject(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("project query failed: %w", err)
+	}
+	return &resp.Project, nil
+}
+
+// Projects retrieves a paginated list of projects.
+func (c *Client) Projects(ctx context.Context, first *int64, after *string) (*intgraphql.ListProjects_Projects, error) {
+	resp, err := c.gqlClient.ListProjects(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("projects query failed: %w", err)
+	}
+	return &resp.Projects, nil
+}

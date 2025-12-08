@@ -12,6 +12,10 @@ import (
 type LinearGraphQLClient interface {
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
+	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
+	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
+	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
+	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
 	Viewer(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*Viewer, error)
 }
 
@@ -332,6 +336,413 @@ func (t *ListIssues_Issues) GetPageInfo() *ListIssues_Issues_PageInfo {
 	return &t.PageInfo
 }
 
+type GetProject_Project_Lead struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetProject_Project_Lead) GetEmail() string {
+	if t == nil {
+		t = &GetProject_Project_Lead{}
+	}
+	return t.Email
+}
+func (t *GetProject_Project_Lead) GetID() string {
+	if t == nil {
+		t = &GetProject_Project_Lead{}
+	}
+	return t.ID
+}
+func (t *GetProject_Project_Lead) GetName() string {
+	if t == nil {
+		t = &GetProject_Project_Lead{}
+	}
+	return t.Name
+}
+
+type GetProject_Project struct {
+	Color       string                   "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
+	Description string                   "json:\"description\" graphql:\"description\""
+	Icon        *string                  "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string                   "json:\"id\" graphql:\"id\""
+	Lead        *GetProject_Project_Lead "json:\"lead,omitempty\" graphql:\"lead\""
+	Name        string                   "json:\"name\" graphql:\"name\""
+	Progress    float64                  "json:\"progress\" graphql:\"progress\""
+	StartedAt   *time.Time               "json:\"startedAt,omitempty\" graphql:\"startedAt\""
+	State       string                   "json:\"state\" graphql:\"state\""
+	TargetDate  *string                  "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string                   "json:\"url\" graphql:\"url\""
+}
+
+func (t *GetProject_Project) GetColor() string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Color
+}
+func (t *GetProject_Project) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetProject_Project) GetDescription() string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Description
+}
+func (t *GetProject_Project) GetIcon() *string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Icon
+}
+func (t *GetProject_Project) GetID() string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.ID
+}
+func (t *GetProject_Project) GetLead() *GetProject_Project_Lead {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Lead
+}
+func (t *GetProject_Project) GetName() string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Name
+}
+func (t *GetProject_Project) GetProgress() float64 {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Progress
+}
+func (t *GetProject_Project) GetStartedAt() *time.Time {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.StartedAt
+}
+func (t *GetProject_Project) GetState() string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.State
+}
+func (t *GetProject_Project) GetTargetDate() *string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.TargetDate
+}
+func (t *GetProject_Project) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return &t.UpdatedAt
+}
+func (t *GetProject_Project) GetURL() string {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.URL
+}
+
+type ListProjects_Projects_Nodes struct {
+	Color       string    "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description string    "json:\"description\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Progress    float64   "json:\"progress\" graphql:\"progress\""
+	State       string    "json:\"state\" graphql:\"state\""
+	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListProjects_Projects_Nodes) GetColor() string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListProjects_Projects_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListProjects_Projects_Nodes) GetDescription() string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListProjects_Projects_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListProjects_Projects_Nodes) GetID() string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListProjects_Projects_Nodes) GetName() string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListProjects_Projects_Nodes) GetProgress() float64 {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.Progress
+}
+func (t *ListProjects_Projects_Nodes) GetState() string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.State
+}
+func (t *ListProjects_Projects_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.TargetDate
+}
+func (t *ListProjects_Projects_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListProjects_Projects_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.URL
+}
+
+type ListProjects_Projects_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListProjects_Projects_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListProjects_Projects_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListProjects_Projects_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListProjects_Projects_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListProjects_Projects struct {
+	Nodes    []*ListProjects_Projects_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListProjects_Projects_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListProjects_Projects) GetNodes() []*ListProjects_Projects_Nodes {
+	if t == nil {
+		t = &ListProjects_Projects{}
+	}
+	return t.Nodes
+}
+func (t *ListProjects_Projects) GetPageInfo() *ListProjects_Projects_PageInfo {
+	if t == nil {
+		t = &ListProjects_Projects{}
+	}
+	return &t.PageInfo
+}
+
+type GetTeam_Team struct {
+	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Key         string    "json:\"key\" graphql:\"key\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Private     bool      "json:\"private\" graphql:\"private\""
+	Timezone    string    "json:\"timezone\" graphql:\"timezone\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetTeam_Team) GetColor() *string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Color
+}
+func (t *GetTeam_Team) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetTeam_Team) GetDescription() *string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Description
+}
+func (t *GetTeam_Team) GetIcon() *string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Icon
+}
+func (t *GetTeam_Team) GetID() string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.ID
+}
+func (t *GetTeam_Team) GetKey() string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Key
+}
+func (t *GetTeam_Team) GetName() string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Name
+}
+func (t *GetTeam_Team) GetPrivate() bool {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Private
+}
+func (t *GetTeam_Team) GetTimezone() string {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.Timezone
+}
+func (t *GetTeam_Team) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListTeams_Teams_Nodes struct {
+	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Key         string    "json:\"key\" graphql:\"key\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Private     bool      "json:\"private\" graphql:\"private\""
+}
+
+func (t *ListTeams_Teams_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListTeams_Teams_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListTeams_Teams_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListTeams_Teams_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListTeams_Teams_Nodes) GetID() string {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListTeams_Teams_Nodes) GetKey() string {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.Key
+}
+func (t *ListTeams_Teams_Nodes) GetName() string {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListTeams_Teams_Nodes) GetPrivate() bool {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.Private
+}
+
+type ListTeams_Teams_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListTeams_Teams_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListTeams_Teams_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListTeams_Teams_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListTeams_Teams_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListTeams_Teams struct {
+	Nodes    []*ListTeams_Teams_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListTeams_Teams_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListTeams_Teams) GetNodes() []*ListTeams_Teams_Nodes {
+	if t == nil {
+		t = &ListTeams_Teams{}
+	}
+	return t.Nodes
+}
+func (t *ListTeams_Teams) GetPageInfo() *ListTeams_Teams_PageInfo {
+	if t == nil {
+		t = &ListTeams_Teams{}
+	}
+	return &t.PageInfo
+}
+
 type Viewer_Viewer struct {
 	Active      bool      "json:\"active\" graphql:\"active\""
 	Admin       bool      "json:\"admin\" graphql:\"admin\""
@@ -412,6 +823,50 @@ func (t *ListIssues) GetIssues() *ListIssues_Issues {
 		t = &ListIssues{}
 	}
 	return &t.Issues
+}
+
+type GetProject struct {
+	Project GetProject_Project "json:\"project\" graphql:\"project\""
+}
+
+func (t *GetProject) GetProject() *GetProject_Project {
+	if t == nil {
+		t = &GetProject{}
+	}
+	return &t.Project
+}
+
+type ListProjects struct {
+	Projects ListProjects_Projects "json:\"projects\" graphql:\"projects\""
+}
+
+func (t *ListProjects) GetProjects() *ListProjects_Projects {
+	if t == nil {
+		t = &ListProjects{}
+	}
+	return &t.Projects
+}
+
+type GetTeam struct {
+	Team GetTeam_Team "json:\"team\" graphql:\"team\""
+}
+
+func (t *GetTeam) GetTeam() *GetTeam_Team {
+	if t == nil {
+		t = &GetTeam{}
+	}
+	return &t.Team
+}
+
+type ListTeams struct {
+	Teams ListTeams_Teams "json:\"teams\" graphql:\"teams\""
+}
+
+func (t *ListTeams) GetTeams() *ListTeams_Teams {
+	if t == nil {
+		t = &ListTeams{}
+	}
+	return &t.Teams
 }
 
 type Viewer struct {
@@ -518,6 +973,158 @@ func (c *Client) ListIssues(ctx context.Context, first *int64, after *string, in
 	return &res, nil
 }
 
+const GetProjectDocument = `query GetProject ($id: String!) {
+	project(id: $id) {
+		id
+		name
+		description
+		state
+		createdAt
+		updatedAt
+		startedAt
+		targetDate
+		progress
+		url
+		icon
+		color
+		lead {
+			id
+			name
+			email
+		}
+	}
+}
+`
+
+func (c *Client) GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetProject
+	if err := c.Client.Post(ctx, "GetProject", GetProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListProjectsDocument = `query ListProjects ($first: Int, $after: String) {
+	projects(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			description
+			state
+			createdAt
+			updatedAt
+			targetDate
+			progress
+			url
+			icon
+			color
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListProjects
+	if err := c.Client.Post(ctx, "ListProjects", ListProjectsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetTeamDocument = `query GetTeam ($id: String!) {
+	team(id: $id) {
+		id
+		name
+		key
+		description
+		createdAt
+		updatedAt
+		private
+		timezone
+		icon
+		color
+	}
+}
+`
+
+func (c *Client) GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetTeam
+	if err := c.Client.Post(ctx, "GetTeam", GetTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListTeamsDocument = `query ListTeams ($first: Int, $after: String) {
+	teams(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			key
+			description
+			createdAt
+			private
+			icon
+			color
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListTeams
+	if err := c.Client.Post(ctx, "ListTeams", ListTeamsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ViewerDocument = `query Viewer {
 	viewer {
 		id
@@ -548,7 +1155,11 @@ func (c *Client) Viewer(ctx context.Context, interceptors ...clientv2.RequestInt
 }
 
 var DocumentOperationNames = map[string]string{
-	GetIssueDocument:   "GetIssue",
-	ListIssuesDocument: "ListIssues",
-	ViewerDocument:     "Viewer",
+	GetIssueDocument:     "GetIssue",
+	ListIssuesDocument:   "ListIssues",
+	GetProjectDocument:   "GetProject",
+	ListProjectsDocument: "ListProjects",
+	GetTeamDocument:      "GetTeam",
+	ListTeamsDocument:    "ListTeams",
+	ViewerDocument:       "Viewer",
 }

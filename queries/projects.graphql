@@ -1,0 +1,43 @@
+query GetProject($id: String!) {
+  project(id: $id) {
+    id
+    name
+    description
+    state
+    createdAt
+    updatedAt
+    startedAt
+    targetDate
+    progress
+    url
+    icon
+    color
+    lead {
+      id
+      name
+      email
+    }
+  }
+}
+
+query ListProjects($first: Int, $after: String) {
+  projects(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      description
+      state
+      createdAt
+      updatedAt
+      targetDate
+      progress
+      url
+      icon
+      color
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

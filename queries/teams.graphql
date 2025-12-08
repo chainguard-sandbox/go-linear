@@ -1,0 +1,33 @@
+query GetTeam($id: String!) {
+  team(id: $id) {
+    id
+    name
+    key
+    description
+    createdAt
+    updatedAt
+    private
+    timezone
+    icon
+    color
+  }
+}
+
+query ListTeams($first: Int, $after: String) {
+  teams(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      key
+      description
+      createdAt
+      private
+      icon
+      color
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
