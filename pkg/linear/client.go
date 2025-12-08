@@ -72,3 +72,21 @@ func (c *Client) Viewer(ctx context.Context) (*intgraphql.Viewer_Viewer, error) 
 	}
 	return &resp.Viewer, nil
 }
+
+// Issue retrieves a single issue by ID.
+func (c *Client) Issue(ctx context.Context, id string) (*intgraphql.GetIssue_Issue, error) {
+	resp, err := c.gqlClient.GetIssue(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("issue query failed: %w", err)
+	}
+	return &resp.Issue, nil
+}
+
+// Issues retrieves a paginated list of issues.
+func (c *Client) Issues(ctx context.Context, first *int64, after *string) (*intgraphql.ListIssues_Issues, error) {
+	resp, err := c.gqlClient.ListIssues(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("issues query failed: %w", err)
+	}
+	return &resp.Issues, nil
+}

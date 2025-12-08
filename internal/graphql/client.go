@@ -10,6 +10,8 @@ import (
 )
 
 type LinearGraphQLClient interface {
+	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
+	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	Viewer(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*Viewer, error)
 }
 
@@ -19,6 +21,315 @@ type Client struct {
 
 func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Options, interceptors ...clientv2.RequestInterceptor) LinearGraphQLClient {
 	return &Client{Client: clientv2.NewClient(cli, baseURL, options, interceptors...)}
+}
+
+type GetIssue_Issue_State struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+	Type string "json:\"type\" graphql:\"type\""
+}
+
+func (t *GetIssue_Issue_State) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue_State{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_State) GetName() string {
+	if t == nil {
+		t = &GetIssue_Issue_State{}
+	}
+	return t.Name
+}
+func (t *GetIssue_Issue_State) GetType() string {
+	if t == nil {
+		t = &GetIssue_Issue_State{}
+	}
+	return t.Type
+}
+
+type GetIssue_Issue_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssue_Issue_Team) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue_Team{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_Team) GetKey() string {
+	if t == nil {
+		t = &GetIssue_Issue_Team{}
+	}
+	return t.Key
+}
+func (t *GetIssue_Issue_Team) GetName() string {
+	if t == nil {
+		t = &GetIssue_Issue_Team{}
+	}
+	return t.Name
+}
+
+type GetIssue_Issue_Assignee struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssue_Issue_Assignee) GetDisplayName() string {
+	if t == nil {
+		t = &GetIssue_Issue_Assignee{}
+	}
+	return t.DisplayName
+}
+func (t *GetIssue_Issue_Assignee) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue_Assignee{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_Assignee) GetName() string {
+	if t == nil {
+		t = &GetIssue_Issue_Assignee{}
+	}
+	return t.Name
+}
+
+type GetIssue_Issue struct {
+	Assignee    *GetIssue_Issue_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                  "json:\"description,omitempty\" graphql:\"description\""
+	Estimate    *float64                 "json:\"estimate,omitempty\" graphql:\"estimate\""
+	ID          string                   "json:\"id\" graphql:\"id\""
+	Number      float64                  "json:\"number\" graphql:\"number\""
+	Priority    float64                  "json:\"priority\" graphql:\"priority\""
+	State       GetIssue_Issue_State     "json:\"state\" graphql:\"state\""
+	Team        GetIssue_Issue_Team      "json:\"team\" graphql:\"team\""
+	Title       string                   "json:\"title\" graphql:\"title\""
+	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string                   "json:\"url\" graphql:\"url\""
+}
+
+func (t *GetIssue_Issue) GetAssignee() *GetIssue_Issue_Assignee {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Assignee
+}
+func (t *GetIssue_Issue) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetIssue_Issue) GetDescription() *string {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Description
+}
+func (t *GetIssue_Issue) GetEstimate() *float64 {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Estimate
+}
+func (t *GetIssue_Issue) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue) GetNumber() float64 {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Number
+}
+func (t *GetIssue_Issue) GetPriority() float64 {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Priority
+}
+func (t *GetIssue_Issue) GetState() *GetIssue_Issue_State {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return &t.State
+}
+func (t *GetIssue_Issue) GetTeam() *GetIssue_Issue_Team {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return &t.Team
+}
+func (t *GetIssue_Issue) GetTitle() string {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Title
+}
+func (t *GetIssue_Issue) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return &t.UpdatedAt
+}
+func (t *GetIssue_Issue) GetURL() string {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.URL
+}
+
+type ListIssues_Issues_Nodes_State struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssues_Issues_Nodes_State) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_State{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_State) GetName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_State{}
+	}
+	return t.Name
+}
+
+type ListIssues_Issues_Nodes_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssues_Issues_Nodes_Team) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Team{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_Team) GetKey() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Team{}
+	}
+	return t.Key
+}
+func (t *ListIssues_Issues_Nodes_Team) GetName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Team{}
+	}
+	return t.Name
+}
+
+type ListIssues_Issues_Nodes struct {
+	CreatedAt   time.Time                     "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                       "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                        "json:\"id\" graphql:\"id\""
+	Number      float64                       "json:\"number\" graphql:\"number\""
+	Priority    float64                       "json:\"priority\" graphql:\"priority\""
+	State       ListIssues_Issues_Nodes_State "json:\"state\" graphql:\"state\""
+	Team        ListIssues_Issues_Nodes_Team  "json:\"team\" graphql:\"team\""
+	Title       string                        "json:\"title\" graphql:\"title\""
+	URL         string                        "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListIssues_Issues_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListIssues_Issues_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListIssues_Issues_Nodes) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes) GetNumber() float64 {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Number
+}
+func (t *ListIssues_Issues_Nodes) GetPriority() float64 {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Priority
+}
+func (t *ListIssues_Issues_Nodes) GetState() *ListIssues_Issues_Nodes_State {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return &t.State
+}
+func (t *ListIssues_Issues_Nodes) GetTeam() *ListIssues_Issues_Nodes_Team {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return &t.Team
+}
+func (t *ListIssues_Issues_Nodes) GetTitle() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Title
+}
+func (t *ListIssues_Issues_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.URL
+}
+
+type ListIssues_Issues_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListIssues_Issues_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListIssues_Issues_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListIssues_Issues_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListIssues_Issues_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListIssues_Issues struct {
+	Nodes    []*ListIssues_Issues_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListIssues_Issues_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListIssues_Issues) GetNodes() []*ListIssues_Issues_Nodes {
+	if t == nil {
+		t = &ListIssues_Issues{}
+	}
+	return t.Nodes
+}
+func (t *ListIssues_Issues) GetPageInfo() *ListIssues_Issues_PageInfo {
+	if t == nil {
+		t = &ListIssues_Issues{}
+	}
+	return &t.PageInfo
 }
 
 type Viewer_Viewer struct {
@@ -81,6 +392,28 @@ func (t *Viewer_Viewer) GetName() string {
 	return t.Name
 }
 
+type GetIssue struct {
+	Issue GetIssue_Issue "json:\"issue\" graphql:\"issue\""
+}
+
+func (t *GetIssue) GetIssue() *GetIssue_Issue {
+	if t == nil {
+		t = &GetIssue{}
+	}
+	return &t.Issue
+}
+
+type ListIssues struct {
+	Issues ListIssues_Issues "json:\"issues\" graphql:\"issues\""
+}
+
+func (t *ListIssues) GetIssues() *ListIssues_Issues {
+	if t == nil {
+		t = &ListIssues{}
+	}
+	return &t.Issues
+}
+
 type Viewer struct {
 	Viewer Viewer_Viewer "json:\"viewer\" graphql:\"viewer\""
 }
@@ -90,6 +423,99 @@ func (t *Viewer) GetViewer() *Viewer_Viewer {
 		t = &Viewer{}
 	}
 	return &t.Viewer
+}
+
+const GetIssueDocument = `query GetIssue ($id: String!) {
+	issue(id: $id) {
+		id
+		title
+		description
+		priority
+		estimate
+		createdAt
+		updatedAt
+		number
+		url
+		state {
+			id
+			name
+			type
+		}
+		team {
+			id
+			name
+			key
+		}
+		assignee {
+			id
+			name
+			displayName
+		}
+	}
+}
+`
+
+func (c *Client) GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetIssue
+	if err := c.Client.Post(ctx, "GetIssue", GetIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
+	issues(first: $first, after: $after) {
+		nodes {
+			id
+			title
+			description
+			priority
+			createdAt
+			number
+			url
+			state {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListIssues
+	if err := c.Client.Post(ctx, "ListIssues", ListIssuesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
 }
 
 const ViewerDocument = `query Viewer {
@@ -122,5 +548,7 @@ func (c *Client) Viewer(ctx context.Context, interceptors ...clientv2.RequestInt
 }
 
 var DocumentOperationNames = map[string]string{
-	ViewerDocument: "Viewer",
+	GetIssueDocument:   "GetIssue",
+	ListIssuesDocument: "ListIssues",
+	ViewerDocument:     "Viewer",
 }
