@@ -1,0 +1,29 @@
+mutation CreateComment($input: CommentCreateInput!) {
+  commentCreate(input: $input) {
+    success
+    comment {
+      id
+      body
+      createdAt
+      updatedAt
+      url
+    }
+  }
+}
+
+mutation UpdateComment($id: String!, $input: CommentUpdateInput!) {
+  commentUpdate(id: $id, input: $input) {
+    success
+    comment {
+      id
+      body
+      updatedAt
+    }
+  }
+}
+
+mutation DeleteComment($id: String!) {
+  commentDelete(id: $id) {
+    success
+  }
+}

@@ -1,0 +1,32 @@
+query GetAttachment($id: String!) {
+  attachment(id: $id) {
+    id
+    title
+    subtitle
+    url
+    createdAt
+    updatedAt
+    metadata
+    source
+    sourceType
+  }
+}
+
+query ListAttachments($first: Int, $after: String) {
+  attachments(first: $first, after: $after) {
+    nodes {
+      id
+      title
+      subtitle
+      url
+      createdAt
+      updatedAt
+      source
+      sourceType
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

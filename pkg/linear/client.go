@@ -285,3 +285,81 @@ func (c *Client) Roadmaps(ctx context.Context, first *int64, after *string) (*in
 	}
 	return &resp.Roadmaps, nil
 }
+
+// Attachment retrieves a single attachment by ID.
+func (c *Client) Attachment(ctx context.Context, id string) (*intgraphql.GetAttachment_Attachment, error) {
+	resp, err := c.gqlClient.GetAttachment(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("attachment query failed: %w", err)
+	}
+	return &resp.Attachment, nil
+}
+
+// Attachments retrieves a paginated list of attachments.
+func (c *Client) Attachments(ctx context.Context, first *int64, after *string) (*intgraphql.ListAttachments_Attachments, error) {
+	resp, err := c.gqlClient.ListAttachments(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("attachments query failed: %w", err)
+	}
+	return &resp.Attachments, nil
+}
+
+// Initiative retrieves a single initiative by ID.
+func (c *Client) Initiative(ctx context.Context, id string) (*intgraphql.GetInitiative_Initiative, error) {
+	resp, err := c.gqlClient.GetInitiative(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("initiative query failed: %w", err)
+	}
+	return &resp.Initiative, nil
+}
+
+// Initiatives retrieves a paginated list of initiatives.
+func (c *Client) Initiatives(ctx context.Context, first *int64, after *string) (*intgraphql.ListInitiatives_Initiatives, error) {
+	resp, err := c.gqlClient.ListInitiatives(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("initiatives query failed: %w", err)
+	}
+	return &resp.Initiatives, nil
+}
+
+// CommentCreate creates a new comment.
+func (c *Client) CommentCreate(ctx context.Context, input intgraphql.CommentCreateInput) (*intgraphql.CreateComment_CommentCreate_Comment, error) {
+	resp, err := c.gqlClient.CreateComment(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("comment create failed: %w", err)
+	}
+
+	if !resp.CommentCreate.Success {
+		return nil, fmt.Errorf("comment create failed: success=false")
+	}
+
+	return &resp.CommentCreate.Comment, nil
+}
+
+// CommentUpdate updates an existing comment.
+func (c *Client) CommentUpdate(ctx context.Context, id string, input intgraphql.CommentUpdateInput) (*intgraphql.UpdateComment_CommentUpdate_Comment, error) {
+	resp, err := c.gqlClient.UpdateComment(ctx, id, input)
+	if err != nil {
+		return nil, fmt.Errorf("comment update failed: %w", err)
+	}
+
+	if !resp.CommentUpdate.Success {
+		return nil, fmt.Errorf("comment update failed: success=false")
+	}
+
+	return &resp.CommentUpdate.Comment, nil
+}
+
+// CommentDelete deletes a comment by ID.
+func (c *Client) CommentDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteComment(ctx, id)
+	if err != nil {
+		return fmt.Errorf("comment delete failed: %w", err)
+	}
+
+	if !resp.CommentDelete.Success {
+		return fmt.Errorf("comment delete failed: success=false")
+	}
+
+	return nil
+}

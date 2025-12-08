@@ -1,0 +1,32 @@
+query GetInitiative($id: String!) {
+  initiative(id: $id) {
+    id
+    name
+    description
+    createdAt
+    updatedAt
+    targetDate
+    sortOrder
+    color
+    icon
+  }
+}
+
+query ListInitiatives($first: Int, $after: String) {
+  initiatives(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      description
+      createdAt
+      targetDate
+      sortOrder
+      color
+      icon
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

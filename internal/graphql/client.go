@@ -10,14 +10,21 @@ import (
 )
 
 type LinearGraphQLClient interface {
+	GetAttachment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetAttachment, error)
+	ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error)
 	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
 	ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error)
+	GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error)
+	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
 	ListLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListLabels, error)
+	CreateComment(ctx context.Context, input CommentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateComment, error)
+	UpdateComment(ctx context.Context, id string, input CommentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateComment, error)
+	DeleteComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteComment, error)
 	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
 	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
 	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
@@ -41,6 +48,169 @@ type Client struct {
 
 func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Options, interceptors ...clientv2.RequestInterceptor) LinearGraphQLClient {
 	return &Client{Client: clientv2.NewClient(cli, baseURL, options, interceptors...)}
+}
+
+type GetAttachment_Attachment struct {
+	CreatedAt  time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string    "json:\"id\" graphql:\"id\""
+	Metadata   string    "json:\"metadata\" graphql:\"metadata\""
+	Source     *string   "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string   "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string   "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string    "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *GetAttachment_Attachment) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetAttachment_Attachment) GetID() string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.ID
+}
+func (t *GetAttachment_Attachment) GetMetadata() string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.Metadata
+}
+func (t *GetAttachment_Attachment) GetSource() *string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.Source
+}
+func (t *GetAttachment_Attachment) GetSourceType() *string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.SourceType
+}
+func (t *GetAttachment_Attachment) GetSubtitle() *string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.Subtitle
+}
+func (t *GetAttachment_Attachment) GetTitle() string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.Title
+}
+func (t *GetAttachment_Attachment) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return &t.UpdatedAt
+}
+func (t *GetAttachment_Attachment) GetURL() string {
+	if t == nil {
+		t = &GetAttachment_Attachment{}
+	}
+	return t.URL
+}
+
+type ListAttachments_Attachments_Nodes struct {
+	CreatedAt  time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string    "json:\"id\" graphql:\"id\""
+	Source     *string   "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string   "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string   "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string    "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListAttachments_Attachments_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListAttachments_Attachments_Nodes) GetID() string {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListAttachments_Attachments_Nodes) GetSource() *string {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return t.Source
+}
+func (t *ListAttachments_Attachments_Nodes) GetSourceType() *string {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return t.SourceType
+}
+func (t *ListAttachments_Attachments_Nodes) GetSubtitle() *string {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return t.Subtitle
+}
+func (t *ListAttachments_Attachments_Nodes) GetTitle() string {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return t.Title
+}
+func (t *ListAttachments_Attachments_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListAttachments_Attachments_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListAttachments_Attachments_Nodes{}
+	}
+	return t.URL
+}
+
+type ListAttachments_Attachments_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListAttachments_Attachments_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListAttachments_Attachments_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListAttachments_Attachments_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListAttachments_Attachments_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListAttachments_Attachments struct {
+	Nodes    []*ListAttachments_Attachments_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListAttachments_Attachments_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListAttachments_Attachments) GetNodes() []*ListAttachments_Attachments_Nodes {
+	if t == nil {
+		t = &ListAttachments_Attachments{}
+	}
+	return t.Nodes
+}
+func (t *ListAttachments_Attachments) GetPageInfo() *ListAttachments_Attachments_PageInfo {
+	if t == nil {
+		t = &ListAttachments_Attachments{}
+	}
+	return &t.PageInfo
 }
 
 type GetComment_Comment_User struct {
@@ -398,6 +568,169 @@ func (t *ListCycles_Cycles) GetNodes() []*ListCycles_Cycles_Nodes {
 func (t *ListCycles_Cycles) GetPageInfo() *ListCycles_Cycles_PageInfo {
 	if t == nil {
 		t = &ListCycles_Cycles{}
+	}
+	return &t.PageInfo
+}
+
+type GetInitiative_Initiative struct {
+	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	SortOrder   float64   "json:\"sortOrder\" graphql:\"sortOrder\""
+	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetInitiative_Initiative) GetColor() *string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.Color
+}
+func (t *GetInitiative_Initiative) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetInitiative_Initiative) GetDescription() *string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.Description
+}
+func (t *GetInitiative_Initiative) GetIcon() *string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.Icon
+}
+func (t *GetInitiative_Initiative) GetID() string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.ID
+}
+func (t *GetInitiative_Initiative) GetName() string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.Name
+}
+func (t *GetInitiative_Initiative) GetSortOrder() float64 {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.SortOrder
+}
+func (t *GetInitiative_Initiative) GetTargetDate() *string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.TargetDate
+}
+func (t *GetInitiative_Initiative) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListInitiatives_Initiatives_Nodes struct {
+	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	SortOrder   float64   "json:\"sortOrder\" graphql:\"sortOrder\""
+	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+}
+
+func (t *ListInitiatives_Initiatives_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetID() string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetName() string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetSortOrder() float64 {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.SortOrder
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.TargetDate
+}
+
+type ListInitiatives_Initiatives_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListInitiatives_Initiatives_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListInitiatives_Initiatives_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListInitiatives_Initiatives struct {
+	Nodes    []*ListInitiatives_Initiatives_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListInitiatives_Initiatives_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListInitiatives_Initiatives) GetNodes() []*ListInitiatives_Initiatives_Nodes {
+	if t == nil {
+		t = &ListInitiatives_Initiatives{}
+	}
+	return t.Nodes
+}
+func (t *ListInitiatives_Initiatives) GetPageInfo() *ListInitiatives_Initiatives_PageInfo {
+	if t == nil {
+		t = &ListInitiatives_Initiatives{}
 	}
 	return &t.PageInfo
 }
@@ -830,6 +1163,117 @@ func (t *ListLabels_IssueLabels) GetPageInfo() *ListLabels_IssueLabels_PageInfo 
 		t = &ListLabels_IssueLabels{}
 	}
 	return &t.PageInfo
+}
+
+type CreateComment_CommentCreate_Comment struct {
+	Body      string    "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *CreateComment_CommentCreate_Comment) GetBody() string {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return t.Body
+}
+func (t *CreateComment_CommentCreate_Comment) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateComment_CommentCreate_Comment) GetID() string {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return t.ID
+}
+func (t *CreateComment_CommentCreate_Comment) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return &t.UpdatedAt
+}
+func (t *CreateComment_CommentCreate_Comment) GetURL() string {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return t.URL
+}
+
+type CreateComment_CommentCreate struct {
+	Comment CreateComment_CommentCreate_Comment "json:\"comment\" graphql:\"comment\""
+	Success bool                                "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateComment_CommentCreate) GetComment() *CreateComment_CommentCreate_Comment {
+	if t == nil {
+		t = &CreateComment_CommentCreate{}
+	}
+	return &t.Comment
+}
+func (t *CreateComment_CommentCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateComment_CommentCreate{}
+	}
+	return t.Success
+}
+
+type UpdateComment_CommentUpdate_Comment struct {
+	Body      string    "json:\"body\" graphql:\"body\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateComment_CommentUpdate_Comment) GetBody() string {
+	if t == nil {
+		t = &UpdateComment_CommentUpdate_Comment{}
+	}
+	return t.Body
+}
+func (t *UpdateComment_CommentUpdate_Comment) GetID() string {
+	if t == nil {
+		t = &UpdateComment_CommentUpdate_Comment{}
+	}
+	return t.ID
+}
+func (t *UpdateComment_CommentUpdate_Comment) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateComment_CommentUpdate_Comment{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateComment_CommentUpdate struct {
+	Comment UpdateComment_CommentUpdate_Comment "json:\"comment\" graphql:\"comment\""
+	Success bool                                "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateComment_CommentUpdate) GetComment() *UpdateComment_CommentUpdate_Comment {
+	if t == nil {
+		t = &UpdateComment_CommentUpdate{}
+	}
+	return &t.Comment
+}
+func (t *UpdateComment_CommentUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateComment_CommentUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteComment_CommentDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteComment_CommentDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteComment_CommentDelete{}
+	}
+	return t.Success
 }
 
 type CreateIssue_IssueCreate_Issue_State struct {
@@ -1988,6 +2432,28 @@ func (t *ListWorkflowStates_WorkflowStates) GetPageInfo() *ListWorkflowStates_Wo
 	return &t.PageInfo
 }
 
+type GetAttachment struct {
+	Attachment GetAttachment_Attachment "json:\"attachment\" graphql:\"attachment\""
+}
+
+func (t *GetAttachment) GetAttachment() *GetAttachment_Attachment {
+	if t == nil {
+		t = &GetAttachment{}
+	}
+	return &t.Attachment
+}
+
+type ListAttachments struct {
+	Attachments ListAttachments_Attachments "json:\"attachments\" graphql:\"attachments\""
+}
+
+func (t *ListAttachments) GetAttachments() *ListAttachments_Attachments {
+	if t == nil {
+		t = &ListAttachments{}
+	}
+	return &t.Attachments
+}
+
 type GetComment struct {
 	Comment GetComment_Comment "json:\"comment\" graphql:\"comment\""
 }
@@ -2032,6 +2498,28 @@ func (t *ListCycles) GetCycles() *ListCycles_Cycles {
 	return &t.Cycles
 }
 
+type GetInitiative struct {
+	Initiative GetInitiative_Initiative "json:\"initiative\" graphql:\"initiative\""
+}
+
+func (t *GetInitiative) GetInitiative() *GetInitiative_Initiative {
+	if t == nil {
+		t = &GetInitiative{}
+	}
+	return &t.Initiative
+}
+
+type ListInitiatives struct {
+	Initiatives ListInitiatives_Initiatives "json:\"initiatives\" graphql:\"initiatives\""
+}
+
+func (t *ListInitiatives) GetInitiatives() *ListInitiatives_Initiatives {
+	if t == nil {
+		t = &ListInitiatives{}
+	}
+	return &t.Initiatives
+}
+
 type GetIssue struct {
 	Issue GetIssue_Issue "json:\"issue\" graphql:\"issue\""
 }
@@ -2074,6 +2562,39 @@ func (t *ListLabels) GetIssueLabels() *ListLabels_IssueLabels {
 		t = &ListLabels{}
 	}
 	return &t.IssueLabels
+}
+
+type CreateComment struct {
+	CommentCreate CreateComment_CommentCreate "json:\"commentCreate\" graphql:\"commentCreate\""
+}
+
+func (t *CreateComment) GetCommentCreate() *CreateComment_CommentCreate {
+	if t == nil {
+		t = &CreateComment{}
+	}
+	return &t.CommentCreate
+}
+
+type UpdateComment struct {
+	CommentUpdate UpdateComment_CommentUpdate "json:\"commentUpdate\" graphql:\"commentUpdate\""
+}
+
+func (t *UpdateComment) GetCommentUpdate() *UpdateComment_CommentUpdate {
+	if t == nil {
+		t = &UpdateComment{}
+	}
+	return &t.CommentUpdate
+}
+
+type DeleteComment struct {
+	CommentDelete DeleteComment_CommentDelete "json:\"commentDelete\" graphql:\"commentDelete\""
+}
+
+func (t *DeleteComment) GetCommentDelete() *DeleteComment_CommentDelete {
+	if t == nil {
+		t = &DeleteComment{}
+	}
+	return &t.CommentDelete
 }
 
 type CreateIssue struct {
@@ -2241,6 +2762,76 @@ func (t *ListWorkflowStates) GetWorkflowStates() *ListWorkflowStates_WorkflowSta
 	return &t.WorkflowStates
 }
 
+const GetAttachmentDocument = `query GetAttachment ($id: String!) {
+	attachment(id: $id) {
+		id
+		title
+		subtitle
+		url
+		createdAt
+		updatedAt
+		metadata
+		source
+		sourceType
+	}
+}
+`
+
+func (c *Client) GetAttachment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetAttachment, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetAttachment
+	if err := c.Client.Post(ctx, "GetAttachment", GetAttachmentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListAttachmentsDocument = `query ListAttachments ($first: Int, $after: String) {
+	attachments(first: $first, after: $after) {
+		nodes {
+			id
+			title
+			subtitle
+			url
+			createdAt
+			updatedAt
+			source
+			sourceType
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListAttachments
+	if err := c.Client.Post(ctx, "ListAttachments", ListAttachmentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetCommentDocument = `query GetComment ($id: String!) {
 	comment(id: $id) {
 		id
@@ -2377,6 +2968,76 @@ func (c *Client) ListCycles(ctx context.Context, first *int64, after *string, in
 
 	var res ListCycles
 	if err := c.Client.Post(ctx, "ListCycles", ListCyclesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetInitiativeDocument = `query GetInitiative ($id: String!) {
+	initiative(id: $id) {
+		id
+		name
+		description
+		createdAt
+		updatedAt
+		targetDate
+		sortOrder
+		color
+		icon
+	}
+}
+`
+
+func (c *Client) GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetInitiative
+	if err := c.Client.Post(ctx, "GetInitiative", GetInitiativeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListInitiativesDocument = `query ListInitiatives ($first: Int, $after: String) {
+	initiatives(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			description
+			createdAt
+			targetDate
+			sortOrder
+			color
+			icon
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListInitiatives
+	if err := c.Client.Post(ctx, "ListInitiatives", ListInitiativesDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -2534,6 +3195,91 @@ func (c *Client) ListLabels(ctx context.Context, first *int64, after *string, in
 
 	var res ListLabels
 	if err := c.Client.Post(ctx, "ListLabels", ListLabelsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const CreateCommentDocument = `mutation CreateComment ($input: CommentCreateInput!) {
+	commentCreate(input: $input) {
+		success
+		comment {
+			id
+			body
+			createdAt
+			updatedAt
+			url
+		}
+	}
+}
+`
+
+func (c *Client) CreateComment(ctx context.Context, input CommentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateComment, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateComment
+	if err := c.Client.Post(ctx, "CreateComment", CreateCommentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateCommentDocument = `mutation UpdateComment ($id: String!, $input: CommentUpdateInput!) {
+	commentUpdate(id: $id, input: $input) {
+		success
+		comment {
+			id
+			body
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateComment(ctx context.Context, id string, input CommentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateComment, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateComment
+	if err := c.Client.Post(ctx, "UpdateComment", UpdateCommentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteCommentDocument = `mutation DeleteComment ($id: String!) {
+	commentDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteComment, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteComment
+	if err := c.Client.Post(ctx, "DeleteComment", DeleteCommentDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -3055,14 +3801,21 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 }
 
 var DocumentOperationNames = map[string]string{
+	GetAttachmentDocument:      "GetAttachment",
+	ListAttachmentsDocument:    "ListAttachments",
 	GetCommentDocument:         "GetComment",
 	ListCommentsDocument:       "ListComments",
 	GetCycleDocument:           "GetCycle",
 	ListCyclesDocument:         "ListCycles",
+	GetInitiativeDocument:      "GetInitiative",
+	ListInitiativesDocument:    "ListInitiatives",
 	GetIssueDocument:           "GetIssue",
 	ListIssuesDocument:         "ListIssues",
 	GetLabelDocument:           "GetLabel",
 	ListLabelsDocument:         "ListLabels",
+	CreateCommentDocument:      "CreateComment",
+	UpdateCommentDocument:      "UpdateComment",
+	DeleteCommentDocument:      "DeleteComment",
 	CreateIssueDocument:        "CreateIssue",
 	UpdateIssueDocument:        "UpdateIssue",
 	DeleteIssueDocument:        "DeleteIssue",
