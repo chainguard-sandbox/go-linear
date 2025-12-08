@@ -162,3 +162,45 @@ func (c *Client) Comments(ctx context.Context, first *int64, after *string) (*in
 	}
 	return &resp.Comments, nil
 }
+
+// IssueCreate creates a new issue.
+func (c *Client) IssueCreate(ctx context.Context, input intgraphql.IssueCreateInput) (*intgraphql.CreateIssue_IssueCreate_Issue, error) {
+	resp, err := c.gqlClient.CreateIssue(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("issue create failed: %w", err)
+	}
+
+	if !resp.IssueCreate.Success {
+		return nil, fmt.Errorf("issue create failed: success=false")
+	}
+
+	return resp.IssueCreate.Issue, nil
+}
+
+// IssueUpdate updates an existing issue.
+func (c *Client) IssueUpdate(ctx context.Context, id string, input intgraphql.IssueUpdateInput) (*intgraphql.UpdateIssue_IssueUpdate_Issue, error) {
+	resp, err := c.gqlClient.UpdateIssue(ctx, id, input)
+	if err != nil {
+		return nil, fmt.Errorf("issue update failed: %w", err)
+	}
+
+	if !resp.IssueUpdate.Success {
+		return nil, fmt.Errorf("issue update failed: success=false")
+	}
+
+	return resp.IssueUpdate.Issue, nil
+}
+
+// IssueDelete deletes an issue by ID.
+func (c *Client) IssueDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteIssue(ctx, id)
+	if err != nil {
+		return fmt.Errorf("issue delete failed: %w", err)
+	}
+
+	if !resp.IssueDelete.Success {
+		return fmt.Errorf("issue delete failed: success=false")
+	}
+
+	return nil
+}

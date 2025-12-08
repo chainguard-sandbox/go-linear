@@ -14,6 +14,9 @@ type LinearGraphQLClient interface {
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
+	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
+	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
+	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
@@ -502,6 +505,202 @@ func (t *ListIssues_Issues) GetPageInfo() *ListIssues_Issues_PageInfo {
 		t = &ListIssues_Issues{}
 	}
 	return &t.PageInfo
+}
+
+type CreateIssue_IssueCreate_Issue_State struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateIssue_IssueCreate_Issue_State) GetID() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_State{}
+	}
+	return t.ID
+}
+func (t *CreateIssue_IssueCreate_Issue_State) GetName() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_State{}
+	}
+	return t.Name
+}
+
+type CreateIssue_IssueCreate_Issue_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateIssue_IssueCreate_Issue_Team) GetID() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_Team{}
+	}
+	return t.ID
+}
+func (t *CreateIssue_IssueCreate_Issue_Team) GetKey() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_Team{}
+	}
+	return t.Key
+}
+func (t *CreateIssue_IssueCreate_Issue_Team) GetName() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_Team{}
+	}
+	return t.Name
+}
+
+type CreateIssue_IssueCreate_Issue struct {
+	CreatedAt   time.Time                           "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                             "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                              "json:\"id\" graphql:\"id\""
+	Number      float64                             "json:\"number\" graphql:\"number\""
+	Priority    float64                             "json:\"priority\" graphql:\"priority\""
+	State       CreateIssue_IssueCreate_Issue_State "json:\"state\" graphql:\"state\""
+	Team        CreateIssue_IssueCreate_Issue_Team  "json:\"team\" graphql:\"team\""
+	Title       string                              "json:\"title\" graphql:\"title\""
+	URL         string                              "json:\"url\" graphql:\"url\""
+}
+
+func (t *CreateIssue_IssueCreate_Issue) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateIssue_IssueCreate_Issue) GetDescription() *string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.Description
+}
+func (t *CreateIssue_IssueCreate_Issue) GetID() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.ID
+}
+func (t *CreateIssue_IssueCreate_Issue) GetNumber() float64 {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.Number
+}
+func (t *CreateIssue_IssueCreate_Issue) GetPriority() float64 {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.Priority
+}
+func (t *CreateIssue_IssueCreate_Issue) GetState() *CreateIssue_IssueCreate_Issue_State {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return &t.State
+}
+func (t *CreateIssue_IssueCreate_Issue) GetTeam() *CreateIssue_IssueCreate_Issue_Team {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return &t.Team
+}
+func (t *CreateIssue_IssueCreate_Issue) GetTitle() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.Title
+}
+func (t *CreateIssue_IssueCreate_Issue) GetURL() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.URL
+}
+
+type CreateIssue_IssueCreate struct {
+	Issue   *CreateIssue_IssueCreate_Issue "json:\"issue,omitempty\" graphql:\"issue\""
+	Success bool                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateIssue_IssueCreate) GetIssue() *CreateIssue_IssueCreate_Issue {
+	if t == nil {
+		t = &CreateIssue_IssueCreate{}
+	}
+	return t.Issue
+}
+func (t *CreateIssue_IssueCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateIssue_IssueCreate{}
+	}
+	return t.Success
+}
+
+type UpdateIssue_IssueUpdate_Issue struct {
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Priority    float64   "json:\"priority\" graphql:\"priority\""
+	Title       string    "json:\"title\" graphql:\"title\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateIssue_IssueUpdate_Issue) GetDescription() *string {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate_Issue{}
+	}
+	return t.Description
+}
+func (t *UpdateIssue_IssueUpdate_Issue) GetID() string {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate_Issue{}
+	}
+	return t.ID
+}
+func (t *UpdateIssue_IssueUpdate_Issue) GetPriority() float64 {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate_Issue{}
+	}
+	return t.Priority
+}
+func (t *UpdateIssue_IssueUpdate_Issue) GetTitle() string {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate_Issue{}
+	}
+	return t.Title
+}
+func (t *UpdateIssue_IssueUpdate_Issue) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate_Issue{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateIssue_IssueUpdate struct {
+	Issue   *UpdateIssue_IssueUpdate_Issue "json:\"issue,omitempty\" graphql:\"issue\""
+	Success bool                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateIssue_IssueUpdate) GetIssue() *UpdateIssue_IssueUpdate_Issue {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate{}
+	}
+	return t.Issue
+}
+func (t *UpdateIssue_IssueUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteIssue_IssueDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteIssue_IssueDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteIssue_IssueDelete{}
+	}
+	return t.Success
 }
 
 type GetProject_Project_Lead struct {
@@ -1178,6 +1377,39 @@ func (t *ListIssues) GetIssues() *ListIssues_Issues {
 	return &t.Issues
 }
 
+type CreateIssue struct {
+	IssueCreate CreateIssue_IssueCreate "json:\"issueCreate\" graphql:\"issueCreate\""
+}
+
+func (t *CreateIssue) GetIssueCreate() *CreateIssue_IssueCreate {
+	if t == nil {
+		t = &CreateIssue{}
+	}
+	return &t.IssueCreate
+}
+
+type UpdateIssue struct {
+	IssueUpdate UpdateIssue_IssueUpdate "json:\"issueUpdate\" graphql:\"issueUpdate\""
+}
+
+func (t *UpdateIssue) GetIssueUpdate() *UpdateIssue_IssueUpdate {
+	if t == nil {
+		t = &UpdateIssue{}
+	}
+	return &t.IssueUpdate
+}
+
+type DeleteIssue struct {
+	IssueDelete DeleteIssue_IssueDelete "json:\"issueDelete\" graphql:\"issueDelete\""
+}
+
+func (t *DeleteIssue) GetIssueDelete() *DeleteIssue_IssueDelete {
+	if t == nil {
+		t = &DeleteIssue{}
+	}
+	return &t.IssueDelete
+}
+
 type GetProject struct {
 	Project GetProject_Project "json:\"project\" graphql:\"project\""
 }
@@ -1409,6 +1641,104 @@ func (c *Client) ListIssues(ctx context.Context, first *int64, after *string, in
 
 	var res ListIssues
 	if err := c.Client.Post(ctx, "ListIssues", ListIssuesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const CreateIssueDocument = `mutation CreateIssue ($input: IssueCreateInput!) {
+	issueCreate(input: $input) {
+		success
+		issue {
+			id
+			title
+			description
+			priority
+			createdAt
+			number
+			url
+			state {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+		}
+	}
+}
+`
+
+func (c *Client) CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateIssue
+	if err := c.Client.Post(ctx, "CreateIssue", CreateIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateIssueDocument = `mutation UpdateIssue ($id: String!, $input: IssueUpdateInput!) {
+	issueUpdate(id: $id, input: $input) {
+		success
+		issue {
+			id
+			title
+			description
+			priority
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateIssue
+	if err := c.Client.Post(ctx, "UpdateIssue", UpdateIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteIssueDocument = `mutation DeleteIssue ($id: String!) {
+	issueDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteIssue
+	if err := c.Client.Post(ctx, "DeleteIssue", DeleteIssueDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -1675,6 +2005,9 @@ var DocumentOperationNames = map[string]string{
 	ListCommentsDocument: "ListComments",
 	GetIssueDocument:     "GetIssue",
 	ListIssuesDocument:   "ListIssues",
+	CreateIssueDocument:  "CreateIssue",
+	UpdateIssueDocument:  "UpdateIssue",
+	DeleteIssueDocument:  "DeleteIssue",
 	GetProjectDocument:   "GetProject",
 	ListProjectsDocument: "ListProjects",
 	GetTeamDocument:      "GetTeam",

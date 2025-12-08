@@ -1,0 +1,42 @@
+mutation CreateIssue($input: IssueCreateInput!) {
+  issueCreate(input: $input) {
+    success
+    issue {
+      id
+      title
+      description
+      priority
+      createdAt
+      number
+      url
+      state {
+        id
+        name
+      }
+      team {
+        id
+        name
+        key
+      }
+    }
+  }
+}
+
+mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
+  issueUpdate(id: $id, input: $input) {
+    success
+    issue {
+      id
+      title
+      description
+      priority
+      updatedAt
+    }
+  }
+}
+
+mutation DeleteIssue($id: String!) {
+  issueDelete(id: $id) {
+    success
+  }
+}
