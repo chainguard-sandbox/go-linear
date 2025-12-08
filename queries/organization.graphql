@@ -1,0 +1,11 @@
+query GetOrganization {
+  organization {
+    id
+    name
+    urlKey
+    logoUrl
+    createdAt
+    updatedAt
+    roadmapEnabled
+  }
+}

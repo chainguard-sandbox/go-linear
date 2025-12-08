@@ -1,0 +1,26 @@
+query GetLabel($id: String!) {
+  issueLabel(id: $id) {
+    id
+    name
+    description
+    color
+    createdAt
+    updatedAt
+  }
+}
+
+query ListLabels($first: Int, $after: String) {
+  issueLabels(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      description
+      color
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

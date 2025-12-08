@@ -204,3 +204,48 @@ func (c *Client) IssueDelete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// Organization retrieves the organization information.
+func (c *Client) Organization(ctx context.Context) (*intgraphql.GetOrganization_Organization, error) {
+	resp, err := c.gqlClient.GetOrganization(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("organization query failed: %w", err)
+	}
+	return &resp.Organization, nil
+}
+
+// IssueLabel retrieves a single issue label by ID.
+func (c *Client) IssueLabel(ctx context.Context, id string) (*intgraphql.GetLabel_IssueLabel, error) {
+	resp, err := c.gqlClient.GetLabel(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("label query failed: %w", err)
+	}
+	return &resp.IssueLabel, nil
+}
+
+// IssueLabels retrieves a paginated list of issue labels.
+func (c *Client) IssueLabels(ctx context.Context, first *int64, after *string) (*intgraphql.ListLabels_IssueLabels, error) {
+	resp, err := c.gqlClient.ListLabels(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("labels query failed: %w", err)
+	}
+	return &resp.IssueLabels, nil
+}
+
+// WorkflowState retrieves a single workflow state by ID.
+func (c *Client) WorkflowState(ctx context.Context, id string) (*intgraphql.GetWorkflowState_WorkflowState, error) {
+	resp, err := c.gqlClient.GetWorkflowState(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("workflow state query failed: %w", err)
+	}
+	return &resp.WorkflowState, nil
+}
+
+// WorkflowStates retrieves a paginated list of workflow states.
+func (c *Client) WorkflowStates(ctx context.Context, first *int64, after *string) (*intgraphql.ListWorkflowStates_WorkflowStates, error) {
+	resp, err := c.gqlClient.ListWorkflowStates(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("workflow states query failed: %w", err)
+	}
+	return &resp.WorkflowStates, nil
+}
