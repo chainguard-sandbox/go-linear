@@ -6,6 +6,8 @@
 *.dylib
 bin/
 dist/
+*_bin
+*_example_bin
 
 # Test binary, built with `go test -c`
 *.test
