@@ -408,3 +408,45 @@ func (c *Client) Templates(ctx context.Context) ([]*intgraphql.ListTemplates_Tem
 	}
 	return resp.Templates, nil
 }
+
+// IssueLabelCreate creates a new label.
+func (c *Client) IssueLabelCreate(ctx context.Context, input intgraphql.IssueLabelCreateInput) (*intgraphql.CreateLabel_IssueLabelCreate_IssueLabel, error) {
+	resp, err := c.gqlClient.CreateLabel(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("label create failed: %w", err)
+	}
+
+	if !resp.IssueLabelCreate.Success {
+		return nil, fmt.Errorf("label create failed: success=false")
+	}
+
+	return &resp.IssueLabelCreate.IssueLabel, nil
+}
+
+// IssueLabelUpdate updates an existing label.
+func (c *Client) IssueLabelUpdate(ctx context.Context, id string, input intgraphql.IssueLabelUpdateInput) (*intgraphql.UpdateLabel_IssueLabelUpdate_IssueLabel, error) {
+	resp, err := c.gqlClient.UpdateLabel(ctx, id, input)
+	if err != nil {
+		return nil, fmt.Errorf("label update failed: %w", err)
+	}
+
+	if !resp.IssueLabelUpdate.Success {
+		return nil, fmt.Errorf("label update failed: success=false")
+	}
+
+	return &resp.IssueLabelUpdate.IssueLabel, nil
+}
+
+// IssueLabelDelete deletes a label by ID.
+func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteLabel(ctx, id)
+	if err != nil {
+		return fmt.Errorf("label delete failed: %w", err)
+	}
+
+	if !resp.IssueLabelDelete.Success {
+		return fmt.Errorf("label delete failed: success=false")
+	}
+
+	return nil
+}

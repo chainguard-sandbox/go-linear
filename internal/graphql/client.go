@@ -30,6 +30,9 @@ type LinearGraphQLClient interface {
 	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
 	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
 	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
+	CreateLabel(ctx context.Context, input IssueLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateLabel, error)
+	UpdateLabel(ctx context.Context, id string, input IssueLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateLabel, error)
+	DeleteLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteLabel, error)
 	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
 	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
@@ -1635,6 +1638,131 @@ type DeleteIssue_IssueDelete struct {
 func (t *DeleteIssue_IssueDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteIssue_IssueDelete{}
+	}
+	return t.Success
+}
+
+type CreateLabel_IssueLabelCreate_IssueLabel struct {
+	Color       string    "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateLabel_IssueLabelCreate_IssueLabel) GetColor() string {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate_IssueLabel{}
+	}
+	return t.Color
+}
+func (t *CreateLabel_IssueLabelCreate_IssueLabel) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate_IssueLabel{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateLabel_IssueLabelCreate_IssueLabel) GetDescription() *string {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate_IssueLabel{}
+	}
+	return t.Description
+}
+func (t *CreateLabel_IssueLabelCreate_IssueLabel) GetID() string {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate_IssueLabel{}
+	}
+	return t.ID
+}
+func (t *CreateLabel_IssueLabelCreate_IssueLabel) GetName() string {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate_IssueLabel{}
+	}
+	return t.Name
+}
+
+type CreateLabel_IssueLabelCreate struct {
+	IssueLabel CreateLabel_IssueLabelCreate_IssueLabel "json:\"issueLabel\" graphql:\"issueLabel\""
+	Success    bool                                    "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateLabel_IssueLabelCreate) GetIssueLabel() *CreateLabel_IssueLabelCreate_IssueLabel {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate{}
+	}
+	return &t.IssueLabel
+}
+func (t *CreateLabel_IssueLabelCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateLabel_IssueLabelCreate{}
+	}
+	return t.Success
+}
+
+type UpdateLabel_IssueLabelUpdate_IssueLabel struct {
+	Color       string    "json:\"color\" graphql:\"color\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateLabel_IssueLabelUpdate_IssueLabel) GetColor() string {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate_IssueLabel{}
+	}
+	return t.Color
+}
+func (t *UpdateLabel_IssueLabelUpdate_IssueLabel) GetDescription() *string {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate_IssueLabel{}
+	}
+	return t.Description
+}
+func (t *UpdateLabel_IssueLabelUpdate_IssueLabel) GetID() string {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate_IssueLabel{}
+	}
+	return t.ID
+}
+func (t *UpdateLabel_IssueLabelUpdate_IssueLabel) GetName() string {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate_IssueLabel{}
+	}
+	return t.Name
+}
+func (t *UpdateLabel_IssueLabelUpdate_IssueLabel) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate_IssueLabel{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateLabel_IssueLabelUpdate struct {
+	IssueLabel UpdateLabel_IssueLabelUpdate_IssueLabel "json:\"issueLabel\" graphql:\"issueLabel\""
+	Success    bool                                    "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateLabel_IssueLabelUpdate) GetIssueLabel() *UpdateLabel_IssueLabelUpdate_IssueLabel {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate{}
+	}
+	return &t.IssueLabel
+}
+func (t *UpdateLabel_IssueLabelUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateLabel_IssueLabelUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteLabel_IssueLabelDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteLabel_IssueLabelDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteLabel_IssueLabelDelete{}
 	}
 	return t.Success
 }
@@ -3293,6 +3421,39 @@ func (t *DeleteIssue) GetIssueDelete() *DeleteIssue_IssueDelete {
 	return &t.IssueDelete
 }
 
+type CreateLabel struct {
+	IssueLabelCreate CreateLabel_IssueLabelCreate "json:\"issueLabelCreate\" graphql:\"issueLabelCreate\""
+}
+
+func (t *CreateLabel) GetIssueLabelCreate() *CreateLabel_IssueLabelCreate {
+	if t == nil {
+		t = &CreateLabel{}
+	}
+	return &t.IssueLabelCreate
+}
+
+type UpdateLabel struct {
+	IssueLabelUpdate UpdateLabel_IssueLabelUpdate "json:\"issueLabelUpdate\" graphql:\"issueLabelUpdate\""
+}
+
+func (t *UpdateLabel) GetIssueLabelUpdate() *UpdateLabel_IssueLabelUpdate {
+	if t == nil {
+		t = &UpdateLabel{}
+	}
+	return &t.IssueLabelUpdate
+}
+
+type DeleteLabel struct {
+	IssueLabelDelete DeleteLabel_IssueLabelDelete "json:\"issueLabelDelete\" graphql:\"issueLabelDelete\""
+}
+
+func (t *DeleteLabel) GetIssueLabelDelete() *DeleteLabel_IssueLabelDelete {
+	if t == nil {
+		t = &DeleteLabel{}
+	}
+	return &t.IssueLabelDelete
+}
+
 type CreateProject struct {
 	ProjectCreate CreateProject_ProjectCreate "json:\"projectCreate\" graphql:\"projectCreate\""
 }
@@ -4219,6 +4380,93 @@ func (c *Client) DeleteIssue(ctx context.Context, id string, interceptors ...cli
 	return &res, nil
 }
 
+const CreateLabelDocument = `mutation CreateLabel ($input: IssueLabelCreateInput!) {
+	issueLabelCreate(input: $input) {
+		success
+		issueLabel {
+			id
+			name
+			description
+			color
+			createdAt
+		}
+	}
+}
+`
+
+func (c *Client) CreateLabel(ctx context.Context, input IssueLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateLabel, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateLabel
+	if err := c.Client.Post(ctx, "CreateLabel", CreateLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateLabelDocument = `mutation UpdateLabel ($id: String!, $input: IssueLabelUpdateInput!) {
+	issueLabelUpdate(id: $id, input: $input) {
+		success
+		issueLabel {
+			id
+			name
+			description
+			color
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateLabel(ctx context.Context, id string, input IssueLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateLabel, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateLabel
+	if err := c.Client.Post(ctx, "UpdateLabel", UpdateLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteLabelDocument = `mutation DeleteLabel ($id: String!) {
+	issueLabelDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteLabel, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteLabel
+	if err := c.Client.Post(ctx, "DeleteLabel", DeleteLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateProjectDocument = `mutation CreateProject ($input: ProjectCreateInput!) {
 	projectCreate(input: $input) {
 		success
@@ -4927,6 +5175,9 @@ var DocumentOperationNames = map[string]string{
 	CreateIssueDocument:        "CreateIssue",
 	UpdateIssueDocument:        "UpdateIssue",
 	DeleteIssueDocument:        "DeleteIssue",
+	CreateLabelDocument:        "CreateLabel",
+	UpdateLabelDocument:        "UpdateLabel",
+	DeleteLabelDocument:        "DeleteLabel",
 	CreateProjectDocument:      "CreateProject",
 	UpdateProjectDocument:      "UpdateProject",
 	DeleteProjectDocument:      "DeleteProject",

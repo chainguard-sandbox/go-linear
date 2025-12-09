@@ -1,3 +1,5 @@
+//go:build read
+
 package linear
 
 import (

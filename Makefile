@@ -74,9 +74,28 @@ generate:  ## Run code generation (genqlient)
 # Testing targets
 #
 
-test:  ## Run tests with race detection
-	@echo "Running tests..."
+test:  ## Run tests with race detection (mock tests only, no API key needed)
+	@echo "Running mock tests..."
 	go test -race -cover ./...
+
+test-read:  ## Run live read-only tests (requires LINEAR_API_KEY with Read permission)
+	@echo "Running live read-only tests..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set"; \
+		echo "Run: export LINEAR_API_KEY=your-key"; \
+		exit 1; \
+	fi
+	go test -tags=read -race -cover -v ./...
+
+test-write:  ## Run live mutation tests (requires LINEAR_API_KEY with Write permission)
+	@echo "Running live mutation tests..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set"; \
+		echo "Run: export LINEAR_API_KEY=your-key"; \
+		exit 1; \
+	fi
+	@echo "⚠️  WARNING: This will CREATE/UPDATE/DELETE data on test-server"
+	go test -tags=write -race -cover -v ./...
 
 test-verbose:  ## Run tests with verbose output
 	@echo "Running tests (verbose)..."
@@ -87,6 +106,16 @@ test-coverage:  ## Run tests with coverage report
 	go test -race -coverprofile=coverage.out -covermode=atomic ./...
 	@echo "✓ Coverage report saved to coverage.out"
 	@echo "View with: go tool cover -html=coverage.out"
+
+test-all:  ## Run all tests (mock + read + write, requires LINEAR_API_KEY with Write permission)
+	@echo "Running all tests..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set for live tests"; \
+		exit 1; \
+	fi
+	@$(MAKE) test
+	@$(MAKE) test-read
+	@$(MAKE) test-write
 
 benchmark:  ## Run benchmarks
 	@echo "Running benchmarks..."

@@ -1,0 +1,31 @@
+mutation CreateLabel($input: IssueLabelCreateInput!) {
+  issueLabelCreate(input: $input) {
+    success
+    issueLabel {
+      id
+      name
+      description
+      color
+      createdAt
+    }
+  }
+}
+
+mutation UpdateLabel($id: String!, $input: IssueLabelUpdateInput!) {
+  issueLabelUpdate(id: $id, input: $input) {
+    success
+    issueLabel {
+      id
+      name
+      description
+      color
+      updatedAt
+    }
+  }
+}
+
+mutation DeleteLabel($id: String!) {
+  issueLabelDelete(id: $id) {
+    success
+  }
+}
