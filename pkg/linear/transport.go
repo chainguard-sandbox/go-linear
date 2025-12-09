@@ -161,13 +161,26 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 				level = slog.LevelWarn
 			}
 
-			t.Logger.LogAttrs(req.Context(), level,
-				"request completed",
-				slog.String("method", req.Method),
-				slog.String("url", req.URL.String()),
-				slog.Int("status", resp.StatusCode),
-				slog.Duration("duration", duration),
-			)
+			// Build attributes with request ID if available
+			requestID := resp.Header.Get("X-Request-ID")
+			if requestID != "" {
+				t.Logger.LogAttrs(req.Context(), level,
+					"request completed",
+					slog.String("method", req.Method),
+					slog.String("url", req.URL.String()),
+					slog.Int("status", resp.StatusCode),
+					slog.Duration("duration", duration),
+					slog.String("request_id", requestID),
+				)
+			} else {
+				t.Logger.LogAttrs(req.Context(), level,
+					"request completed",
+					slog.String("method", req.Method),
+					slog.String("url", req.URL.String()),
+					slog.Int("status", resp.StatusCode),
+					slog.Duration("duration", duration),
+				)
+			}
 		}
 
 		// Handle 429 Rate Limit

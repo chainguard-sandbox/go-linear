@@ -272,6 +272,70 @@ func TestTransport_Logging(t *testing.T) {
 	}
 }
 
+func TestTransport_RequestIDLogging(t *testing.T) {
+	tests := []struct {
+		name      string
+		headers   map[string][]string
+		wantField string
+	}{
+		{
+			name: "with X-Request-ID",
+			headers: map[string][]string{
+				"X-Request-Id": {"req-12345-abcdef"}, // Canonical form
+			},
+			wantField: "request_id=req-12345-abcdef",
+		},
+		{
+			name:      "without request ID",
+			headers:   map[string][]string{},
+			wantField: "", // Should not have request_id field
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var logBuf strings.Builder
+			logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
+				Level: slog.LevelInfo,
+			}))
+
+			resp := &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header(tt.headers),
+				Body:       io.NopCloser(strings.NewReader("success")),
+			}
+			mock := &mockRoundTripper{
+				responses: []*http.Response{resp},
+				errors:    []error{nil},
+			}
+
+			transport := &Transport{
+				Base:       mock,
+				Logger:     logger,
+				MaxRetries: 3,
+			}
+
+			req := httptest.NewRequest("GET", "http://example.com", nil)
+			resp, err := transport.RoundTrip(req)
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			defer func() { _ = resp.Body.Close() }()
+
+			logOutput := logBuf.String()
+			if tt.wantField != "" {
+				if !strings.Contains(logOutput, tt.wantField) {
+					t.Errorf("expected %q in logs, got: %s", tt.wantField, logOutput)
+				}
+			}
+			if !strings.Contains(logOutput, "request completed") {
+				t.Error("expected 'request completed' in logs")
+			}
+		})
+	}
+}
+
 func TestTransport_NetworkError(t *testing.T) {
 	netErr := errors.New("network error")
 	mock := &mockRoundTripper{
