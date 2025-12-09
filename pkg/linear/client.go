@@ -3,6 +3,7 @@ package linear
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -12,11 +13,19 @@ import (
 
 // Client manages communication with the Linear API.
 type Client struct {
-	httpClient *http.Client
-	baseURL    string
-	apiKey     string
-	userAgent  string
-	gqlClient  intgraphql.LinearGraphQLClient
+	httpClient  *http.Client
+	baseURL     string
+	apiKey      string
+	userAgent   string
+	gqlClient   intgraphql.LinearGraphQLClient
+	logger      *slog.Logger
+	onRateLimit func(*RateLimitInfo)
+
+	// Transport configuration
+	baseTransport  *http.Transport
+	maxRetries     int
+	initialBackoff time.Duration
+	maxBackoff     time.Duration
 }
 
 // NewClient creates a new Linear API client for GraphQL operations.
@@ -57,24 +66,43 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		return nil, fmt.Errorf("apiKey is required")
 	}
 
+	baseTransport := &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+
 	c := &Client{
 		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-			Transport: &http.Transport{
-				MaxIdleConns:        100,
-				MaxIdleConnsPerHost: 10,
-				IdleConnTimeout:     90 * time.Second,
-				TLSHandshakeTimeout: 10 * time.Second,
-			},
+			Timeout:   30 * time.Second,
+			Transport: baseTransport,
 		},
-		baseURL:   "https://api.linear.app/graphql",
-		apiKey:    apiKey,
-		userAgent: "go-linear/0.1.0",
+		baseURL:        "https://api.linear.app/graphql",
+		apiKey:         apiKey,
+		userAgent:      "go-linear/0.1.0",
+		baseTransport:  baseTransport,
+		maxRetries:     3,
+		initialBackoff: 1 * time.Second,
+		maxBackoff:     30 * time.Second,
 	}
 
 	// Apply options
 	for _, opt := range opts {
 		opt(c)
+	}
+
+	// Wrap transport with retry/rate-limit handling if configured
+	if c.maxRetries > 0 || c.logger != nil || c.onRateLimit != nil {
+		transport := &Transport{
+			Base:           c.httpClient.Transport,
+			Logger:         c.logger,
+			MaxRetries:     c.maxRetries,
+			InitialBackoff: c.initialBackoff,
+			MaxBackoff:     c.maxBackoff,
+			OnRateLimit:    c.onRateLimit,
+		}
+		c.httpClient.Transport = transport
 	}
 
 	// Create gqlgenc client with auth interceptor
@@ -94,6 +122,15 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 	c.gqlClient = intgraphql.NewClient(c.httpClient, c.baseURL, nil, authInterceptor)
 
 	return c, nil
+}
+
+// Close closes idle connections and cleans up resources.
+// It's safe to call Close multiple times.
+func (c *Client) Close() error {
+	if c.httpClient != nil {
+		c.httpClient.CloseIdleConnections()
+	}
+	return nil
 }
 
 // Viewer returns the currently authenticated user information.
