@@ -94,3 +94,26 @@ type AuthenticationError struct {
 type ForbiddenError struct {
 	*LinearError
 }
+
+// wrapGraphQLError wraps a gqlgenc error in a LinearError with operation context.
+func wrapGraphQLError(operation string, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	// gqlgenc wraps GraphQL errors - extract details
+	return &LinearError{
+		Type:       ErrorTypeGraphQLError,
+		Message:    fmt.Sprintf("%s failed: %s", operation, err.Error()),
+		StatusCode: 200, // HTTP success but GraphQL error
+	}
+}
+
+// errMutationFailed creates an error for mutations that return success=false.
+func errMutationFailed(operation string) error {
+	return &LinearError{
+		Type:       ErrorTypeGraphQLError,
+		Message:    fmt.Sprintf("%s failed: mutation returned success=false", operation),
+		StatusCode: 200,
+	}
+}

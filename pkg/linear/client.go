@@ -488,11 +488,11 @@ func (c *Client) Comments(ctx context.Context, first *int64, after *string) (*in
 func (c *Client) IssueCreate(ctx context.Context, input intgraphql.IssueCreateInput) (*intgraphql.CreateIssue_IssueCreate_Issue, error) {
 	resp, err := c.gqlClient.CreateIssue(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("issue create failed: %w", err)
+		return nil, wrapGraphQLError("IssueCreate", err)
 	}
 
 	if !resp.IssueCreate.Success {
-		return nil, fmt.Errorf("issue create failed: success=false")
+		return nil, errMutationFailed("IssueCreate")
 	}
 
 	return resp.IssueCreate.Issue, nil
@@ -531,11 +531,11 @@ func (c *Client) IssueCreate(ctx context.Context, input intgraphql.IssueCreateIn
 func (c *Client) IssueUpdate(ctx context.Context, id string, input intgraphql.IssueUpdateInput) (*intgraphql.UpdateIssue_IssueUpdate_Issue, error) {
 	resp, err := c.gqlClient.UpdateIssue(ctx, id, input)
 	if err != nil {
-		return nil, fmt.Errorf("issue update failed: %w", err)
+		return nil, wrapGraphQLError("IssueUpdate", err)
 	}
 
 	if !resp.IssueUpdate.Success {
-		return nil, fmt.Errorf("issue update failed: success=false")
+		return nil, errMutationFailed("IssueUpdate")
 	}
 
 	return resp.IssueUpdate.Issue, nil
@@ -565,11 +565,11 @@ func (c *Client) IssueUpdate(ctx context.Context, id string, input intgraphql.Is
 func (c *Client) IssueDelete(ctx context.Context, id string) error {
 	resp, err := c.gqlClient.DeleteIssue(ctx, id)
 	if err != nil {
-		return fmt.Errorf("issue delete failed: %w", err)
+		return wrapGraphQLError("IssueDelete", err)
 	}
 
 	if !resp.IssueDelete.Success {
-		return fmt.Errorf("issue delete failed: success=false")
+		return errMutationFailed("IssueDelete")
 	}
 
 	return nil
@@ -909,11 +909,11 @@ func (c *Client) Initiatives(ctx context.Context, first *int64, after *string) (
 func (c *Client) CommentCreate(ctx context.Context, input intgraphql.CommentCreateInput) (*intgraphql.CreateComment_CommentCreate_Comment, error) {
 	resp, err := c.gqlClient.CreateComment(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("comment create failed: %w", err)
+		return nil, wrapGraphQLError("CommentCreate", err)
 	}
 
 	if !resp.CommentCreate.Success {
-		return nil, fmt.Errorf("comment create failed: success=false")
+		return nil, errMutationFailed("CommentCreate")
 	}
 
 	return &resp.CommentCreate.Comment, nil
@@ -923,11 +923,11 @@ func (c *Client) CommentCreate(ctx context.Context, input intgraphql.CommentCrea
 func (c *Client) CommentUpdate(ctx context.Context, id string, input intgraphql.CommentUpdateInput) (*intgraphql.UpdateComment_CommentUpdate_Comment, error) {
 	resp, err := c.gqlClient.UpdateComment(ctx, id, input)
 	if err != nil {
-		return nil, fmt.Errorf("comment update failed: %w", err)
+		return nil, wrapGraphQLError("CommentUpdate", err)
 	}
 
 	if !resp.CommentUpdate.Success {
-		return nil, fmt.Errorf("comment update failed: success=false")
+		return nil, errMutationFailed("CommentUpdate")
 	}
 
 	return &resp.CommentUpdate.Comment, nil
@@ -937,11 +937,11 @@ func (c *Client) CommentUpdate(ctx context.Context, id string, input intgraphql.
 func (c *Client) CommentDelete(ctx context.Context, id string) error {
 	resp, err := c.gqlClient.DeleteComment(ctx, id)
 	if err != nil {
-		return fmt.Errorf("comment delete failed: %w", err)
+		return wrapGraphQLError("CommentDelete", err)
 	}
 
 	if !resp.CommentDelete.Success {
-		return fmt.Errorf("comment delete failed: success=false")
+		return errMutationFailed("CommentDelete")
 	}
 
 	return nil
@@ -1038,11 +1038,11 @@ func (c *Client) Templates(ctx context.Context) ([]*intgraphql.ListTemplates_Tem
 func (c *Client) IssueLabelCreate(ctx context.Context, input intgraphql.IssueLabelCreateInput) (*intgraphql.CreateLabel_IssueLabelCreate_IssueLabel, error) {
 	resp, err := c.gqlClient.CreateLabel(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("label create failed: %w", err)
+		return nil, wrapGraphQLError("IssueLabelCreate", err)
 	}
 
 	if !resp.IssueLabelCreate.Success {
-		return nil, fmt.Errorf("label create failed: success=false")
+		return nil, errMutationFailed("IssueLabelCreate")
 	}
 
 	return &resp.IssueLabelCreate.IssueLabel, nil
@@ -1052,11 +1052,11 @@ func (c *Client) IssueLabelCreate(ctx context.Context, input intgraphql.IssueLab
 func (c *Client) IssueLabelUpdate(ctx context.Context, id string, input intgraphql.IssueLabelUpdateInput) (*intgraphql.UpdateLabel_IssueLabelUpdate_IssueLabel, error) {
 	resp, err := c.gqlClient.UpdateLabel(ctx, id, input)
 	if err != nil {
-		return nil, fmt.Errorf("label update failed: %w", err)
+		return nil, wrapGraphQLError("IssueLabelUpdate", err)
 	}
 
 	if !resp.IssueLabelUpdate.Success {
-		return nil, fmt.Errorf("label update failed: success=false")
+		return nil, errMutationFailed("IssueLabelUpdate")
 	}
 
 	return &resp.IssueLabelUpdate.IssueLabel, nil
@@ -1066,11 +1066,11 @@ func (c *Client) IssueLabelUpdate(ctx context.Context, id string, input intgraph
 func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
 	resp, err := c.gqlClient.DeleteLabel(ctx, id)
 	if err != nil {
-		return fmt.Errorf("label delete failed: %w", err)
+		return wrapGraphQLError("IssueLabelDelete", err)
 	}
 
 	if !resp.IssueLabelDelete.Success {
-		return fmt.Errorf("label delete failed: success=false")
+		return errMutationFailed("IssueLabelDelete")
 	}
 
 	return nil
@@ -1080,11 +1080,11 @@ func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
 func (c *Client) TeamCreate(ctx context.Context, input intgraphql.TeamCreateInput) (*intgraphql.CreateTeam_TeamCreate_Team, error) {
 	resp, err := c.gqlClient.CreateTeam(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("team create failed: %w", err)
+		return nil, wrapGraphQLError("TeamCreate", err)
 	}
 
 	if !resp.TeamCreate.Success {
-		return nil, fmt.Errorf("team create failed: success=false")
+		return nil, errMutationFailed("TeamCreate")
 	}
 
 	return resp.TeamCreate.Team, nil
@@ -1094,11 +1094,11 @@ func (c *Client) TeamCreate(ctx context.Context, input intgraphql.TeamCreateInpu
 func (c *Client) TeamUpdate(ctx context.Context, id string, input intgraphql.TeamUpdateInput) (*intgraphql.UpdateTeam_TeamUpdate_Team, error) {
 	resp, err := c.gqlClient.UpdateTeam(ctx, id, input)
 	if err != nil {
-		return nil, fmt.Errorf("team update failed: %w", err)
+		return nil, wrapGraphQLError("TeamUpdate", err)
 	}
 
 	if !resp.TeamUpdate.Success {
-		return nil, fmt.Errorf("team update failed: success=false")
+		return nil, errMutationFailed("TeamUpdate")
 	}
 
 	return resp.TeamUpdate.Team, nil
@@ -1108,11 +1108,11 @@ func (c *Client) TeamUpdate(ctx context.Context, id string, input intgraphql.Tea
 func (c *Client) TeamDelete(ctx context.Context, id string) error {
 	resp, err := c.gqlClient.DeleteTeam(ctx, id)
 	if err != nil {
-		return fmt.Errorf("team delete failed: %w", err)
+		return wrapGraphQLError("TeamDelete", err)
 	}
 
 	if !resp.TeamDelete.Success {
-		return fmt.Errorf("team delete failed: success=false")
+		return errMutationFailed("TeamDelete")
 	}
 
 	return nil
@@ -1122,11 +1122,11 @@ func (c *Client) TeamDelete(ctx context.Context, id string) error {
 func (c *Client) ProjectCreate(ctx context.Context, input intgraphql.ProjectCreateInput) (*intgraphql.CreateProject_ProjectCreate_Project, error) {
 	resp, err := c.gqlClient.CreateProject(ctx, input)
 	if err != nil {
-		return nil, fmt.Errorf("project create failed: %w", err)
+		return nil, wrapGraphQLError("ProjectCreate", err)
 	}
 
 	if !resp.ProjectCreate.Success {
-		return nil, fmt.Errorf("project create failed: success=false")
+		return nil, errMutationFailed("ProjectCreate")
 	}
 
 	return resp.ProjectCreate.Project, nil
@@ -1136,11 +1136,11 @@ func (c *Client) ProjectCreate(ctx context.Context, input intgraphql.ProjectCrea
 func (c *Client) ProjectUpdate(ctx context.Context, id string, input intgraphql.ProjectUpdateInput) (*intgraphql.UpdateProject_ProjectUpdate_Project, error) {
 	resp, err := c.gqlClient.UpdateProject(ctx, id, input)
 	if err != nil {
-		return nil, fmt.Errorf("project update failed: %w", err)
+		return nil, wrapGraphQLError("ProjectUpdate", err)
 	}
 
 	if !resp.ProjectUpdate.Success {
-		return nil, fmt.Errorf("project update failed: success=false")
+		return nil, errMutationFailed("ProjectUpdate")
 	}
 
 	return resp.ProjectUpdate.Project, nil
@@ -1150,11 +1150,11 @@ func (c *Client) ProjectUpdate(ctx context.Context, id string, input intgraphql.
 func (c *Client) ProjectDelete(ctx context.Context, id string) error {
 	resp, err := c.gqlClient.DeleteProject(ctx, id)
 	if err != nil {
-		return fmt.Errorf("project delete failed: %w", err)
+		return wrapGraphQLError("ProjectDelete", err)
 	}
 
 	if !resp.ProjectDelete.Success {
-		return fmt.Errorf("project delete failed: success=false")
+		return errMutationFailed("ProjectDelete")
 	}
 
 	return nil
