@@ -118,6 +118,44 @@
 // Mutations check a Success boolean. If Success is false, an error
 // is returned automatically - you only need to check err != nil.
 //
+// Use errors.As to check for specific error types:
+//
+//	var rateLimitErr *linear.RateLimitError
+//	if errors.As(err, &rateLimitErr) {
+//	    // Handle rate limiting with retry info
+//	    time.Sleep(time.Duration(rateLimitErr.RetryAfter) * time.Second)
+//	}
+//
+// # Production Deployment
+//
+// For production use, configure the client with reliability features:
+//
+//	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+//	client, err := linear.NewClient(apiKey,
+//	    linear.WithLogger(logger),           // Structured logging
+//	    linear.WithRetry(5, 500*time.Millisecond, 60*time.Second),
+//	    linear.WithTimeout(30*time.Second),
+//	    linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
+//	        // Monitor rate limits for metrics/alerting
+//	        log.Printf("Rate limit: %d/%d requests remaining",
+//	            info.RequestsRemaining, info.RequestsLimit)
+//	    }),
+//	    linear.WithTLSConfig(&tls.Config{
+//	        MinVersion: tls.VersionTLS12,    // Enforce TLS 1.2+
+//	    }),
+//	)
+//	defer client.Close()
+//
+// Production features:
+//   - Automatic retry with exponential backoff for transient failures
+//   - 429 rate limit handling with Retry-After header support
+//   - Rate limit monitoring via callback for metrics collection
+//   - Structured logging of all requests, responses, and retries
+//   - Context timeout/cancellation support on all operations
+//   - TLS configuration for security requirements
+//
+// See examples/production/main.go for a complete production example.
+//
 // # Testing
 //
 // The SDK provides build tags for different test types:
