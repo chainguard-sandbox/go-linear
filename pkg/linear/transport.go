@@ -42,6 +42,10 @@ type Transport struct {
 
 	// OnRetry is called before each retry attempt.
 	OnRetry func(attempt int, err error)
+
+	// MetricsEnabled enables Prometheus metrics collection.
+	// Metrics are recorded for requests, errors, retries, and rate limits.
+	MetricsEnabled bool
 }
 
 // RateLimitInfo contains rate limit information from response headers.
@@ -115,6 +119,8 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		resp, err := base.RoundTrip(req)
 		duration := time.Since(startTime)
 
+		operation := "graphql" // Default operation name
+
 		if err != nil {
 			lastErr = err
 			if t.Logger != nil {
@@ -126,8 +132,14 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 					slog.String("error", err.Error()),
 				)
 			}
+			if t.MetricsEnabled {
+				recordError(operation, "network")
+			}
 			// Retry network errors
 			if attempt < maxRetries && isRetryable(err) {
+				if t.MetricsEnabled {
+					recordRetry("network_error")
+				}
 				continue
 			}
 			// Max retries exceeded or non-retryable error
@@ -143,6 +155,10 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 				t.OnRateLimit(rateLimitInfo)
 			}
 
+			if t.MetricsEnabled {
+				recordRateLimit(rateLimitInfo)
+			}
+
 			if t.Logger != nil {
 				t.Logger.LogAttrs(req.Context(), slog.LevelDebug,
 					"rate limit info",
@@ -152,6 +168,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 					slog.Int("complexity_limit", rateLimitInfo.ComplexityLimit),
 				)
 			}
+		}
+
+		// Record metrics
+		if t.MetricsEnabled {
+			recordRequest(operation, resp.StatusCode, duration)
 		}
 
 		// Log successful request
@@ -188,6 +209,10 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			lastErr = fmt.Errorf("rate limited (429)")
 
 			if attempt < maxRetries {
+				if t.MetricsEnabled {
+					recordRetry("rate_limited")
+				}
+
 				// Use Retry-After header if present
 				if retryAfter := parseRetryAfter(resp); retryAfter > 0 {
 					if t.Logger != nil {
@@ -215,6 +240,9 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		if resp.StatusCode >= 500 && resp.StatusCode < 600 {
 			lastErr = fmt.Errorf("server error (%d)", resp.StatusCode)
 			if attempt < maxRetries {
+				if t.MetricsEnabled {
+					recordRetry("server_error")
+				}
 				_ = resp.Body.Close()
 				continue
 			}

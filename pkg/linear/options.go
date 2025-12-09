@@ -146,3 +146,28 @@ func WithRateLimitCallback(callback func(*RateLimitInfo)) Option {
 		c.onRateLimit = callback
 	}
 }
+
+// WithMetrics enables Prometheus metrics collection.
+// Metrics are automatically registered with the default Prometheus registry
+// and can be exposed at /metrics using promhttp.Handler().
+//
+// Requires calling linear.EnableMetrics() before creating clients.
+//
+// Metrics collected:
+//   - linear_requests_total{operation, status_code}
+//   - linear_request_duration_seconds{operation}
+//   - linear_errors_total{operation, error_type}
+//   - linear_retries_total{reason}
+//   - linear_rate_limit_remaining{limit_type}
+//
+// Example:
+//
+//	linear.EnableMetrics()
+//	client, _ := linear.NewClient(apiKey, linear.WithMetrics())
+//
+// See examples/prometheus/main.go for complete integration.
+func WithMetrics() Option {
+	return func(c *Client) {
+		c.metricsEnabled = true
+	}
+}

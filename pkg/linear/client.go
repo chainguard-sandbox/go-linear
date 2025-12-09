@@ -26,6 +26,7 @@ type Client struct {
 	maxRetries     int
 	initialBackoff time.Duration
 	maxBackoff     time.Duration
+	metricsEnabled bool
 }
 
 // NewClient creates a new Linear API client for GraphQL operations.
@@ -93,7 +94,7 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 	}
 
 	// Wrap transport with retry/rate-limit handling if configured
-	if c.maxRetries > 0 || c.logger != nil || c.onRateLimit != nil {
+	if c.maxRetries > 0 || c.logger != nil || c.onRateLimit != nil || c.metricsEnabled {
 		transport := &Transport{
 			Base:           c.httpClient.Transport,
 			Logger:         c.logger,
@@ -101,6 +102,7 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 			InitialBackoff: c.initialBackoff,
 			MaxBackoff:     c.maxBackoff,
 			OnRateLimit:    c.onRateLimit,
+			MetricsEnabled: c.metricsEnabled,
 		}
 		c.httpClient.Transport = transport
 	}
