@@ -1,0 +1,31 @@
+query GetDocument($id: String!) {
+  document(id: $id) {
+    id
+    title
+    content
+    createdAt
+    updatedAt
+    slugId
+    color
+    icon
+  }
+}
+
+query ListDocuments($first: Int, $after: String) {
+  documents(first: $first, after: $after) {
+    nodes {
+      id
+      title
+      content
+      createdAt
+      updatedAt
+      slugId
+      color
+      icon
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

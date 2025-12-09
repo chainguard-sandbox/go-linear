@@ -16,6 +16,8 @@ type LinearGraphQLClient interface {
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
 	ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error)
+	GetDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetDocument, error)
+	ListDocuments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListDocuments, error)
 	GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error)
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
@@ -36,6 +38,8 @@ type LinearGraphQLClient interface {
 	SearchIssues(ctx context.Context, query string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
+	GetTemplate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTemplate, error)
+	ListTemplates(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListTemplates, error)
 	GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error)
 	ListUsers(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListUsers, error)
 	Viewer(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*Viewer, error)
@@ -569,6 +573,162 @@ func (t *ListCycles_Cycles) GetNodes() []*ListCycles_Cycles_Nodes {
 func (t *ListCycles_Cycles) GetPageInfo() *ListCycles_Cycles_PageInfo {
 	if t == nil {
 		t = &ListCycles_Cycles{}
+	}
+	return &t.PageInfo
+}
+
+type GetDocument_Document struct {
+	Color     *string   "json:\"color,omitempty\" graphql:\"color\""
+	Content   *string   "json:\"content,omitempty\" graphql:\"content\""
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Icon      *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	SlugID    string    "json:\"slugId\" graphql:\"slugId\""
+	Title     string    "json:\"title\" graphql:\"title\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetDocument_Document) GetColor() *string {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return t.Color
+}
+func (t *GetDocument_Document) GetContent() *string {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return t.Content
+}
+func (t *GetDocument_Document) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetDocument_Document) GetIcon() *string {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return t.Icon
+}
+func (t *GetDocument_Document) GetID() string {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return t.ID
+}
+func (t *GetDocument_Document) GetSlugID() string {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return t.SlugID
+}
+func (t *GetDocument_Document) GetTitle() string {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return t.Title
+}
+func (t *GetDocument_Document) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetDocument_Document{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListDocuments_Documents_Nodes struct {
+	Color     *string   "json:\"color,omitempty\" graphql:\"color\""
+	Content   *string   "json:\"content,omitempty\" graphql:\"content\""
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Icon      *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	SlugID    string    "json:\"slugId\" graphql:\"slugId\""
+	Title     string    "json:\"title\" graphql:\"title\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *ListDocuments_Documents_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListDocuments_Documents_Nodes) GetContent() *string {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return t.Content
+}
+func (t *ListDocuments_Documents_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListDocuments_Documents_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListDocuments_Documents_Nodes) GetID() string {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListDocuments_Documents_Nodes) GetSlugID() string {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return t.SlugID
+}
+func (t *ListDocuments_Documents_Nodes) GetTitle() string {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return t.Title
+}
+func (t *ListDocuments_Documents_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListDocuments_Documents_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListDocuments_Documents_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListDocuments_Documents_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListDocuments_Documents_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListDocuments_Documents_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListDocuments_Documents_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListDocuments_Documents struct {
+	Nodes    []*ListDocuments_Documents_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListDocuments_Documents_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListDocuments_Documents) GetNodes() []*ListDocuments_Documents_Nodes {
+	if t == nil {
+		t = &ListDocuments_Documents{}
+	}
+	return t.Nodes
+}
+func (t *ListDocuments_Documents) GetPageInfo() *ListDocuments_Documents_PageInfo {
+	if t == nil {
+		t = &ListDocuments_Documents{}
 	}
 	return &t.PageInfo
 }
@@ -2193,6 +2353,91 @@ func (t *ListTeams_Teams) GetPageInfo() *ListTeams_Teams_PageInfo {
 	return &t.PageInfo
 }
 
+type GetTemplate_Template struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Type        string    "json:\"type\" graphql:\"type\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetTemplate_Template) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetTemplate_Template) GetDescription() *string {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return t.Description
+}
+func (t *GetTemplate_Template) GetID() string {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return t.ID
+}
+func (t *GetTemplate_Template) GetName() string {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return t.Name
+}
+func (t *GetTemplate_Template) GetType() string {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return t.Type
+}
+func (t *GetTemplate_Template) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListTemplates_Templates struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Type        string    "json:\"type\" graphql:\"type\""
+}
+
+func (t *ListTemplates_Templates) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListTemplates_Templates{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListTemplates_Templates) GetDescription() *string {
+	if t == nil {
+		t = &ListTemplates_Templates{}
+	}
+	return t.Description
+}
+func (t *ListTemplates_Templates) GetID() string {
+	if t == nil {
+		t = &ListTemplates_Templates{}
+	}
+	return t.ID
+}
+func (t *ListTemplates_Templates) GetName() string {
+	if t == nil {
+		t = &ListTemplates_Templates{}
+	}
+	return t.Name
+}
+func (t *ListTemplates_Templates) GetType() string {
+	if t == nil {
+		t = &ListTemplates_Templates{}
+	}
+	return t.Type
+}
+
 type GetUser_User struct {
 	Active      bool      "json:\"active\" graphql:\"active\""
 	Admin       bool      "json:\"admin\" graphql:\"admin\""
@@ -2631,6 +2876,28 @@ func (t *ListCycles) GetCycles() *ListCycles_Cycles {
 	return &t.Cycles
 }
 
+type GetDocument struct {
+	Document GetDocument_Document "json:\"document\" graphql:\"document\""
+}
+
+func (t *GetDocument) GetDocument() *GetDocument_Document {
+	if t == nil {
+		t = &GetDocument{}
+	}
+	return &t.Document
+}
+
+type ListDocuments struct {
+	Documents ListDocuments_Documents "json:\"documents\" graphql:\"documents\""
+}
+
+func (t *ListDocuments) GetDocuments() *ListDocuments_Documents {
+	if t == nil {
+		t = &ListDocuments{}
+	}
+	return &t.Documents
+}
+
 type GetInitiative struct {
 	Initiative GetInitiative_Initiative "json:\"initiative\" graphql:\"initiative\""
 }
@@ -2849,6 +3116,28 @@ func (t *ListTeams) GetTeams() *ListTeams_Teams {
 		t = &ListTeams{}
 	}
 	return &t.Teams
+}
+
+type GetTemplate struct {
+	Template GetTemplate_Template "json:\"template\" graphql:\"template\""
+}
+
+func (t *GetTemplate) GetTemplate() *GetTemplate_Template {
+	if t == nil {
+		t = &GetTemplate{}
+	}
+	return &t.Template
+}
+
+type ListTemplates struct {
+	Templates []*ListTemplates_Templates "json:\"templates\" graphql:\"templates\""
+}
+
+func (t *ListTemplates) GetTemplates() []*ListTemplates_Templates {
+	if t == nil {
+		t = &ListTemplates{}
+	}
+	return t.Templates
 }
 
 type GetUser struct {
@@ -3112,6 +3401,75 @@ func (c *Client) ListCycles(ctx context.Context, first *int64, after *string, in
 
 	var res ListCycles
 	if err := c.Client.Post(ctx, "ListCycles", ListCyclesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetDocumentDocument = `query GetDocument ($id: String!) {
+	document(id: $id) {
+		id
+		title
+		content
+		createdAt
+		updatedAt
+		slugId
+		color
+		icon
+	}
+}
+`
+
+func (c *Client) GetDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetDocument, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetDocument
+	if err := c.Client.Post(ctx, "GetDocument", GetDocumentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListDocumentsDocument = `query ListDocuments ($first: Int, $after: String) {
+	documents(first: $first, after: $after) {
+		nodes {
+			id
+			title
+			content
+			createdAt
+			updatedAt
+			slugId
+			color
+			icon
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListDocuments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListDocuments, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListDocuments
+	if err := c.Client.Post(ctx, "ListDocuments", ListDocumentsDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -3822,6 +4180,61 @@ func (c *Client) ListTeams(ctx context.Context, first *int64, after *string, int
 	return &res, nil
 }
 
+const GetTemplateDocument = `query GetTemplate ($id: String!) {
+	template(id: $id) {
+		id
+		name
+		description
+		createdAt
+		updatedAt
+		type
+	}
+}
+`
+
+func (c *Client) GetTemplate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTemplate, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetTemplate
+	if err := c.Client.Post(ctx, "GetTemplate", GetTemplateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListTemplatesDocument = `query ListTemplates {
+	templates {
+		id
+		name
+		description
+		createdAt
+		type
+	}
+}
+`
+
+func (c *Client) ListTemplates(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListTemplates, error) {
+	vars := map[string]any{}
+
+	var res ListTemplates
+	if err := c.Client.Post(ctx, "ListTemplates", ListTemplatesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetUserDocument = `query GetUser ($id: String!) {
 	user(id: $id) {
 		id
@@ -3996,6 +4409,8 @@ var DocumentOperationNames = map[string]string{
 	ListCommentsDocument:       "ListComments",
 	GetCycleDocument:           "GetCycle",
 	ListCyclesDocument:         "ListCycles",
+	GetDocumentDocument:        "GetDocument",
+	ListDocumentsDocument:      "ListDocuments",
 	GetInitiativeDocument:      "GetInitiative",
 	ListInitiativesDocument:    "ListInitiatives",
 	GetIssueDocument:           "GetIssue",
@@ -4016,6 +4431,8 @@ var DocumentOperationNames = map[string]string{
 	SearchIssuesDocument:       "SearchIssues",
 	GetTeamDocument:            "GetTeam",
 	ListTeamsDocument:          "ListTeams",
+	GetTemplateDocument:        "GetTemplate",
+	ListTemplatesDocument:      "ListTemplates",
 	GetUserDocument:            "GetUser",
 	ListUsersDocument:          "ListUsers",
 	ViewerDocument:             "Viewer",

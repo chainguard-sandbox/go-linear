@@ -1,0 +1,20 @@
+query GetTemplate($id: String!) {
+  template(id: $id) {
+    id
+    name
+    description
+    createdAt
+    updatedAt
+    type
+  }
+}
+
+query ListTemplates {
+  templates {
+    id
+    name
+    description
+    createdAt
+    type
+  }
+}

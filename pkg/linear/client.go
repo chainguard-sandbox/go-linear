@@ -372,3 +372,39 @@ func (c *Client) IssueSearch(ctx context.Context, query string, first *int64, af
 	}
 	return &resp.IssueSearch, nil
 }
+
+// Document retrieves a single document by ID.
+func (c *Client) Document(ctx context.Context, id string) (*intgraphql.GetDocument_Document, error) {
+	resp, err := c.gqlClient.GetDocument(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("document query failed: %w", err)
+	}
+	return &resp.Document, nil
+}
+
+// Documents retrieves a paginated list of documents.
+func (c *Client) Documents(ctx context.Context, first *int64, after *string) (*intgraphql.ListDocuments_Documents, error) {
+	resp, err := c.gqlClient.ListDocuments(ctx, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("documents query failed: %w", err)
+	}
+	return &resp.Documents, nil
+}
+
+// Template retrieves a single template by ID.
+func (c *Client) Template(ctx context.Context, id string) (*intgraphql.GetTemplate_Template, error) {
+	resp, err := c.gqlClient.GetTemplate(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("template query failed: %w", err)
+	}
+	return &resp.Template, nil
+}
+
+// Templates retrieves all templates.
+func (c *Client) Templates(ctx context.Context) ([]*intgraphql.ListTemplates_Templates, error) {
+	resp, err := c.gqlClient.ListTemplates(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("templates query failed: %w", err)
+	}
+	return resp.Templates, nil
+}
