@@ -30,6 +30,12 @@ type LinearGraphQLClient interface {
 	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
 	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
 	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
+	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
+	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
+	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
+	CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error)
+	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
+	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
@@ -1633,6 +1639,263 @@ func (t *DeleteIssue_IssueDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type CreateProject_ProjectCreate_Project struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description string    "json:\"description\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	State       string    "json:\"state\" graphql:\"state\""
+	URL         string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *CreateProject_ProjectCreate_Project) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateProject_ProjectCreate_Project{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateProject_ProjectCreate_Project) GetDescription() string {
+	if t == nil {
+		t = &CreateProject_ProjectCreate_Project{}
+	}
+	return t.Description
+}
+func (t *CreateProject_ProjectCreate_Project) GetID() string {
+	if t == nil {
+		t = &CreateProject_ProjectCreate_Project{}
+	}
+	return t.ID
+}
+func (t *CreateProject_ProjectCreate_Project) GetName() string {
+	if t == nil {
+		t = &CreateProject_ProjectCreate_Project{}
+	}
+	return t.Name
+}
+func (t *CreateProject_ProjectCreate_Project) GetState() string {
+	if t == nil {
+		t = &CreateProject_ProjectCreate_Project{}
+	}
+	return t.State
+}
+func (t *CreateProject_ProjectCreate_Project) GetURL() string {
+	if t == nil {
+		t = &CreateProject_ProjectCreate_Project{}
+	}
+	return t.URL
+}
+
+type CreateProject_ProjectCreate struct {
+	Project *CreateProject_ProjectCreate_Project "json:\"project,omitempty\" graphql:\"project\""
+	Success bool                                 "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateProject_ProjectCreate) GetProject() *CreateProject_ProjectCreate_Project {
+	if t == nil {
+		t = &CreateProject_ProjectCreate{}
+	}
+	return t.Project
+}
+func (t *CreateProject_ProjectCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateProject_ProjectCreate{}
+	}
+	return t.Success
+}
+
+type UpdateProject_ProjectUpdate_Project struct {
+	Description string    "json:\"description\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	State       string    "json:\"state\" graphql:\"state\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateProject_ProjectUpdate_Project) GetDescription() string {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate_Project{}
+	}
+	return t.Description
+}
+func (t *UpdateProject_ProjectUpdate_Project) GetID() string {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate_Project{}
+	}
+	return t.ID
+}
+func (t *UpdateProject_ProjectUpdate_Project) GetName() string {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate_Project{}
+	}
+	return t.Name
+}
+func (t *UpdateProject_ProjectUpdate_Project) GetState() string {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate_Project{}
+	}
+	return t.State
+}
+func (t *UpdateProject_ProjectUpdate_Project) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate_Project{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateProject_ProjectUpdate struct {
+	Project *UpdateProject_ProjectUpdate_Project "json:\"project,omitempty\" graphql:\"project\""
+	Success bool                                 "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateProject_ProjectUpdate) GetProject() *UpdateProject_ProjectUpdate_Project {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate{}
+	}
+	return t.Project
+}
+func (t *UpdateProject_ProjectUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateProject_ProjectUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteProject_ProjectDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteProject_ProjectDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteProject_ProjectDelete{}
+	}
+	return t.Success
+}
+
+type CreateTeam_TeamCreate_Team struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Key         string    "json:\"key\" graphql:\"key\""
+	Name        string    "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateTeam_TeamCreate_Team) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateTeam_TeamCreate_Team{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateTeam_TeamCreate_Team) GetDescription() *string {
+	if t == nil {
+		t = &CreateTeam_TeamCreate_Team{}
+	}
+	return t.Description
+}
+func (t *CreateTeam_TeamCreate_Team) GetID() string {
+	if t == nil {
+		t = &CreateTeam_TeamCreate_Team{}
+	}
+	return t.ID
+}
+func (t *CreateTeam_TeamCreate_Team) GetKey() string {
+	if t == nil {
+		t = &CreateTeam_TeamCreate_Team{}
+	}
+	return t.Key
+}
+func (t *CreateTeam_TeamCreate_Team) GetName() string {
+	if t == nil {
+		t = &CreateTeam_TeamCreate_Team{}
+	}
+	return t.Name
+}
+
+type CreateTeam_TeamCreate struct {
+	Success bool                        "json:\"success\" graphql:\"success\""
+	Team    *CreateTeam_TeamCreate_Team "json:\"team,omitempty\" graphql:\"team\""
+}
+
+func (t *CreateTeam_TeamCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateTeam_TeamCreate{}
+	}
+	return t.Success
+}
+func (t *CreateTeam_TeamCreate) GetTeam() *CreateTeam_TeamCreate_Team {
+	if t == nil {
+		t = &CreateTeam_TeamCreate{}
+	}
+	return t.Team
+}
+
+type UpdateTeam_TeamUpdate_Team struct {
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Key         string    "json:\"key\" graphql:\"key\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateTeam_TeamUpdate_Team) GetDescription() *string {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate_Team{}
+	}
+	return t.Description
+}
+func (t *UpdateTeam_TeamUpdate_Team) GetID() string {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate_Team{}
+	}
+	return t.ID
+}
+func (t *UpdateTeam_TeamUpdate_Team) GetKey() string {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate_Team{}
+	}
+	return t.Key
+}
+func (t *UpdateTeam_TeamUpdate_Team) GetName() string {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate_Team{}
+	}
+	return t.Name
+}
+func (t *UpdateTeam_TeamUpdate_Team) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate_Team{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateTeam_TeamUpdate struct {
+	Success bool                        "json:\"success\" graphql:\"success\""
+	Team    *UpdateTeam_TeamUpdate_Team "json:\"team,omitempty\" graphql:\"team\""
+}
+
+func (t *UpdateTeam_TeamUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate{}
+	}
+	return t.Success
+}
+func (t *UpdateTeam_TeamUpdate) GetTeam() *UpdateTeam_TeamUpdate_Team {
+	if t == nil {
+		t = &UpdateTeam_TeamUpdate{}
+	}
+	return t.Team
+}
+
+type DeleteTeam_TeamDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteTeam_TeamDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteTeam_TeamDelete{}
+	}
+	return t.Success
+}
+
 type GetOrganization_Organization struct {
 	CreatedAt      time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	ID             string    "json:\"id\" graphql:\"id\""
@@ -3030,6 +3293,72 @@ func (t *DeleteIssue) GetIssueDelete() *DeleteIssue_IssueDelete {
 	return &t.IssueDelete
 }
 
+type CreateProject struct {
+	ProjectCreate CreateProject_ProjectCreate "json:\"projectCreate\" graphql:\"projectCreate\""
+}
+
+func (t *CreateProject) GetProjectCreate() *CreateProject_ProjectCreate {
+	if t == nil {
+		t = &CreateProject{}
+	}
+	return &t.ProjectCreate
+}
+
+type UpdateProject struct {
+	ProjectUpdate UpdateProject_ProjectUpdate "json:\"projectUpdate\" graphql:\"projectUpdate\""
+}
+
+func (t *UpdateProject) GetProjectUpdate() *UpdateProject_ProjectUpdate {
+	if t == nil {
+		t = &UpdateProject{}
+	}
+	return &t.ProjectUpdate
+}
+
+type DeleteProject struct {
+	ProjectDelete DeleteProject_ProjectDelete "json:\"projectDelete\" graphql:\"projectDelete\""
+}
+
+func (t *DeleteProject) GetProjectDelete() *DeleteProject_ProjectDelete {
+	if t == nil {
+		t = &DeleteProject{}
+	}
+	return &t.ProjectDelete
+}
+
+type CreateTeam struct {
+	TeamCreate CreateTeam_TeamCreate "json:\"teamCreate\" graphql:\"teamCreate\""
+}
+
+func (t *CreateTeam) GetTeamCreate() *CreateTeam_TeamCreate {
+	if t == nil {
+		t = &CreateTeam{}
+	}
+	return &t.TeamCreate
+}
+
+type UpdateTeam struct {
+	TeamUpdate UpdateTeam_TeamUpdate "json:\"teamUpdate\" graphql:\"teamUpdate\""
+}
+
+func (t *UpdateTeam) GetTeamUpdate() *UpdateTeam_TeamUpdate {
+	if t == nil {
+		t = &UpdateTeam{}
+	}
+	return &t.TeamUpdate
+}
+
+type DeleteTeam struct {
+	TeamDelete DeleteTeam_TeamDelete "json:\"teamDelete\" graphql:\"teamDelete\""
+}
+
+func (t *DeleteTeam) GetTeamDelete() *DeleteTeam_TeamDelete {
+	if t == nil {
+		t = &DeleteTeam{}
+	}
+	return &t.TeamDelete
+}
+
 type GetOrganization struct {
 	Organization GetOrganization_Organization "json:\"organization\" graphql:\"organization\""
 }
@@ -3890,6 +4219,181 @@ func (c *Client) DeleteIssue(ctx context.Context, id string, interceptors ...cli
 	return &res, nil
 }
 
+const CreateProjectDocument = `mutation CreateProject ($input: ProjectCreateInput!) {
+	projectCreate(input: $input) {
+		success
+		project {
+			id
+			name
+			description
+			state
+			createdAt
+			url
+		}
+	}
+}
+`
+
+func (c *Client) CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateProject
+	if err := c.Client.Post(ctx, "CreateProject", CreateProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateProjectDocument = `mutation UpdateProject ($id: String!, $input: ProjectUpdateInput!) {
+	projectUpdate(id: $id, input: $input) {
+		success
+		project {
+			id
+			name
+			description
+			state
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateProject
+	if err := c.Client.Post(ctx, "UpdateProject", UpdateProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteProjectDocument = `mutation DeleteProject ($id: String!) {
+	projectDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteProject
+	if err := c.Client.Post(ctx, "DeleteProject", DeleteProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const CreateTeamDocument = `mutation CreateTeam ($input: TeamCreateInput!) {
+	teamCreate(input: $input) {
+		success
+		team {
+			id
+			name
+			key
+			description
+			createdAt
+		}
+	}
+}
+`
+
+func (c *Client) CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateTeam
+	if err := c.Client.Post(ctx, "CreateTeam", CreateTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateTeamDocument = `mutation UpdateTeam ($id: String!, $input: TeamUpdateInput!) {
+	teamUpdate(id: $id, input: $input) {
+		success
+		team {
+			id
+			name
+			key
+			description
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateTeam
+	if err := c.Client.Post(ctx, "UpdateTeam", UpdateTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteTeamDocument = `mutation DeleteTeam ($id: String!) {
+	teamDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteTeam
+	if err := c.Client.Post(ctx, "DeleteTeam", DeleteTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetOrganizationDocument = `query GetOrganization {
 	organization {
 		id
@@ -4423,6 +4927,12 @@ var DocumentOperationNames = map[string]string{
 	CreateIssueDocument:        "CreateIssue",
 	UpdateIssueDocument:        "UpdateIssue",
 	DeleteIssueDocument:        "DeleteIssue",
+	CreateProjectDocument:      "CreateProject",
+	UpdateProjectDocument:      "UpdateProject",
+	DeleteProjectDocument:      "DeleteProject",
+	CreateTeamDocument:         "CreateTeam",
+	UpdateTeamDocument:         "UpdateTeam",
+	DeleteTeamDocument:         "DeleteTeam",
 	GetOrganizationDocument:    "GetOrganization",
 	GetProjectDocument:         "GetProject",
 	ListProjectsDocument:       "ListProjects",
