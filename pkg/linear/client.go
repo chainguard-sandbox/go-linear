@@ -70,7 +70,7 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 
 	baseTransport := &http.Transport{
 		MaxIdleConns:        100,
-		MaxIdleConnsPerHost: 10,
+		MaxIdleConnsPerHost: 3, // Match Linear's ~2 req/sec rate limit
 		IdleConnTimeout:     90 * time.Second,
 		TLSHandshakeTimeout: 10 * time.Second,
 	}
