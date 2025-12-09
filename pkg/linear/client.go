@@ -22,11 +22,12 @@ type Client struct {
 	onRateLimit func(*RateLimitInfo)
 
 	// Transport configuration
-	baseTransport  *http.Transport
-	maxRetries     int
-	initialBackoff time.Duration
-	maxBackoff     time.Duration
-	metricsEnabled bool
+	baseTransport    *http.Transport
+	maxRetries       int
+	initialBackoff   time.Duration
+	maxBackoff       time.Duration
+	maxRetryDuration time.Duration
+	metricsEnabled   bool
 }
 
 // NewClient creates a new Linear API client for GraphQL operations.
@@ -79,13 +80,14 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 			Timeout:   30 * time.Second,
 			Transport: baseTransport,
 		},
-		baseURL:        "https://api.linear.app/graphql",
-		apiKey:         apiKey,
-		userAgent:      "go-linear/0.1.0",
-		baseTransport:  baseTransport,
-		maxRetries:     3,
-		initialBackoff: 1 * time.Second,
-		maxBackoff:     30 * time.Second,
+		baseURL:          "https://api.linear.app/graphql",
+		apiKey:           apiKey,
+		userAgent:        "go-linear/0.1.0",
+		baseTransport:    baseTransport,
+		maxRetries:       3,
+		initialBackoff:   1 * time.Second,
+		maxBackoff:       30 * time.Second,
+		maxRetryDuration: 90 * time.Second,
 	}
 
 	// Apply options
@@ -96,13 +98,14 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 	// Wrap transport with retry/rate-limit handling if configured
 	if c.maxRetries > 0 || c.logger != nil || c.onRateLimit != nil || c.metricsEnabled {
 		transport := &Transport{
-			Base:           c.httpClient.Transport,
-			Logger:         c.logger,
-			MaxRetries:     c.maxRetries,
-			InitialBackoff: c.initialBackoff,
-			MaxBackoff:     c.maxBackoff,
-			OnRateLimit:    c.onRateLimit,
-			MetricsEnabled: c.metricsEnabled,
+			Base:             c.httpClient.Transport,
+			Logger:           c.logger,
+			MaxRetries:       c.maxRetries,
+			InitialBackoff:   c.initialBackoff,
+			MaxBackoff:       c.maxBackoff,
+			MaxRetryDuration: c.maxRetryDuration,
+			OnRateLimit:      c.onRateLimit,
+			MetricsEnabled:   c.metricsEnabled,
 		}
 		c.httpClient.Transport = transport
 	}

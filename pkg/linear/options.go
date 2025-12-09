@@ -171,3 +171,19 @@ func WithMetrics() Option {
 		c.metricsEnabled = true
 	}
 }
+
+// WithMaxRetryDuration sets the maximum total time spent retrying requests.
+// This prevents unbounded retry loops during prolonged API outages.
+//
+// Default: 90 seconds
+//
+// Example:
+//
+//	// Allow up to 2 minutes of retries total
+//	client, _ := linear.NewClient(apiKey,
+//	    linear.WithMaxRetryDuration(2*time.Minute))
+func WithMaxRetryDuration(duration time.Duration) Option {
+	return func(c *Client) {
+		c.maxRetryDuration = duration
+	}
+}

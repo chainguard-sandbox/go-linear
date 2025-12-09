@@ -43,6 +43,11 @@ type Transport struct {
 	// OnRetry is called before each retry attempt.
 	OnRetry func(attempt int, err error)
 
+	// MaxRetryDuration is the maximum total time spent retrying.
+	// Prevents unbounded retry loops during prolonged outages.
+	// Default: 90 seconds
+	MaxRetryDuration time.Duration
+
 	// MetricsEnabled enables Prometheus metrics collection.
 	// Metrics are recorded for requests, errors, retries, and rate limits.
 	MetricsEnabled bool
@@ -86,8 +91,20 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		maxBackoff = 30 * time.Second
 	}
 
+	maxRetryDuration := t.MaxRetryDuration
+	if maxRetryDuration == 0 {
+		maxRetryDuration = 90 * time.Second
+	}
+
+	retryStartTime := time.Now()
 	var lastErr error
+
 	for attempt := 0; attempt <= maxRetries; attempt++ {
+		// Check if we've exceeded total retry time
+		if attempt > 0 && time.Since(retryStartTime) > maxRetryDuration {
+			return nil, fmt.Errorf("retry duration exceeded (%v): %w", maxRetryDuration, lastErr)
+		}
+
 		if attempt > 0 {
 			// Calculate exponential backoff with jitter
 			backoff := calculateBackoff(attempt, initialBackoff, maxBackoff)
