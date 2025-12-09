@@ -1,6 +1,6 @@
 # go-linear
 
-**Type-safe Go client for the Linear API.** Production-ready with automatic retry, rate limiting, and structured logging.
+**Type-safe Go client for the Linear API.** Production-ready with automatic retry, rate limiting, Prometheus metrics, and comprehensive observability.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/eslerm/go-linear.svg)](https://pkg.go.dev/github.com/eslerm/go-linear)
 [![Go Report Card](https://goreportcard.com/badge/github.com/eslerm/go-linear)](https://goreportcard.com/report/github.com/eslerm/go-linear)
@@ -204,7 +204,13 @@ func main() {
 }
 ```
 
-**See:** [examples/production/main.go](examples/production/main.go) for complete example with graceful shutdown
+**Production Examples:**
+- [examples/production/main.go](examples/production/main.go) - Complete production setup with graceful shutdown
+- [examples/prometheus/main.go](examples/prometheus/main.go) - Prometheus metrics integration
+
+**Operational Docs:**
+- [docs/RUNBOOK.md](docs/RUNBOOK.md) - Incident response procedures
+- [docs/MONITORING.md](docs/MONITORING.md) - Prometheus queries and alerts
 
 ---
 
@@ -312,7 +318,9 @@ if errors.As(err, &forbiddenErr) {
 |--------|---------|---------|
 | `WithTimeout(duration)` | Request timeout | `linear.WithTimeout(30*time.Second)` |
 | `WithRetry(max, initial, max backoff)` | Automatic retry | `linear.WithRetry(5, 500*time.Millisecond, 60*time.Second)` |
+| `WithMaxRetryDuration(duration)` | Max total retry time | `linear.WithMaxRetryDuration(90*time.Second)` |
 | `WithLogger(logger)` | Structured logging | `linear.WithLogger(slog.Default())` |
+| `WithMetrics()` | Prometheus metrics | `linear.WithMetrics()` |
 | `WithRateLimitCallback(func)` | Monitor rate limits | `linear.WithRateLimitCallback(metricsFunc)` |
 | `WithTLSConfig(config)` | TLS settings | `linear.WithTLSConfig(&tls.Config{MinVersion: tls.VersionTLS12})` |
 | `WithTransport(transport)` | Custom RoundTripper | `linear.WithTransport(customTransport)` |
@@ -327,6 +335,7 @@ if errors.As(err, &forbiddenErr) {
 - Retries 429 (rate limit) and 5xx errors
 - Respects `Retry-After` header
 - Context cancellation support
+- Bounded total retry time (default: 90s)
 
 **Rate Limiting:**
 - Parses `X-RateLimit-*` headers
@@ -336,9 +345,73 @@ if errors.As(err, &forbiddenErr) {
 
 **Observability:**
 - Structured logging with `log/slog`
-- Request/response logging
-- Error logging with trace IDs
-- Rate limit monitoring
+- Request/response logging with request_id
+- Prometheus metrics (RED + rate limits)
+- Error logging with operation context
+
+---
+
+## Monitoring & Observability
+
+### Prometheus Metrics
+
+Enable Prometheus metrics for production monitoring:
+
+```go
+linear.EnableMetrics()
+
+client, _ := linear.NewClient(apiKey,
+    linear.WithMetrics(),
+    linear.WithLogger(logger),
+)
+
+// Expose metrics at /metrics
+http.Handle("/metrics", promhttp.Handler())
+http.ListenAndServe(":2112", nil)
+```
+
+**Metrics collected:**
+- `linear_requests_total{operation, status_code}` - Request counts
+- `linear_request_duration_seconds{operation}` - Request latency histogram
+- `linear_errors_total{operation, error_type}` - Error counts by type
+- `linear_retries_total{reason}` - Retry counts (rate_limited, server_error, network_error)
+- `linear_rate_limit_remaining{limit_type}` - Rate limit capacity (requests, complexity)
+
+**See:** [examples/prometheus/main.go](examples/prometheus/main.go) for complete integration
+
+### Recommended Alerts
+
+**Critical (Page):**
+- Error rate > 50% for 5 minutes
+- All requests failing for 3 minutes
+
+**Warning (Slack):**
+- Rate limit < 10% remaining for 5 minutes
+- Retry rate > 10% for 10 minutes
+- p95 latency > 5s for 10 minutes
+
+**See:** [docs/MONITORING.md](docs/MONITORING.md) for complete alert rules and PromQL queries
+
+### Request Correlation
+
+All requests log `request_id` for correlation with Linear support during incidents:
+
+```json
+{
+  "level": "INFO",
+  "msg": "request completed",
+  "method": "POST",
+  "url": "https://api.linear.app/graphql",
+  "status": 200,
+  "duration": "245ms",
+  "request_id": "req-abc-123"
+}
+```
+
+When debugging issues with Linear support, provide the `request_id` from your logs.
+
+**Incident Response:** [docs/RUNBOOK.md](docs/RUNBOOK.md) - Covers common incidents with mitigation steps
+**Monitoring Setup:** [docs/MONITORING.md](docs/MONITORING.md) - Complete Prometheus queries and alert rules
 
 ---
 
@@ -533,12 +606,15 @@ MIT - See [LICENSE](LICENSE) for details
 - ✅ Type-safe GraphQL operations
 - ✅ Automatic retry with exponential backoff
 - ✅ Rate limit detection and handling
-- ✅ Structured logging (slog)
+- ✅ Bounded retry time (prevents request hangs)
+- ✅ Structured logging (slog) with request_id correlation
+- ✅ Prometheus metrics (RED + rate limits)
 - ✅ Context support (timeout/cancellation)
 - ✅ Comprehensive API coverage (Issues, Teams, Projects, etc.)
 - ✅ Automatic pagination iterators
-- ✅ Production-ready error handling
+- ✅ Production-ready error handling with operation context
 - ✅ TLS configuration
-- ✅ 55%+ test coverage
+- ✅ Operational documentation (runbook + monitoring guide)
+- ✅ 56%+ test coverage (mock + live tests)
 
 **Upstream Sync:** Schema automatically synced from [Linear TypeScript SDK](https://github.com/linear/linear)
