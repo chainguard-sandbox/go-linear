@@ -1,0 +1,24 @@
+query SearchIssues($query: String!, $first: Int, $after: String) {
+  issueSearch(query: $query, first: $first, after: $after) {
+    nodes {
+      id
+      title
+      description
+      priority
+      createdAt
+      state {
+        id
+        name
+      }
+      team {
+        id
+        name
+        key
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

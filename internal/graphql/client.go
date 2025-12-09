@@ -33,6 +33,7 @@ type LinearGraphQLClient interface {
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
 	GetRoadmap(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetRoadmap, error)
 	ListRoadmaps(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListRoadmaps, error)
+	SearchIssues(ctx context.Context, query string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
 	GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error)
@@ -1890,6 +1891,138 @@ func (t *ListRoadmaps_Roadmaps) GetPageInfo() *ListRoadmaps_Roadmaps_PageInfo {
 	return &t.PageInfo
 }
 
+type SearchIssues_IssueSearch_Nodes_State struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *SearchIssues_IssueSearch_Nodes_State) GetID() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes_State{}
+	}
+	return t.ID
+}
+func (t *SearchIssues_IssueSearch_Nodes_State) GetName() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes_State{}
+	}
+	return t.Name
+}
+
+type SearchIssues_IssueSearch_Nodes_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *SearchIssues_IssueSearch_Nodes_Team) GetID() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes_Team{}
+	}
+	return t.ID
+}
+func (t *SearchIssues_IssueSearch_Nodes_Team) GetKey() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes_Team{}
+	}
+	return t.Key
+}
+func (t *SearchIssues_IssueSearch_Nodes_Team) GetName() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes_Team{}
+	}
+	return t.Name
+}
+
+type SearchIssues_IssueSearch_Nodes struct {
+	CreatedAt   time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                              "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                               "json:\"id\" graphql:\"id\""
+	Priority    float64                              "json:\"priority\" graphql:\"priority\""
+	State       SearchIssues_IssueSearch_Nodes_State "json:\"state\" graphql:\"state\""
+	Team        SearchIssues_IssueSearch_Nodes_Team  "json:\"team\" graphql:\"team\""
+	Title       string                               "json:\"title\" graphql:\"title\""
+}
+
+func (t *SearchIssues_IssueSearch_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *SearchIssues_IssueSearch_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return t.Description
+}
+func (t *SearchIssues_IssueSearch_Nodes) GetID() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return t.ID
+}
+func (t *SearchIssues_IssueSearch_Nodes) GetPriority() float64 {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return t.Priority
+}
+func (t *SearchIssues_IssueSearch_Nodes) GetState() *SearchIssues_IssueSearch_Nodes_State {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return &t.State
+}
+func (t *SearchIssues_IssueSearch_Nodes) GetTeam() *SearchIssues_IssueSearch_Nodes_Team {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return &t.Team
+}
+func (t *SearchIssues_IssueSearch_Nodes) GetTitle() string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_Nodes{}
+	}
+	return t.Title
+}
+
+type SearchIssues_IssueSearch_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *SearchIssues_IssueSearch_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *SearchIssues_IssueSearch_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &SearchIssues_IssueSearch_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type SearchIssues_IssueSearch struct {
+	Nodes    []*SearchIssues_IssueSearch_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo SearchIssues_IssueSearch_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *SearchIssues_IssueSearch) GetNodes() []*SearchIssues_IssueSearch_Nodes {
+	if t == nil {
+		t = &SearchIssues_IssueSearch{}
+	}
+	return t.Nodes
+}
+func (t *SearchIssues_IssueSearch) GetPageInfo() *SearchIssues_IssueSearch_PageInfo {
+	if t == nil {
+		t = &SearchIssues_IssueSearch{}
+	}
+	return &t.PageInfo
+}
+
 type GetTeam_Team struct {
 	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
@@ -2683,6 +2816,17 @@ func (t *ListRoadmaps) GetRoadmaps() *ListRoadmaps_Roadmaps {
 		t = &ListRoadmaps{}
 	}
 	return &t.Roadmaps
+}
+
+type SearchIssues struct {
+	IssueSearch SearchIssues_IssueSearch "json:\"issueSearch\" graphql:\"issueSearch\""
+}
+
+func (t *SearchIssues) GetIssueSearch() *SearchIssues_IssueSearch {
+	if t == nil {
+		t = &SearchIssues{}
+	}
+	return &t.IssueSearch
 }
 
 type GetTeam struct {
@@ -3562,6 +3706,51 @@ func (c *Client) ListRoadmaps(ctx context.Context, first *int64, after *string, 
 	return &res, nil
 }
 
+const SearchIssuesDocument = `query SearchIssues ($query: String!, $first: Int, $after: String) {
+	issueSearch(query: $query, first: $first, after: $after) {
+		nodes {
+			id
+			title
+			description
+			priority
+			createdAt
+			state {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) SearchIssues(ctx context.Context, query string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error) {
+	vars := map[string]any{
+		"query": query,
+		"first": first,
+		"after": after,
+	}
+
+	var res SearchIssues
+	if err := c.Client.Post(ctx, "SearchIssues", SearchIssuesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetTeamDocument = `query GetTeam ($id: String!) {
 	team(id: $id) {
 		id
@@ -3824,6 +4013,7 @@ var DocumentOperationNames = map[string]string{
 	ListProjectsDocument:       "ListProjects",
 	GetRoadmapDocument:         "GetRoadmap",
 	ListRoadmapsDocument:       "ListRoadmaps",
+	SearchIssuesDocument:       "SearchIssues",
 	GetTeamDocument:            "GetTeam",
 	ListTeamsDocument:          "ListTeams",
 	GetUserDocument:            "GetUser",

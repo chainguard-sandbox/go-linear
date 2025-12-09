@@ -363,3 +363,12 @@ func (c *Client) CommentDelete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// IssueSearch searches for issues matching a query string.
+func (c *Client) IssueSearch(ctx context.Context, query string, first *int64, after *string) (*intgraphql.SearchIssues_IssueSearch, error) {
+	resp, err := c.gqlClient.SearchIssues(ctx, query, first, after)
+	if err != nil {
+		return nil, fmt.Errorf("issue search failed: %w", err)
+	}
+	return &resp.IssueSearch, nil
+}
