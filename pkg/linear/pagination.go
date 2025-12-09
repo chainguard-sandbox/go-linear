@@ -17,7 +17,38 @@ type IssueIterator struct {
 	err     error
 }
 
-// NewIssueIterator creates an iterator for paginating through all issues.
+// NewIssueIterator creates an iterator for automatic pagination through all issues.
+//
+// Parameters:
+//   - client: Linear client instance (required)
+//   - pageSize: Number of issues per API request (0 = default 50)
+//
+// Usage Pattern:
+//  1. Create iterator with NewIssueIterator
+//  2. Call Next(ctx) in loop - returns true while issues remain
+//  3. Call Issue() to get current issue
+//  4. Check Err() after loop completes
+//
+// Iterator automatically:
+//   - Fetches pages as needed
+//   - Handles cursor management
+//   - Stops when no more results
+//   - Captures errors for later check
+//
+// Permissions Required: Read
+//
+// Related: [Issues], [NewTeamIterator], [NewProjectIterator]
+//
+// Example:
+//
+//	iter := linear.NewIssueIterator(client, 100)
+//	for iter.Next(ctx) {
+//	    issue := iter.Issue()
+//	    fmt.Printf("%s: %s\n", issue.ID, issue.Title)
+//	}
+//	if err := iter.Err(); err != nil {
+//	    return fmt.Errorf("iteration failed: %w", err)
+//	}
 func NewIssueIterator(client *Client, pageSize int64) *IssueIterator {
 	if pageSize <= 0 {
 		pageSize = 50
