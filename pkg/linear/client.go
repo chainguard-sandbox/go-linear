@@ -1036,3 +1036,87 @@ func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// TeamCreate creates a new team.
+func (c *Client) TeamCreate(ctx context.Context, input intgraphql.TeamCreateInput) (*intgraphql.CreateTeam_TeamCreate_Team, error) {
+	resp, err := c.gqlClient.CreateTeam(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("team create failed: %w", err)
+	}
+
+	if !resp.TeamCreate.Success {
+		return nil, fmt.Errorf("team create failed: success=false")
+	}
+
+	return resp.TeamCreate.Team, nil
+}
+
+// TeamUpdate updates an existing team.
+func (c *Client) TeamUpdate(ctx context.Context, id string, input intgraphql.TeamUpdateInput) (*intgraphql.UpdateTeam_TeamUpdate_Team, error) {
+	resp, err := c.gqlClient.UpdateTeam(ctx, id, input)
+	if err != nil {
+		return nil, fmt.Errorf("team update failed: %w", err)
+	}
+
+	if !resp.TeamUpdate.Success {
+		return nil, fmt.Errorf("team update failed: success=false")
+	}
+
+	return resp.TeamUpdate.Team, nil
+}
+
+// TeamDelete deletes a team by ID.
+func (c *Client) TeamDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteTeam(ctx, id)
+	if err != nil {
+		return fmt.Errorf("team delete failed: %w", err)
+	}
+
+	if !resp.TeamDelete.Success {
+		return fmt.Errorf("team delete failed: success=false")
+	}
+
+	return nil
+}
+
+// ProjectCreate creates a new project.
+func (c *Client) ProjectCreate(ctx context.Context, input intgraphql.ProjectCreateInput) (*intgraphql.CreateProject_ProjectCreate_Project, error) {
+	resp, err := c.gqlClient.CreateProject(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("project create failed: %w", err)
+	}
+
+	if !resp.ProjectCreate.Success {
+		return nil, fmt.Errorf("project create failed: success=false")
+	}
+
+	return resp.ProjectCreate.Project, nil
+}
+
+// ProjectUpdate updates an existing project.
+func (c *Client) ProjectUpdate(ctx context.Context, id string, input intgraphql.ProjectUpdateInput) (*intgraphql.UpdateProject_ProjectUpdate_Project, error) {
+	resp, err := c.gqlClient.UpdateProject(ctx, id, input)
+	if err != nil {
+		return nil, fmt.Errorf("project update failed: %w", err)
+	}
+
+	if !resp.ProjectUpdate.Success {
+		return nil, fmt.Errorf("project update failed: success=false")
+	}
+
+	return resp.ProjectUpdate.Project, nil
+}
+
+// ProjectDelete deletes a project by ID.
+func (c *Client) ProjectDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteProject(ctx, id)
+	if err != nil {
+		return fmt.Errorf("project delete failed: %w", err)
+	}
+
+	if !resp.ProjectDelete.Success {
+		return fmt.Errorf("project delete failed: success=false")
+	}
+
+	return nil
+}
