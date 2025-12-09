@@ -130,6 +130,10 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			if attempt < maxRetries && isRetryable(err) {
 				continue
 			}
+			// Max retries exceeded or non-retryable error
+			if attempt >= maxRetries {
+				return nil, fmt.Errorf("max retries exceeded: %w", lastErr)
+			}
 			return nil, err
 		}
 

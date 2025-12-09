@@ -1,0 +1,38 @@
+mutation CreateCycle($input: CycleCreateInput!) {
+  cycleCreate(input: $input) {
+    success
+    cycle {
+      id
+      number
+      name
+      description
+      startsAt
+      endsAt
+      team {
+        id
+        name
+        key
+      }
+    }
+  }
+}
+
+mutation UpdateCycle($id: String!, $input: CycleUpdateInput!) {
+  cycleUpdate(id: $id, input: $input) {
+    success
+    cycle {
+      id
+      number
+      name
+      description
+      startsAt
+      endsAt
+    }
+  }
+}
+
+mutation ArchiveCycle($id: String!) {
+  cycleArchive(id: $id) {
+    success
+  }
+}
