@@ -139,6 +139,11 @@ issues:
         - errcheck    # Error checking less strict in tests
         - gocritic    # Style checks less important in tests
         - forbidigo   # Allow print statements in tests
+    # Exclude linters from example files
+    - path: "examples/.*\\.go"
+      linters:
+        - gci         # Examples can have simpler import grouping
+
 
     # Exclude linters from generated files (genqlient)
     - path: "internal/graphql/generated\\.go"
@@ -169,7 +174,6 @@ formatters:
   enable:
     - gofmt          # Standard Go formatter
     - goimports      # Manages imports and formatting
-    - gci            # Import order (golangci-lint v2)
 
 # Output configuration
 output:
