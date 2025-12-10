@@ -107,6 +107,7 @@ linters:
     # Exclude directories from linting
     paths:
       - "examples/tasks/.*"
+      - "examples/mcp-client/.*"
 
     # Exclude linters from specific files
     rules:

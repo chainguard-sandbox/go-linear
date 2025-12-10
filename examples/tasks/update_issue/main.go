@@ -60,8 +60,8 @@ func main() {
 	fmt.Println()
 
 	// Step 2: Update the issue
-	newTitle := fmt.Sprintf("%s (Updated)", issue.Title)
-	newDescription := "This issue was updated programmatically using go-linear SDK.\n\n" +
+	updatedTitle := fmt.Sprintf("%s (Updated)", issue.Title)
+	updatedDescription := "This issue was updated programmatically using go-linear SDK.\n\n" +
 		"Updates include:\n" +
 		"- Modified title\n" +
 		"- Added description\n" +
@@ -69,8 +69,8 @@ func main() {
 	priority := int64(2) // High priority
 
 	updated, err := client.IssueUpdate(ctx, issue.ID, linear.IssueUpdateInput{
-		Title:       &newTitle,
-		Description: &newDescription,
+		Title:       &updatedTitle,
+		Description: &updatedDescription,
 		Priority:    &priority,
 	})
 	if err != nil {

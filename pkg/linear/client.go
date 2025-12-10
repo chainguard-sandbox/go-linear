@@ -542,11 +542,11 @@ func (c *Client) IssueCreate(ctx context.Context, input intgraphql.IssueCreateIn
 //
 // Example:
 //
-//	newTitle := "Updated: Fix critical bug"
+//	updatedTitle := "Updated: Fix critical bug"
 //	priority := 1 // Urgent
 //
 //	updated, err := client.IssueUpdate(ctx, issueID, IssueUpdateInput{
-//	    Title: &newTitle,
+//	    Title: &updatedTitle,
 //	    Priority: &priority,
 //	})
 func (c *Client) IssueUpdate(ctx context.Context, id string, input intgraphql.IssueUpdateInput) (*intgraphql.UpdateIssue_IssueUpdate_Issue, error) {
@@ -825,9 +825,9 @@ func (c *Client) CycleCreate(ctx context.Context, input intgraphql.CycleCreateIn
 //
 // Example:
 //
-//	newName := "Sprint 1 (Extended)"
+//	updatedName := "Sprint 1 (Extended)"
 //	cycle, err := client.CycleUpdate(ctx, cycleID, intgraphql.CycleUpdateInput{
-//	    Name: &newName,
+//	    Name: &updatedName,
 //	})
 //
 // Related: [CycleCreate], [CycleArchive], [Cycle]
@@ -1559,9 +1559,9 @@ func (c *Client) IssueRelationCreate(ctx context.Context, input intgraphql.Issue
 //
 // Example:
 //
-//	newType := "blocks"
+//	updatedType := "blocks"
 //	relation, err := client.IssueRelationUpdate(ctx, relationID, intgraphql.IssueRelationUpdateInput{
-//	    Type: &newType,
+//	    Type: &updatedType,
 //	})
 //
 // Related: [IssueRelationCreate], [IssueRelationDelete]
@@ -1754,9 +1754,9 @@ func (c *Client) ProjectMilestoneCreate(ctx context.Context, input intgraphql.Pr
 //
 // Example:
 //
-//	newDate := "2025-04-01"
+//	updatedTargetDate := "2025-04-01"
 //	milestone, err := client.ProjectMilestoneUpdate(ctx, milestoneID, intgraphql.ProjectMilestoneUpdateInput{
-//	    TargetDate: &newDate,
+//	    TargetDate: &updatedTargetDate,
 //	})
 //
 // Related: [ProjectMilestoneCreate], [ProjectMilestoneDelete]

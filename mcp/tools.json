@@ -1,0 +1,336 @@
+{
+  "name": "linear",
+  "version": "0.1.0",
+  "description": "Linear API client tools for issue management, team collaboration, and project tracking",
+  "tools": [
+    {
+      "name": "linear_get_viewer",
+      "description": "Get authenticated user information. Use this to verify authentication and get the current user's ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "linear_list_teams",
+      "description": "List all teams in the workspace. Use this to get team IDs needed for creating issues.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "description": "Number of teams to return (default: 50, max: 250)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination (from previous response's pageInfo.endCursor)"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "linear_list_issues",
+      "description": "List issues with pagination. Returns up to 'first' issues. Use pageInfo.endCursor for next page.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "description": "Number of issues to return (default: 50, max: 250)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination. Get from previous response's pageInfo.endCursor. Omit for first page."
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "linear_get_issue",
+      "description": "Get a single issue by ID. Returns full issue details including title, description, state, assignee, etc.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Issue UUID (not the issue number). Get from linear_list_issues or linear_search_issues."
+          }
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "linear_search_issues",
+      "description": "Search for issues by text query. Supports search operators like 'priority:urgent', 'assignee:me', 'state:started'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query with optional operators: priority:urgent, state:started, assignee:me, label:bug"
+          },
+          "first": {
+            "type": "number",
+            "description": "Number of results to return (default: 50, max: 250)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "linear_create_issue",
+      "description": "⚠️ MUTABLE: Create a new issue. This will create a new issue in Linear. Always confirm with user before executing. Requires teamID (get from linear_list_teams). All other fields are optional.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "teamID": {
+            "type": "string",
+            "description": "Team UUID (required). Get from linear_list_teams."
+          },
+          "title": {
+            "type": "string",
+            "description": "Issue title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Issue description in markdown format"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low",
+            "enum": [0, 1, 2, 3, 4]
+          },
+          "assigneeID": {
+            "type": "string",
+            "description": "User UUID to assign. Get from linear_list_users or linear_get_viewer."
+          },
+          "stateID": {
+            "type": "string",
+            "description": "Workflow state UUID. Get from linear_list_workflow_states. Must belong to same team."
+          },
+          "labelIds": {
+            "type": "array",
+            "description": "Array of label UUIDs. Get from linear_list_labels.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parentID": {
+            "type": "string",
+            "description": "Parent issue UUID for creating sub-issues. Must be in same team."
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Due date in YYYY-MM-DD format (e.g., '2024-12-25')",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": ["teamID"]
+      },
+      "x-mutable": true,
+      "x-requires-confirmation": true
+    },
+    {
+      "name": "linear_update_issue",
+      "description": "⚠️ MUTABLE: Update an existing issue. This will modify the issue in Linear. Always confirm with user before executing. All fields are optional. Omitted fields remain unchanged. Empty string for assigneeID unassigns the issue.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Issue UUID to update (required)"
+          },
+          "title": {
+            "type": "string",
+            "description": "New title"
+          },
+          "description": {
+            "type": "string",
+            "description": "New description in markdown"
+          },
+          "priority": {
+            "type": "number",
+            "description": "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low",
+            "enum": [0, 1, 2, 3, 4]
+          },
+          "assigneeID": {
+            "type": "string",
+            "description": "New assignee UUID (empty string to unassign)"
+          },
+          "stateID": {
+            "type": "string",
+            "description": "New workflow state UUID"
+          },
+          "labelIds": {
+            "type": "array",
+            "description": "Replace all labels with this array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id"]
+      },
+      "x-mutable": true,
+      "x-requires-confirmation": true
+    },
+    {
+      "name": "linear_delete_issue",
+      "description": "⚠️ DESTRUCTIVE: Delete an issue permanently. This action CANNOT be undone. The issue and all its comments, attachments, and history will be permanently removed. Always confirm with user before executing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Issue UUID to delete (WARNING: permanent deletion)"
+          }
+        },
+        "required": ["id"]
+      },
+      "x-dangerous": true,
+      "x-requires-confirmation": true
+    },
+    {
+      "name": "linear_list_workflow_states",
+      "description": "List all workflow states (e.g., Todo, In Progress, Done). Use to get state IDs for creating/updating issues.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "description": "Number of states to return (default: 50)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "linear_list_users",
+      "description": "List all users in the workspace. Use to get user IDs for assigning issues.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "description": "Number of users to return (default: 50, max: 250)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "linear_list_labels",
+      "description": "List all issue labels. Use to get label IDs for applying to issues.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "description": "Number of labels to return (default: 50)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "linear_create_comment",
+      "description": "⚠️ MUTABLE: Add a comment to an issue. This will create a new comment in Linear. Always confirm with user before executing. Supports markdown formatting.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "issueID": {
+            "type": "string",
+            "description": "Issue UUID to comment on"
+          },
+          "body": {
+            "type": "string",
+            "description": "Comment text in markdown format"
+          }
+        },
+        "required": ["issueID", "body"]
+      },
+      "x-mutable": true,
+      "x-requires-confirmation": true
+    },
+    {
+      "name": "linear_list_comments",
+      "description": "List comments for an issue or all comments with pagination.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "description": "Number of comments to return (default: 50)",
+            "default": 50
+          },
+          "after": {
+            "type": "string",
+            "description": "Cursor for pagination"
+          }
+        },
+        "required": []
+      }
+    }
+  ],
+  "errors": {
+    "AuthenticationError": {
+      "description": "Invalid or expired LINEAR_API_KEY. Get a new key from https://linear.app/settings/account/security",
+      "statusCode": 401
+    },
+    "ForbiddenError": {
+      "description": "Missing required permission. Check API key scopes (Read vs Write).",
+      "statusCode": 403
+    },
+    "RateLimitError": {
+      "description": "Rate limit exceeded. Linear allows ~2 requests/second sustained. Retry after indicated seconds.",
+      "statusCode": 429,
+      "retryable": true
+    }
+  },
+  "workflows": {
+    "create_issue_workflow": {
+      "description": "Complete workflow for creating an issue",
+      "steps": [
+        "1. Call linear_list_teams to get teamID",
+        "2. (Optional) Call linear_list_workflow_states to get stateID",
+        "3. (Optional) Call linear_get_viewer or linear_list_users to get assigneeID",
+        "4. Call linear_create_issue with teamID and other fields",
+        "5. Response contains issue.id and issue.url"
+      ]
+    },
+    "search_and_update_workflow": {
+      "description": "Find and update issues",
+      "steps": [
+        "1. Call linear_search_issues with query",
+        "2. Select issue from results (get issue.id)",
+        "3. Call linear_update_issue with id and fields to change",
+        "4. Response contains updated issue"
+      ]
+    }
+  }
+}

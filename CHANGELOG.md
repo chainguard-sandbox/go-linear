@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-12-10
+
+### Added
+- **Model Context Protocol (MCP) server** for AI agent integration
+  - 13 tools exposing Linear API operations (viewer, teams, issues, search, comments, labels, workflow states, users)
+  - Read-only operations: 9 safe tools for querying Linear data
+  - Mutable operations: 4 tools (create_issue, update_issue, create_comment, delete_issue) with confirmation warnings
+  - JSON-RPC 2.0 over stdio following MCP specification
+  - Complete tool specifications in `mcp/tools.json` with safety markers
+  - Automated test script in `mcp/test-mcp.sh`
+  - Example Go client in `examples/mcp-client/`
+  - MCP server binary in `cmd/linear-mcp/` with separate module
+- **JSON Schema** for AI-friendly type discovery
+  - Complete schema definitions in `pkg/linear/schema.json`
+  - Embedded schema accessor: `linear.GetSchema()`
+  - Input/output types with validation rules and field constraints
+- **AI Integration Documentation**
+  - Complete MCP guide in `docs/MCP.md` with setup, workflows, and safety details
+  - Claude Desktop configuration instructions
+  - Linear API permission documentation (Read, Write, Admin, Create issues, Create comments)
+  - Permission detection via API responses (401 Unauthorized, 403 Forbidden)
+
+### Changed
+- Improved variable naming in examples and documentation for clarity and consistency following Go best practices:
+  - Variables with `new*` prefix (e.g., `newTitle`, `newName`) renamed to more descriptive names using `updated*` prefix (e.g., `updatedTitle`, `updatedName`) or context-specific names (e.g., `updatedTargetDate`)
+  - `unassign` renamed to `emptyAssignee` to clarify its purpose
+  - `added` renamed to `labelIDsToAdd` to be more explicit
+
+  **Affected files:**
+  - Documentation examples in `pkg/linear/client.go`
+  - Example programs in `examples/tasks/`
+  - Test files in `pkg/linear/`
+
+  **Note**: This is a documentation-only change. If you copied code from examples, update variable names to match the new patterns. The API itself is unchanged.
+
+### Security
+- MCP server includes safety warnings for all mutable operations
+- Destructive operations (delete) marked with `x-dangerous` and `x-requires-confirmation` flags
+- MCP server binary added to `.gitignore`
+- All mutable tools require user confirmation with ⚠️ warnings in descriptions
+
 ## [1.0.0] - 2025-12-10
 
 ### Overview
@@ -127,4 +168,5 @@ First stable release of go-linear, a production-ready Go client for the Linear A
 
 **License**: Apache 2.0
 
+[1.1.0]: https://github.com/eslerm/go-linear/releases/tag/v1.1.0
 [1.0.0]: https://github.com/eslerm/go-linear/releases/tag/v1.0.0

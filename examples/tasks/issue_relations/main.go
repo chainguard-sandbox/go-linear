@@ -108,12 +108,12 @@ func main() {
 	fmt.Println()
 
 	// Step 4: Update the relationship type
-	newTypeEnum := intgraphql.IssueRelationTypeRelated
-	newTypeString := string(newTypeEnum)
+	updatedRelationType := intgraphql.IssueRelationTypeRelated
+	updatedRelationTypeStr := string(updatedRelationType)
 	fmt.Printf("Updating relationship type to: related\n")
 
 	updated, err := client.IssueRelationUpdate(ctx, relation.ID, intgraphql.IssueRelationUpdateInput{
-		Type: &newTypeString,
+		Type: &updatedRelationTypeStr,
 	})
 	if err != nil {
 		log.Fatalf("Failed to update relation: %v", err)

@@ -9,6 +9,9 @@ dist/
 *_bin
 *_example_bin
 
+# MCP server binary
+cmd/linear-mcp/linear-mcp
+
 # Test binary, built with `go test -c`
 *.test
 

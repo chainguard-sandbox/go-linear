@@ -52,9 +52,9 @@ func TestLive_IssueMutations_FullCycle(t *testing.T) {
 	t.Logf("✓ Created issue: %s", issue.ID)
 
 	// Update the issue
-	newTitle := "[SDK-TEST] Updated Issue"
+	updatedTitle := "[SDK-TEST] Updated Issue"
 	_, err = client.IssueUpdate(ctx, issue.ID, intgraphql.IssueUpdateInput{
-		Title: &newTitle,
+		Title: &updatedTitle,
 	})
 
 	if err != nil {
