@@ -7,6 +7,10 @@ import (
 )
 
 // IssueIterator provides automatic pagination over issues.
+//
+// NOT SAFE FOR CONCURRENT USE. An iterator maintains internal state
+// and should not be shared between goroutines. Create separate iterators
+// for concurrent pagination.
 type IssueIterator struct {
 	client  *Client
 	first   int64
@@ -34,6 +38,20 @@ type IssueIterator struct {
 //   - Handles cursor management
 //   - Stops when no more results
 //   - Captures errors for later check
+//
+// Thread Safety: NOT SAFE FOR CONCURRENT USE
+//
+// For concurrent pagination, create separate iterators:
+//
+//	for i := 0; i < 10; i++ {
+//	    go func() {
+//	        iter := linear.NewIssueIterator(client, 50)  // Separate iterator
+//	        for iter.Next(ctx) {
+//	            issue := iter.Issue()
+//	            process(issue)
+//	        }
+//	    }()
+//	}
 //
 // Permissions Required: Read
 //
@@ -106,7 +124,9 @@ func (it *IssueIterator) Err() error {
 }
 
 // TeamIterator provides automatic pagination over teams.
-type TeamIterator struct {
+//
+// NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
+type TeamIterator struct{
 	client  *Client
 	first   int64
 	buffer  []*intgraphql.ListTeams_Teams_Nodes
@@ -171,6 +191,8 @@ func (it *TeamIterator) Err() error {
 }
 
 // ProjectIterator provides automatic pagination over projects.
+//
+// NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
 type ProjectIterator struct {
 	client  *Client
 	first   int64
@@ -236,6 +258,8 @@ func (it *ProjectIterator) Err() error {
 }
 
 // CommentIterator provides automatic pagination over comments.
+//
+// NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
 type CommentIterator struct {
 	client  *Client
 	first   int64

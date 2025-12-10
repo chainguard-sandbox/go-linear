@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
+
 	intgraphql "github.com/eslerm/go-linear/internal/graphql"
 )
 
