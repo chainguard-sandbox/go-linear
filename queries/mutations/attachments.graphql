@@ -1,0 +1,51 @@
+mutation AttachmentCreate($input: AttachmentCreateInput!) {
+  attachmentCreate(input: $input) {
+    success
+    attachment {
+      id
+      title
+      subtitle
+      url
+      metadata
+    }
+  }
+}
+
+mutation AttachmentLinkURL($issueId: String!, $url: String!, $title: String) {
+  attachmentLinkURL(issueId: $issueId, url: $url, title: $title) {
+    success
+    attachment {
+      id
+      title
+      url
+    }
+  }
+}
+
+mutation AttachmentLinkGitHubPR($issueId: String!, $url: String!) {
+  attachmentLinkGitHubPR(issueId: $issueId, url: $url) {
+    success
+    attachment {
+      id
+      title
+      url
+    }
+  }
+}
+
+mutation AttachmentLinkSlack($issueId: String!, $url: String!) {
+  attachmentLinkSlack(issueId: $issueId, url: $url) {
+    success
+    attachment {
+      id
+      title
+      url
+    }
+  }
+}
+
+mutation AttachmentDelete($id: String!) {
+  attachmentDelete(id: $id) {
+    success
+  }
+}
