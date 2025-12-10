@@ -110,8 +110,8 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Query issues - use SearchIssues if we have filters, otherwise use Issues
-	var nodes []interface{}
-	var _ interface{} // pageInfo unused for now
+	var nodes []any
+	var _ any // pageInfo unused for now
 
 	if issueFilter != nil {
 		// Use SearchIssues with empty query and filters
@@ -144,7 +144,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		if err != nil {
 			return fmt.Errorf("failed to list issues: %w", err)
 		}
-		nodes = make([]interface{}, len(issues.Nodes))
+		nodes = make([]any, len(issues.Nodes))
 		for i, n := range issues.Nodes {
 			nodes[i] = n
 		}

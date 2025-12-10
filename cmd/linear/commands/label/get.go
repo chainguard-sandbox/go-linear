@@ -1,0 +1,80 @@
+package label
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+)
+
+// NewGetCommand creates the label get command.
+func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get <label-id>",
+		Short: "Get a single label by ID",
+		Long: `Get detailed information about a specific issue label.
+
+Retrieve full label details including name, description, color, and creation metadata.
+
+Parameters:
+  <label-id>: Label UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, description, color, createdAt
+
+Examples:
+  # Get label by UUID
+  linear label get <label-uuid>
+
+  # Get label with JSON output
+  linear label get <label-uuid> --output=json
+
+TIP: Use 'linear label list' to discover label IDs and names`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, err := clientFactory()
+			if err != nil {
+				return err
+			}
+			defer client.Close()
+
+			return runGet(cmd, client, args[0])
+		},
+	}
+
+	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+
+	return cmd
+}
+
+func runGet(cmd *cobra.Command, client *linear.Client, labelID string) error {
+	ctx := context.Background()
+
+	label, err := client.IssueLabel(ctx, labelID)
+	if err != nil {
+		return fmt.Errorf("failed to get label: %w", err)
+	}
+
+	output, _ := cmd.Flags().GetString("output")
+	switch output {
+	case "json":
+		return formatter.FormatJSON(cmd.OutOrStdout(), label, true)
+	case "table":
+		// Simple table output for single label
+		fmt.Fprintf(cmd.OutOrStdout(), "ID:          %s\n", label.ID)
+		fmt.Fprintf(cmd.OutOrStdout(), "Name:        %s\n", label.Name)
+		if label.Description != nil && *label.Description != "" {
+			fmt.Fprintf(cmd.OutOrStdout(), "Description: %s\n", *label.Description)
+		}
+		if label.Color != "" {
+			fmt.Fprintf(cmd.OutOrStdout(), "Color:       %s\n", label.Color)
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "Created:     %s\n", label.CreatedAt)
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", output)
+	}
+}

@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewCreateCommand creates the label create command.
@@ -39,10 +38,10 @@ TIP: Use hex color codes (e.g., #ff0000 for red, #00ff00 for green)`,
 	}
 
 	cmd.Flags().String("name", "", "Label name (required)")
-	cmd.MarkFlagRequired("name")
+	_ = cmd.MarkFlagRequired("name")
 
 	cmd.Flags().String("color", "", "Label color hex code (e.g., #ff0000) (required)")
-	cmd.MarkFlagRequired("color")
+	_ = cmd.MarkFlagRequired("color")
 
 	cmd.Flags().String("description", "", "Label description")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")

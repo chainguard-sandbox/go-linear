@@ -20,6 +20,7 @@ func NewStateCommand(clientFactory ClientFactory) *cobra.Command {
 
 	// Add subcommands
 	cmd.AddCommand(NewListCommand(clientFactory))
+	cmd.AddCommand(NewGetCommand(clientFactory))
 
 	return cmd
 }

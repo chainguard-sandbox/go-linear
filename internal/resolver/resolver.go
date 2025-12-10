@@ -64,7 +64,7 @@ func (r *Resolver) ResolveTeam(ctx context.Context, nameOrID string) (string, er
 
 	lower := strings.ToLower(nameOrID)
 	for _, team := range teams.Nodes {
-		if strings.ToLower(team.Name) == lower || strings.ToLower(team.Key) == lower {
+		if strings.EqualFold(team.Name, lower) || strings.EqualFold(team.Key, lower) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string
@@ -98,7 +98,7 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 	}
 
 	// Handle "me" special case
-	if strings.ToLower(nameOrEmailOrID) == "me" {
+	if strings.EqualFold(nameOrEmailOrID, "me") {
 		viewer, err := r.client.Viewer(ctx)
 		if err != nil {
 			return "", fmt.Errorf("failed to get current user: %w", err)
@@ -133,9 +133,9 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 
 	lower := strings.ToLower(nameOrEmailOrID)
 	for _, user := range users.Nodes {
-		if strings.ToLower(user.Name) == lower ||
-			strings.ToLower(user.Email) == lower ||
-			(user.DisplayName != "" && strings.ToLower(user.DisplayName) == lower) {
+		if strings.EqualFold(user.Name, lower) ||
+			strings.EqualFold(user.Email, lower) ||
+			(user.DisplayName != "" && strings.EqualFold(user.DisplayName, lower)) {
 			matches = append(matches, &struct {
 				ID    string
 				Name  string
@@ -194,7 +194,7 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 
 	lower := strings.ToLower(nameOrID)
 	for _, state := range states.Nodes {
-		if strings.ToLower(state.Name) == lower {
+		if strings.EqualFold(state.Name, lower) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string
@@ -252,7 +252,7 @@ func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, e
 
 	lower := strings.ToLower(nameOrID)
 	for _, label := range labels.Nodes {
-		if strings.ToLower(label.Name) == lower {
+		if strings.EqualFold(label.Name, lower) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string

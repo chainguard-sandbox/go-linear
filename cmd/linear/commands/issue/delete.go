@@ -79,7 +79,7 @@ func runDelete(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	output, _ := cmd.Flags().GetString("output")
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]interface{}{
+		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
 			"success": true,
 			"issueId": issueID,
 		}, true)

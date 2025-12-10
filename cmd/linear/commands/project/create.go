@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewCreateCommand creates the project create command.
@@ -38,7 +37,7 @@ TIP: Projects help organize multiple related issues across teams`,
 	}
 
 	cmd.Flags().String("name", "", "Project name (required)")
-	cmd.MarkFlagRequired("name")
+	_ = cmd.MarkFlagRequired("name")
 
 	cmd.Flags().String("description", "", "Project description")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")

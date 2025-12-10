@@ -39,10 +39,10 @@ TIP: Use 'linear team list' to discover available teams`,
 
 	// Required
 	cmd.Flags().String("team", "", "Team name or ID (required)")
-	cmd.MarkFlagRequired("team")
+	_ = cmd.MarkFlagRequired("team")
 
 	cmd.Flags().String("title", "", "Issue title (required)")
-	cmd.MarkFlagRequired("title")
+	_ = cmd.MarkFlagRequired("title")
 
 	// Optional
 	cmd.Flags().String("description", "", "Issue description (markdown)")

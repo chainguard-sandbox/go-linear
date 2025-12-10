@@ -8,7 +8,7 @@ import (
 
 // FormatJSON writes data as JSON to the writer.
 // If pretty is true, the JSON is indented for readability.
-func FormatJSON(w io.Writer, data interface{}, pretty bool) error {
+func FormatJSON(w io.Writer, data any, pretty bool) error {
 	encoder := json.NewEncoder(w)
 	if pretty {
 		encoder.SetIndent("", "  ")

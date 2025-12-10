@@ -62,6 +62,63 @@
     }
   },
   {
+    "description": "Get detailed information about a specific attachment.\n\nRetrieve full attachment details including title, URL, subtitle, metadata, and associated issue.\nAttachments can be files, external links, GitHub PRs, or Slack threads.\n\nParameters:\n  \u003cattachment-id\u003e: Attachment UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, title, url, subtitle, source, issue, creator, createdAt\n\nExamples:\n  # Get attachment by UUID\n  linear attachment get \u003cattachment-uuid\u003e\n\n  # Get attachment with JSON output\n  linear attachment get \u003cattachment-uuid\u003e --output=json\n\nTIP: Use 'linear attachment list' to discover attachment IDs from issues\n\nRelated Commands:\n  - linear attachment list - List all attachments\n  - linear attachment link-url - Link external URL to issue\n  - linear attachment link-github - Link GitHub PR to issue",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cattachment-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_attachment_get",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "Link a GitHub PR to an issue",
     "inputSchema": {
       "type": "object",
@@ -374,6 +431,63 @@
       "additionalProperties": false
     },
     "name": "linear_comment_delete",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Get detailed information about a specific comment.\n\nRetrieve full comment details including body text, author, creation timestamp,\nand associated issue information.\n\nParameters:\n  \u003ccomment-id\u003e: Comment UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, body, user (author), issue, createdAt, updatedAt\n\nExamples:\n  # Get comment by UUID\n  linear comment get \u003ccomment-uuid\u003e\n\n  # Get comment with JSON output\n  linear comment get \u003ccomment-uuid\u003e --output=json\n\nTIP: Use 'linear comment list' to discover comment IDs from issues",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003ccomment-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_comment_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1770,6 +1884,63 @@
     }
   },
   {
+    "description": "Get detailed information about a specific issue label.\n\nRetrieve full label details including name, description, color, and creation metadata.\n\nParameters:\n  \u003clabel-id\u003e: Label UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, color, createdAt\n\nExamples:\n  # Get label by UUID\n  linear label get \u003clabel-uuid\u003e\n\n  # Get label with JSON output\n  linear label get \u003clabel-uuid\u003e --output=json\n\nTIP: Use 'linear label list' to discover label IDs and names",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003clabel-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_label_get",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "List all issue labels in the Linear workspace.\n\nExamples:\n  linear label list\n  linear label list --output=json",
     "inputSchema": {
       "type": "object",
@@ -2368,6 +2539,63 @@
       "additionalProperties": false
     },
     "name": "linear_roadmap_list",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Get detailed information about a specific workflow state.\n\nRetrieve full state details including name, type, position, color, and team information.\nWorkflow states represent stages in the issue lifecycle (e.g., \"Todo\", \"In Progress\", \"Done\").\n\nParameters:\n  \u003cstate-id\u003e: Workflow state UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, type, position, color, team\n\nExamples:\n  # Get state by UUID\n  linear state get \u003cstate-uuid\u003e\n\n  # Get state with JSON output\n  linear state get \u003cstate-uuid\u003e --output=json\n\nTIP: Use 'linear state list' to discover state IDs and names\n\nRelated Commands:\n  - linear state list - List all workflow states\n  - linear issue update --state=\u003cname\u003e - Set issue state",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cstate-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_state_get",
     "outputSchema": {
       "type": "object",
       "required": [

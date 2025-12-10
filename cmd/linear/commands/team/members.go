@@ -33,7 +33,7 @@ Examples:
 	}
 
 	cmd.Flags().String("team", "", "Team name or ID (required)")
-	cmd.MarkFlagRequired("team")
+	_ = cmd.MarkFlagRequired("team")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -69,7 +69,7 @@ func runMembers(cmd *cobra.Command, client *linear.Client) error {
 	output, _ := cmd.Flags().GetString("output")
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]interface{}{
+		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
 			"team":  team,
 			"users": users.Nodes,
 		}, true)

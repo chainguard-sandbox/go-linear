@@ -37,7 +37,7 @@ TIP: Comments support markdown formatting`,
 	}
 
 	cmd.Flags().String("body", "", "New comment body text (markdown) (required)")
-	cmd.MarkFlagRequired("body")
+	_ = cmd.MarkFlagRequired("body")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 

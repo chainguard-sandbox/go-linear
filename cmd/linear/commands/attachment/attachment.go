@@ -21,6 +21,7 @@ func NewAttachmentCommand(clientFactory ClientFactory) *cobra.Command {
 	}
 
 	cmd.AddCommand(NewListCommand(clientFactory))
+	cmd.AddCommand(NewGetCommand(clientFactory))
 	cmd.AddCommand(NewLinkURLCommand(clientFactory))
 	cmd.AddCommand(NewLinkGitHubCommand(clientFactory))
 	cmd.AddCommand(NewDeleteCommand(clientFactory))
@@ -100,9 +101,9 @@ func NewLinkURLCommand(clientFactory ClientFactory) *cobra.Command {
 	}
 
 	cmd.Flags().String("issue", "", "Issue ID (required)")
-	cmd.MarkFlagRequired("issue")
+	_ = cmd.MarkFlagRequired("issue")
 	cmd.Flags().String("url", "", "URL to link (required)")
-	cmd.MarkFlagRequired("url")
+	_ = cmd.MarkFlagRequired("url")
 	cmd.Flags().String("title", "", "Link title")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -139,9 +140,9 @@ func NewLinkGitHubCommand(clientFactory ClientFactory) *cobra.Command {
 	}
 
 	cmd.Flags().String("issue", "", "Issue ID (required)")
-	cmd.MarkFlagRequired("issue")
+	_ = cmd.MarkFlagRequired("issue")
 	cmd.Flags().String("url", "", "GitHub PR URL (required)")
-	cmd.MarkFlagRequired("url")
+	_ = cmd.MarkFlagRequired("url")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd

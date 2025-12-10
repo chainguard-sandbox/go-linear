@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewCreateCommand creates the team create command.
@@ -38,10 +37,10 @@ TIP: Team keys are short identifiers (2-5 uppercase letters) used in issue IDs (
 	}
 
 	cmd.Flags().String("name", "", "Team name (required)")
-	cmd.MarkFlagRequired("name")
+	_ = cmd.MarkFlagRequired("name")
 
 	cmd.Flags().String("key", "", "Team key/identifier (required)")
-	cmd.MarkFlagRequired("key")
+	_ = cmd.MarkFlagRequired("key")
 
 	cmd.Flags().String("description", "", "Team description")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")

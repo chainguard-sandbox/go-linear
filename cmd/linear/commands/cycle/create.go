@@ -83,11 +83,11 @@ TIP: Cycles help organize work into sprints/iterations`,
 	}
 
 	cmd.Flags().String("team", "", "Team name or ID (required)")
-	cmd.MarkFlagRequired("team")
+	_ = cmd.MarkFlagRequired("team")
 	cmd.Flags().String("starts-at", "", "Start date (required)")
-	cmd.MarkFlagRequired("starts-at")
+	_ = cmd.MarkFlagRequired("starts-at")
 	cmd.Flags().String("ends-at", "", "End date (required)")
-	cmd.MarkFlagRequired("ends-at")
+	_ = cmd.MarkFlagRequired("ends-at")
 	cmd.Flags().String("name", "", "Cycle name")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 

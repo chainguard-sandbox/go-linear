@@ -37,10 +37,10 @@ TIP: Comments support markdown formatting`,
 	}
 
 	cmd.Flags().String("issue", "", "Issue ID to comment on (required)")
-	cmd.MarkFlagRequired("issue")
+	_ = cmd.MarkFlagRequired("issue")
 
 	cmd.Flags().String("body", "", "Comment body text (markdown) (required)")
-	cmd.MarkFlagRequired("body")
+	_ = cmd.MarkFlagRequired("body")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 

@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewListCommand creates the cycle list command.

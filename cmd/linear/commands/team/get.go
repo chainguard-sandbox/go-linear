@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewGetCommand creates the team get command.
