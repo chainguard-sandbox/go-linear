@@ -1,11 +1,13 @@
-query SearchIssues($query: String!, $first: Int, $after: String) {
-  issueSearch(query: $query, first: $first, after: $after) {
+query SearchIssues($term: String!, $first: Int, $after: String, $filter: IssueFilter, $includeArchived: Boolean) {
+  searchIssues(term: $term, first: $first, after: $after, filter: $filter, includeArchived: $includeArchived) {
     nodes {
       id
       title
       description
       priority
+      number
       createdAt
+      url
       state {
         id
         name
@@ -15,10 +17,16 @@ query SearchIssues($query: String!, $first: Int, $after: String) {
         name
         key
       }
+      assignee {
+        id
+        name
+        email
+      }
     }
     pageInfo {
       hasNextPage
       endCursor
     }
+    totalCount
   }
 }

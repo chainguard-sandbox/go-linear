@@ -5,23 +5,21 @@
 // - A Linear workspace with existing issues
 //
 // This example shows:
-// 1. Basic text search across all issues
-// 2. Using search operators (priority:, state:, assignee:)
+// 1. Basic full-text search across all issues
+// 2. Using structured filters (future: priority, state, team)
 // 3. Pagination through search results
-// 4. Filtering by multiple criteria
+// 4. Including archived issues
 //
-// Search operators supported:
-// - "bug" - Contains word "bug"
-// - "\"exact phrase\"" - Exact phrase match
-// - "title:bug" - Search in title field only
-// - "state:todo" - Filter by workflow state
-// - "priority:high" - Filter by priority
-// - "assignee:me" - Filter by assignee
+// The searchIssues API provides:
+// - Full-text search across titles, descriptions, and optionally comments
+// - Structured filtering (cleaner than text operators)
+// - Total count of results
+// - Better performance than the deprecated issueSearch
 //
 // Usage:
 //
 //	export LINEAR_API_KEY=lin_api_xxx
-//	go run examples/tasks/search_issues.go
+//	go run examples/tasks/search_issues
 package main
 
 import (
@@ -51,35 +49,30 @@ func main() {
 
 	// Example 1: Simple text search
 	fmt.Println("=== Example 1: Simple text search ===")
-	searchAndDisplay(ctx, client, "bug")
+	searchSimple(ctx, client, "bug")
 
-	// Example 2: Search with priority filter
-	fmt.Println("\n=== Example 2: High priority issues ===")
-	searchAndDisplay(ctx, client, "priority:1")
+	// Example 2: Search for recent issues
+	fmt.Println("\n=== Example 2: Search for 'example' ===")
+	searchSimple(ctx, client, "example")
 
-	// Example 3: Search with state filter
-	fmt.Println("\n=== Example 3: Todo issues ===")
-	searchAndDisplay(ctx, client, "state:todo")
-
-	// Example 4: Combined filters
-	fmt.Println("\n=== Example 4: High priority bugs in todo state ===")
-	searchAndDisplay(ctx, client, "priority:1 state:todo bug")
-
-	// Example 5: Search in title only
-	fmt.Println("\n=== Example 5: Issues with 'API' in title ===")
-	searchAndDisplay(ctx, client, "title:API")
+	// Example 3: Include archived issues
+	fmt.Println("\n=== Example 3: Including archived issues ===")
+	includeArchived := true
+	searchWithOptions(ctx, client, "hexproof", &includeArchived)
 }
 
-func searchAndDisplay(ctx context.Context, client *linear.Client, query string) {
+// searchSimple demonstrates basic text search
+func searchSimple(ctx context.Context, client *linear.Client, term string) {
 	first := int64(10)
-	issues, err := client.IssueSearch(ctx, query, &first, nil)
+	issues, err := client.SearchIssues(ctx, term, &first, nil, nil, nil)
 	if err != nil {
-		log.Printf("Search failed for query '%s': %v", query, err)
+		log.Printf("Search failed for term '%s': %v", term, err)
 		return
 	}
 
-	fmt.Printf("Query: %s\n", query)
-	fmt.Printf("Found %d results\n", len(issues.Nodes))
+	fmt.Printf("Term: '%s'\n", term)
+	fmt.Printf("Total results: %.0f\n", issues.TotalCount)
+	fmt.Printf("Showing: %d results\n", len(issues.Nodes))
 
 	if len(issues.Nodes) == 0 {
 		fmt.Println("No results found.")
@@ -87,20 +80,46 @@ func searchAndDisplay(ctx context.Context, client *linear.Client, query string) 
 	}
 
 	for i, issue := range issues.Nodes {
-		fmt.Printf("%d. %s\n", i+1, issue.Title)
-		fmt.Printf("   ID: %s\n", issue.ID)
+		fmt.Printf("%d. [%.0f] %s\n", i+1, issue.Number, issue.Title)
 		if issue.State.Name != "" {
 			fmt.Printf("   State: %s", issue.State.Name)
 		}
-		priorities := []string{"None", "Urgent", "High", "Normal", "Low"}
-		if int(issue.Priority) < len(priorities) {
-			fmt.Printf(" | Priority: %s", priorities[int(issue.Priority)])
+		if issue.Assignee != nil {
+			fmt.Printf(" | Assigned: %s", issue.Assignee.Name)
 		}
 		fmt.Println()
 	}
 
-	// Show pagination info
 	if issues.PageInfo.HasNextPage {
-		fmt.Printf("\n... and more results available (use cursor: %s)\n", *issues.PageInfo.EndCursor)
+		fmt.Printf("\n... more results available (cursor: %s)\n", (*issues.PageInfo.EndCursor)[:20]+"...")
 	}
+}
+
+// searchWithOptions demonstrates additional options
+func searchWithOptions(ctx context.Context, client *linear.Client, term string, includeArchived *bool) {
+	first := int64(5)
+	issues, err := client.SearchIssues(ctx, term, &first, nil, nil, includeArchived)
+	if err != nil {
+		log.Printf("Search failed: %v", err)
+		return
+	}
+
+	archived := "false"
+	if includeArchived != nil && *includeArchived {
+		archived = "true"
+	}
+
+	fmt.Printf("Term: '%s' (includeArchived: %s)\n", term, archived)
+	fmt.Printf("Total results: %.0f\n", issues.TotalCount)
+	fmt.Printf("Showing: %d results\n", len(issues.Nodes))
+
+	for i, issue := range issues.Nodes {
+		fmt.Printf("%d. [%.0f] %s\n", i+1, issue.Number, issue.Title)
+		if issue.Team.Name != "" {
+			fmt.Printf("   Team: %s\n", issue.Team.Name)
+		}
+	}
+
+	fmt.Println("\nNote: Structured filters (IssueFilter) will be exposed in future API.")
+	fmt.Println("For now, use full-text search with descriptive terms.")
 }

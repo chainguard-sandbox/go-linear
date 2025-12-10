@@ -968,13 +968,53 @@ func (c *Client) CommentDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// IssueSearch searches for issues matching a query string.
-func (c *Client) IssueSearch(ctx context.Context, query string, first *int64, after *string) (*intgraphql.SearchIssues_IssueSearch, error) {
-	resp, err := c.gqlClient.SearchIssues(ctx, query, first, after)
+// SearchIssues searches for issues matching the search term.
+//
+// The new searchIssues API replaces the deprecated issueSearch endpoint.
+// It uses full-text search with optional structured filtering.
+//
+// Parameters:
+//   - term: Search text (required). Searches across issue titles, descriptions, and optionally comments.
+//   - first: Number of results per page (nil = default ~50, max: 250)
+//   - after: Pagination cursor from previous PageInfo.EndCursor (nil = first page)
+//   - filter: Optional structured filters (assignee, state, priority, team, etc.)
+//   - includeArchived: Include archived issues in results (default: false)
+//
+// Returns:
+//   - SearchIssues with nodes (matching issues) and pageInfo (pagination)
+//   - totalCount: Total number of matches (useful for showing "X of Y results")
+//   - Error on failure (network, auth, invalid filter)
+//
+// Example (simple text search):
+//
+//	term := "bug"
+//	first := int64(50)
+//	issues, err := client.SearchIssues(ctx, term, &first, nil, nil, nil)
+//	if err != nil {
+//	    return err
+//	}
+//	fmt.Printf("Found %d results\n", len(issues.Nodes))
+//	for _, issue := range issues.Nodes {
+//	    fmt.Printf("[%.0f] %s\n", issue.Number, issue.Title)
+//	}
+//
+// Example (with filter):
+//
+//	term := "login"
+//	first := int64(50)
+//	priorityHigh := float64(2)
+//	filter := &intgraphql.IssueFilter{
+//	    Priority: &intgraphql.NullableNumberComparator{Eq: &priorityHigh},
+//	}
+//	issues, err := client.SearchIssues(ctx, term, &first, nil, filter, nil)
+//
+// Related: [Issues], [IssueCreate], [IssueUpdate]
+func (c *Client) SearchIssues(ctx context.Context, term string, first *int64, after *string, filter *intgraphql.IssueFilter, includeArchived *bool) (*intgraphql.SearchIssues_SearchIssues, error) {
+	resp, err := c.gqlClient.SearchIssues(ctx, term, first, after, filter, includeArchived)
 	if err != nil {
 		return nil, fmt.Errorf("issue search failed: %w", err)
 	}
-	return &resp.IssueSearch, nil
+	return &resp.SearchIssues, nil
 }
 
 // Document retrieves a single knowledge base document by ID.

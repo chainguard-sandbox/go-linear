@@ -57,7 +57,7 @@ func main() {
 | I want to... | Method | Example | Complexity |
 |--------------|--------|---------|------------|
 | Create an issue | `IssueCreate()` | [→](examples/tasks/create_issue) | Simple |
-| Search for issues | `IssueSearch()` | [→](examples/tasks/search_issues) | Medium |
+| Search for issues | `SearchIssues()` | [→](examples/tasks/search_issues) | Medium |
 | Update an issue | `IssueUpdate()` | [→](examples/tasks/update_issue) | Simple |
 | Delete an issue | `IssueDelete()` | [→](examples/tasks/delete_issue) | Simple |
 | List all issues (manual) | `Issues()` | [→](examples/tasks/list_issues_paginated) | Medium |
@@ -283,7 +283,7 @@ client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
 
 | Resource | Get Single | List Multiple | Search |
 |----------|-----------|---------------|--------|
-| **Issues** | `Issue(ctx, id)` | `Issues(ctx, first, after)` | `IssueSearch(ctx, query, first, after)` |
+| **Issues** | `Issue(ctx, id)` | `Issues(ctx, first, after)` | `SearchIssues(ctx, term, first, after, filter, includeArchived)` |
 | **Teams** | `Team(ctx, id)` | `Teams(ctx, first, after)` | - |
 | **Projects** | `Project(ctx, id)` | `Projects(ctx, first, after)` | - |
 | **Users** | `User(ctx, id)` | `Users(ctx, first, after)` | - |

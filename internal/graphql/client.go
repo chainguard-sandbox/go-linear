@@ -27,6 +27,9 @@ type LinearGraphQLClient interface {
 	CreateComment(ctx context.Context, input CommentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateComment, error)
 	UpdateComment(ctx context.Context, id string, input CommentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateComment, error)
 	DeleteComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteComment, error)
+	CreateCycle(ctx context.Context, input CycleCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCycle, error)
+	UpdateCycle(ctx context.Context, id string, input CycleUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCycle, error)
+	ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error)
 	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
 	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
 	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
@@ -44,7 +47,7 @@ type LinearGraphQLClient interface {
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
 	GetRoadmap(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetRoadmap, error)
 	ListRoadmaps(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListRoadmaps, error)
-	SearchIssues(ctx context.Context, query string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
+	SearchIssues(ctx context.Context, term string, first *int64, after *string, filter *IssueFilter, includeArchived *bool, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
 	GetTemplate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTemplate, error)
@@ -1446,6 +1449,177 @@ func (t *DeleteComment_CommentDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type CreateCycle_CycleCreate_Cycle_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateCycle_CycleCreate_Cycle_Team) GetID() string {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle_Team{}
+	}
+	return t.ID
+}
+func (t *CreateCycle_CycleCreate_Cycle_Team) GetKey() string {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle_Team{}
+	}
+	return t.Key
+}
+func (t *CreateCycle_CycleCreate_Cycle_Team) GetName() string {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle_Team{}
+	}
+	return t.Name
+}
+
+type CreateCycle_CycleCreate_Cycle struct {
+	Description *string                            "json:\"description,omitempty\" graphql:\"description\""
+	EndsAt      time.Time                          "json:\"endsAt\" graphql:\"endsAt\""
+	ID          string                             "json:\"id\" graphql:\"id\""
+	Name        *string                            "json:\"name,omitempty\" graphql:\"name\""
+	Number      float64                            "json:\"number\" graphql:\"number\""
+	StartsAt    time.Time                          "json:\"startsAt\" graphql:\"startsAt\""
+	Team        CreateCycle_CycleCreate_Cycle_Team "json:\"team\" graphql:\"team\""
+}
+
+func (t *CreateCycle_CycleCreate_Cycle) GetDescription() *string {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return t.Description
+}
+func (t *CreateCycle_CycleCreate_Cycle) GetEndsAt() *time.Time {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return &t.EndsAt
+}
+func (t *CreateCycle_CycleCreate_Cycle) GetID() string {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return t.ID
+}
+func (t *CreateCycle_CycleCreate_Cycle) GetName() *string {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return t.Name
+}
+func (t *CreateCycle_CycleCreate_Cycle) GetNumber() float64 {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return t.Number
+}
+func (t *CreateCycle_CycleCreate_Cycle) GetStartsAt() *time.Time {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return &t.StartsAt
+}
+func (t *CreateCycle_CycleCreate_Cycle) GetTeam() *CreateCycle_CycleCreate_Cycle_Team {
+	if t == nil {
+		t = &CreateCycle_CycleCreate_Cycle{}
+	}
+	return &t.Team
+}
+
+type CreateCycle_CycleCreate struct {
+	Cycle   *CreateCycle_CycleCreate_Cycle "json:\"cycle,omitempty\" graphql:\"cycle\""
+	Success bool                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateCycle_CycleCreate) GetCycle() *CreateCycle_CycleCreate_Cycle {
+	if t == nil {
+		t = &CreateCycle_CycleCreate{}
+	}
+	return t.Cycle
+}
+func (t *CreateCycle_CycleCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateCycle_CycleCreate{}
+	}
+	return t.Success
+}
+
+type UpdateCycle_CycleUpdate_Cycle struct {
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	EndsAt      time.Time "json:\"endsAt\" graphql:\"endsAt\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        *string   "json:\"name,omitempty\" graphql:\"name\""
+	Number      float64   "json:\"number\" graphql:\"number\""
+	StartsAt    time.Time "json:\"startsAt\" graphql:\"startsAt\""
+}
+
+func (t *UpdateCycle_CycleUpdate_Cycle) GetDescription() *string {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate_Cycle{}
+	}
+	return t.Description
+}
+func (t *UpdateCycle_CycleUpdate_Cycle) GetEndsAt() *time.Time {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate_Cycle{}
+	}
+	return &t.EndsAt
+}
+func (t *UpdateCycle_CycleUpdate_Cycle) GetID() string {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate_Cycle{}
+	}
+	return t.ID
+}
+func (t *UpdateCycle_CycleUpdate_Cycle) GetName() *string {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate_Cycle{}
+	}
+	return t.Name
+}
+func (t *UpdateCycle_CycleUpdate_Cycle) GetNumber() float64 {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate_Cycle{}
+	}
+	return t.Number
+}
+func (t *UpdateCycle_CycleUpdate_Cycle) GetStartsAt() *time.Time {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate_Cycle{}
+	}
+	return &t.StartsAt
+}
+
+type UpdateCycle_CycleUpdate struct {
+	Cycle   *UpdateCycle_CycleUpdate_Cycle "json:\"cycle,omitempty\" graphql:\"cycle\""
+	Success bool                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateCycle_CycleUpdate) GetCycle() *UpdateCycle_CycleUpdate_Cycle {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate{}
+	}
+	return t.Cycle
+}
+func (t *UpdateCycle_CycleUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateCycle_CycleUpdate{}
+	}
+	return t.Success
+}
+
+type ArchiveCycle_CycleArchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ArchiveCycle_CycleArchive) GetSuccess() bool {
+	if t == nil {
+		t = &ArchiveCycle_CycleArchive{}
+	}
+	return t.Success
+}
+
 type CreateIssue_IssueCreate_Issue_State struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -2442,136 +2616,189 @@ func (t *ListRoadmaps_Roadmaps) GetPageInfo() *ListRoadmaps_Roadmaps_PageInfo {
 	return &t.PageInfo
 }
 
-type SearchIssues_IssueSearch_Nodes_State struct {
+type SearchIssues_SearchIssues_Nodes_State struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
 }
 
-func (t *SearchIssues_IssueSearch_Nodes_State) GetID() string {
+func (t *SearchIssues_SearchIssues_Nodes_State) GetID() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes_State{}
+		t = &SearchIssues_SearchIssues_Nodes_State{}
 	}
 	return t.ID
 }
-func (t *SearchIssues_IssueSearch_Nodes_State) GetName() string {
+func (t *SearchIssues_SearchIssues_Nodes_State) GetName() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes_State{}
+		t = &SearchIssues_SearchIssues_Nodes_State{}
 	}
 	return t.Name
 }
 
-type SearchIssues_IssueSearch_Nodes_Team struct {
+type SearchIssues_SearchIssues_Nodes_Team struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Key  string "json:\"key\" graphql:\"key\""
 	Name string "json:\"name\" graphql:\"name\""
 }
 
-func (t *SearchIssues_IssueSearch_Nodes_Team) GetID() string {
+func (t *SearchIssues_SearchIssues_Nodes_Team) GetID() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes_Team{}
+		t = &SearchIssues_SearchIssues_Nodes_Team{}
 	}
 	return t.ID
 }
-func (t *SearchIssues_IssueSearch_Nodes_Team) GetKey() string {
+func (t *SearchIssues_SearchIssues_Nodes_Team) GetKey() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes_Team{}
+		t = &SearchIssues_SearchIssues_Nodes_Team{}
 	}
 	return t.Key
 }
-func (t *SearchIssues_IssueSearch_Nodes_Team) GetName() string {
+func (t *SearchIssues_SearchIssues_Nodes_Team) GetName() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes_Team{}
+		t = &SearchIssues_SearchIssues_Nodes_Team{}
 	}
 	return t.Name
 }
 
-type SearchIssues_IssueSearch_Nodes struct {
-	CreatedAt   time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string                              "json:\"description,omitempty\" graphql:\"description\""
-	ID          string                               "json:\"id\" graphql:\"id\""
-	Priority    float64                              "json:\"priority\" graphql:\"priority\""
-	State       SearchIssues_IssueSearch_Nodes_State "json:\"state\" graphql:\"state\""
-	Team        SearchIssues_IssueSearch_Nodes_Team  "json:\"team\" graphql:\"team\""
-	Title       string                               "json:\"title\" graphql:\"title\""
+type SearchIssues_SearchIssues_Nodes_Assignee struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
 }
 
-func (t *SearchIssues_IssueSearch_Nodes) GetCreatedAt() *time.Time {
+func (t *SearchIssues_SearchIssues_Nodes_Assignee) GetEmail() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
+		t = &SearchIssues_SearchIssues_Nodes_Assignee{}
 	}
-	return &t.CreatedAt
+	return t.Email
 }
-func (t *SearchIssues_IssueSearch_Nodes) GetDescription() *string {
+func (t *SearchIssues_SearchIssues_Nodes_Assignee) GetID() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
-	}
-	return t.Description
-}
-func (t *SearchIssues_IssueSearch_Nodes) GetID() string {
-	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
+		t = &SearchIssues_SearchIssues_Nodes_Assignee{}
 	}
 	return t.ID
 }
-func (t *SearchIssues_IssueSearch_Nodes) GetPriority() float64 {
+func (t *SearchIssues_SearchIssues_Nodes_Assignee) GetName() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
+		t = &SearchIssues_SearchIssues_Nodes_Assignee{}
+	}
+	return t.Name
+}
+
+type SearchIssues_SearchIssues_Nodes struct {
+	Assignee    *SearchIssues_SearchIssues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                                    "json:\"id\" graphql:\"id\""
+	Number      float64                                   "json:\"number\" graphql:\"number\""
+	Priority    float64                                   "json:\"priority\" graphql:\"priority\""
+	State       SearchIssues_SearchIssues_Nodes_State     "json:\"state\" graphql:\"state\""
+	Team        SearchIssues_SearchIssues_Nodes_Team      "json:\"team\" graphql:\"team\""
+	Title       string                                    "json:\"title\" graphql:\"title\""
+	URL         string                                    "json:\"url\" graphql:\"url\""
+}
+
+func (t *SearchIssues_SearchIssues_Nodes) GetAssignee() *SearchIssues_SearchIssues_Nodes_Assignee {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return t.Assignee
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return t.Description
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetID() string {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return t.ID
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetNumber() float64 {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return t.Number
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetPriority() float64 {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
 	}
 	return t.Priority
 }
-func (t *SearchIssues_IssueSearch_Nodes) GetState() *SearchIssues_IssueSearch_Nodes_State {
+func (t *SearchIssues_SearchIssues_Nodes) GetState() *SearchIssues_SearchIssues_Nodes_State {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
+		t = &SearchIssues_SearchIssues_Nodes{}
 	}
 	return &t.State
 }
-func (t *SearchIssues_IssueSearch_Nodes) GetTeam() *SearchIssues_IssueSearch_Nodes_Team {
+func (t *SearchIssues_SearchIssues_Nodes) GetTeam() *SearchIssues_SearchIssues_Nodes_Team {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
+		t = &SearchIssues_SearchIssues_Nodes{}
 	}
 	return &t.Team
 }
-func (t *SearchIssues_IssueSearch_Nodes) GetTitle() string {
+func (t *SearchIssues_SearchIssues_Nodes) GetTitle() string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_Nodes{}
+		t = &SearchIssues_SearchIssues_Nodes{}
 	}
 	return t.Title
 }
+func (t *SearchIssues_SearchIssues_Nodes) GetURL() string {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return t.URL
+}
 
-type SearchIssues_IssueSearch_PageInfo struct {
+type SearchIssues_SearchIssues_PageInfo struct {
 	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
 	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
 }
 
-func (t *SearchIssues_IssueSearch_PageInfo) GetEndCursor() *string {
+func (t *SearchIssues_SearchIssues_PageInfo) GetEndCursor() *string {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_PageInfo{}
+		t = &SearchIssues_SearchIssues_PageInfo{}
 	}
 	return t.EndCursor
 }
-func (t *SearchIssues_IssueSearch_PageInfo) GetHasNextPage() bool {
+func (t *SearchIssues_SearchIssues_PageInfo) GetHasNextPage() bool {
 	if t == nil {
-		t = &SearchIssues_IssueSearch_PageInfo{}
+		t = &SearchIssues_SearchIssues_PageInfo{}
 	}
 	return t.HasNextPage
 }
 
-type SearchIssues_IssueSearch struct {
-	Nodes    []*SearchIssues_IssueSearch_Nodes "json:\"nodes\" graphql:\"nodes\""
-	PageInfo SearchIssues_IssueSearch_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+type SearchIssues_SearchIssues struct {
+	Nodes      []*SearchIssues_SearchIssues_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo   SearchIssues_SearchIssues_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+	TotalCount float64                            "json:\"totalCount\" graphql:\"totalCount\""
 }
 
-func (t *SearchIssues_IssueSearch) GetNodes() []*SearchIssues_IssueSearch_Nodes {
+func (t *SearchIssues_SearchIssues) GetNodes() []*SearchIssues_SearchIssues_Nodes {
 	if t == nil {
-		t = &SearchIssues_IssueSearch{}
+		t = &SearchIssues_SearchIssues{}
 	}
 	return t.Nodes
 }
-func (t *SearchIssues_IssueSearch) GetPageInfo() *SearchIssues_IssueSearch_PageInfo {
+func (t *SearchIssues_SearchIssues) GetPageInfo() *SearchIssues_SearchIssues_PageInfo {
 	if t == nil {
-		t = &SearchIssues_IssueSearch{}
+		t = &SearchIssues_SearchIssues{}
 	}
 	return &t.PageInfo
+}
+func (t *SearchIssues_SearchIssues) GetTotalCount() float64 {
+	if t == nil {
+		t = &SearchIssues_SearchIssues{}
+	}
+	return t.TotalCount
 }
 
 type GetTeam_Team struct {
@@ -3388,6 +3615,39 @@ func (t *DeleteComment) GetCommentDelete() *DeleteComment_CommentDelete {
 	return &t.CommentDelete
 }
 
+type CreateCycle struct {
+	CycleCreate CreateCycle_CycleCreate "json:\"cycleCreate\" graphql:\"cycleCreate\""
+}
+
+func (t *CreateCycle) GetCycleCreate() *CreateCycle_CycleCreate {
+	if t == nil {
+		t = &CreateCycle{}
+	}
+	return &t.CycleCreate
+}
+
+type UpdateCycle struct {
+	CycleUpdate UpdateCycle_CycleUpdate "json:\"cycleUpdate\" graphql:\"cycleUpdate\""
+}
+
+func (t *UpdateCycle) GetCycleUpdate() *UpdateCycle_CycleUpdate {
+	if t == nil {
+		t = &UpdateCycle{}
+	}
+	return &t.CycleUpdate
+}
+
+type ArchiveCycle struct {
+	CycleArchive ArchiveCycle_CycleArchive "json:\"cycleArchive\" graphql:\"cycleArchive\""
+}
+
+func (t *ArchiveCycle) GetCycleArchive() *ArchiveCycle_CycleArchive {
+	if t == nil {
+		t = &ArchiveCycle{}
+	}
+	return &t.CycleArchive
+}
+
 type CreateIssue struct {
 	IssueCreate CreateIssue_IssueCreate "json:\"issueCreate\" graphql:\"issueCreate\""
 }
@@ -3576,14 +3836,14 @@ func (t *ListRoadmaps) GetRoadmaps() *ListRoadmaps_Roadmaps {
 }
 
 type SearchIssues struct {
-	IssueSearch SearchIssues_IssueSearch "json:\"issueSearch\" graphql:\"issueSearch\""
+	SearchIssues SearchIssues_SearchIssues "json:\"searchIssues\" graphql:\"searchIssues\""
 }
 
-func (t *SearchIssues) GetIssueSearch() *SearchIssues_IssueSearch {
+func (t *SearchIssues) GetSearchIssues() *SearchIssues_SearchIssues {
 	if t == nil {
 		t = &SearchIssues{}
 	}
-	return &t.IssueSearch
+	return &t.SearchIssues
 }
 
 type GetTeam struct {
@@ -4282,6 +4542,100 @@ func (c *Client) DeleteComment(ctx context.Context, id string, interceptors ...c
 	return &res, nil
 }
 
+const CreateCycleDocument = `mutation CreateCycle ($input: CycleCreateInput!) {
+	cycleCreate(input: $input) {
+		success
+		cycle {
+			id
+			number
+			name
+			description
+			startsAt
+			endsAt
+			team {
+				id
+				name
+				key
+			}
+		}
+	}
+}
+`
+
+func (c *Client) CreateCycle(ctx context.Context, input CycleCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCycle, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateCycle
+	if err := c.Client.Post(ctx, "CreateCycle", CreateCycleDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateCycleDocument = `mutation UpdateCycle ($id: String!, $input: CycleUpdateInput!) {
+	cycleUpdate(id: $id, input: $input) {
+		success
+		cycle {
+			id
+			number
+			name
+			description
+			startsAt
+			endsAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateCycle(ctx context.Context, id string, input CycleUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCycle, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateCycle
+	if err := c.Client.Post(ctx, "UpdateCycle", UpdateCycleDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ArchiveCycleDocument = `mutation ArchiveCycle ($id: String!) {
+	cycleArchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ArchiveCycle
+	if err := c.Client.Post(ctx, "ArchiveCycle", ArchiveCycleDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateIssueDocument = `mutation CreateIssue ($input: IssueCreateInput!) {
 	issueCreate(input: $input) {
 		success
@@ -4816,14 +5170,16 @@ func (c *Client) ListRoadmaps(ctx context.Context, first *int64, after *string, 
 	return &res, nil
 }
 
-const SearchIssuesDocument = `query SearchIssues ($query: String!, $first: Int, $after: String) {
-	issueSearch(query: $query, first: $first, after: $after) {
+const SearchIssuesDocument = `query SearchIssues ($term: String!, $first: Int, $after: String, $filter: IssueFilter, $includeArchived: Boolean) {
+	searchIssues(term: $term, first: $first, after: $after, filter: $filter, includeArchived: $includeArchived) {
 		nodes {
 			id
 			title
 			description
 			priority
+			number
 			createdAt
+			url
 			state {
 				id
 				name
@@ -4833,20 +5189,28 @@ const SearchIssuesDocument = `query SearchIssues ($query: String!, $first: Int, 
 				name
 				key
 			}
+			assignee {
+				id
+				name
+				email
+			}
 		}
 		pageInfo {
 			hasNextPage
 			endCursor
 		}
+		totalCount
 	}
 }
 `
 
-func (c *Client) SearchIssues(ctx context.Context, query string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error) {
+func (c *Client) SearchIssues(ctx context.Context, term string, first *int64, after *string, filter *IssueFilter, includeArchived *bool, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error) {
 	vars := map[string]any{
-		"query": query,
-		"first": first,
-		"after": after,
+		"term":            term,
+		"first":           first,
+		"after":           after,
+		"filter":          filter,
+		"includeArchived": includeArchived,
 	}
 
 	var res SearchIssues
@@ -5172,6 +5536,9 @@ var DocumentOperationNames = map[string]string{
 	CreateCommentDocument:      "CreateComment",
 	UpdateCommentDocument:      "UpdateComment",
 	DeleteCommentDocument:      "DeleteComment",
+	CreateCycleDocument:        "CreateCycle",
+	UpdateCycleDocument:        "UpdateCycle",
+	ArchiveCycleDocument:       "ArchiveCycle",
 	CreateIssueDocument:        "CreateIssue",
 	UpdateIssueDocument:        "UpdateIssue",
 	DeleteIssueDocument:        "DeleteIssue",
