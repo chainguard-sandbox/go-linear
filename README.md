@@ -85,7 +85,7 @@ for {
 }
 ```
 
-**Thread Safety:** Iterators NOT safe for concurrent use. Create separate iterators per goroutine.
+**Thread Safety:** Iterators are safe for concurrent use (mutex-protected).
 
 ### Create Issue
 
@@ -276,14 +276,14 @@ for {
 }
 ```
 
-**Thread Safety:** Iterators NOT safe for concurrent use. Create separate iterators:
+**Thread Safety:** Iterators are safe for concurrent use. Can share across goroutines:
 ```go
-// Create separate iterator per goroutine
+// Shared iterator across multiple goroutines
+iter := linear.NewIssueIterator(client, 50)
 for i := 0; i < 10; i++ {
     go func() {
-        iter := linear.NewIssueIterator(client, 50)  // Separate
         for {
-            issue, err := iter.Next(ctx)
+            issue, err := iter.Next(ctx)  // Mutex-protected
             if errors.Is(err, io.EOF) { return }
             if err != nil { return }
             process(issue)

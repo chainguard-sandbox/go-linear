@@ -3,15 +3,15 @@ package linear
 import (
 	"context"
 	"io"
+	"sync"
 
 	intgraphql "github.com/eslerm/go-linear/internal/graphql"
 )
 
 // IssueIterator provides automatic pagination over issues.
-//
-// NOT safe for concurrent use - still mutates internal state (index, buffer).
-// Create separate iterators per goroutine.
+// Safe for concurrent use - protected by internal mutex.
 type IssueIterator struct {
+	mu      sync.Mutex
 	client  *Client
 	first   int64
 	buffer  []*intgraphql.ListIssues_Issues_Nodes
@@ -59,8 +59,11 @@ func NewIssueIterator(client *Client, pageSize int64) *IssueIterator {
 // Next returns the next issue or an error.
 // Returns io.EOF when no more issues are available.
 //
-// NOT safe for concurrent use - creates a separate iterator per goroutine.
+// Safe for concurrent use - protected by internal mutex.
 func (it *IssueIterator) Next(ctx context.Context) (*intgraphql.ListIssues_Issues_Nodes, error) {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	// Return buffered item
 	if it.index < len(it.buffer) {
 		issue := it.buffer[it.index]
@@ -94,8 +97,9 @@ func (it *IssueIterator) Next(ctx context.Context) (*intgraphql.ListIssues_Issue
 }
 
 // TeamIterator provides automatic pagination over teams.
-// NOT safe for concurrent use - still mutates internal state.
+// Safe for concurrent use - protected by internal mutex.
 type TeamIterator struct {
+	mu      sync.Mutex
 	client  *Client
 	first   int64
 	buffer  []*intgraphql.ListTeams_Teams_Nodes
@@ -118,7 +122,12 @@ func NewTeamIterator(client *Client, pageSize int64) *TeamIterator {
 
 // Next returns the next team or an error.
 // Returns io.EOF when no more teams are available.
+//
+// Safe for concurrent use - protected by internal mutex.
 func (it *TeamIterator) Next(ctx context.Context) (*intgraphql.ListTeams_Teams_Nodes, error) {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	if it.index < len(it.buffer) {
 		team := it.buffer[it.index]
 		it.index++
@@ -148,8 +157,9 @@ func (it *TeamIterator) Next(ctx context.Context) (*intgraphql.ListTeams_Teams_N
 }
 
 // ProjectIterator provides automatic pagination over projects.
-// NOT safe for concurrent use - still mutates internal state.
+// Safe for concurrent use - protected by internal mutex.
 type ProjectIterator struct {
+	mu      sync.Mutex
 	client  *Client
 	first   int64
 	buffer  []*intgraphql.ListProjects_Projects_Nodes
@@ -172,7 +182,12 @@ func NewProjectIterator(client *Client, pageSize int64) *ProjectIterator {
 
 // Next returns the next project or an error.
 // Returns io.EOF when no more projects are available.
+//
+// Safe for concurrent use - protected by internal mutex.
 func (it *ProjectIterator) Next(ctx context.Context) (*intgraphql.ListProjects_Projects_Nodes, error) {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	if it.index < len(it.buffer) {
 		project := it.buffer[it.index]
 		it.index++
@@ -202,8 +217,9 @@ func (it *ProjectIterator) Next(ctx context.Context) (*intgraphql.ListProjects_P
 }
 
 // CommentIterator provides automatic pagination over comments.
-// NOT safe for concurrent use - still mutates internal state.
+// Safe for concurrent use - protected by internal mutex.
 type CommentIterator struct {
+	mu      sync.Mutex
 	client  *Client
 	first   int64
 	buffer  []*intgraphql.ListComments_Comments_Nodes
@@ -226,7 +242,12 @@ func NewCommentIterator(client *Client, pageSize int64) *CommentIterator {
 
 // Next returns the next comment or an error.
 // Returns io.EOF when no more comments are available.
+//
+// Safe for concurrent use - protected by internal mutex.
 func (it *CommentIterator) Next(ctx context.Context) (*intgraphql.ListComments_Comments_Nodes, error) {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	if it.index < len(it.buffer) {
 		comment := it.buffer[it.index]
 		it.index++
