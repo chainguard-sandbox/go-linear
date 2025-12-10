@@ -5,12 +5,18 @@ on:
     branches: [main]
   pull_request:
 
+permissions: {}
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-go@v5
         with:
@@ -21,6 +27,7 @@ jobs:
         uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9  # v8
         with:
           version: v2.6
+          # Paths configured in .golangci.yml
 
       - name: Verify go.mod is tidy
         run: |
@@ -33,8 +40,12 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-go@v5
         with:

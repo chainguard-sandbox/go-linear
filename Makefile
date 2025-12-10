@@ -138,7 +138,7 @@ checkfmt:  ## Check code formatting
 
 lint:  ## Run linters
 	@echo "Running linters..."
-	@golangci-lint run ./pkg/... ./internal/... ./examples/production ./examples/prometheus
+	@golangci-lint run
 	@echo "✓ Linting passed"
 
 vet:  ## Run go vet

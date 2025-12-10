@@ -66,9 +66,11 @@ jobs:
       - name: Create issue if updates found
         if: steps.check.outputs.updates == 'true'
         uses: actions/github-script@v7
+        env:
+          UPSTREAM_VERSION: ${{ steps.version.outputs.version }}
         with:
           script: |
-            const version = '${{ steps.version.outputs.version }}';
+            const version = process.env.UPSTREAM_VERSION;
 
             // Check if issue already exists
             const issues = await github.rest.issues.listForRepo({

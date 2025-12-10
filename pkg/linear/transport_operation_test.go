@@ -48,7 +48,7 @@ func TestExtractOperationName(t *testing.T) {
 				req = httptest.NewRequest("POST", "http://example.com/graphql",
 					bytes.NewReader([]byte(tt.body)))
 			} else {
-				req = httptest.NewRequest("POST", "http://example.com/graphql", nil)
+				req = httptest.NewRequest("POST", "http://example.com/graphql", http.NoBody)
 			}
 
 			got := extractOperationName(req)

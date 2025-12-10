@@ -319,10 +319,10 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // calculateBackoff calculates exponential backoff with jitter.
-func calculateBackoff(attempt int, initial, max time.Duration) time.Duration {
+func calculateBackoff(attempt int, initial, maxDuration time.Duration) time.Duration {
 	backoff := float64(initial) * math.Pow(2, float64(attempt-1))
-	if backoff > float64(max) {
-		backoff = float64(max)
+	if backoff > float64(maxDuration) {
+		backoff = float64(maxDuration)
 	}
 
 	// Add jitter: ±25% of backoff using crypto/rand

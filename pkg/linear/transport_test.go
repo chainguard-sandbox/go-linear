@@ -61,7 +61,7 @@ func TestTransport_Retry429(t *testing.T) {
 		InitialBackoff: 10 * time.Millisecond,
 	}
 
-	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req := httptest.NewRequest("GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
 	if err != nil {
@@ -101,7 +101,7 @@ func TestTransport_Retry5xx(t *testing.T) {
 		InitialBackoff: 10 * time.Millisecond,
 	}
 
-	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req := httptest.NewRequest("GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
 	if err != nil {
@@ -131,7 +131,7 @@ func TestTransport_MaxRetries(t *testing.T) {
 		InitialBackoff: 10 * time.Millisecond,
 	}
 
-	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req := httptest.NewRequest("GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	if resp != nil {
 		defer func() { _ = resp.Body.Close() }()
@@ -168,7 +168,7 @@ func TestTransport_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	req := httptest.NewRequest("GET", "http://example.com", nil).WithContext(ctx)
+	req := httptest.NewRequest("GET", "http://example.com", http.NoBody).WithContext(ctx)
 	resp, err := transport.RoundTrip(req)
 	if resp != nil {
 		defer func() { _ = resp.Body.Close() }()
@@ -209,7 +209,7 @@ func TestTransport_RateLimitHeaders(t *testing.T) {
 		},
 	}
 
-	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req := httptest.NewRequest("GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
 	if err != nil {
@@ -255,7 +255,7 @@ func TestTransport_Logging(t *testing.T) {
 		MaxRetries: 3,
 	}
 
-	req := httptest.NewRequest("GET", "http://example.com/test", nil)
+	req := httptest.NewRequest("GET", "http://example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
 	if err != nil {
@@ -315,7 +315,7 @@ func TestTransport_RequestIDLogging(t *testing.T) {
 				MaxRetries: 3,
 			}
 
-			req := httptest.NewRequest("GET", "http://example.com", nil)
+			req := httptest.NewRequest("GET", "http://example.com", http.NoBody)
 			resp, err := transport.RoundTrip(req)
 
 			if err != nil {
@@ -352,7 +352,7 @@ func TestTransport_NetworkError(t *testing.T) {
 		InitialBackoff: 10 * time.Millisecond,
 	}
 
-	req := httptest.NewRequest("GET", "http://example.com", nil)
+	req := httptest.NewRequest("GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
 	if err != nil {

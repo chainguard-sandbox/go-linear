@@ -89,7 +89,7 @@ func (mc *MetricsCollector) recordRequest(operation string, statusCode int, dura
 }
 
 // recordError records an error by type.
-func (mc *MetricsCollector) recordError(operation string, errorType string) {
+func (mc *MetricsCollector) recordError(operation, errorType string) {
 	mc.errors.WithLabelValues(operation, errorType).Inc()
 }
 
@@ -178,7 +178,7 @@ func recordRequest(operation string, statusCode int, duration time.Duration) {
 	defaultMetrics.recordRequest(operation, statusCode, duration)
 }
 
-func recordError(operation string, errorType string) {
+func recordError(operation, errorType string) {
 	defaultMetrics.recordError(operation, errorType)
 }
 

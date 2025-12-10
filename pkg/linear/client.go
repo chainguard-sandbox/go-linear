@@ -995,7 +995,7 @@ func (c *Client) Attachments(ctx context.Context, first *int64, after *string) (
 //	fmt.Printf("Attached: %s\n", attachment.URL)
 //
 // Related: [AttachmentLinkGitHubPR], [Attachments]
-func (c *Client) AttachmentLinkURL(ctx context.Context, issueID string, url string, title *string) (*intgraphql.AttachmentLinkURL_AttachmentLinkURL_Attachment, error) {
+func (c *Client) AttachmentLinkURL(ctx context.Context, issueID, url string, title *string) (*intgraphql.AttachmentLinkURL_AttachmentLinkURL_Attachment, error) {
 	resp, err := c.gqlClient.AttachmentLinkURL(ctx, issueID, url, title)
 	if err != nil {
 		return nil, wrapGraphQLError("AttachmentLinkURL", err)
@@ -1031,7 +1031,7 @@ func (c *Client) AttachmentLinkURL(ctx context.Context, issueID string, url stri
 //	fmt.Printf("Linked PR: %s\n", attachment.Title)
 //
 // Related: [AttachmentLinkURL], [Attachments]
-func (c *Client) AttachmentLinkGitHubPR(ctx context.Context, issueID string, url string) (*intgraphql.AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment, error) {
+func (c *Client) AttachmentLinkGitHubPR(ctx context.Context, issueID, url string) (*intgraphql.AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment, error) {
 	resp, err := c.gqlClient.AttachmentLinkGitHubPr(ctx, issueID, url)
 	if err != nil {
 		return nil, wrapGraphQLError("AttachmentLinkGitHubPR", err)
@@ -1111,7 +1111,7 @@ func (c *Client) AttachmentCreate(ctx context.Context, input intgraphql.Attachme
 //	fmt.Printf("Linked Slack thread: %s\n", attachment.URL)
 //
 // Related: [AttachmentLinkURL], [Attachments]
-func (c *Client) AttachmentLinkSlack(ctx context.Context, issueID string, url string) (*intgraphql.AttachmentLinkSlack_AttachmentLinkSlack_Attachment, error) {
+func (c *Client) AttachmentLinkSlack(ctx context.Context, issueID, url string) (*intgraphql.AttachmentLinkSlack_AttachmentLinkSlack_Attachment, error) {
 	resp, err := c.gqlClient.AttachmentLinkSlack(ctx, issueID, url)
 	if err != nil {
 		return nil, wrapGraphQLError("AttachmentLinkSlack", err)
@@ -1459,7 +1459,7 @@ func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
 //	fmt.Printf("Issue now has %d labels\n", len(issue.Labels.Nodes))
 //
 // Related: [IssueRemoveLabel], [IssueLabelCreate], [IssueUpdate]
-func (c *Client) IssueAddLabel(ctx context.Context, id string, labelID string) (*intgraphql.IssueAddLabel_IssueAddLabel_Issue, error) {
+func (c *Client) IssueAddLabel(ctx context.Context, id, labelID string) (*intgraphql.IssueAddLabel_IssueAddLabel_Issue, error) {
 	resp, err := c.gqlClient.IssueAddLabel(ctx, id, labelID)
 	if err != nil {
 		return nil, wrapGraphQLError("IssueAddLabel", err)
@@ -1494,7 +1494,7 @@ func (c *Client) IssueAddLabel(ctx context.Context, id string, labelID string) (
 //	fmt.Printf("Issue now has %d labels\n", len(issue.Labels.Nodes))
 //
 // Related: [IssueAddLabel], [IssueLabelDelete], [IssueUpdate]
-func (c *Client) IssueRemoveLabel(ctx context.Context, id string, labelID string) (*intgraphql.IssueRemoveLabel_IssueRemoveLabel_Issue, error) {
+func (c *Client) IssueRemoveLabel(ctx context.Context, id, labelID string) (*intgraphql.IssueRemoveLabel_IssueRemoveLabel_Issue, error) {
 	resp, err := c.gqlClient.IssueRemoveLabel(ctx, id, labelID)
 	if err != nil {
 		return nil, wrapGraphQLError("IssueRemoveLabel", err)
