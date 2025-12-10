@@ -65,7 +65,7 @@ jobs:
 
       - name: Create issue if updates found
         if: steps.check.outputs.updates == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           UPSTREAM_VERSION: ${{ steps.version.outputs.version }}
         with:
