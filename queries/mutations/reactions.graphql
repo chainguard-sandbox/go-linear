@@ -1,0 +1,19 @@
+mutation ReactionCreate($input: ReactionCreateInput!) {
+  reactionCreate(input: $input) {
+    success
+    reaction {
+      id
+      emoji
+      user {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation ReactionDelete($id: String!) {
+  reactionDelete(id: $id) {
+    success
+  }
+}
