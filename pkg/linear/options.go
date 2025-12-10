@@ -17,7 +17,7 @@ type Option func(*Client)
 // client, use WithTimeout, WithTransport, or WithTLSConfig instead.
 func WithHTTPClient(client *http.Client) Option {
 	return func(c *Client) {
-		c.httpClient = client
+		c.config.HTTPClient = client
 	}
 }
 
@@ -25,7 +25,7 @@ func WithHTTPClient(client *http.Client) Option {
 // Default: https://api.linear.app/graphql
 func WithBaseURL(url string) Option {
 	return func(c *Client) {
-		c.baseURL = url
+		c.config.BaseURL = url
 	}
 }
 
@@ -33,7 +33,7 @@ func WithBaseURL(url string) Option {
 // Default: go-linear/VERSION
 func WithUserAgent(ua string) Option {
 	return func(c *Client) {
-		c.userAgent = ua
+		c.config.UserAgent = ua
 	}
 }
 
@@ -42,13 +42,13 @@ func WithUserAgent(ua string) Option {
 // Default: 30 seconds
 func WithTimeout(timeout time.Duration) Option {
 	return func(c *Client) {
-		if c.httpClient.Timeout == 0 || c.httpClient == http.DefaultClient {
+		if c.config.HTTPClient.Timeout == 0 || c.config.HTTPClient == http.DefaultClient {
 			// Safe: only modify our own client
-			c.httpClient.Timeout = timeout
+			c.config.HTTPClient.Timeout = timeout
 		} else {
 			// If user provided custom client, create wrapper to avoid mutation
-			oldClient := c.httpClient
-			c.httpClient = &http.Client{
+			oldClient := c.config.HTTPClient
+			c.config.HTTPClient = &http.Client{
 				Transport:     oldClient.Transport,
 				CheckRedirect: oldClient.CheckRedirect,
 				Jar:           oldClient.Jar,
@@ -71,13 +71,7 @@ func WithTimeout(timeout time.Duration) Option {
 //	client, _ := linear.NewClient(apiKey, linear.WithTransport(transport))
 func WithTransport(transport http.RoundTripper) Option {
 	return func(c *Client) {
-		if t, ok := c.httpClient.Transport.(*http.Transport); ok {
-			c.httpClient.Transport = transport
-			// Store original transport for cleanup
-			c.baseTransport = t
-		} else {
-			c.httpClient.Transport = transport
-		}
+		c.config.HTTPClient.Transport = transport
 	}
 }
 
@@ -92,7 +86,7 @@ func WithTransport(transport http.RoundTripper) Option {
 //	client, _ := linear.NewClient(apiKey, linear.WithTLSConfig(tlsConfig))
 func WithTLSConfig(config *tls.Config) Option {
 	return func(c *Client) {
-		if transport, ok := c.httpClient.Transport.(*http.Transport); ok {
+		if transport, ok := c.config.HTTPClient.Transport.(*http.Transport); ok {
 			transport.TLSClientConfig = config
 		}
 	}
@@ -109,7 +103,7 @@ func WithTLSConfig(config *tls.Config) Option {
 //	client, _ := linear.NewClient(apiKey, linear.WithLogger(logger))
 func WithLogger(logger *slog.Logger) Option {
 	return func(c *Client) {
-		c.logger = logger
+		c.config.Logger = logger
 	}
 }
 
@@ -128,9 +122,9 @@ func WithLogger(logger *slog.Logger) Option {
 //	    linear.WithRetry(5, 500*time.Millisecond, 60*time.Second))
 func WithRetry(maxRetries int, initialBackoff, maxBackoff time.Duration) Option {
 	return func(c *Client) {
-		c.maxRetries = maxRetries
-		c.initialBackoff = initialBackoff
-		c.maxBackoff = maxBackoff
+		c.config.Transport.MaxRetries = maxRetries
+		c.config.Transport.InitialBackoff = initialBackoff
+		c.config.Transport.MaxBackoff = maxBackoff
 	}
 }
 
@@ -145,7 +139,7 @@ func WithRetry(maxRetries int, initialBackoff, maxBackoff time.Duration) Option 
 //	    }))
 func WithRateLimitCallback(callback func(*RateLimitInfo)) Option {
 	return func(c *Client) {
-		c.onRateLimit = callback
+		c.config.OnRateLimit = callback
 	}
 }
 
@@ -170,7 +164,7 @@ func WithRateLimitCallback(callback func(*RateLimitInfo)) Option {
 // See examples/prometheus/main.go for complete integration.
 func WithMetrics() Option {
 	return func(c *Client) {
-		c.metricsEnabled = true
+		c.config.Transport.MetricsEnabled = true
 	}
 }
 
@@ -186,7 +180,7 @@ func WithMetrics() Option {
 //	    linear.WithMaxRetryDuration(2*time.Minute))
 func WithMaxRetryDuration(duration time.Duration) Option {
 	return func(c *Client) {
-		c.maxRetryDuration = duration
+		c.config.Transport.MaxRetryDuration = duration
 	}
 }
 
@@ -212,8 +206,8 @@ func WithMaxRetryDuration(duration time.Duration) Option {
 // Each client's metrics are isolated and can be exposed separately.
 func WithMetricsRegistry(reg prometheus.Registerer, suffix string) Option {
 	return func(c *Client) {
-		c.metricsCollector = newMetricsCollector(reg, suffix)
-		c.metricsEnabled = true
+		c.config.Transport.MetricsCollector = newMetricsCollector(reg, suffix)
+		c.config.Transport.MetricsEnabled = true
 	}
 }
 
@@ -232,6 +226,61 @@ func WithMetricsRegistry(reg prometheus.Registerer, suffix string) Option {
 //	client, _ := linear.NewClient(apiKey, linear.WithTracing())
 func WithTracing() Option {
 	return func(c *Client) {
-		c.tracingEnabled = true
+		c.config.Transport.TracingEnabled = true
+	}
+}
+
+// WithCircuitBreaker enables circuit breaker pattern for fail-fast behavior.
+// Prevents cascading failures by stopping requests when error rate is high.
+//
+// The circuit breaker has three states:
+//   - Closed: Normal operation, requests allowed
+//   - Open: Circuit tripped, requests fail fast with ErrCircuitOpen
+//   - HalfOpen: Testing if service recovered
+//
+// Example:
+//
+//	cb := &linear.CircuitBreaker{
+//	    MaxFailures:  5,
+//	    ResetTimeout: 60 * time.Second,
+//	}
+//	client, _ := linear.NewClient(apiKey, linear.WithCircuitBreaker(cb))
+//
+// The circuit opens after MaxFailures consecutive failures.
+// After ResetTimeout, it enters HalfOpen state to test recovery.
+func WithCircuitBreaker(cb *CircuitBreaker) Option {
+	return func(c *Client) {
+		c.config.Transport.CircuitBreaker = cb
+	}
+}
+
+// WithCredentialProvider enables dynamic credential management.
+// Useful for credential rotation, secret managers, or token refresh.
+// When set, the apiKey parameter to NewClient can be empty.
+//
+// Example with AWS Secrets Manager:
+//
+//	type SecretsProvider struct {
+//	    secretName string
+//	    client     *secretsmanager.SecretsManager
+//	}
+//
+//	func (p *SecretsProvider) GetCredential(ctx context.Context) (string, error) {
+//	    result, err := p.client.GetSecretValue(&secretsmanager.GetSecretValueInput{
+//	        SecretId: aws.String(p.secretName),
+//	    })
+//	    if err != nil {
+//	        return "", err
+//	    }
+//	    return *result.SecretString, nil
+//	}
+//
+//	provider := &SecretsProvider{secretName: "linear-api-key"}
+//	client, _ := linear.NewClient("", linear.WithCredentialProvider(provider))
+//
+// The provider is called on client creation and automatically on 401 errors for credential refresh.
+func WithCredentialProvider(provider CredentialProvider) Option {
+	return func(c *Client) {
+		c.credentialProvider = newCredentialCache(provider)
 	}
 }

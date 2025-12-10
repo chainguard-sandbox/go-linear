@@ -149,6 +149,38 @@
 //	)
 //	defer client.Close()
 //
+// # Advanced Configuration
+//
+// Additional options for production resilience:
+//
+// Circuit Breaker (fail-fast during outages):
+//
+//	cb := &linear.CircuitBreaker{
+//	    MaxFailures:  5,
+//	    ResetTimeout: 60 * time.Second,
+//	}
+//	client, err := linear.NewClient(apiKey, linear.WithCircuitBreaker(cb))
+//
+// Dynamic Credentials (credential rotation, secret managers):
+//
+//	type SecretsProvider struct {
+//	    secretName string
+//	    manager    *secretsmanager.SecretsManager
+//	}
+//
+//	func (p *SecretsProvider) GetCredential(ctx context.Context) (string, error) {
+//	    result, err := p.manager.GetSecretValue(&secretsmanager.GetSecretValueInput{
+//	        SecretId: aws.String(p.secretName),
+//	    })
+//	    if err != nil {
+//	        return "", err
+//	    }
+//	    return *result.SecretString, nil
+//	}
+//
+//	provider := &SecretsProvider{secretName: "linear-api-key"}
+//	client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
+//
 // Production features:
 //   - Automatic retry with exponential backoff for transient failures
 //   - 429 rate limit handling with Retry-After header support
@@ -156,6 +188,8 @@
 //   - Structured logging of all requests, responses, and retries
 //   - Context timeout/cancellation support on all operations
 //   - TLS configuration for security requirements
+//   - Circuit breaker pattern for fail-fast during outages
+//   - Dynamic credential management with auto-refresh on 401 errors
 //
 // See examples/production/main.go for a complete production example.
 //

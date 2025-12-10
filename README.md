@@ -198,6 +198,12 @@ func main() {
         linear.WithTLSConfig(&tls.Config{
             MinVersion: tls.VersionTLS12,
         }),
+
+        // Circuit breaker (fail-fast during outages)
+        linear.WithCircuitBreaker(&linear.CircuitBreaker{
+            MaxFailures:  5,
+            ResetTimeout: 60 * time.Second,
+        }),
     )
     if err != nil {
         logger.Error("client creation failed", "error", err)
@@ -207,6 +213,29 @@ func main() {
 
     // Your application code here
 }
+```
+
+**Advanced: Dynamic Credentials** (AWS Secrets Manager, HashiCorp Vault, etc.)
+
+```go
+type SecretsProvider struct {
+    secretName string
+    manager    *secretsmanager.SecretsManager
+}
+
+func (p *SecretsProvider) GetCredential(ctx context.Context) (string, error) {
+    result, err := p.manager.GetSecretValue(&secretsmanager.GetSecretValueInput{
+        SecretId: aws.String(p.secretName),
+    })
+    if err != nil {
+        return "", err
+    }
+    return *result.SecretString, nil
+}
+
+// Create client with credential provider
+provider := &SecretsProvider{secretName: "linear-api-key"}
+client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
 ```
 
 **Production Examples:**

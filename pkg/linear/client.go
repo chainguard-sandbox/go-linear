@@ -3,10 +3,8 @@ package linear
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
 	"go.opentelemetry.io/otel/trace"
@@ -16,25 +14,9 @@ import (
 
 // Client manages communication with the Linear API.
 type Client struct {
-	httpClient         *http.Client
-	baseURL            string
-	apiKey             string
-	credentialProvider *credentialCache
-	userAgent          string
 	gqlClient          intgraphql.LinearGraphQLClient
-	logger             *slog.Logger
-	onRateLimit        func(*RateLimitInfo)
-
-	// Transport configuration
-	baseTransport    *http.Transport
-	maxRetries       int
-	initialBackoff   time.Duration
-	maxBackoff       time.Duration
-	maxRetryDuration time.Duration
-	metricsEnabled   bool
-	metricsCollector *MetricsCollector
-	circuitBreaker   *CircuitBreaker
-	tracingEnabled   bool
+	config             *ClientConfig
+	credentialProvider *credentialCache
 }
 
 // NewClient creates a new Linear API client for GraphQL operations.
@@ -71,59 +53,33 @@ type Client struct {
 //	    linear.WithBaseURL("https://api.linear.app/graphql"),
 //	)
 func NewClient(apiKey string, opts ...Option) (*Client, error) {
+	// Validate apiKey (can be empty if WithCredentialProvider is used)
 	if apiKey == "" {
 		return nil, fmt.Errorf("apiKey is required")
 	}
 
+	// Create default configs
+	config := NewDefaultClientConfig(apiKey)
+	config.Transport = NewDefaultTransportConfig()
+
 	// Create static credential provider by default
 	credProvider := newCredentialCache(&staticCredentialProvider{apiKey: apiKey})
 
-	baseTransport := &http.Transport{
-		MaxIdleConns:        100,
-		MaxIdleConnsPerHost: 3, // Match Linear's ~2 req/sec rate limit
-		IdleConnTimeout:     90 * time.Second,
-		TLSHandshakeTimeout: 10 * time.Second,
-	}
-
+	// Initialize client with config
 	c := &Client{
-		httpClient: &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: baseTransport,
-		},
-		baseURL:            "https://api.linear.app/graphql",
-		apiKey:             apiKey,
+		config:             config,
 		credentialProvider: credProvider,
-		userAgent:          "go-linear/0.1.0",
-		baseTransport:      baseTransport,
-		maxRetries:         3,
-		initialBackoff:     1 * time.Second,
-		maxBackoff:         30 * time.Second,
-		maxRetryDuration:   90 * time.Second,
 	}
 
-	// Apply options
+	// Apply options (they mutate config through client reference)
 	for _, opt := range opts {
 		opt(c)
 	}
 
-	// Wrap transport with retry/rate-limit handling if configured
-	if c.maxRetries > 0 || c.logger != nil || c.onRateLimit != nil || c.metricsEnabled || c.circuitBreaker != nil {
-		transport := &Transport{
-			Base:             c.httpClient.Transport,
-			Logger:           c.logger,
-			MaxRetries:       c.maxRetries,
-			InitialBackoff:   c.initialBackoff,
-			MaxBackoff:       c.maxBackoff,
-			MaxRetryDuration: c.maxRetryDuration,
-			OnRateLimit:      c.onRateLimit,
-			MetricsEnabled:   c.metricsEnabled,
-			MetricsCollector: c.metricsCollector,
-			CircuitBreaker:   c.circuitBreaker,
-		}
-		c.httpClient.Transport = transport
-	}
+	// Build and assign transport (conditional wrapping)
+	c.config.HTTPClient.Transport = buildTransport(c.config)
 
-	// Create gqlgenc client with auth interceptor
+	// Create GraphQL client with auth interceptor
 	authInterceptor := func(ctx context.Context, req *http.Request, gqlInfo *clientv2.GQLRequestInfo, res any, next clientv2.RequestInterceptorFunc) error {
 		// Get current credential (supports rotation)
 		authValue, err := c.credentialProvider.Get(ctx)
@@ -138,7 +94,7 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 			}
 		}
 		req.Header.Set("Authorization", authValue)
-		req.Header.Set("User-Agent", c.userAgent)
+		req.Header.Set("User-Agent", c.config.UserAgent)
 
 		// Execute request
 		err = next(ctx, req, gqlInfo, res)
@@ -161,7 +117,12 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		return err
 	}
 
-	c.gqlClient = intgraphql.NewClient(c.httpClient, c.baseURL, nil, authInterceptor)
+	c.gqlClient = intgraphql.NewClient(
+		c.config.HTTPClient,
+		c.config.BaseURL,
+		nil,
+		authInterceptor,
+	)
 
 	return c, nil
 }
@@ -169,8 +130,8 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 // Close closes idle connections and cleans up resources.
 // It's safe to call Close multiple times.
 func (c *Client) Close() error {
-	if c.httpClient != nil {
-		c.httpClient.CloseIdleConnections()
+	if c.config.HTTPClient != nil {
+		c.config.HTTPClient.CloseIdleConnections()
 	}
 	return nil
 }
@@ -216,7 +177,7 @@ func contains(s, substr string) bool {
 //	}
 //	log.Printf("Authenticated as: %s", viewer.Email)
 func (c *Client) Viewer(ctx context.Context) (*intgraphql.Viewer_Viewer, error) {
-	if c.tracingEnabled {
+	if c.config.Transport.TracingEnabled {
 		var span trace.Span
 		ctx, span = startSpan(ctx, "Viewer")
 		defer span.End()
