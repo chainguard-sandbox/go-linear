@@ -1689,3 +1689,116 @@ func (c *Client) ProjectDelete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// ProjectMilestoneCreate creates a new milestone within a project.
+//
+// Milestones represent phases or stages within a project (e.g., "Q1 2025", "Beta Launch", "v1.0 Release").
+//
+// Parameters:
+//   - input: Milestone creation parameters
+//
+// Required fields:
+//   - ProjectID: UUID of the project (required)
+//   - Name: Milestone name (required)
+//
+// Optional fields:
+//   - Description: Milestone description
+//   - TargetDate: Due date in ISO 8601 format (YYYY-MM-DD)
+//   - SortOrder: Display order (lower numbers first)
+//
+// Returns:
+//   - Created milestone with ID, name, dates, and project
+//   - error: Non-nil if creation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	name := "Beta Launch"
+//	targetDate := "2025-03-01"
+//	milestone, err := client.ProjectMilestoneCreate(ctx, intgraphql.ProjectMilestoneCreateInput{
+//	    ProjectID:  &projectID,
+//	    Name:       &name,
+//	    TargetDate: &targetDate,
+//	})
+//
+// Related: [ProjectMilestoneUpdate], [ProjectMilestoneDelete], [Projects]
+func (c *Client) ProjectMilestoneCreate(ctx context.Context, input intgraphql.ProjectMilestoneCreateInput) (*intgraphql.ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone, error) {
+	resp, err := c.gqlClient.ProjectMilestoneCreate(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("ProjectMilestoneCreate", err)
+	}
+	if !resp.ProjectMilestoneCreate.Success {
+		return nil, errMutationFailed("ProjectMilestoneCreate")
+	}
+	return &resp.ProjectMilestoneCreate.ProjectMilestone, nil
+}
+
+// ProjectMilestoneUpdate updates an existing project milestone.
+//
+// Parameters:
+//   - id: Milestone UUID to update (required)
+//   - input: Fields to update (all optional, nil = unchanged)
+//
+// Optional fields:
+//   - Name: Update milestone name
+//   - Description: Update description
+//   - TargetDate: Update target date (ISO 8601 format)
+//   - SortOrder: Update display order
+//
+// Returns:
+//   - Updated milestone with new values
+//   - error: Non-nil if update fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	newDate := "2025-04-01"
+//	milestone, err := client.ProjectMilestoneUpdate(ctx, milestoneID, intgraphql.ProjectMilestoneUpdateInput{
+//	    TargetDate: &newDate,
+//	})
+//
+// Related: [ProjectMilestoneCreate], [ProjectMilestoneDelete]
+func (c *Client) ProjectMilestoneUpdate(ctx context.Context, id string, input intgraphql.ProjectMilestoneUpdateInput) (*intgraphql.ProjectMilestoneUpdate_ProjectMilestoneUpdate_ProjectMilestone, error) {
+	resp, err := c.gqlClient.ProjectMilestoneUpdate(ctx, id, input)
+	if err != nil {
+		return nil, wrapGraphQLError("ProjectMilestoneUpdate", err)
+	}
+	if !resp.ProjectMilestoneUpdate.Success {
+		return nil, errMutationFailed("ProjectMilestoneUpdate")
+	}
+	return &resp.ProjectMilestoneUpdate.ProjectMilestone, nil
+}
+
+// ProjectMilestoneDelete deletes a project milestone.
+//
+// Parameters:
+//   - id: Milestone UUID to delete (required)
+//
+// Returns:
+//   - nil: Milestone successfully deleted
+//   - error: Non-nil if delete fails or Success is false
+//
+// Note: Issues associated with the milestone are not deleted.
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	err := client.ProjectMilestoneDelete(ctx, milestoneID)
+//	if err != nil {
+//	    return fmt.Errorf("failed to delete milestone: %w", err)
+//	}
+//
+// Related: [ProjectMilestoneCreate], [ProjectMilestoneUpdate]
+func (c *Client) ProjectMilestoneDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.ProjectMilestoneDelete(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("ProjectMilestoneDelete", err)
+	}
+	if !resp.ProjectMilestoneDelete.Success {
+		return errMutationFailed("ProjectMilestoneDelete")
+	}
+	return nil
+}

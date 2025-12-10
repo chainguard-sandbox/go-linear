@@ -1,0 +1,35 @@
+mutation ProjectMilestoneCreate($input: ProjectMilestoneCreateInput!) {
+  projectMilestoneCreate(input: $input) {
+    success
+    projectMilestone {
+      id
+      name
+      description
+      targetDate
+      sortOrder
+      project {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation ProjectMilestoneUpdate($id: String!, $input: ProjectMilestoneUpdateInput!) {
+  projectMilestoneUpdate(id: $id, input: $input) {
+    success
+    projectMilestone {
+      id
+      name
+      description
+      targetDate
+      sortOrder
+    }
+  }
+}
+
+mutation ProjectMilestoneDelete($id: String!) {
+  projectMilestoneDelete(id: $id) {
+    success
+  }
+}
