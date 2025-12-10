@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	intgraphql "github.com/eslerm/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 )
 
 // TestLive_CommentMutations tests comment create, update, and delete.

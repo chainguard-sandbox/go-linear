@@ -1,4 +1,4 @@
-module github.com/eslerm/go-linear
+module github.com/chainguard-sandbox/go-linear
 
 go 1.24.0
 

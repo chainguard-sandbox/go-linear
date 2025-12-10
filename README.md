@@ -2,11 +2,11 @@
 
 **Type-safe Go client for the Linear API.** Production-ready with automatic retry, rate limiting, per-operation Prometheus metrics, and multi-tenancy support.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/eslerm/go-linear.svg)](https://pkg.go.dev/github.com/eslerm/go-linear)
-[![Go Report Card](https://goreportcard.com/badge/github.com/eslerm/go-linear)](https://goreportcard.com/report/github.com/eslerm/go-linear)
+[![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-sandbox/go-linear.svg)](https://pkg.go.dev/github.com/chainguard-sandbox/go-linear)
+[![Go Report Card](https://goreportcard.com/badge/github.com/chainguard-sandbox/go-linear)](https://goreportcard.com/report/github.com/chainguard-sandbox/go-linear)
 
 ```bash
-go get github.com/eslerm/go-linear
+go get github.com/chainguard-sandbox/go-linear
 ```
 
 ---
@@ -23,7 +23,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/eslerm/go-linear/pkg/linear"
+    "github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 func main() {
@@ -196,7 +196,7 @@ import (
     "os"
     "time"
 
-    "github.com/eslerm/go-linear/pkg/linear"
+    "github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 func main() {
@@ -726,7 +726,7 @@ Tests use build tags for permission levels:
 ### Setup
 
 ```bash
-git clone https://github.com/eslerm/go-linear
+git clone https://github.com/chainguard-sandbox/go-linear
 cd go-linear
 make dev  # Install tools and dependencies
 ```
@@ -813,11 +813,11 @@ See development section above. Open issues for bugs/features. PRs welcome with t
 
 ## Resources
 
-- **API Documentation:** https://pkg.go.dev/github.com/eslerm/go-linear
+- **API Documentation:** https://pkg.go.dev/github.com/chainguard-sandbox/go-linear
 - **Linear API Docs:** https://developers.linear.app
 - **GraphQL Schema:** https://studio.apollographql.com/public/Linear-API/variant/current/home
 - **Examples:** [examples/production/main.go](examples/production/main.go)
-- **Issue Tracker:** https://github.com/eslerm/go-linear/issues
+- **Issue Tracker:** https://github.com/chainguard-sandbox/go-linear/issues
 
 ---
 

@@ -27,7 +27,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/eslerm/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 func main() {

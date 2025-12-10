@@ -29,7 +29,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/eslerm/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // MockSecretManager simulates a secret manager (AWS Secrets Manager, Vault, etc.)

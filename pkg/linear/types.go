@@ -1,6 +1,6 @@
 package linear
 
-import intgraphql "github.com/eslerm/go-linear/internal/graphql"
+import intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 
 // Input types re-exported from internal/graphql for discoverability via go doc.
 //

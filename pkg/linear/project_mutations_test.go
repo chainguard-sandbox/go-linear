@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	intgraphql "github.com/eslerm/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 )
 
 func TestClient_ProjectCreate(t *testing.T) {
