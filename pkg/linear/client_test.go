@@ -88,3 +88,24 @@ func TestClient_Viewer(t *testing.T) {
 		t.Errorf("Email = %q, want %q", viewer.Email, "test@example.com")
 	}
 }
+
+func TestClient_Close(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Should not error on first call
+	if err := client.Close(); err != nil {
+		t.Errorf("Close() error = %v, want nil", err)
+	}
+
+	// Should be idempotent (safe to call multiple times)
+	if err := client.Close(); err != nil {
+		t.Errorf("Close() second call error = %v, want nil", err)
+	}
+
+	// Should be safe to call even after close
+	if err := client.Close(); err != nil {
+		t.Errorf("Close() third call error = %v, want nil", err)
+	}
+}

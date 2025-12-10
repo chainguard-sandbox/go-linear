@@ -49,3 +49,57 @@ func TestIssueIterator(t *testing.T) {
 		}
 	}
 }
+
+func TestTeamIterator_Creation(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Verify iterator can be created
+	iter := NewTeamIterator(client, 50)
+	if iter == nil {
+		t.Fatal("NewTeamIterator() returned nil")
+	}
+
+	if iter.first != 50 {
+		t.Errorf("pageSize = %d, want 50", iter.first)
+	}
+
+	// Default pageSize
+	iter2 := NewTeamIterator(client, 0)
+	if iter2.first != 50 {
+		t.Errorf("default pageSize = %d, want 50", iter2.first)
+	}
+}
+
+func TestProjectIterator_Creation(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Verify iterator can be created
+	iter := NewProjectIterator(client, 100)
+	if iter == nil {
+		t.Fatal("NewProjectIterator() returned nil")
+	}
+
+	if iter.first != 100 {
+		t.Errorf("pageSize = %d, want 100", iter.first)
+	}
+}
+
+func TestCommentIterator_Creation(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Verify iterator can be created
+	iter := NewCommentIterator(client, 25)
+	if iter == nil {
+		t.Fatal("NewCommentIterator() returned nil")
+	}
+
+	if iter.first != 25 {
+		t.Errorf("pageSize = %d, want 25", iter.first)
+	}
+}
