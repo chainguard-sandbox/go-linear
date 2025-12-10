@@ -24,18 +24,26 @@ type LinearGraphQLClient interface {
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
 	ListLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListLabels, error)
+	AttachmentLinkURL(ctx context.Context, issueID string, url string, title *string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkURL, error)
+	AttachmentLinkGitHubPr(ctx context.Context, issueID string, url string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkGitHubPr, error)
 	CreateComment(ctx context.Context, input CommentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateComment, error)
 	UpdateComment(ctx context.Context, id string, input CommentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateComment, error)
 	DeleteComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteComment, error)
 	CreateCycle(ctx context.Context, input CycleCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCycle, error)
 	UpdateCycle(ctx context.Context, id string, input CycleUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCycle, error)
 	ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error)
+	IssueAddLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueAddLabel, error)
+	IssueRemoveLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueRemoveLabel, error)
+	IssueRelationCreate(ctx context.Context, input IssueRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationCreate, error)
+	IssueRelationUpdate(ctx context.Context, id string, input IssueRelationUpdateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationUpdate, error)
+	IssueRelationDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*IssueRelationDelete, error)
 	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
 	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
 	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
 	CreateLabel(ctx context.Context, input IssueLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateLabel, error)
 	UpdateLabel(ctx context.Context, id string, input IssueLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateLabel, error)
 	DeleteLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteLabel, error)
+	ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error)
 	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
 	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
@@ -1338,6 +1346,92 @@ func (t *ListLabels_IssueLabels) GetPageInfo() *ListLabels_IssueLabels_PageInfo 
 	return &t.PageInfo
 }
 
+type AttachmentLinkURL_AttachmentLinkURL_Attachment struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+	URL   string "json:\"url\" graphql:\"url\""
+}
+
+func (t *AttachmentLinkURL_AttachmentLinkURL_Attachment) GetID() string {
+	if t == nil {
+		t = &AttachmentLinkURL_AttachmentLinkURL_Attachment{}
+	}
+	return t.ID
+}
+func (t *AttachmentLinkURL_AttachmentLinkURL_Attachment) GetTitle() string {
+	if t == nil {
+		t = &AttachmentLinkURL_AttachmentLinkURL_Attachment{}
+	}
+	return t.Title
+}
+func (t *AttachmentLinkURL_AttachmentLinkURL_Attachment) GetURL() string {
+	if t == nil {
+		t = &AttachmentLinkURL_AttachmentLinkURL_Attachment{}
+	}
+	return t.URL
+}
+
+type AttachmentLinkURL_AttachmentLinkURL struct {
+	Attachment AttachmentLinkURL_AttachmentLinkURL_Attachment "json:\"attachment\" graphql:\"attachment\""
+	Success    bool                                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *AttachmentLinkURL_AttachmentLinkURL) GetAttachment() *AttachmentLinkURL_AttachmentLinkURL_Attachment {
+	if t == nil {
+		t = &AttachmentLinkURL_AttachmentLinkURL{}
+	}
+	return &t.Attachment
+}
+func (t *AttachmentLinkURL_AttachmentLinkURL) GetSuccess() bool {
+	if t == nil {
+		t = &AttachmentLinkURL_AttachmentLinkURL{}
+	}
+	return t.Success
+}
+
+type AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+	URL   string "json:\"url\" graphql:\"url\""
+}
+
+func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment) GetID() string {
+	if t == nil {
+		t = &AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment{}
+	}
+	return t.ID
+}
+func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment) GetTitle() string {
+	if t == nil {
+		t = &AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment{}
+	}
+	return t.Title
+}
+func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment) GetURL() string {
+	if t == nil {
+		t = &AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment{}
+	}
+	return t.URL
+}
+
+type AttachmentLinkGitHubPR_AttachmentLinkGitHubPr struct {
+	Attachment AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment "json:\"attachment\" graphql:\"attachment\""
+	Success    bool                                                     "json:\"success\" graphql:\"success\""
+}
+
+func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr) GetAttachment() *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr_Attachment {
+	if t == nil {
+		t = &AttachmentLinkGitHubPR_AttachmentLinkGitHubPr{}
+	}
+	return &t.Attachment
+}
+func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr) GetSuccess() bool {
+	if t == nil {
+		t = &AttachmentLinkGitHubPR_AttachmentLinkGitHubPr{}
+	}
+	return t.Success
+}
+
 type CreateComment_CommentCreate_Comment struct {
 	Body      string    "json:\"body\" graphql:\"body\""
 	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
@@ -1616,6 +1710,347 @@ type ArchiveCycle_CycleArchive struct {
 func (t *ArchiveCycle_CycleArchive) GetSuccess() bool {
 	if t == nil {
 		t = &ArchiveCycle_CycleArchive{}
+	}
+	return t.Success
+}
+
+type IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes struct {
+	Color string "json:\"color\" graphql:\"color\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes) GetColor() string {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes{}
+	}
+	return t.Color
+}
+func (t *IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes) GetID() string {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes{}
+	}
+	return t.ID
+}
+func (t *IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes) GetName() string {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes{}
+	}
+	return t.Name
+}
+
+type IssueAddLabel_IssueAddLabel_Issue_Labels struct {
+	Nodes []*IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *IssueAddLabel_IssueAddLabel_Issue_Labels) GetNodes() []*IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue_Labels{}
+	}
+	return t.Nodes
+}
+
+type IssueAddLabel_IssueAddLabel_Issue struct {
+	ID     string                                   "json:\"id\" graphql:\"id\""
+	Labels IssueAddLabel_IssueAddLabel_Issue_Labels "json:\"labels\" graphql:\"labels\""
+	Title  string                                   "json:\"title\" graphql:\"title\""
+}
+
+func (t *IssueAddLabel_IssueAddLabel_Issue) GetID() string {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue{}
+	}
+	return t.ID
+}
+func (t *IssueAddLabel_IssueAddLabel_Issue) GetLabels() *IssueAddLabel_IssueAddLabel_Issue_Labels {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue{}
+	}
+	return &t.Labels
+}
+func (t *IssueAddLabel_IssueAddLabel_Issue) GetTitle() string {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel_Issue{}
+	}
+	return t.Title
+}
+
+type IssueAddLabel_IssueAddLabel struct {
+	Issue   *IssueAddLabel_IssueAddLabel_Issue "json:\"issue,omitempty\" graphql:\"issue\""
+	Success bool                               "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueAddLabel_IssueAddLabel) GetIssue() *IssueAddLabel_IssueAddLabel_Issue {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel{}
+	}
+	return t.Issue
+}
+func (t *IssueAddLabel_IssueAddLabel) GetSuccess() bool {
+	if t == nil {
+		t = &IssueAddLabel_IssueAddLabel{}
+	}
+	return t.Success
+}
+
+type IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes struct {
+	Color string "json:\"color\" graphql:\"color\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes) GetColor() string {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes{}
+	}
+	return t.Color
+}
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes) GetID() string {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes{}
+	}
+	return t.ID
+}
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes) GetName() string {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes{}
+	}
+	return t.Name
+}
+
+type IssueRemoveLabel_IssueRemoveLabel_Issue_Labels struct {
+	Nodes []*IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue_Labels) GetNodes() []*IssueRemoveLabel_IssueRemoveLabel_Issue_Labels_Nodes {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue_Labels{}
+	}
+	return t.Nodes
+}
+
+type IssueRemoveLabel_IssueRemoveLabel_Issue struct {
+	ID     string                                         "json:\"id\" graphql:\"id\""
+	Labels IssueRemoveLabel_IssueRemoveLabel_Issue_Labels "json:\"labels\" graphql:\"labels\""
+	Title  string                                         "json:\"title\" graphql:\"title\""
+}
+
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue) GetID() string {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue{}
+	}
+	return t.ID
+}
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue) GetLabels() *IssueRemoveLabel_IssueRemoveLabel_Issue_Labels {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue{}
+	}
+	return &t.Labels
+}
+func (t *IssueRemoveLabel_IssueRemoveLabel_Issue) GetTitle() string {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel_Issue{}
+	}
+	return t.Title
+}
+
+type IssueRemoveLabel_IssueRemoveLabel struct {
+	Issue   *IssueRemoveLabel_IssueRemoveLabel_Issue "json:\"issue,omitempty\" graphql:\"issue\""
+	Success bool                                     "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueRemoveLabel_IssueRemoveLabel) GetIssue() *IssueRemoveLabel_IssueRemoveLabel_Issue {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel{}
+	}
+	return t.Issue
+}
+func (t *IssueRemoveLabel_IssueRemoveLabel) GetSuccess() bool {
+	if t == nil {
+		t = &IssueRemoveLabel_IssueRemoveLabel{}
+	}
+	return t.Success
+}
+
+type IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+}
+
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue) GetID() string {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue{}
+	}
+	return t.ID
+}
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue) GetTitle() string {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue{}
+	}
+	return t.Title
+}
+
+type IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+}
+
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue) GetID() string {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue{}
+	}
+	return t.ID
+}
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue) GetTitle() string {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue{}
+	}
+	return t.Title
+}
+
+type IssueRelationCreate_IssueRelationCreate_IssueRelation struct {
+	ID           string                                                             "json:\"id\" graphql:\"id\""
+	Issue        IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue        "json:\"issue\" graphql:\"issue\""
+	RelatedIssue IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue "json:\"relatedIssue\" graphql:\"relatedIssue\""
+	Type         string                                                             "json:\"type\" graphql:\"type\""
+}
+
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation) GetID() string {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation{}
+	}
+	return t.ID
+}
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation) GetIssue() *IssueRelationCreate_IssueRelationCreate_IssueRelation_Issue {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation{}
+	}
+	return &t.Issue
+}
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation) GetRelatedIssue() *IssueRelationCreate_IssueRelationCreate_IssueRelation_RelatedIssue {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation{}
+	}
+	return &t.RelatedIssue
+}
+func (t *IssueRelationCreate_IssueRelationCreate_IssueRelation) GetType() string {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate_IssueRelation{}
+	}
+	return t.Type
+}
+
+type IssueRelationCreate_IssueRelationCreate struct {
+	IssueRelation IssueRelationCreate_IssueRelationCreate_IssueRelation "json:\"issueRelation\" graphql:\"issueRelation\""
+	Success       bool                                                  "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueRelationCreate_IssueRelationCreate) GetIssueRelation() *IssueRelationCreate_IssueRelationCreate_IssueRelation {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate{}
+	}
+	return &t.IssueRelation
+}
+func (t *IssueRelationCreate_IssueRelationCreate) GetSuccess() bool {
+	if t == nil {
+		t = &IssueRelationCreate_IssueRelationCreate{}
+	}
+	return t.Success
+}
+
+type IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+}
+
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue) GetID() string {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue{}
+	}
+	return t.ID
+}
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue) GetTitle() string {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue{}
+	}
+	return t.Title
+}
+
+type IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+}
+
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue) GetID() string {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue{}
+	}
+	return t.ID
+}
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue) GetTitle() string {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue{}
+	}
+	return t.Title
+}
+
+type IssueRelationUpdate_IssueRelationUpdate_IssueRelation struct {
+	ID           string                                                             "json:\"id\" graphql:\"id\""
+	Issue        IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue        "json:\"issue\" graphql:\"issue\""
+	RelatedIssue IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue "json:\"relatedIssue\" graphql:\"relatedIssue\""
+	Type         string                                                             "json:\"type\" graphql:\"type\""
+}
+
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation) GetID() string {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation{}
+	}
+	return t.ID
+}
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation) GetIssue() *IssueRelationUpdate_IssueRelationUpdate_IssueRelation_Issue {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation{}
+	}
+	return &t.Issue
+}
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation) GetRelatedIssue() *IssueRelationUpdate_IssueRelationUpdate_IssueRelation_RelatedIssue {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation{}
+	}
+	return &t.RelatedIssue
+}
+func (t *IssueRelationUpdate_IssueRelationUpdate_IssueRelation) GetType() string {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate_IssueRelation{}
+	}
+	return t.Type
+}
+
+type IssueRelationUpdate_IssueRelationUpdate struct {
+	IssueRelation IssueRelationUpdate_IssueRelationUpdate_IssueRelation "json:\"issueRelation\" graphql:\"issueRelation\""
+	Success       bool                                                  "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueRelationUpdate_IssueRelationUpdate) GetIssueRelation() *IssueRelationUpdate_IssueRelationUpdate_IssueRelation {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate{}
+	}
+	return &t.IssueRelation
+}
+func (t *IssueRelationUpdate_IssueRelationUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &IssueRelationUpdate_IssueRelationUpdate{}
+	}
+	return t.Success
+}
+
+type IssueRelationDelete_IssueRelationDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueRelationDelete_IssueRelationDelete) GetSuccess() bool {
+	if t == nil {
+		t = &IssueRelationDelete_IssueRelationDelete{}
 	}
 	return t.Success
 }
@@ -1937,6 +2372,88 @@ type DeleteLabel_IssueLabelDelete struct {
 func (t *DeleteLabel_IssueLabelDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteLabel_IssueLabelDelete{}
+	}
+	return t.Success
+}
+
+type ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project) GetID() string {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project{}
+	}
+	return t.ID
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project) GetName() string {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project{}
+	}
+	return t.Name
+}
+
+type ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone struct {
+	Description *string                                                                "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                                                                 "json:\"id\" graphql:\"id\""
+	Name        string                                                                 "json:\"name\" graphql:\"name\""
+	Project     ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project "json:\"project\" graphql:\"project\""
+	SortOrder   float64                                                                "json:\"sortOrder\" graphql:\"sortOrder\""
+	TargetDate  *string                                                                "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+}
+
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone) GetDescription() *string {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone{}
+	}
+	return t.Description
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone) GetID() string {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone{}
+	}
+	return t.ID
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone) GetName() string {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone{}
+	}
+	return t.Name
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone) GetProject() *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone{}
+	}
+	return &t.Project
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone) GetSortOrder() float64 {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone{}
+	}
+	return t.SortOrder
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone) GetTargetDate() *string {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone{}
+	}
+	return t.TargetDate
+}
+
+type ProjectMilestoneCreate_ProjectMilestoneCreate struct {
+	ProjectMilestone ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone "json:\"projectMilestone\" graphql:\"projectMilestone\""
+	Success          bool                                                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate) GetProjectMilestone() *ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate{}
+	}
+	return &t.ProjectMilestone
+}
+func (t *ProjectMilestoneCreate_ProjectMilestoneCreate) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectMilestoneCreate_ProjectMilestoneCreate{}
 	}
 	return t.Success
 }
@@ -3582,6 +4099,28 @@ func (t *ListLabels) GetIssueLabels() *ListLabels_IssueLabels {
 	return &t.IssueLabels
 }
 
+type AttachmentLinkURL struct {
+	AttachmentLinkURL AttachmentLinkURL_AttachmentLinkURL "json:\"attachmentLinkURL\" graphql:\"attachmentLinkURL\""
+}
+
+func (t *AttachmentLinkURL) GetAttachmentLinkURL() *AttachmentLinkURL_AttachmentLinkURL {
+	if t == nil {
+		t = &AttachmentLinkURL{}
+	}
+	return &t.AttachmentLinkURL
+}
+
+type AttachmentLinkGitHubPr struct {
+	AttachmentLinkGitHubPr AttachmentLinkGitHubPR_AttachmentLinkGitHubPr "json:\"attachmentLinkGitHubPR\" graphql:\"attachmentLinkGitHubPR\""
+}
+
+func (t *AttachmentLinkGitHubPr) GetAttachmentLinkGitHubPr() *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr {
+	if t == nil {
+		t = &AttachmentLinkGitHubPr{}
+	}
+	return &t.AttachmentLinkGitHubPr
+}
+
 type CreateComment struct {
 	CommentCreate CreateComment_CommentCreate "json:\"commentCreate\" graphql:\"commentCreate\""
 }
@@ -3648,6 +4187,61 @@ func (t *ArchiveCycle) GetCycleArchive() *ArchiveCycle_CycleArchive {
 	return &t.CycleArchive
 }
 
+type IssueAddLabel struct {
+	IssueAddLabel IssueAddLabel_IssueAddLabel "json:\"issueAddLabel\" graphql:\"issueAddLabel\""
+}
+
+func (t *IssueAddLabel) GetIssueAddLabel() *IssueAddLabel_IssueAddLabel {
+	if t == nil {
+		t = &IssueAddLabel{}
+	}
+	return &t.IssueAddLabel
+}
+
+type IssueRemoveLabel struct {
+	IssueRemoveLabel IssueRemoveLabel_IssueRemoveLabel "json:\"issueRemoveLabel\" graphql:\"issueRemoveLabel\""
+}
+
+func (t *IssueRemoveLabel) GetIssueRemoveLabel() *IssueRemoveLabel_IssueRemoveLabel {
+	if t == nil {
+		t = &IssueRemoveLabel{}
+	}
+	return &t.IssueRemoveLabel
+}
+
+type IssueRelationCreate struct {
+	IssueRelationCreate IssueRelationCreate_IssueRelationCreate "json:\"issueRelationCreate\" graphql:\"issueRelationCreate\""
+}
+
+func (t *IssueRelationCreate) GetIssueRelationCreate() *IssueRelationCreate_IssueRelationCreate {
+	if t == nil {
+		t = &IssueRelationCreate{}
+	}
+	return &t.IssueRelationCreate
+}
+
+type IssueRelationUpdate struct {
+	IssueRelationUpdate IssueRelationUpdate_IssueRelationUpdate "json:\"issueRelationUpdate\" graphql:\"issueRelationUpdate\""
+}
+
+func (t *IssueRelationUpdate) GetIssueRelationUpdate() *IssueRelationUpdate_IssueRelationUpdate {
+	if t == nil {
+		t = &IssueRelationUpdate{}
+	}
+	return &t.IssueRelationUpdate
+}
+
+type IssueRelationDelete struct {
+	IssueRelationDelete IssueRelationDelete_IssueRelationDelete "json:\"issueRelationDelete\" graphql:\"issueRelationDelete\""
+}
+
+func (t *IssueRelationDelete) GetIssueRelationDelete() *IssueRelationDelete_IssueRelationDelete {
+	if t == nil {
+		t = &IssueRelationDelete{}
+	}
+	return &t.IssueRelationDelete
+}
+
 type CreateIssue struct {
 	IssueCreate CreateIssue_IssueCreate "json:\"issueCreate\" graphql:\"issueCreate\""
 }
@@ -3712,6 +4306,17 @@ func (t *DeleteLabel) GetIssueLabelDelete() *DeleteLabel_IssueLabelDelete {
 		t = &DeleteLabel{}
 	}
 	return &t.IssueLabelDelete
+}
+
+type ProjectMilestoneCreate struct {
+	ProjectMilestoneCreate ProjectMilestoneCreate_ProjectMilestoneCreate "json:\"projectMilestoneCreate\" graphql:\"projectMilestoneCreate\""
+}
+
+func (t *ProjectMilestoneCreate) GetProjectMilestoneCreate() *ProjectMilestoneCreate_ProjectMilestoneCreate {
+	if t == nil {
+		t = &ProjectMilestoneCreate{}
+	}
+	return &t.ProjectMilestoneCreate
 }
 
 type CreateProject struct {
@@ -4457,6 +5062,67 @@ func (c *Client) ListLabels(ctx context.Context, first *int64, after *string, in
 	return &res, nil
 }
 
+const AttachmentLinkURLDocument = `mutation AttachmentLinkURL ($issueId: String!, $url: String!, $title: String) {
+	attachmentLinkURL(issueId: $issueId, url: $url, title: $title) {
+		success
+		attachment {
+			id
+			title
+			url
+		}
+	}
+}
+`
+
+func (c *Client) AttachmentLinkURL(ctx context.Context, issueID string, url string, title *string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkURL, error) {
+	vars := map[string]any{
+		"issueId": issueID,
+		"url":     url,
+		"title":   title,
+	}
+
+	var res AttachmentLinkURL
+	if err := c.Client.Post(ctx, "AttachmentLinkURL", AttachmentLinkURLDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const AttachmentLinkGitHubPrDocument = `mutation AttachmentLinkGitHubPR ($issueId: String!, $url: String!) {
+	attachmentLinkGitHubPR(issueId: $issueId, url: $url) {
+		success
+		attachment {
+			id
+			title
+			url
+		}
+	}
+}
+`
+
+func (c *Client) AttachmentLinkGitHubPr(ctx context.Context, issueID string, url string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkGitHubPr, error) {
+	vars := map[string]any{
+		"issueId": issueID,
+		"url":     url,
+	}
+
+	var res AttachmentLinkGitHubPr
+	if err := c.Client.Post(ctx, "AttachmentLinkGitHubPR", AttachmentLinkGitHubPrDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateCommentDocument = `mutation CreateComment ($input: CommentCreateInput!) {
 	commentCreate(input: $input) {
 		success
@@ -4626,6 +5292,175 @@ func (c *Client) ArchiveCycle(ctx context.Context, id string, interceptors ...cl
 
 	var res ArchiveCycle
 	if err := c.Client.Post(ctx, "ArchiveCycle", ArchiveCycleDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const IssueAddLabelDocument = `mutation IssueAddLabel ($id: String!, $labelId: String!) {
+	issueAddLabel(id: $id, labelId: $labelId) {
+		success
+		issue {
+			id
+			title
+			labels {
+				nodes {
+					id
+					name
+					color
+				}
+			}
+		}
+	}
+}
+`
+
+func (c *Client) IssueAddLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueAddLabel, error) {
+	vars := map[string]any{
+		"id":      id,
+		"labelId": labelID,
+	}
+
+	var res IssueAddLabel
+	if err := c.Client.Post(ctx, "IssueAddLabel", IssueAddLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const IssueRemoveLabelDocument = `mutation IssueRemoveLabel ($id: String!, $labelId: String!) {
+	issueRemoveLabel(id: $id, labelId: $labelId) {
+		success
+		issue {
+			id
+			title
+			labels {
+				nodes {
+					id
+					name
+					color
+				}
+			}
+		}
+	}
+}
+`
+
+func (c *Client) IssueRemoveLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueRemoveLabel, error) {
+	vars := map[string]any{
+		"id":      id,
+		"labelId": labelID,
+	}
+
+	var res IssueRemoveLabel
+	if err := c.Client.Post(ctx, "IssueRemoveLabel", IssueRemoveLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const IssueRelationCreateDocument = `mutation IssueRelationCreate ($input: IssueRelationCreateInput!) {
+	issueRelationCreate(input: $input) {
+		success
+		issueRelation {
+			id
+			type
+			issue {
+				id
+				title
+			}
+			relatedIssue {
+				id
+				title
+			}
+		}
+	}
+}
+`
+
+func (c *Client) IssueRelationCreate(ctx context.Context, input IssueRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res IssueRelationCreate
+	if err := c.Client.Post(ctx, "IssueRelationCreate", IssueRelationCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const IssueRelationUpdateDocument = `mutation IssueRelationUpdate ($id: String!, $input: IssueRelationUpdateInput!) {
+	issueRelationUpdate(id: $id, input: $input) {
+		success
+		issueRelation {
+			id
+			type
+			issue {
+				id
+				title
+			}
+			relatedIssue {
+				id
+				title
+			}
+		}
+	}
+}
+`
+
+func (c *Client) IssueRelationUpdate(ctx context.Context, id string, input IssueRelationUpdateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationUpdate, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res IssueRelationUpdate
+	if err := c.Client.Post(ctx, "IssueRelationUpdate", IssueRelationUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const IssueRelationDeleteDocument = `mutation IssueRelationDelete ($id: String!) {
+	issueRelationDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) IssueRelationDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*IssueRelationDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res IssueRelationDelete
+	if err := c.Client.Post(ctx, "IssueRelationDelete", IssueRelationDeleteDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -4811,6 +5646,41 @@ func (c *Client) DeleteLabel(ctx context.Context, id string, interceptors ...cli
 
 	var res DeleteLabel
 	if err := c.Client.Post(ctx, "DeleteLabel", DeleteLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ProjectMilestoneCreateDocument = `mutation ProjectMilestoneCreate ($input: ProjectMilestoneCreateInput!) {
+	projectMilestoneCreate(input: $input) {
+		success
+		projectMilestone {
+			id
+			name
+			description
+			targetDate
+			sortOrder
+			project {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res ProjectMilestoneCreate
+	if err := c.Client.Post(ctx, "ProjectMilestoneCreate", ProjectMilestoneCreateDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -5519,51 +6389,59 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 }
 
 var DocumentOperationNames = map[string]string{
-	GetAttachmentDocument:      "GetAttachment",
-	ListAttachmentsDocument:    "ListAttachments",
-	GetCommentDocument:         "GetComment",
-	ListCommentsDocument:       "ListComments",
-	GetCycleDocument:           "GetCycle",
-	ListCyclesDocument:         "ListCycles",
-	GetDocumentDocument:        "GetDocument",
-	ListDocumentsDocument:      "ListDocuments",
-	GetInitiativeDocument:      "GetInitiative",
-	ListInitiativesDocument:    "ListInitiatives",
-	GetIssueDocument:           "GetIssue",
-	ListIssuesDocument:         "ListIssues",
-	GetLabelDocument:           "GetLabel",
-	ListLabelsDocument:         "ListLabels",
-	CreateCommentDocument:      "CreateComment",
-	UpdateCommentDocument:      "UpdateComment",
-	DeleteCommentDocument:      "DeleteComment",
-	CreateCycleDocument:        "CreateCycle",
-	UpdateCycleDocument:        "UpdateCycle",
-	ArchiveCycleDocument:       "ArchiveCycle",
-	CreateIssueDocument:        "CreateIssue",
-	UpdateIssueDocument:        "UpdateIssue",
-	DeleteIssueDocument:        "DeleteIssue",
-	CreateLabelDocument:        "CreateLabel",
-	UpdateLabelDocument:        "UpdateLabel",
-	DeleteLabelDocument:        "DeleteLabel",
-	CreateProjectDocument:      "CreateProject",
-	UpdateProjectDocument:      "UpdateProject",
-	DeleteProjectDocument:      "DeleteProject",
-	CreateTeamDocument:         "CreateTeam",
-	UpdateTeamDocument:         "UpdateTeam",
-	DeleteTeamDocument:         "DeleteTeam",
-	GetOrganizationDocument:    "GetOrganization",
-	GetProjectDocument:         "GetProject",
-	ListProjectsDocument:       "ListProjects",
-	GetRoadmapDocument:         "GetRoadmap",
-	ListRoadmapsDocument:       "ListRoadmaps",
-	SearchIssuesDocument:       "SearchIssues",
-	GetTeamDocument:            "GetTeam",
-	ListTeamsDocument:          "ListTeams",
-	GetTemplateDocument:        "GetTemplate",
-	ListTemplatesDocument:      "ListTemplates",
-	GetUserDocument:            "GetUser",
-	ListUsersDocument:          "ListUsers",
-	ViewerDocument:             "Viewer",
-	GetWorkflowStateDocument:   "GetWorkflowState",
-	ListWorkflowStatesDocument: "ListWorkflowStates",
+	GetAttachmentDocument:          "GetAttachment",
+	ListAttachmentsDocument:        "ListAttachments",
+	GetCommentDocument:             "GetComment",
+	ListCommentsDocument:           "ListComments",
+	GetCycleDocument:               "GetCycle",
+	ListCyclesDocument:             "ListCycles",
+	GetDocumentDocument:            "GetDocument",
+	ListDocumentsDocument:          "ListDocuments",
+	GetInitiativeDocument:          "GetInitiative",
+	ListInitiativesDocument:        "ListInitiatives",
+	GetIssueDocument:               "GetIssue",
+	ListIssuesDocument:             "ListIssues",
+	GetLabelDocument:               "GetLabel",
+	ListLabelsDocument:             "ListLabels",
+	AttachmentLinkURLDocument:      "AttachmentLinkURL",
+	AttachmentLinkGitHubPrDocument: "AttachmentLinkGitHubPR",
+	CreateCommentDocument:          "CreateComment",
+	UpdateCommentDocument:          "UpdateComment",
+	DeleteCommentDocument:          "DeleteComment",
+	CreateCycleDocument:            "CreateCycle",
+	UpdateCycleDocument:            "UpdateCycle",
+	ArchiveCycleDocument:           "ArchiveCycle",
+	IssueAddLabelDocument:          "IssueAddLabel",
+	IssueRemoveLabelDocument:       "IssueRemoveLabel",
+	IssueRelationCreateDocument:    "IssueRelationCreate",
+	IssueRelationUpdateDocument:    "IssueRelationUpdate",
+	IssueRelationDeleteDocument:    "IssueRelationDelete",
+	CreateIssueDocument:            "CreateIssue",
+	UpdateIssueDocument:            "UpdateIssue",
+	DeleteIssueDocument:            "DeleteIssue",
+	CreateLabelDocument:            "CreateLabel",
+	UpdateLabelDocument:            "UpdateLabel",
+	DeleteLabelDocument:            "DeleteLabel",
+	ProjectMilestoneCreateDocument: "ProjectMilestoneCreate",
+	CreateProjectDocument:          "CreateProject",
+	UpdateProjectDocument:          "UpdateProject",
+	DeleteProjectDocument:          "DeleteProject",
+	CreateTeamDocument:             "CreateTeam",
+	UpdateTeamDocument:             "UpdateTeam",
+	DeleteTeamDocument:             "DeleteTeam",
+	GetOrganizationDocument:        "GetOrganization",
+	GetProjectDocument:             "GetProject",
+	ListProjectsDocument:           "ListProjects",
+	GetRoadmapDocument:             "GetRoadmap",
+	ListRoadmapsDocument:           "ListRoadmaps",
+	SearchIssuesDocument:           "SearchIssues",
+	GetTeamDocument:                "GetTeam",
+	ListTeamsDocument:              "ListTeams",
+	GetTemplateDocument:            "GetTemplate",
+	ListTemplatesDocument:          "ListTemplates",
+	GetUserDocument:                "GetUser",
+	ListUsersDocument:              "ListUsers",
+	ViewerDocument:                 "Viewer",
+	GetWorkflowStateDocument:       "GetWorkflowState",
+	ListWorkflowStatesDocument:     "ListWorkflowStates",
 }

@@ -1253,6 +1253,107 @@ func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// IssueRelationCreate creates a relationship between two issues.
+//
+// Relationship types:
+//   - "blocks": This issue blocks another issue
+//   - "blocked": This issue is blocked by another
+//   - "duplicate": This issue is a duplicate of another
+//   - "related": This issue is related to another
+//
+// Parameters:
+//   - input: Relation parameters (issueId, relatedIssueId, type)
+//
+// Returns:
+//   - Created relation with both issues and type
+//   - error: Non-nil if creation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	relation, err := client.IssueRelationCreate(ctx, intgraphql.IssueRelationCreateInput{
+//	    IssueID:        &currentIssueID,
+//	    RelatedIssueID: &blockerIssueID,
+//	    Type:           "blocks",
+//	})
+//	fmt.Printf("Issue %s blocks %s\n", relation.Issue.Title, relation.RelatedIssue.Title)
+//
+// Related: [IssueRelationUpdate], [IssueRelationDelete]
+func (c *Client) IssueRelationCreate(ctx context.Context, input intgraphql.IssueRelationCreateInput) (*intgraphql.IssueRelationCreate_IssueRelationCreate_IssueRelation, error) {
+	resp, err := c.gqlClient.IssueRelationCreate(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("IssueRelationCreate", err)
+	}
+	if !resp.IssueRelationCreate.Success {
+		return nil, errMutationFailed("IssueRelationCreate")
+	}
+	return &resp.IssueRelationCreate.IssueRelation, nil
+}
+
+// IssueRelationUpdate updates an existing relationship between issues.
+//
+// Use this to change the relationship type (e.g., from "related" to "blocks").
+//
+// Parameters:
+//   - id: IssueRelation UUID to update (required)
+//   - input: Fields to update (type is the main updatable field)
+//
+// Returns:
+//   - Updated relation with new type
+//   - error: Non-nil if update fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	newType := "blocks"
+//	relation, err := client.IssueRelationUpdate(ctx, relationID, intgraphql.IssueRelationUpdateInput{
+//	    Type: &newType,
+//	})
+//
+// Related: [IssueRelationCreate], [IssueRelationDelete]
+func (c *Client) IssueRelationUpdate(ctx context.Context, id string, input intgraphql.IssueRelationUpdateInput) (*intgraphql.IssueRelationUpdate_IssueRelationUpdate_IssueRelation, error) {
+	resp, err := c.gqlClient.IssueRelationUpdate(ctx, id, input)
+	if err != nil {
+		return nil, wrapGraphQLError("IssueRelationUpdate", err)
+	}
+	if !resp.IssueRelationUpdate.Success {
+		return nil, errMutationFailed("IssueRelationUpdate")
+	}
+	return &resp.IssueRelationUpdate.IssueRelation, nil
+}
+
+// IssueRelationDelete deletes a relationship between issues.
+//
+// Parameters:
+//   - id: IssueRelation UUID to delete (required)
+//
+// Returns:
+//   - nil: Relation successfully deleted
+//   - error: Non-nil if delete fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	err := client.IssueRelationDelete(ctx, relationID)
+//	if err != nil {
+//	    return fmt.Errorf("failed to delete relation: %w", err)
+//	}
+//
+// Related: [IssueRelationCreate], [IssueRelationUpdate]
+func (c *Client) IssueRelationDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.IssueRelationDelete(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("IssueRelationDelete", err)
+	}
+	if !resp.IssueRelationDelete.Success {
+		return errMutationFailed("IssueRelationDelete")
+	}
+	return nil
+}
+
 // TeamCreate creates a new team.
 func (c *Client) TeamCreate(ctx context.Context, input intgraphql.TeamCreateInput) (*intgraphql.CreateTeam_TeamCreate_Team, error) {
 	resp, err := c.gqlClient.CreateTeam(ctx, input)

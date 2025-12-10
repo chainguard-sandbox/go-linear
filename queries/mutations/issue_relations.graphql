@@ -1,0 +1,41 @@
+mutation IssueRelationCreate($input: IssueRelationCreateInput!) {
+  issueRelationCreate(input: $input) {
+    success
+    issueRelation {
+      id
+      type
+      issue {
+        id
+        title
+      }
+      relatedIssue {
+        id
+        title
+      }
+    }
+  }
+}
+
+mutation IssueRelationUpdate($id: String!, $input: IssueRelationUpdateInput!) {
+  issueRelationUpdate(id: $id, input: $input) {
+    success
+    issueRelation {
+      id
+      type
+      issue {
+        id
+        title
+      }
+      relatedIssue {
+        id
+        title
+      }
+    }
+  }
+}
+
+mutation IssueRelationDelete($id: String!) {
+  issueRelationDelete(id: $id) {
+    success
+  }
+}
