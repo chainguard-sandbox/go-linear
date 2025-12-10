@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
+	"go.opentelemetry.io/otel/trace"
 
 	intgraphql "github.com/eslerm/go-linear/internal/graphql"
 )
@@ -33,6 +34,7 @@ type Client struct {
 	metricsEnabled   bool
 	metricsCollector *MetricsCollector
 	circuitBreaker   *CircuitBreaker
+	tracingEnabled   bool
 }
 
 // NewClient creates a new Linear API client for GraphQL operations.
@@ -214,6 +216,12 @@ func contains(s, substr string) bool {
 //	}
 //	log.Printf("Authenticated as: %s", viewer.Email)
 func (c *Client) Viewer(ctx context.Context) (*intgraphql.Viewer_Viewer, error) {
+	if c.tracingEnabled {
+		var span trace.Span
+		ctx, span = startSpan(ctx, "Viewer")
+		defer span.End()
+	}
+
 	resp, err := c.gqlClient.Viewer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("viewer query failed: %w", err)

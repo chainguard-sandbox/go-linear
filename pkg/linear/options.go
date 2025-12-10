@@ -216,3 +216,22 @@ func WithMetricsRegistry(reg prometheus.Registerer, suffix string) Option {
 		c.metricsEnabled = true
 	}
 }
+
+// WithTracing enables OpenTelemetry distributed tracing.
+// Requires OpenTelemetry SDK to be initialized in your application.
+//
+// Example:
+//
+//	import "go.opentelemetry.io/otel"
+//
+//	// Initialize OTel (usually in main)
+//	tp := initTracer()  // Your tracer provider
+//	otel.SetTracerProvider(tp)
+//
+//	// Enable tracing in client
+//	client, _ := linear.NewClient(apiKey, linear.WithTracing())
+func WithTracing() Option {
+	return func(c *Client) {
+		c.tracingEnabled = true
+	}
+}
