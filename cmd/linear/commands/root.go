@@ -15,6 +15,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/initiative"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/issue"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/label"
+	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/notification"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/organization"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/project"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/reaction"
@@ -89,6 +90,7 @@ Environment Variables:
 	rootCmd.AddCommand(initiative.NewInitiativeCommand(getClient))
 	rootCmd.AddCommand(issue.NewIssueCommand(getClient))
 	rootCmd.AddCommand(label.NewLabelCommand(getClient))
+	rootCmd.AddCommand(notification.NewNotificationCommand(getClient))
 	rootCmd.AddCommand(organization.NewOrganizationCommand(getClient))
 	rootCmd.AddCommand(project.NewProjectCommand(getClient))
 	rootCmd.AddCommand(reaction.NewReactionCommand(getClient))
