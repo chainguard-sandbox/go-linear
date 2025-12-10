@@ -13,14 +13,9 @@ run:
   # Include test files
   tests: true
 
-  # Which directories to skip
-  skip-dirs:
-    - vendor
-    - third_party
-    - testdata
-    - examples
-    - docs
-    - upstream  # Upstream TypeScript SDK submodule (sync mode only)
+  # Skip files matching these patterns
+  skip-files:
+    - "examples/.*"
 
 linters:
   # Enable specific linters
@@ -139,10 +134,14 @@ issues:
         - errcheck    # Error checking less strict in tests
         - gocritic    # Style checks less important in tests
         - forbidigo   # Allow print statements in tests
-    # Exclude linters from example files
-    - path: "examples/.*\\.go"
+    # Exclude linters from task example files
+    - path: "examples/tasks/"
       linters:
         - gci         # Examples can have simpler import grouping
+        - errcheck    # Examples don't need strict error checking
+        - forbidigo   # Examples can use fmt.Print for demonstrations
+        - gocritic    # Examples prioritize clarity over optimization
+        - modernize   # Examples use traditional patterns for clarity
 
 
     # Exclude linters from generated files (genqlient)
