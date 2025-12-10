@@ -32,6 +32,8 @@ type LinearGraphQLClient interface {
 	CreateCycle(ctx context.Context, input CycleCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCycle, error)
 	UpdateCycle(ctx context.Context, id string, input CycleUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCycle, error)
 	ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error)
+	FavoriteCreate(ctx context.Context, input FavoriteCreateInput, interceptors ...clientv2.RequestInterceptor) (*FavoriteCreate, error)
+	FavoriteDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*FavoriteDelete, error)
 	IssueAddLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueAddLabel, error)
 	IssueRemoveLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueRemoveLabel, error)
 	IssueRelationCreate(ctx context.Context, input IssueRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationCreate, error)
@@ -43,12 +45,18 @@ type LinearGraphQLClient interface {
 	CreateLabel(ctx context.Context, input IssueLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateLabel, error)
 	UpdateLabel(ctx context.Context, id string, input IssueLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateLabel, error)
 	DeleteLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteLabel, error)
+	NotificationUpdate(ctx context.Context, id string, input NotificationUpdateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationUpdate, error)
+	NotificationArchive(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationArchive, error)
+	NotificationSubscriptionCreate(ctx context.Context, input NotificationSubscriptionCreateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionCreate, error)
+	NotificationSubscriptionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionDelete, error)
 	ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error)
 	ProjectMilestoneUpdate(ctx context.Context, id string, input ProjectMilestoneUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneUpdate, error)
 	ProjectMilestoneDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneDelete, error)
 	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
 	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
+	ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error)
+	ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error)
 	CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error)
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
@@ -1716,6 +1724,103 @@ func (t *ArchiveCycle_CycleArchive) GetSuccess() bool {
 	return t.Success
 }
 
+type FavoriteCreate_FavoriteCreate_Favorite_Issue struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+}
+
+func (t *FavoriteCreate_FavoriteCreate_Favorite_Issue) GetID() string {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite_Issue{}
+	}
+	return t.ID
+}
+func (t *FavoriteCreate_FavoriteCreate_Favorite_Issue) GetTitle() string {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite_Issue{}
+	}
+	return t.Title
+}
+
+type FavoriteCreate_FavoriteCreate_Favorite_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *FavoriteCreate_FavoriteCreate_Favorite_Project) GetID() string {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite_Project{}
+	}
+	return t.ID
+}
+func (t *FavoriteCreate_FavoriteCreate_Favorite_Project) GetName() string {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite_Project{}
+	}
+	return t.Name
+}
+
+type FavoriteCreate_FavoriteCreate_Favorite struct {
+	ID      string                                          "json:\"id\" graphql:\"id\""
+	Issue   *FavoriteCreate_FavoriteCreate_Favorite_Issue   "json:\"issue,omitempty\" graphql:\"issue\""
+	Project *FavoriteCreate_FavoriteCreate_Favorite_Project "json:\"project,omitempty\" graphql:\"project\""
+	Type    string                                          "json:\"type\" graphql:\"type\""
+}
+
+func (t *FavoriteCreate_FavoriteCreate_Favorite) GetID() string {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite{}
+	}
+	return t.ID
+}
+func (t *FavoriteCreate_FavoriteCreate_Favorite) GetIssue() *FavoriteCreate_FavoriteCreate_Favorite_Issue {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite{}
+	}
+	return t.Issue
+}
+func (t *FavoriteCreate_FavoriteCreate_Favorite) GetProject() *FavoriteCreate_FavoriteCreate_Favorite_Project {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite{}
+	}
+	return t.Project
+}
+func (t *FavoriteCreate_FavoriteCreate_Favorite) GetType() string {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate_Favorite{}
+	}
+	return t.Type
+}
+
+type FavoriteCreate_FavoriteCreate struct {
+	Favorite FavoriteCreate_FavoriteCreate_Favorite "json:\"favorite\" graphql:\"favorite\""
+	Success  bool                                   "json:\"success\" graphql:\"success\""
+}
+
+func (t *FavoriteCreate_FavoriteCreate) GetFavorite() *FavoriteCreate_FavoriteCreate_Favorite {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate{}
+	}
+	return &t.Favorite
+}
+func (t *FavoriteCreate_FavoriteCreate) GetSuccess() bool {
+	if t == nil {
+		t = &FavoriteCreate_FavoriteCreate{}
+	}
+	return t.Success
+}
+
+type FavoriteDelete_FavoriteDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *FavoriteDelete_FavoriteDelete) GetSuccess() bool {
+	if t == nil {
+		t = &FavoriteDelete_FavoriteDelete{}
+	}
+	return t.Success
+}
+
 type IssueAddLabel_IssueAddLabel_Issue_Labels_Nodes struct {
 	Color string "json:\"color\" graphql:\"color\""
 	ID    string "json:\"id\" graphql:\"id\""
@@ -2378,6 +2483,114 @@ func (t *DeleteLabel_IssueLabelDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type NotificationUpdate_NotificationUpdate_Notification struct {
+	ArchivedAt *time.Time "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	ID         string     "json:\"id\" graphql:\"id\""
+	ReadAt     *time.Time "json:\"readAt,omitempty\" graphql:\"readAt\""
+	Type       string     "json:\"type\" graphql:\"type\""
+}
+
+func (t *NotificationUpdate_NotificationUpdate_Notification) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &NotificationUpdate_NotificationUpdate_Notification{}
+	}
+	return t.ArchivedAt
+}
+func (t *NotificationUpdate_NotificationUpdate_Notification) GetID() string {
+	if t == nil {
+		t = &NotificationUpdate_NotificationUpdate_Notification{}
+	}
+	return t.ID
+}
+func (t *NotificationUpdate_NotificationUpdate_Notification) GetReadAt() *time.Time {
+	if t == nil {
+		t = &NotificationUpdate_NotificationUpdate_Notification{}
+	}
+	return t.ReadAt
+}
+func (t *NotificationUpdate_NotificationUpdate_Notification) GetType() string {
+	if t == nil {
+		t = &NotificationUpdate_NotificationUpdate_Notification{}
+	}
+	return t.Type
+}
+
+type NotificationUpdate_NotificationUpdate struct {
+	Notification NotificationUpdate_NotificationUpdate_Notification "json:\"notification\" graphql:\"notification\""
+	Success      bool                                               "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationUpdate_NotificationUpdate) GetNotification() *NotificationUpdate_NotificationUpdate_Notification {
+	if t == nil {
+		t = &NotificationUpdate_NotificationUpdate{}
+	}
+	return &t.Notification
+}
+func (t *NotificationUpdate_NotificationUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationUpdate_NotificationUpdate{}
+	}
+	return t.Success
+}
+
+type NotificationArchive_NotificationArchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationArchive_NotificationArchive) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationArchive_NotificationArchive{}
+	}
+	return t.Success
+}
+
+type NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription struct {
+	Active bool   "json:\"active\" graphql:\"active\""
+	ID     string "json:\"id\" graphql:\"id\""
+}
+
+func (t *NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription) GetActive() bool {
+	if t == nil {
+		t = &NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription{}
+	}
+	return t.Active
+}
+func (t *NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription) GetID() string {
+	if t == nil {
+		t = &NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription{}
+	}
+	return t.ID
+}
+
+type NotificationSubscriptionCreate_NotificationSubscriptionCreate struct {
+	NotificationSubscription NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription "json:\"notificationSubscription\" graphql:\"notificationSubscription\""
+	Success                  bool                                                                                   "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationSubscriptionCreate_NotificationSubscriptionCreate) GetNotificationSubscription() *NotificationSubscriptionCreate_NotificationSubscriptionCreate_NotificationSubscription {
+	if t == nil {
+		t = &NotificationSubscriptionCreate_NotificationSubscriptionCreate{}
+	}
+	return &t.NotificationSubscription
+}
+func (t *NotificationSubscriptionCreate_NotificationSubscriptionCreate) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationSubscriptionCreate_NotificationSubscriptionCreate{}
+	}
+	return t.Success
+}
+
+type NotificationSubscriptionDelete_NotificationSubscriptionDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationSubscriptionDelete_NotificationSubscriptionDelete) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationSubscriptionDelete_NotificationSubscriptionDelete{}
+	}
+	return t.Success
+}
+
 type ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -2656,6 +2869,78 @@ type DeleteProject_ProjectDelete struct {
 func (t *DeleteProject_ProjectDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteProject_ProjectDelete{}
+	}
+	return t.Success
+}
+
+type ReactionCreate_ReactionCreate_Reaction_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ReactionCreate_ReactionCreate_Reaction_User) GetID() string {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate_Reaction_User{}
+	}
+	return t.ID
+}
+func (t *ReactionCreate_ReactionCreate_Reaction_User) GetName() string {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate_Reaction_User{}
+	}
+	return t.Name
+}
+
+type ReactionCreate_ReactionCreate_Reaction struct {
+	Emoji string                                       "json:\"emoji\" graphql:\"emoji\""
+	ID    string                                       "json:\"id\" graphql:\"id\""
+	User  *ReactionCreate_ReactionCreate_Reaction_User "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *ReactionCreate_ReactionCreate_Reaction) GetEmoji() string {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate_Reaction{}
+	}
+	return t.Emoji
+}
+func (t *ReactionCreate_ReactionCreate_Reaction) GetID() string {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate_Reaction{}
+	}
+	return t.ID
+}
+func (t *ReactionCreate_ReactionCreate_Reaction) GetUser() *ReactionCreate_ReactionCreate_Reaction_User {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate_Reaction{}
+	}
+	return t.User
+}
+
+type ReactionCreate_ReactionCreate struct {
+	Reaction ReactionCreate_ReactionCreate_Reaction "json:\"reaction\" graphql:\"reaction\""
+	Success  bool                                   "json:\"success\" graphql:\"success\""
+}
+
+func (t *ReactionCreate_ReactionCreate) GetReaction() *ReactionCreate_ReactionCreate_Reaction {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate{}
+	}
+	return &t.Reaction
+}
+func (t *ReactionCreate_ReactionCreate) GetSuccess() bool {
+	if t == nil {
+		t = &ReactionCreate_ReactionCreate{}
+	}
+	return t.Success
+}
+
+type ReactionDelete_ReactionDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ReactionDelete_ReactionDelete) GetSuccess() bool {
+	if t == nil {
+		t = &ReactionDelete_ReactionDelete{}
 	}
 	return t.Success
 }
@@ -4257,6 +4542,28 @@ func (t *ArchiveCycle) GetCycleArchive() *ArchiveCycle_CycleArchive {
 	return &t.CycleArchive
 }
 
+type FavoriteCreate struct {
+	FavoriteCreate FavoriteCreate_FavoriteCreate "json:\"favoriteCreate\" graphql:\"favoriteCreate\""
+}
+
+func (t *FavoriteCreate) GetFavoriteCreate() *FavoriteCreate_FavoriteCreate {
+	if t == nil {
+		t = &FavoriteCreate{}
+	}
+	return &t.FavoriteCreate
+}
+
+type FavoriteDelete struct {
+	FavoriteDelete FavoriteDelete_FavoriteDelete "json:\"favoriteDelete\" graphql:\"favoriteDelete\""
+}
+
+func (t *FavoriteDelete) GetFavoriteDelete() *FavoriteDelete_FavoriteDelete {
+	if t == nil {
+		t = &FavoriteDelete{}
+	}
+	return &t.FavoriteDelete
+}
+
 type IssueAddLabel struct {
 	IssueAddLabel IssueAddLabel_IssueAddLabel "json:\"issueAddLabel\" graphql:\"issueAddLabel\""
 }
@@ -4378,6 +4685,50 @@ func (t *DeleteLabel) GetIssueLabelDelete() *DeleteLabel_IssueLabelDelete {
 	return &t.IssueLabelDelete
 }
 
+type NotificationUpdate struct {
+	NotificationUpdate NotificationUpdate_NotificationUpdate "json:\"notificationUpdate\" graphql:\"notificationUpdate\""
+}
+
+func (t *NotificationUpdate) GetNotificationUpdate() *NotificationUpdate_NotificationUpdate {
+	if t == nil {
+		t = &NotificationUpdate{}
+	}
+	return &t.NotificationUpdate
+}
+
+type NotificationArchive struct {
+	NotificationArchive NotificationArchive_NotificationArchive "json:\"notificationArchive\" graphql:\"notificationArchive\""
+}
+
+func (t *NotificationArchive) GetNotificationArchive() *NotificationArchive_NotificationArchive {
+	if t == nil {
+		t = &NotificationArchive{}
+	}
+	return &t.NotificationArchive
+}
+
+type NotificationSubscriptionCreate struct {
+	NotificationSubscriptionCreate NotificationSubscriptionCreate_NotificationSubscriptionCreate "json:\"notificationSubscriptionCreate\" graphql:\"notificationSubscriptionCreate\""
+}
+
+func (t *NotificationSubscriptionCreate) GetNotificationSubscriptionCreate() *NotificationSubscriptionCreate_NotificationSubscriptionCreate {
+	if t == nil {
+		t = &NotificationSubscriptionCreate{}
+	}
+	return &t.NotificationSubscriptionCreate
+}
+
+type NotificationSubscriptionDelete struct {
+	NotificationSubscriptionDelete NotificationSubscriptionDelete_NotificationSubscriptionDelete "json:\"notificationSubscriptionDelete\" graphql:\"notificationSubscriptionDelete\""
+}
+
+func (t *NotificationSubscriptionDelete) GetNotificationSubscriptionDelete() *NotificationSubscriptionDelete_NotificationSubscriptionDelete {
+	if t == nil {
+		t = &NotificationSubscriptionDelete{}
+	}
+	return &t.NotificationSubscriptionDelete
+}
+
 type ProjectMilestoneCreate struct {
 	ProjectMilestoneCreate ProjectMilestoneCreate_ProjectMilestoneCreate "json:\"projectMilestoneCreate\" graphql:\"projectMilestoneCreate\""
 }
@@ -4442,6 +4793,28 @@ func (t *DeleteProject) GetProjectDelete() *DeleteProject_ProjectDelete {
 		t = &DeleteProject{}
 	}
 	return &t.ProjectDelete
+}
+
+type ReactionCreate struct {
+	ReactionCreate ReactionCreate_ReactionCreate "json:\"reactionCreate\" graphql:\"reactionCreate\""
+}
+
+func (t *ReactionCreate) GetReactionCreate() *ReactionCreate_ReactionCreate {
+	if t == nil {
+		t = &ReactionCreate{}
+	}
+	return &t.ReactionCreate
+}
+
+type ReactionDelete struct {
+	ReactionDelete ReactionDelete_ReactionDelete "json:\"reactionDelete\" graphql:\"reactionDelete\""
+}
+
+func (t *ReactionDelete) GetReactionDelete() *ReactionDelete_ReactionDelete {
+	if t == nil {
+		t = &ReactionDelete{}
+	}
+	return &t.ReactionDelete
 }
 
 type CreateTeam struct {
@@ -5394,6 +5767,66 @@ func (c *Client) ArchiveCycle(ctx context.Context, id string, interceptors ...cl
 	return &res, nil
 }
 
+const FavoriteCreateDocument = `mutation FavoriteCreate ($input: FavoriteCreateInput!) {
+	favoriteCreate(input: $input) {
+		success
+		favorite {
+			id
+			type
+			issue {
+				id
+				title
+			}
+			project {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) FavoriteCreate(ctx context.Context, input FavoriteCreateInput, interceptors ...clientv2.RequestInterceptor) (*FavoriteCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res FavoriteCreate
+	if err := c.Client.Post(ctx, "FavoriteCreate", FavoriteCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const FavoriteDeleteDocument = `mutation FavoriteDelete ($id: String!) {
+	favoriteDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) FavoriteDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*FavoriteDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res FavoriteDelete
+	if err := c.Client.Post(ctx, "FavoriteDelete", FavoriteDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const IssueAddLabelDocument = `mutation IssueAddLabel ($id: String!, $labelId: String!) {
 	issueAddLabel(id: $id, labelId: $labelId) {
 		success
@@ -5748,6 +6181,113 @@ func (c *Client) DeleteLabel(ctx context.Context, id string, interceptors ...cli
 	return &res, nil
 }
 
+const NotificationUpdateDocument = `mutation NotificationUpdate ($id: String!, $input: NotificationUpdateInput!) {
+	notificationUpdate(id: $id, input: $input) {
+		success
+		notification {
+			id
+			type
+			readAt
+			archivedAt
+		}
+	}
+}
+`
+
+func (c *Client) NotificationUpdate(ctx context.Context, id string, input NotificationUpdateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationUpdate, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res NotificationUpdate
+	if err := c.Client.Post(ctx, "NotificationUpdate", NotificationUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationArchiveDocument = `mutation NotificationArchive ($id: String!) {
+	notificationArchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationArchive(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationArchive, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res NotificationArchive
+	if err := c.Client.Post(ctx, "NotificationArchive", NotificationArchiveDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationSubscriptionCreateDocument = `mutation NotificationSubscriptionCreate ($input: NotificationSubscriptionCreateInput!) {
+	notificationSubscriptionCreate(input: $input) {
+		success
+		notificationSubscription {
+			id
+			active
+		}
+	}
+}
+`
+
+func (c *Client) NotificationSubscriptionCreate(ctx context.Context, input NotificationSubscriptionCreateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res NotificationSubscriptionCreate
+	if err := c.Client.Post(ctx, "NotificationSubscriptionCreate", NotificationSubscriptionCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationSubscriptionDeleteDocument = `mutation NotificationSubscriptionDelete ($id: String!) {
+	notificationSubscriptionDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationSubscriptionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res NotificationSubscriptionDelete
+	if err := c.Client.Post(ctx, "NotificationSubscriptionDelete", NotificationSubscriptionDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ProjectMilestoneCreateDocument = `mutation ProjectMilestoneCreate ($input: ProjectMilestoneCreateInput!) {
 	projectMilestoneCreate(input: $input) {
 		success
@@ -5917,6 +6457,62 @@ func (c *Client) DeleteProject(ctx context.Context, id string, interceptors ...c
 
 	var res DeleteProject
 	if err := c.Client.Post(ctx, "DeleteProject", DeleteProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ReactionCreateDocument = `mutation ReactionCreate ($input: ReactionCreateInput!) {
+	reactionCreate(input: $input) {
+		success
+		reaction {
+			id
+			emoji
+			user {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res ReactionCreate
+	if err := c.Client.Post(ctx, "ReactionCreate", ReactionCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ReactionDeleteDocument = `mutation ReactionDelete ($id: String!) {
+	reactionDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ReactionDelete
+	if err := c.Client.Post(ctx, "ReactionDelete", ReactionDeleteDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -6537,61 +7133,69 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 }
 
 var DocumentOperationNames = map[string]string{
-	GetAttachmentDocument:          "GetAttachment",
-	ListAttachmentsDocument:        "ListAttachments",
-	GetCommentDocument:             "GetComment",
-	ListCommentsDocument:           "ListComments",
-	GetCycleDocument:               "GetCycle",
-	ListCyclesDocument:             "ListCycles",
-	GetDocumentDocument:            "GetDocument",
-	ListDocumentsDocument:          "ListDocuments",
-	GetInitiativeDocument:          "GetInitiative",
-	ListInitiativesDocument:        "ListInitiatives",
-	GetIssueDocument:               "GetIssue",
-	ListIssuesDocument:             "ListIssues",
-	GetLabelDocument:               "GetLabel",
-	ListLabelsDocument:             "ListLabels",
-	AttachmentLinkURLDocument:      "AttachmentLinkURL",
-	AttachmentLinkGitHubPrDocument: "AttachmentLinkGitHubPR",
-	CreateCommentDocument:          "CreateComment",
-	UpdateCommentDocument:          "UpdateComment",
-	DeleteCommentDocument:          "DeleteComment",
-	CreateCycleDocument:            "CreateCycle",
-	UpdateCycleDocument:            "UpdateCycle",
-	ArchiveCycleDocument:           "ArchiveCycle",
-	IssueAddLabelDocument:          "IssueAddLabel",
-	IssueRemoveLabelDocument:       "IssueRemoveLabel",
-	IssueRelationCreateDocument:    "IssueRelationCreate",
-	IssueRelationUpdateDocument:    "IssueRelationUpdate",
-	IssueRelationDeleteDocument:    "IssueRelationDelete",
-	CreateIssueDocument:            "CreateIssue",
-	UpdateIssueDocument:            "UpdateIssue",
-	DeleteIssueDocument:            "DeleteIssue",
-	CreateLabelDocument:            "CreateLabel",
-	UpdateLabelDocument:            "UpdateLabel",
-	DeleteLabelDocument:            "DeleteLabel",
-	ProjectMilestoneCreateDocument: "ProjectMilestoneCreate",
-	ProjectMilestoneUpdateDocument: "ProjectMilestoneUpdate",
-	ProjectMilestoneDeleteDocument: "ProjectMilestoneDelete",
-	CreateProjectDocument:          "CreateProject",
-	UpdateProjectDocument:          "UpdateProject",
-	DeleteProjectDocument:          "DeleteProject",
-	CreateTeamDocument:             "CreateTeam",
-	UpdateTeamDocument:             "UpdateTeam",
-	DeleteTeamDocument:             "DeleteTeam",
-	GetOrganizationDocument:        "GetOrganization",
-	GetProjectDocument:             "GetProject",
-	ListProjectsDocument:           "ListProjects",
-	GetRoadmapDocument:             "GetRoadmap",
-	ListRoadmapsDocument:           "ListRoadmaps",
-	SearchIssuesDocument:           "SearchIssues",
-	GetTeamDocument:                "GetTeam",
-	ListTeamsDocument:              "ListTeams",
-	GetTemplateDocument:            "GetTemplate",
-	ListTemplatesDocument:          "ListTemplates",
-	GetUserDocument:                "GetUser",
-	ListUsersDocument:              "ListUsers",
-	ViewerDocument:                 "Viewer",
-	GetWorkflowStateDocument:       "GetWorkflowState",
-	ListWorkflowStatesDocument:     "ListWorkflowStates",
+	GetAttachmentDocument:                  "GetAttachment",
+	ListAttachmentsDocument:                "ListAttachments",
+	GetCommentDocument:                     "GetComment",
+	ListCommentsDocument:                   "ListComments",
+	GetCycleDocument:                       "GetCycle",
+	ListCyclesDocument:                     "ListCycles",
+	GetDocumentDocument:                    "GetDocument",
+	ListDocumentsDocument:                  "ListDocuments",
+	GetInitiativeDocument:                  "GetInitiative",
+	ListInitiativesDocument:                "ListInitiatives",
+	GetIssueDocument:                       "GetIssue",
+	ListIssuesDocument:                     "ListIssues",
+	GetLabelDocument:                       "GetLabel",
+	ListLabelsDocument:                     "ListLabels",
+	AttachmentLinkURLDocument:              "AttachmentLinkURL",
+	AttachmentLinkGitHubPrDocument:         "AttachmentLinkGitHubPR",
+	CreateCommentDocument:                  "CreateComment",
+	UpdateCommentDocument:                  "UpdateComment",
+	DeleteCommentDocument:                  "DeleteComment",
+	CreateCycleDocument:                    "CreateCycle",
+	UpdateCycleDocument:                    "UpdateCycle",
+	ArchiveCycleDocument:                   "ArchiveCycle",
+	FavoriteCreateDocument:                 "FavoriteCreate",
+	FavoriteDeleteDocument:                 "FavoriteDelete",
+	IssueAddLabelDocument:                  "IssueAddLabel",
+	IssueRemoveLabelDocument:               "IssueRemoveLabel",
+	IssueRelationCreateDocument:            "IssueRelationCreate",
+	IssueRelationUpdateDocument:            "IssueRelationUpdate",
+	IssueRelationDeleteDocument:            "IssueRelationDelete",
+	CreateIssueDocument:                    "CreateIssue",
+	UpdateIssueDocument:                    "UpdateIssue",
+	DeleteIssueDocument:                    "DeleteIssue",
+	CreateLabelDocument:                    "CreateLabel",
+	UpdateLabelDocument:                    "UpdateLabel",
+	DeleteLabelDocument:                    "DeleteLabel",
+	NotificationUpdateDocument:             "NotificationUpdate",
+	NotificationArchiveDocument:            "NotificationArchive",
+	NotificationSubscriptionCreateDocument: "NotificationSubscriptionCreate",
+	NotificationSubscriptionDeleteDocument: "NotificationSubscriptionDelete",
+	ProjectMilestoneCreateDocument:         "ProjectMilestoneCreate",
+	ProjectMilestoneUpdateDocument:         "ProjectMilestoneUpdate",
+	ProjectMilestoneDeleteDocument:         "ProjectMilestoneDelete",
+	CreateProjectDocument:                  "CreateProject",
+	UpdateProjectDocument:                  "UpdateProject",
+	DeleteProjectDocument:                  "DeleteProject",
+	ReactionCreateDocument:                 "ReactionCreate",
+	ReactionDeleteDocument:                 "ReactionDelete",
+	CreateTeamDocument:                     "CreateTeam",
+	UpdateTeamDocument:                     "UpdateTeam",
+	DeleteTeamDocument:                     "DeleteTeam",
+	GetOrganizationDocument:                "GetOrganization",
+	GetProjectDocument:                     "GetProject",
+	ListProjectsDocument:                   "ListProjects",
+	GetRoadmapDocument:                     "GetRoadmap",
+	ListRoadmapsDocument:                   "ListRoadmaps",
+	SearchIssuesDocument:                   "SearchIssues",
+	GetTeamDocument:                        "GetTeam",
+	ListTeamsDocument:                      "ListTeams",
+	GetTemplateDocument:                    "GetTemplate",
+	ListTemplatesDocument:                  "ListTemplates",
+	GetUserDocument:                        "GetUser",
+	ListUsersDocument:                      "ListUsers",
+	ViewerDocument:                         "Viewer",
+	GetWorkflowStateDocument:               "GetWorkflowState",
+	ListWorkflowStatesDocument:             "ListWorkflowStates",
 }

@@ -1,0 +1,23 @@
+mutation FavoriteCreate($input: FavoriteCreateInput!) {
+  favoriteCreate(input: $input) {
+    success
+    favorite {
+      id
+      type
+      issue {
+        id
+        title
+      }
+      project {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation FavoriteDelete($id: String!) {
+  favoriteDelete(id: $id) {
+    success
+  }
+}
