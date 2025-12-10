@@ -281,6 +281,7 @@ func WithCircuitBreaker(cb *CircuitBreaker) Option {
 // The provider is called on client creation and automatically on 401 errors for credential refresh.
 func WithCredentialProvider(provider CredentialProvider) Option {
 	return func(c *Client) {
+		c.config.CredentialProvider = provider
 		c.credentialProvider = newCredentialCache(provider)
 	}
 }

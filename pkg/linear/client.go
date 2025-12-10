@@ -53,16 +53,11 @@ type Client struct {
 //	    linear.WithBaseURL("https://api.linear.app/graphql"),
 //	)
 func NewClient(apiKey string, opts ...Option) (*Client, error) {
-	// Validate apiKey (can be empty if WithCredentialProvider is used)
-	if apiKey == "" {
-		return nil, fmt.Errorf("apiKey is required")
-	}
-
-	// Create default configs
+	// Create default configs (apiKey can be empty if WithCredentialProvider is used)
 	config := NewDefaultClientConfig(apiKey)
 	config.Transport = NewDefaultTransportConfig()
 
-	// Create static credential provider by default
+	// Create static credential provider by default (empty apiKey handled)
 	credProvider := newCredentialCache(&staticCredentialProvider{apiKey: apiKey})
 
 	// Initialize client with config
@@ -74,6 +69,11 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 	// Apply options (they mutate config through client reference)
 	for _, opt := range opts {
 		opt(c)
+	}
+
+	// Validate that we have a way to authenticate
+	if apiKey == "" && c.config.CredentialProvider == nil {
+		return nil, fmt.Errorf("apiKey is required (or use WithCredentialProvider)")
 	}
 
 	// Build and assign transport (conditional wrapping)
