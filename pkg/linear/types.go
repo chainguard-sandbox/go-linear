@@ -90,3 +90,55 @@ type IssueLabelCreateInput = intgraphql.IssueLabelCreateInput
 //
 // See internal/graphql/models.go for complete field list.
 type IssueLabelUpdateInput = intgraphql.IssueLabelUpdateInput
+
+// TeamCreateInput defines fields for creating a new team.
+//
+// Required Fields:
+//   - Name: Team name (string)
+//   - Key: Team identifier/key (string, used in URLs)
+//
+// Optional Fields:
+//   - Description: Team description (*string)
+//   - Icon: Team icon emoji (*string)
+//   - Color: Team color hex code (*string)
+//   - Private: Whether team is private (*bool)
+//
+// See internal/graphql/models.go for complete field list.
+type TeamCreateInput = intgraphql.TeamCreateInput
+
+// TeamUpdateInput defines fields for updating a team.
+//
+// All fields optional (nil = unchanged):
+//   - Name: New team name (*string)
+//   - Description: New description (*string)
+//   - Icon: New icon (*string)
+//   - Color: New color (*string)
+//
+// See internal/graphql/models.go for complete field list.
+type TeamUpdateInput = intgraphql.TeamUpdateInput
+
+// ProjectCreateInput defines fields for creating a new project.
+//
+// Required Fields:
+//   - Name: Project name (string)
+//
+// Optional Fields:
+//   - Description: Project description (*string)
+//   - State: Project state (*string)
+//   - TargetDate: Target completion date (*string, format: YYYY-MM-DD)
+//   - LeadID: Project lead user ID (*string)
+//   - TeamIds: Associated teams ([]string)
+//
+// See internal/graphql/models.go for complete field list.
+type ProjectCreateInput = intgraphql.ProjectCreateInput
+
+// ProjectUpdateInput defines fields for updating a project.
+//
+// All fields optional (nil = unchanged):
+//   - Name: New name (*string)
+//   - Description: New description (*string)
+//   - State: New state (*string)
+//   - TargetDate: New target date (*string)
+//
+// See internal/graphql/models.go for complete field list.
+type ProjectUpdateInput = intgraphql.ProjectUpdateInput
