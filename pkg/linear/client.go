@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
@@ -14,13 +15,14 @@ import (
 
 // Client manages communication with the Linear API.
 type Client struct {
-	httpClient  *http.Client
-	baseURL     string
-	apiKey      string
-	userAgent   string
-	gqlClient   intgraphql.LinearGraphQLClient
-	logger      *slog.Logger
-	onRateLimit func(*RateLimitInfo)
+	httpClient         *http.Client
+	baseURL            string
+	apiKey             string
+	credentialProvider *credentialCache
+	userAgent          string
+	gqlClient          intgraphql.LinearGraphQLClient
+	logger             *slog.Logger
+	onRateLimit        func(*RateLimitInfo)
 
 	// Transport configuration
 	baseTransport    *http.Transport
@@ -70,6 +72,9 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		return nil, fmt.Errorf("apiKey is required")
 	}
 
+	// Create static credential provider by default
+	credProvider := newCredentialCache(&staticCredentialProvider{apiKey: apiKey})
+
 	baseTransport := &http.Transport{
 		MaxIdleConns:        100,
 		MaxIdleConnsPerHost: 3, // Match Linear's ~2 req/sec rate limit
@@ -82,14 +87,15 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 			Timeout:   30 * time.Second,
 			Transport: baseTransport,
 		},
-		baseURL:          "https://api.linear.app/graphql",
-		apiKey:           apiKey,
-		userAgent:        "go-linear/0.1.0",
-		baseTransport:    baseTransport,
-		maxRetries:       3,
-		initialBackoff:   1 * time.Second,
-		maxBackoff:       30 * time.Second,
-		maxRetryDuration: 90 * time.Second,
+		baseURL:            "https://api.linear.app/graphql",
+		apiKey:             apiKey,
+		credentialProvider: credProvider,
+		userAgent:          "go-linear/0.1.0",
+		baseTransport:      baseTransport,
+		maxRetries:         3,
+		initialBackoff:     1 * time.Second,
+		maxBackoff:         30 * time.Second,
+		maxRetryDuration:   90 * time.Second,
 	}
 
 	// Apply options
@@ -114,8 +120,13 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 
 	// Create gqlgenc client with auth interceptor
 	authInterceptor := func(ctx context.Context, req *http.Request, gqlInfo *clientv2.GQLRequestInfo, res any, next clientv2.RequestInterceptorFunc) error {
-		// Set Authorization header
-		authValue := c.apiKey
+		// Get current credential (supports rotation)
+		authValue, err := c.credentialProvider.Get(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get credential: %w", err)
+		}
+
+		// Normalize authorization header
 		if len(authValue) > 7 && authValue[:7] != "Bearer " {
 			if len(authValue) > 8 && authValue[:8] != "lin_api_" {
 				authValue = "Bearer " + authValue
@@ -123,7 +134,26 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		}
 		req.Header.Set("Authorization", authValue)
 		req.Header.Set("User-Agent", c.userAgent)
-		return next(ctx, req, gqlInfo, res)
+
+		// Execute request
+		err = next(ctx, req, gqlInfo, res)
+
+		// On 401, refresh credentials and retry once
+		if err != nil && isAuthError(err) {
+			if _, refreshErr := c.credentialProvider.Refresh(ctx); refreshErr == nil {
+				// Retry with fresh credential
+				newCred, _ := c.credentialProvider.Get(ctx)
+				if len(newCred) > 7 && newCred[:7] != "Bearer " {
+					if len(newCred) > 8 && newCred[:8] != "lin_api_" {
+						newCred = "Bearer " + newCred
+					}
+				}
+				req.Header.Set("Authorization", newCred)
+				return next(ctx, req, gqlInfo, res)
+			}
+		}
+
+		return err
 	}
 
 	c.gqlClient = intgraphql.NewClient(c.httpClient, c.baseURL, nil, authInterceptor)
@@ -138,6 +168,20 @@ func (c *Client) Close() error {
 		c.httpClient.CloseIdleConnections()
 	}
 	return nil
+}
+
+// isAuthError checks if an error is an authentication error (401).
+func isAuthError(err error) bool {
+	if err == nil {
+		return false
+	}
+	// Check if error message contains 401 or authentication keywords
+	errStr := err.Error()
+	return contains(errStr, "401") || contains(errStr, "authentication") || contains(errStr, "unauthorized")
+}
+
+func contains(s, substr string) bool {
+	return strings.Contains(s, substr)
 }
 
 // Viewer returns the currently authenticated user information.
