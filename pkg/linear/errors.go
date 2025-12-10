@@ -29,6 +29,7 @@ type LinearError struct {
 	Variables     map[string]any
 	TraceID       string
 	GraphQLErrors []GraphQLError
+	wrapped       error // Underlying error (for errors.Unwrap)
 }
 
 // Error implements the error interface.
@@ -37,6 +38,11 @@ func (e *LinearError) Error() string {
 		return fmt.Sprintf("linear: %s: %s [trace_id=%s]", e.Type, e.Message, e.TraceID)
 	}
 	return fmt.Sprintf("linear: %s: %s", e.Type, e.Message)
+}
+
+// Unwrap returns the underlying error for errors.Unwrap and errors.As support.
+func (e *LinearError) Unwrap() error {
+	return e.wrapped
 }
 
 // GraphQLError represents a GraphQL error from the API response.
@@ -96,16 +102,18 @@ type ForbiddenError struct {
 }
 
 // wrapGraphQLError wraps a gqlgenc error in a LinearError with operation context.
+// Preserves the original error for errors.As() and errors.Unwrap() support.
 func wrapGraphQLError(operation string, err error) error {
 	if err == nil {
 		return nil
 	}
 
-	// gqlgenc wraps GraphQL errors - extract details
+	// gqlgenc wraps GraphQL errors - preserve chain for errors.As()
 	return &LinearError{
 		Type:       ErrorTypeGraphQLError,
-		Message:    fmt.Sprintf("%s failed: %s", operation, err.Error()),
+		Message:    fmt.Sprintf("%s failed", operation),
 		StatusCode: 200, // HTTP success but GraphQL error
+		wrapped:    err,
 	}
 }
 
@@ -113,7 +121,8 @@ func wrapGraphQLError(operation string, err error) error {
 func errMutationFailed(operation string) error {
 	return &LinearError{
 		Type:       ErrorTypeGraphQLError,
-		Message:    fmt.Sprintf("%s failed: mutation returned success=false", operation),
+		Message:    fmt.Sprintf("%s: mutation returned success=false", operation),
 		StatusCode: 200,
+		wrapped:    nil, // No underlying error for success=false case
 	}
 }
