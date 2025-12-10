@@ -16,7 +16,7 @@ import intgraphql "github.com/eslerm/go-linear/internal/graphql"
 // Common Optional Fields (pointers, nil = omitted from request):
 //   - Title: Issue title (*string)
 //   - Description: Issue description in markdown (*string)
-//   - Priority: Priority level 0-4 (*int, 0=none, 1=urgent, 2=high, 3=normal, 4=low)
+//   - Priority: Priority level 0-4 (*int64, 0=none, 1=urgent, 2=high, 3=normal, 4=low)
 //   - AssigneeID: User to assign (*string, get from Users() or Viewer())
 //   - StateID: Workflow state (*string, get from WorkflowStates())
 //   - CycleID: Development cycle/sprint (*string, get from Cycles())
@@ -35,7 +35,7 @@ type IssueCreateInput = intgraphql.IssueCreateInput
 // Common Fields (pointers, nil = unchanged):
 //   - Title: New title (*string)
 //   - Description: New description (*string)
-//   - Priority: New priority 0-4 (*int)
+//   - Priority: New priority 0-4 (*int64)
 //   - AssigneeID: New assignee (*string, empty string "" to unassign)
 //   - StateID: New workflow state (*string)
 //   - CycleID: Move to cycle (*string)
