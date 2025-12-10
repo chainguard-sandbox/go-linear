@@ -1,0 +1,33 @@
+mutation NotificationUpdate($id: String!, $input: NotificationUpdateInput!) {
+  notificationUpdate(id: $id, input: $input) {
+    success
+    notification {
+      id
+      type
+      readAt
+      archivedAt
+    }
+  }
+}
+
+mutation NotificationArchive($id: String!) {
+  notificationArchive(id: $id) {
+    success
+  }
+}
+
+mutation NotificationSubscriptionCreate($input: NotificationSubscriptionCreateInput!) {
+  notificationSubscriptionCreate(input: $input) {
+    success
+    notificationSubscription {
+      id
+      active
+    }
+  }
+}
+
+mutation NotificationSubscriptionDelete($id: String!) {
+  notificationSubscriptionDelete(id: $id) {
+    success
+  }
+}
