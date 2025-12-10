@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Option configures a Client.
@@ -185,5 +187,32 @@ func WithMetrics() Option {
 func WithMaxRetryDuration(duration time.Duration) Option {
 	return func(c *Client) {
 		c.maxRetryDuration = duration
+	}
+}
+
+// WithMetricsRegistry enables instance-scoped Prometheus metrics with a custom registry.
+// Use this for multi-client scenarios to isolate metrics per client/workspace.
+//
+// The suffix parameter is appended to metric names to avoid collisions:
+//   - linear_<suffix>_requests_total
+//   - linear_<suffix>_request_duration_seconds
+//
+// Example:
+//
+//	// Production workspace metrics
+//	prodReg := prometheus.NewRegistry()
+//	prodClient, _ := linear.NewClient(prodKey,
+//	    linear.WithMetricsRegistry(prodReg, "prod"))
+//
+//	// Staging workspace metrics (separate)
+//	stageReg := prometheus.NewRegistry()
+//	stageClient, _ := linear.NewClient(stageKey,
+//	    linear.WithMetricsRegistry(stageReg, "staging"))
+//
+// Each client's metrics are isolated and can be exposed separately.
+func WithMetricsRegistry(reg prometheus.Registerer, suffix string) Option {
+	return func(c *Client) {
+		c.metricsCollector = newMetricsCollector(reg, suffix)
+		c.metricsEnabled = true
 	}
 }

@@ -5,21 +5,22 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )
 
 func TestMetrics_RequestTracking(t *testing.T) {
-	// Reset metrics before test
-	requestsTotal.Reset()
-	requestDuration.Reset()
+	// Reset global metrics before test
+	defaultMetrics.requests.Reset()
+	defaultMetrics.duration.Reset()
 
 	// Record a request
 	recordRequest("Issues", 200, 150*time.Millisecond)
 
 	// Verify counter incremented
-	count := testutil.CollectAndCount(requestsTotal)
+	count := testutil.CollectAndCount(defaultMetrics.requests)
 	if count == 0 {
-		t.Error("expected requestsTotal to be recorded")
+		t.Error("expected requests to be recorded")
 	}
 
 	// Verify labels are correct
@@ -28,19 +29,19 @@ func TestMetrics_RequestTracking(t *testing.T) {
 		# TYPE linear_requests_total counter
 		linear_requests_total{operation="Issues",status_code="200"} 1
 	`
-	if err := testutil.CollectAndCompare(requestsTotal, strings.NewReader(expected)); err != nil {
+	if err := testutil.CollectAndCompare(defaultMetrics.requests, strings.NewReader(expected)); err != nil {
 		t.Errorf("unexpected metric value:\n%v", err)
 	}
 
 	// Verify histogram recorded
-	histCount := testutil.CollectAndCount(requestDuration)
+	histCount := testutil.CollectAndCount(defaultMetrics.duration)
 	if histCount == 0 {
-		t.Error("expected requestDuration to be recorded")
+		t.Error("expected duration to be recorded")
 	}
 }
 
 func TestMetrics_ErrorTracking(t *testing.T) {
-	errorsTotal.Reset()
+	defaultMetrics.errors.Reset()
 
 	// Record errors
 	recordError("IssueCreate", "graphql")
@@ -52,13 +53,13 @@ func TestMetrics_ErrorTracking(t *testing.T) {
 		linear_errors_total{error_type="graphql",operation="IssueCreate"} 1
 		linear_errors_total{error_type="network",operation="IssueCreate"} 1
 	`
-	if err := testutil.CollectAndCompare(errorsTotal, strings.NewReader(expected)); err != nil {
+	if err := testutil.CollectAndCompare(defaultMetrics.errors, strings.NewReader(expected)); err != nil {
 		t.Errorf("unexpected metric value:\n%v", err)
 	}
 }
 
 func TestMetrics_RetryTracking(t *testing.T) {
-	retriesTotal.Reset()
+	defaultMetrics.retries.Reset()
 
 	// Record retries
 	recordRetry("rate_limited")
@@ -71,13 +72,13 @@ func TestMetrics_RetryTracking(t *testing.T) {
 		linear_retries_total{reason="rate_limited"} 2
 		linear_retries_total{reason="server_error"} 1
 	`
-	if err := testutil.CollectAndCompare(retriesTotal, strings.NewReader(expected)); err != nil {
+	if err := testutil.CollectAndCompare(defaultMetrics.retries, strings.NewReader(expected)); err != nil {
 		t.Errorf("unexpected metric value:\n%v", err)
 	}
 }
 
 func TestMetrics_RateLimitGauges(t *testing.T) {
-	rateLimitRemaining.Reset()
+	defaultMetrics.rateLimit.Reset()
 
 	// Update rate limit info
 	info := &RateLimitInfo{
@@ -95,7 +96,7 @@ func TestMetrics_RateLimitGauges(t *testing.T) {
 		linear_rate_limit_remaining{limit_type="complexity"} 8000
 		linear_rate_limit_remaining{limit_type="requests"} 100
 	`
-	if err := testutil.CollectAndCompare(rateLimitRemaining, strings.NewReader(expected)); err != nil {
+	if err := testutil.CollectAndCompare(defaultMetrics.rateLimit, strings.NewReader(expected)); err != nil {
 		t.Errorf("unexpected metric value:\n%v", err)
 	}
 }
@@ -110,4 +111,44 @@ func TestEnableMetrics(t *testing.T) {
 	// Should not panic
 	EnableMetrics()
 	EnableMetrics()
+}
+
+// TestMetricsCollector_InstanceScoped verifies instance-scoped metrics work
+func TestMetricsCollector_InstanceScoped(t *testing.T) {
+	// Create custom registry
+	reg := prometheus.NewRegistry()
+
+	// Create instance-scoped collector
+	collector := newMetricsCollector(reg, "test")
+
+	// Record metrics
+	collector.recordRequest("TestOp", 200, 100*time.Millisecond)
+	collector.recordError("TestOp", "test_error")
+	collector.recordRetry("test_retry")
+
+	// Verify metrics exist in custom registry
+	metrics, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	// Should have metrics with "test" suffix
+	found := false
+	for _, m := range metrics {
+		if strings.HasPrefix(*m.Name, "linear_test_") {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Error("Expected metrics with 'linear_test_' prefix in custom registry")
+	}
+
+	// Verify metrics NOT in default registry (isolation)
+	defaultMetrics.requests.Reset()
+	defaultCount := testutil.CollectAndCount(defaultMetrics.requests)
+	if defaultCount > 0 {
+		t.Error("Instance metrics should not appear in default registry")
+	}
 }

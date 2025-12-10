@@ -54,6 +54,10 @@ type Transport struct {
 	// MetricsEnabled enables Prometheus metrics collection.
 	// Metrics are recorded for requests, errors, retries, and rate limits.
 	MetricsEnabled bool
+
+	// MetricsCollector is the metrics collector to use.
+	// If nil, uses global default collector.
+	MetricsCollector *MetricsCollector
 }
 
 // RateLimitInfo contains rate limit information from response headers.
@@ -154,12 +158,12 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 				)
 			}
 			if t.MetricsEnabled {
-				recordError(operation, "network")
+				t.getMetricsCollector().recordError(operation, "network")
 			}
 			// Retry network errors
 			if attempt < maxRetries && isRetryable(err) {
 				if t.MetricsEnabled {
-					recordRetry("network_error")
+					t.getMetricsCollector().recordRetry("network_error")
 				}
 				continue
 			}
@@ -177,7 +181,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			}
 
 			if t.MetricsEnabled {
-				recordRateLimit(rateLimitInfo)
+				t.getMetricsCollector().recordRateLimit(rateLimitInfo)
 			}
 
 			if t.Logger != nil {
@@ -193,7 +197,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 		// Record metrics
 		if t.MetricsEnabled {
-			recordRequest(operation, resp.StatusCode, duration)
+			t.getMetricsCollector().recordRequest(operation, resp.StatusCode, duration)
 		}
 
 		// Log successful request
@@ -231,7 +235,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 			if attempt < maxRetries {
 				if t.MetricsEnabled {
-					recordRetry("rate_limited")
+					t.getMetricsCollector().recordRetry("rate_limited")
 				}
 
 				// Use Retry-After header if present
@@ -262,7 +266,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			lastErr = fmt.Errorf("server error (%d)", resp.StatusCode)
 			if attempt < maxRetries {
 				if t.MetricsEnabled {
-					recordRetry("server_error")
+					t.getMetricsCollector().recordRetry("server_error")
 				}
 				_ = resp.Body.Close()
 				continue
@@ -377,6 +381,15 @@ func extractOperationName(req *http.Request) string {
 	// Restore body even on parse failure
 	req.Body = io.NopCloser(bytes.NewReader(body))
 	return "graphql"
+}
+
+// getMetricsCollector returns the metrics collector to use.
+// Returns the instance collector if set, otherwise the global default.
+func (t *Transport) getMetricsCollector() *MetricsCollector {
+	if t.MetricsCollector != nil {
+		return t.MetricsCollector
+	}
+	return defaultMetrics
 }
 
 // parseRetryAfter parses the Retry-After header.

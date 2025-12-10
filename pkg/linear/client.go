@@ -28,6 +28,7 @@ type Client struct {
 	maxBackoff       time.Duration
 	maxRetryDuration time.Duration
 	metricsEnabled   bool
+	metricsCollector *MetricsCollector
 }
 
 // NewClient creates a new Linear API client for GraphQL operations.
