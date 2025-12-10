@@ -49,6 +49,47 @@ func main() {
 2. **Search issues:** [examples/tasks/search_issues.go](examples/tasks/search_issues)
 3. **List with iterator:** [examples/tasks/list_issues_iterator.go](examples/tasks/list_issues_iterator)
 4. **Production setup:** [examples/production/main.go](examples/production/main.go)
+5. **MCP Server for AI:** [cmd/linear-mcp](cmd/linear-mcp) - Use with Claude Desktop
+
+---
+
+## AI Integration (MCP Server)
+
+**Use Linear with AI agents** via the Model Context Protocol (MCP) server.
+
+⚠️ **Safety Note**: Implements **13 tools** (9 read-only, 4 mutable). All mutable operations (create, update, comment, delete) require user confirmation and are marked with ⚠️ warnings. See [docs/MCP.md](docs/MCP.md) for details.
+
+```bash
+cd cmd/linear-mcp
+go build
+export LINEAR_API_KEY=lin_api_xxx
+./linear-mcp
+```
+
+**Configure Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "linear": {
+      "command": "/path/to/linear-mcp",
+      "env": {"LINEAR_API_KEY": "lin_api_xxx"}
+    }
+  }
+}
+```
+
+AI agents can now:
+- List teams and issues
+- Create and update issues
+- Search with natural language
+- Add comments and labels
+
+**Documentation:**
+- **Full MCP Guide:** [docs/MCP.md](docs/MCP.md)
+- **Tool Definitions:** [mcp/tools.json](mcp/tools.json)
+- **JSON Schema:** [pkg/linear/schema.json](pkg/linear/schema.json) - Complete API type definitions for AI
+
+**Test:** `cd mcp && ./test-mcp.sh`
 
 ---
 
