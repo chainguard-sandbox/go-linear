@@ -1198,6 +1198,63 @@
     }
   },
   {
+    "description": "Add a label to an existing issue.\n\nThis operation is safe and can be reversed with 'issue remove-label'.\nSimpler than using 'issue update --add-label' for single label operations.\n\nParameters:\n  \u003cissue-id\u003e: Issue identifier (e.g., ENG-123) or UUID (required)\n  \u003clabel\u003e: Label name or UUID to add (required)\n\nExamples:\n  # Add 'bug' label to issue\n  linear issue add-label ENG-123 bug\n\n  # Add label using UUID\n  linear issue add-label \u003cissue-uuid\u003e \u003clabel-uuid\u003e\n\n  # Add label with JSON output\n  linear issue add-label ENG-123 feature --output=json\n\nTIP: Use 'linear label list' to discover available labels\n\nRelated Commands:\n  - linear issue remove-label - Remove a label from an issue\n  - linear issue update --add-label - Alternative using update command\n  - linear label list - List all available labels",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cissue-id\u003e \u003clabel\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_issue_add-label",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "Create a new issue in Linear.\n\nThis operation creates new data and is safe to execute.\n\nExamples:\n  linear issue create --team=Engineering --title=\"Fix bug\" --description=\"Details here\"\n  linear issue create --team=ENG --title=\"Add feature\" --assignee=alice@company.com --priority=1\n\nTIP: Use 'linear team list' to discover available teams",
     "inputSchema": {
       "type": "object",
@@ -1563,6 +1620,63 @@
       "additionalProperties": false
     },
     "name": "linear_issue_relate",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Remove a label from an existing issue.\n\nThis operation is safe and can be reversed with 'issue add-label'.\nSimpler than using 'issue update --remove-label' for single label operations.\n\nParameters:\n  \u003cissue-id\u003e: Issue identifier (e.g., ENG-123) or UUID (required)\n  \u003clabel\u003e: Label name or UUID to remove (required)\n\nExamples:\n  # Remove 'bug' label from issue\n  linear issue remove-label ENG-123 bug\n\n  # Remove label using UUID\n  linear issue remove-label \u003cissue-uuid\u003e \u003clabel-uuid\u003e\n\n  # Remove label with JSON output\n  linear issue remove-label ENG-123 feature --output=json\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see current labels\n\nRelated Commands:\n  - linear issue add-label - Add a label to an issue\n  - linear issue update --remove-label - Alternative using update command\n  - linear label list - List all available labels",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cissue-id\u003e \u003clabel\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_issue_remove-label",
     "outputSchema": {
       "type": "object",
       "required": [
