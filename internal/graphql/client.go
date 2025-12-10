@@ -24,8 +24,11 @@ type LinearGraphQLClient interface {
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
 	ListLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListLabels, error)
+	AttachmentCreate(ctx context.Context, input AttachmentCreateInput, interceptors ...clientv2.RequestInterceptor) (*AttachmentCreate, error)
 	AttachmentLinkURL(ctx context.Context, issueID string, url string, title *string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkURL, error)
 	AttachmentLinkGitHubPr(ctx context.Context, issueID string, url string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkGitHubPr, error)
+	AttachmentLinkSlack(ctx context.Context, issueID string, url string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkSlack, error)
+	AttachmentDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*AttachmentDelete, error)
 	CreateComment(ctx context.Context, input CommentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateComment, error)
 	UpdateComment(ctx context.Context, id string, input CommentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateComment, error)
 	DeleteComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteComment, error)
@@ -1356,6 +1359,63 @@ func (t *ListLabels_IssueLabels) GetPageInfo() *ListLabels_IssueLabels_PageInfo 
 	return &t.PageInfo
 }
 
+type AttachmentCreate_AttachmentCreate_Attachment struct {
+	ID       string  "json:\"id\" graphql:\"id\""
+	Metadata string  "json:\"metadata\" graphql:\"metadata\""
+	Subtitle *string "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title    string  "json:\"title\" graphql:\"title\""
+	URL      string  "json:\"url\" graphql:\"url\""
+}
+
+func (t *AttachmentCreate_AttachmentCreate_Attachment) GetID() string {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate_Attachment{}
+	}
+	return t.ID
+}
+func (t *AttachmentCreate_AttachmentCreate_Attachment) GetMetadata() string {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate_Attachment{}
+	}
+	return t.Metadata
+}
+func (t *AttachmentCreate_AttachmentCreate_Attachment) GetSubtitle() *string {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate_Attachment{}
+	}
+	return t.Subtitle
+}
+func (t *AttachmentCreate_AttachmentCreate_Attachment) GetTitle() string {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate_Attachment{}
+	}
+	return t.Title
+}
+func (t *AttachmentCreate_AttachmentCreate_Attachment) GetURL() string {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate_Attachment{}
+	}
+	return t.URL
+}
+
+type AttachmentCreate_AttachmentCreate struct {
+	Attachment AttachmentCreate_AttachmentCreate_Attachment "json:\"attachment\" graphql:\"attachment\""
+	Success    bool                                         "json:\"success\" graphql:\"success\""
+}
+
+func (t *AttachmentCreate_AttachmentCreate) GetAttachment() *AttachmentCreate_AttachmentCreate_Attachment {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate{}
+	}
+	return &t.Attachment
+}
+func (t *AttachmentCreate_AttachmentCreate) GetSuccess() bool {
+	if t == nil {
+		t = &AttachmentCreate_AttachmentCreate{}
+	}
+	return t.Success
+}
+
 type AttachmentLinkURL_AttachmentLinkURL_Attachment struct {
 	ID    string "json:\"id\" graphql:\"id\""
 	Title string "json:\"title\" graphql:\"title\""
@@ -1438,6 +1498,60 @@ func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr) GetAttachment() *Attachm
 func (t *AttachmentLinkGitHubPR_AttachmentLinkGitHubPr) GetSuccess() bool {
 	if t == nil {
 		t = &AttachmentLinkGitHubPR_AttachmentLinkGitHubPr{}
+	}
+	return t.Success
+}
+
+type AttachmentLinkSlack_AttachmentLinkSlack_Attachment struct {
+	ID    string "json:\"id\" graphql:\"id\""
+	Title string "json:\"title\" graphql:\"title\""
+	URL   string "json:\"url\" graphql:\"url\""
+}
+
+func (t *AttachmentLinkSlack_AttachmentLinkSlack_Attachment) GetID() string {
+	if t == nil {
+		t = &AttachmentLinkSlack_AttachmentLinkSlack_Attachment{}
+	}
+	return t.ID
+}
+func (t *AttachmentLinkSlack_AttachmentLinkSlack_Attachment) GetTitle() string {
+	if t == nil {
+		t = &AttachmentLinkSlack_AttachmentLinkSlack_Attachment{}
+	}
+	return t.Title
+}
+func (t *AttachmentLinkSlack_AttachmentLinkSlack_Attachment) GetURL() string {
+	if t == nil {
+		t = &AttachmentLinkSlack_AttachmentLinkSlack_Attachment{}
+	}
+	return t.URL
+}
+
+type AttachmentLinkSlack_AttachmentLinkSlack struct {
+	Attachment AttachmentLinkSlack_AttachmentLinkSlack_Attachment "json:\"attachment\" graphql:\"attachment\""
+	Success    bool                                               "json:\"success\" graphql:\"success\""
+}
+
+func (t *AttachmentLinkSlack_AttachmentLinkSlack) GetAttachment() *AttachmentLinkSlack_AttachmentLinkSlack_Attachment {
+	if t == nil {
+		t = &AttachmentLinkSlack_AttachmentLinkSlack{}
+	}
+	return &t.Attachment
+}
+func (t *AttachmentLinkSlack_AttachmentLinkSlack) GetSuccess() bool {
+	if t == nil {
+		t = &AttachmentLinkSlack_AttachmentLinkSlack{}
+	}
+	return t.Success
+}
+
+type AttachmentDelete_AttachmentDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *AttachmentDelete_AttachmentDelete) GetSuccess() bool {
+	if t == nil {
+		t = &AttachmentDelete_AttachmentDelete{}
 	}
 	return t.Success
 }
@@ -4454,6 +4568,17 @@ func (t *ListLabels) GetIssueLabels() *ListLabels_IssueLabels {
 	return &t.IssueLabels
 }
 
+type AttachmentCreate struct {
+	AttachmentCreate AttachmentCreate_AttachmentCreate "json:\"attachmentCreate\" graphql:\"attachmentCreate\""
+}
+
+func (t *AttachmentCreate) GetAttachmentCreate() *AttachmentCreate_AttachmentCreate {
+	if t == nil {
+		t = &AttachmentCreate{}
+	}
+	return &t.AttachmentCreate
+}
+
 type AttachmentLinkURL struct {
 	AttachmentLinkURL AttachmentLinkURL_AttachmentLinkURL "json:\"attachmentLinkURL\" graphql:\"attachmentLinkURL\""
 }
@@ -4474,6 +4599,28 @@ func (t *AttachmentLinkGitHubPr) GetAttachmentLinkGitHubPr() *AttachmentLinkGitH
 		t = &AttachmentLinkGitHubPr{}
 	}
 	return &t.AttachmentLinkGitHubPr
+}
+
+type AttachmentLinkSlack struct {
+	AttachmentLinkSlack AttachmentLinkSlack_AttachmentLinkSlack "json:\"attachmentLinkSlack\" graphql:\"attachmentLinkSlack\""
+}
+
+func (t *AttachmentLinkSlack) GetAttachmentLinkSlack() *AttachmentLinkSlack_AttachmentLinkSlack {
+	if t == nil {
+		t = &AttachmentLinkSlack{}
+	}
+	return &t.AttachmentLinkSlack
+}
+
+type AttachmentDelete struct {
+	AttachmentDelete AttachmentDelete_AttachmentDelete "json:\"attachmentDelete\" graphql:\"attachmentDelete\""
+}
+
+func (t *AttachmentDelete) GetAttachmentDelete() *AttachmentDelete_AttachmentDelete {
+	if t == nil {
+		t = &AttachmentDelete{}
+	}
+	return &t.AttachmentDelete
 }
 
 type CreateComment struct {
@@ -5527,6 +5674,37 @@ func (c *Client) ListLabels(ctx context.Context, first *int64, after *string, in
 	return &res, nil
 }
 
+const AttachmentCreateDocument = `mutation AttachmentCreate ($input: AttachmentCreateInput!) {
+	attachmentCreate(input: $input) {
+		success
+		attachment {
+			id
+			title
+			subtitle
+			url
+			metadata
+		}
+	}
+}
+`
+
+func (c *Client) AttachmentCreate(ctx context.Context, input AttachmentCreateInput, interceptors ...clientv2.RequestInterceptor) (*AttachmentCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res AttachmentCreate
+	if err := c.Client.Post(ctx, "AttachmentCreate", AttachmentCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const AttachmentLinkURLDocument = `mutation AttachmentLinkURL ($issueId: String!, $url: String!, $title: String) {
 	attachmentLinkURL(issueId: $issueId, url: $url, title: $title) {
 		success
@@ -5578,6 +5756,60 @@ func (c *Client) AttachmentLinkGitHubPr(ctx context.Context, issueID string, url
 
 	var res AttachmentLinkGitHubPr
 	if err := c.Client.Post(ctx, "AttachmentLinkGitHubPR", AttachmentLinkGitHubPrDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const AttachmentLinkSlackDocument = `mutation AttachmentLinkSlack ($issueId: String!, $url: String!) {
+	attachmentLinkSlack(issueId: $issueId, url: $url) {
+		success
+		attachment {
+			id
+			title
+			url
+		}
+	}
+}
+`
+
+func (c *Client) AttachmentLinkSlack(ctx context.Context, issueID string, url string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkSlack, error) {
+	vars := map[string]any{
+		"issueId": issueID,
+		"url":     url,
+	}
+
+	var res AttachmentLinkSlack
+	if err := c.Client.Post(ctx, "AttachmentLinkSlack", AttachmentLinkSlackDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const AttachmentDeleteDocument = `mutation AttachmentDelete ($id: String!) {
+	attachmentDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) AttachmentDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*AttachmentDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res AttachmentDelete
+	if err := c.Client.Post(ctx, "AttachmentDelete", AttachmentDeleteDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -7147,8 +7379,11 @@ var DocumentOperationNames = map[string]string{
 	ListIssuesDocument:                     "ListIssues",
 	GetLabelDocument:                       "GetLabel",
 	ListLabelsDocument:                     "ListLabels",
+	AttachmentCreateDocument:               "AttachmentCreate",
 	AttachmentLinkURLDocument:              "AttachmentLinkURL",
 	AttachmentLinkGitHubPrDocument:         "AttachmentLinkGitHubPR",
+	AttachmentLinkSlackDocument:            "AttachmentLinkSlack",
+	AttachmentDeleteDocument:               "AttachmentDelete",
 	CreateCommentDocument:                  "CreateComment",
 	UpdateCommentDocument:                  "UpdateComment",
 	DeleteCommentDocument:                  "DeleteComment",
