@@ -22,8 +22,10 @@ func NewAttachmentCommand(clientFactory ClientFactory) *cobra.Command {
 
 	cmd.AddCommand(NewListCommand(clientFactory))
 	cmd.AddCommand(NewGetCommand(clientFactory))
+	cmd.AddCommand(NewCreateCommand(clientFactory))
 	cmd.AddCommand(NewLinkURLCommand(clientFactory))
 	cmd.AddCommand(NewLinkGitHubCommand(clientFactory))
+	cmd.AddCommand(NewLinkSlackCommand(clientFactory))
 	cmd.AddCommand(NewDeleteCommand(clientFactory))
 
 	return cmd
