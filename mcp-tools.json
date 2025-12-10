@@ -1225,6 +1225,131 @@
     }
   },
   {
+    "description": "Star (favorite) an item for quick access in Linear.\n\nThis operation creates new favorite data and is safe to execute.\nStarred items appear in Linear's \"Favorites\" section for easy retrieval.\n\nUse favorites for:\n- Bookmarking important issues to track\n- Quick access to active projects\n- Pinning frequently referenced documents\n- Following current sprint cycles\n\nParameters (mutually exclusive - specify exactly one):\n  --issue: Issue identifier (e.g., ENG-123) or UUID\n  --project: Project name or UUID\n  --cycle: Cycle UUID\n  --document: Document UUID\n\nExamples:\n  # Star an issue for quick access\n  linear favorite create --issue=ENG-123\n\n  # Star a project\n  linear favorite create --project=\"Platform Redesign\"\n\n  # Star with JSON output\n  linear favorite create --issue=ENG-123 --output=json\n\nTIP: Favorites sync across web, desktop, and mobile Linear apps\n\nCommon Errors:\n  - \"must specify exactly one resource\": Provide --issue OR --project, not both\n  - \"resource not found\": Check ID/name is valid\n\nRelated Commands:\n  - linear favorite delete - Unstar an item\n  - linear issue list - Find issues to favorite\n  - linear project list - Find projects to favorite",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "cycle": {
+              "type": "string",
+              "description": "Cycle UUID"
+            },
+            "document": {
+              "type": "string",
+              "description": "Document UUID"
+            },
+            "issue": {
+              "type": "string",
+              "description": "Issue identifier or UUID"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "project": {
+              "type": "string",
+              "description": "Project name or UUID"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_favorite_create",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Remove an item from your favorites (unstar).\n\nThis operation is safe and can be reversed by favoriting the item again.\nThe underlying resource (issue, project, etc.) is not affected.\n\nParameters:\n  \u003cfavorite-id\u003e: Favorite UUID to delete (required)\n\nExamples:\n  # Unstar an item\n  linear favorite delete \u003cfavorite-uuid\u003e\n\nTIP: View favorites in Linear UI to find favorite IDs, or use API to list favorites\n\nRelated Commands:\n  - linear favorite create - Star an item\n  - linear issue list - Find issues\n  - linear project list - Find projects",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cfavorite-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_favorite_delete",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "Get a single initiative by ID",
     "inputSchema": {
       "type": "object",
