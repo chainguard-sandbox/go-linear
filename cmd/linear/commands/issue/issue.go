@@ -26,6 +26,8 @@ func NewIssueCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewUpdateCommand(clientFactory))
 	cmd.AddCommand(NewDeleteCommand(clientFactory))
 	cmd.AddCommand(NewRelateCommand(clientFactory))
+	cmd.AddCommand(NewUpdateRelationCommand(clientFactory))
+	cmd.AddCommand(NewUnrelateCommand(clientFactory))
 	cmd.AddCommand(NewAddLabelCommand(clientFactory))
 	cmd.AddCommand(NewRemoveLabelCommand(clientFactory))
 
