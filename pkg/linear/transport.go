@@ -1,11 +1,14 @@
 package linear
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"math"
 	"net/http"
@@ -132,11 +135,12 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			}
 		}
 
+		// Extract operation name from GraphQL request BEFORE sending
+		operation := extractOperationName(req)
+
 		startTime := time.Now()
 		resp, err := base.RoundTrip(req)
 		duration := time.Since(startTime)
-
-		operation := "graphql" // Default operation name
 
 		if err != nil {
 			lastErr = err
@@ -345,6 +349,34 @@ func parseRateLimitHeaders(resp *http.Response) *RateLimitInfo {
 	}
 
 	return info
+}
+
+// extractOperationName extracts the GraphQL operation name from the request body.
+// Returns "graphql" if unable to parse.
+func extractOperationName(req *http.Request) string {
+	if req.Body == nil {
+		return "graphql"
+	}
+
+	// Read body
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return "graphql"
+	}
+
+	// Parse GraphQL request to extract operationName
+	var gqlReq struct {
+		OperationName string `json:"operationName"`
+	}
+	if err := json.Unmarshal(body, &gqlReq); err == nil && gqlReq.OperationName != "" {
+		// Restore body for actual request
+		req.Body = io.NopCloser(bytes.NewReader(body))
+		return gqlReq.OperationName
+	}
+
+	// Restore body even on parse failure
+	req.Body = io.NopCloser(bytes.NewReader(body))
+	return "graphql"
 }
 
 // parseRetryAfter parses the Retry-After header.
