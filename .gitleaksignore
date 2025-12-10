@@ -1,0 +1,6 @@
+# Gitleaks ignore patterns
+# Test fixtures with fake API keys
+
+# Test files with example API keys
+pkg/linear/client_test.go:generic-api-key:36
+pkg/linear/client_test.go:generic-api-key:46
