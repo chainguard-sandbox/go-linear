@@ -42,6 +42,34 @@ const (
 	stateHalfOpen
 )
 
+// ErrCircuitOpen is returned when the circuit breaker is open (tripped).
+//
+// This error indicates the API is experiencing high failure rates and the
+// circuit breaker has opened to prevent cascading failures. Requests are
+// failing fast without making actual API calls.
+//
+// The circuit breaker will automatically attempt recovery after ResetTimeout.
+// During recovery (half-open state), a test request is allowed. If it succeeds,
+// the circuit closes and normal operation resumes. If it fails, the circuit
+// reopens.
+//
+// Example:
+//
+//	_, err := client.Issues(ctx, &first, nil)
+//	if errors.Is(err, linear.ErrCircuitOpen) {
+//	    log.Warn("Circuit breaker is open - Linear API may be down")
+//	    log.Warn("Will retry automatically after timeout")
+//	    // Check status: https://status.linear.app
+//	    return err
+//	}
+//
+// Configure circuit breaker:
+//
+//	cb := &linear.CircuitBreaker{
+//	    MaxFailures:  5,                // Open after 5 consecutive failures
+//	    ResetTimeout: 60 * time.Second, // Try recovery after 60 seconds
+//	}
+//	client, _ := linear.NewClient(apiKey, linear.WithCircuitBreaker(cb))
 var ErrCircuitOpen = errors.New("circuit breaker is open")
 
 // RecordSuccess records a successful request.

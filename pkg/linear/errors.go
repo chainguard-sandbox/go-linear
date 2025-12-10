@@ -55,11 +55,37 @@ type GraphQLError struct {
 // RateLimitError represents a rate limiting error with retry information.
 //
 // The Linear API uses two types of rate limiting:
-//  1. Request-based: Limits requests per time window
+//  1. Request-based: Limits requests per time window (~2 req/sec sustained)
 //  2. Complexity-based: Limits GraphQL query complexity per time window
 //
 // Both limits are tracked independently and reset at different times.
 // Check both RequestsRemaining and ComplexityRemaining to determine capacity.
+//
+// The client automatically retries 429 errors with exponential backoff.
+// You can also implement custom retry logic using the RetryAfter field.
+//
+// Example:
+//
+//	_, err := client.Issues(ctx, &first, nil)
+//	if err != nil {
+//	    var rateLimitErr *linear.RateLimitError
+//	    if errors.As(err, &rateLimitErr) {
+//	        log.Printf("Rate limited. Retry after %d seconds", rateLimitErr.RetryAfter)
+//	        log.Printf("Requests: %d/%d remaining", rateLimitErr.RequestsRemaining, rateLimitErr.RequestsLimit)
+//	        time.Sleep(time.Duration(rateLimitErr.RetryAfter) * time.Second)
+//	        // Retry request...
+//	    }
+//	}
+//
+// Monitor rate limits proactively:
+//
+//	client, _ := linear.NewClient(apiKey,
+//	    linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
+//	        if info.RequestsRemaining < 10 {
+//	            log.Warn("Approaching rate limit")
+//	        }
+//	    }),
+//	)
 type RateLimitError struct {
 	*LinearError
 	RetryAfter int // Seconds until retry recommended
@@ -83,20 +109,59 @@ func (e *RateLimitError) Error() string {
 	return e.LinearError.Error()
 }
 
-// AuthenticationError represents an authentication error.
+// AuthenticationError represents an authentication error (401).
 //
 // This typically indicates:
 //   - Invalid or expired API key
 //   - Missing Authorization header
 //   - Invalid OAuth token
+//   - API key revoked in Linear settings
+//
+// With WithCredentialProvider, the client automatically refreshes
+// credentials on 401 errors and retries the request once.
+//
+// Example:
+//
+//	viewer, err := client.Viewer(ctx)
+//	if err != nil {
+//	    var authErr *linear.AuthenticationError
+//	    if errors.As(err, &authErr) {
+//	        log.Error("Authentication failed - check API key")
+//	        // Verify key at: https://linear.app/settings/account/security
+//	        return err
+//	    }
+//	}
+//
+// Automatic refresh with credential provider:
+//
+//	provider := &MySecretsProvider{...}
+//	client, _ := linear.NewClient("", linear.WithCredentialProvider(provider))
+//	// On 401: client calls provider.GetCredential() and retries automatically
 type AuthenticationError struct {
 	*LinearError
 }
 
-// ForbiddenError represents a forbidden/authorization error.
+// ForbiddenError represents a forbidden/authorization error (403).
 //
 // This indicates the authenticated user lacks permission for the requested operation.
-// Check API key scopes at https://linear.app/settings/account/security
+// Common causes:
+//   - API key has Read permission but Write permission required
+//   - Attempting to modify resources in different workspace
+//   - Organization-level restrictions
+//
+// Check and update API key scopes at:
+// https://linear.app/settings/account/security
+//
+// Example:
+//
+//	_, err := client.IssueCreate(ctx, input)
+//	if err != nil {
+//	    var forbiddenErr *linear.ForbiddenError
+//	    if errors.As(err, &forbiddenErr) {
+//	        log.Error("Permission denied - API key needs Write permission")
+//	        return err
+//	    }
+//	}
 type ForbiddenError struct {
 	*LinearError
 }
