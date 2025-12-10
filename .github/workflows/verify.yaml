@@ -20,7 +20,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2
+          version: latest
 
       - name: Verify go.mod is tidy
         run: |
