@@ -10,7 +10,7 @@ import (
 	intgraphql "github.com/eslerm/go-linear/internal/graphql"
 )
 
-// TestLive_CommentMutations tests comment create and delete.
+// TestLive_CommentMutations tests comment create, update, and delete.
 // NOTE: Mindful of comment limits on test instances.
 func TestLive_CommentMutations(t *testing.T) {
 	apiKey := os.Getenv("LINEAR_API_KEY")
@@ -47,7 +47,19 @@ func TestLive_CommentMutations(t *testing.T) {
 
 	t.Logf("✓ Created comment: %s", comment.ID)
 
-	// Cleanup immediately
+	// Update comment
+	updatedBody := "[SDK-TEST] Updated comment - will be deleted"
+	updated, err := client.CommentUpdate(ctx, comment.ID, intgraphql.CommentUpdateInput{
+		Body: &updatedBody,
+	})
+
+	if err != nil {
+		t.Errorf("CommentUpdate() error = %v", err)
+	} else {
+		t.Logf("✓ Updated comment: %s", updated.ID)
+	}
+
+	// Cleanup
 	if err := client.CommentDelete(ctx, comment.ID); err != nil {
 		t.Errorf("Cleanup failed: %v", err)
 	} else {

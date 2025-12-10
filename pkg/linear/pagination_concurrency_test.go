@@ -111,3 +111,66 @@ func TestIterator_Concurrency(t *testing.T) {
 	wg.Wait()
 	// If we get here without panic, mutex is working
 }
+
+// TestTeamIterator_Concurrent verifies TeamIterator mutex protection
+func TestTeamIterator_Concurrent(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":{"teams":{"nodes":[],"pageInfo":{"hasNextPage":false}}}}`))
+	})
+
+	iter := NewTeamIterator(client, 10)
+	var wg sync.WaitGroup
+
+	for range 3 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, _ = iter.Next(context.Background())
+		}()
+	}
+
+	wg.Wait()
+}
+
+// TestProjectIterator_Concurrent verifies ProjectIterator mutex protection
+func TestProjectIterator_Concurrent(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":{"projects":{"nodes":[],"pageInfo":{"hasNextPage":false}}}}`))
+	})
+
+	iter := NewProjectIterator(client, 10)
+	var wg sync.WaitGroup
+
+	for range 3 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, _ = iter.Next(context.Background())
+		}()
+	}
+
+	wg.Wait()
+}
+
+// TestCommentIterator_Concurrent verifies CommentIterator mutex protection
+func TestCommentIterator_Concurrent(t *testing.T) {
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":{"comments":{"nodes":[],"pageInfo":{"hasNextPage":false}}}}`))
+	})
+
+	iter := NewCommentIterator(client, 10)
+	var wg sync.WaitGroup
+
+	for range 3 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, _ = iter.Next(context.Background())
+		}()
+	}
+
+	wg.Wait()
+}
