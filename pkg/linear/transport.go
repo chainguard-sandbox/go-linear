@@ -58,6 +58,10 @@ type Transport struct {
 	// MetricsCollector is the metrics collector to use.
 	// If nil, uses global default collector.
 	MetricsCollector *MetricsCollector
+
+	// CircuitBreaker prevents cascading failures.
+	// If nil, circuit breaker is disabled.
+	CircuitBreaker *CircuitBreaker
 }
 
 // RateLimitInfo contains rate limit information from response headers.
@@ -107,6 +111,13 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var lastErr error
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
+		// Check circuit breaker before each attempt
+		if t.CircuitBreaker != nil {
+			if err := t.CircuitBreaker.Allow(); err != nil {
+				return nil, err
+			}
+		}
+
 		// Check if we've exceeded total retry time
 		if attempt > 0 && time.Since(retryStartTime) > maxRetryDuration {
 			return nil, fmt.Errorf("retry duration exceeded (%v): %w", maxRetryDuration, lastErr)
@@ -148,6 +159,12 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 		if err != nil {
 			lastErr = err
+
+			// Record failure in circuit breaker
+			if t.CircuitBreaker != nil {
+				t.CircuitBreaker.RecordFailure()
+			}
+
 			if t.Logger != nil {
 				t.Logger.LogAttrs(req.Context(), slog.LevelError,
 					"request failed",
@@ -193,6 +210,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 					slog.Int("complexity_limit", rateLimitInfo.ComplexityLimit),
 				)
 			}
+		}
+
+		// Record success in circuit breaker
+		if t.CircuitBreaker != nil && resp.StatusCode < 500 {
+			t.CircuitBreaker.RecordSuccess()
 		}
 
 		// Record metrics
