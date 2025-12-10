@@ -87,6 +87,18 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		base = http.DefaultTransport
 	}
 
+	// Clone request body for retries (prevent request body exhaustion)
+	var bodyBytes []byte
+	if req.Body != nil {
+		var err error
+		bodyBytes, err = io.ReadAll(req.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read request body: %w", err)
+		}
+		_ = req.Body.Close()
+		req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+	}
+
 	maxRetries := t.MaxRetries
 	if maxRetries == 0 {
 		maxRetries = 3
@@ -124,6 +136,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 
 		if attempt > 0 {
+			// Restore request body for retry
+			if bodyBytes != nil {
+				req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+			}
+
 			// Calculate exponential backoff with jitter
 			backoff := calculateBackoff(attempt, initialBackoff, maxBackoff)
 
