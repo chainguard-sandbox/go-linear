@@ -1,0 +1,33 @@
+mutation IssueAddLabel($id: String!, $labelId: String!) {
+  issueAddLabel(id: $id, labelId: $labelId) {
+    success
+    issue {
+      id
+      title
+      labels {
+        nodes {
+          id
+          name
+          color
+        }
+      }
+    }
+  }
+}
+
+mutation IssueRemoveLabel($id: String!, $labelId: String!) {
+  issueRemoveLabel(id: $id, labelId: $labelId) {
+    success
+    issue {
+      id
+      title
+      labels {
+        nodes {
+          id
+          name
+          color
+        }
+      }
+    }
+  }
+}

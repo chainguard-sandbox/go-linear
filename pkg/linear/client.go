@@ -1253,6 +1253,76 @@ func (c *Client) IssueLabelDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// IssueAddLabel adds a label to an issue.
+//
+// Simpler alternative to IssueUpdate with AddedLabelIds array.
+// Does not require fetching existing labels first.
+//
+// Parameters:
+//   - id: Issue UUID (required)
+//   - labelID: Label UUID to add (required)
+//
+// Returns:
+//   - Updated issue with labels collection
+//   - error: Non-nil if operation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	issue, err := client.IssueAddLabel(ctx, issueID, labelID)
+//	if err != nil {
+//	    return fmt.Errorf("failed to add label: %w", err)
+//	}
+//	fmt.Printf("Issue now has %d labels\n", len(issue.Labels.Nodes))
+//
+// Related: [IssueRemoveLabel], [IssueLabelCreate], [IssueUpdate]
+func (c *Client) IssueAddLabel(ctx context.Context, id string, labelID string) (*intgraphql.IssueAddLabel_IssueAddLabel_Issue, error) {
+	resp, err := c.gqlClient.IssueAddLabel(ctx, id, labelID)
+	if err != nil {
+		return nil, wrapGraphQLError("IssueAddLabel", err)
+	}
+	if !resp.IssueAddLabel.Success {
+		return nil, errMutationFailed("IssueAddLabel")
+	}
+	return resp.IssueAddLabel.Issue, nil
+}
+
+// IssueRemoveLabel removes a label from an issue.
+//
+// Simpler alternative to IssueUpdate with array manipulation.
+// Does not require fetching and filtering existing labels.
+//
+// Parameters:
+//   - id: Issue UUID (required)
+//   - labelID: Label UUID to remove (required)
+//
+// Returns:
+//   - Updated issue with labels collection
+//   - error: Non-nil if operation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Example:
+//
+//	issue, err := client.IssueRemoveLabel(ctx, issueID, labelID)
+//	if err != nil {
+//	    return fmt.Errorf("failed to remove label: %w", err)
+//	}
+//	fmt.Printf("Issue now has %d labels\n", len(issue.Labels.Nodes))
+//
+// Related: [IssueAddLabel], [IssueLabelDelete], [IssueUpdate]
+func (c *Client) IssueRemoveLabel(ctx context.Context, id string, labelID string) (*intgraphql.IssueRemoveLabel_IssueRemoveLabel_Issue, error) {
+	resp, err := c.gqlClient.IssueRemoveLabel(ctx, id, labelID)
+	if err != nil {
+		return nil, wrapGraphQLError("IssueRemoveLabel", err)
+	}
+	if !resp.IssueRemoveLabel.Success {
+		return nil, errMutationFailed("IssueRemoveLabel")
+	}
+	return resp.IssueRemoveLabel.Issue, nil
+}
+
 // IssueRelationCreate creates a relationship between two issues.
 //
 // Relationship types:
