@@ -312,13 +312,14 @@ client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
 
 ### Mutation Methods (Write Permission)
 
-| Resource | Create | Update | Delete |
+| Resource | Create | Update | Delete/Archive |
 |----------|--------|--------|--------|
 | **Issues** | `IssueCreate(ctx, input)` | `IssueUpdate(ctx, id, input)` | `IssueDelete(ctx, id)` |
 | **Comments** | `CommentCreate(ctx, input)` | `CommentUpdate(ctx, id, input)` | `CommentDelete(ctx, id)` |
 | **Labels** | `IssueLabelCreate(ctx, input)` | `IssueLabelUpdate(ctx, id, input)` | `IssueLabelDelete(ctx, id)` |
 | **Teams** | `TeamCreate(ctx, input)` | `TeamUpdate(ctx, id, input)` | `TeamDelete(ctx, id)` |
 | **Projects** | `ProjectCreate(ctx, input)` | `ProjectUpdate(ctx, id, input)` | `ProjectDelete(ctx, id)` |
+| **Cycles** | `CycleCreate(ctx, input)` | `CycleUpdate(ctx, id, input)` | `CycleArchive(ctx, id)` |
 
 **Method Signatures:**
 - **Create:** `func(ctx context.Context, input ResourceCreateInput) (*Resource, error)`
