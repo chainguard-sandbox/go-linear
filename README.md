@@ -44,7 +44,36 @@ func main() {
 }
 ```
 
-**Next:** See [Common Operations](#common-operations) or [Production Setup](#production-setup)
+**What's next?**
+1. **Create an issue:** [examples/tasks/create_issue.go](examples/tasks/create_issue)
+2. **Search issues:** [examples/tasks/search_issues.go](examples/tasks/search_issues)
+3. **List with iterator:** [examples/tasks/list_issues_iterator.go](examples/tasks/list_issues_iterator)
+4. **Production setup:** [examples/production/main.go](examples/production/main.go)
+
+---
+
+## Common Tasks
+
+| I want to... | Method | Example | Complexity |
+|--------------|--------|---------|------------|
+| Create an issue | `IssueCreate()` | [→](examples/tasks/create_issue) | Simple |
+| Search for issues | `IssueSearch()` | [→](examples/tasks/search_issues) | Medium |
+| Update an issue | `IssueUpdate()` | [→](examples/tasks/update_issue) | Simple |
+| Delete an issue | `IssueDelete()` | [→](examples/tasks/delete_issue) | Simple |
+| List all issues (manual) | `Issues()` | [→](examples/tasks/list_issues_paginated) | Medium |
+| List all issues (auto) | `NewIssueIterator()` | [→](examples/tasks/list_issues_iterator) | Simple |
+| Add comment to issue | `CommentCreate()` | [→](examples/tasks/add_comment) | Simple |
+| Update a comment | `CommentUpdate()` | [→](examples/tasks/update_comment) | Simple |
+| List comments | `Comments()` | [→](examples/tasks/list_comments) | Simple |
+| Create a label | `IssueLabelCreate()` | [→](examples/tasks/create_label) | Simple |
+| Assign label to issue | `IssueUpdate()` | [→](examples/tasks/assign_label) | Medium |
+| List all labels | `IssueLabels()` | [→](examples/tasks/list_labels) | Simple |
+| Handle rate limits | Error pattern | [→](examples/tasks/handle_rate_limits) | Medium |
+| Handle auth errors | Error pattern | [→](examples/tasks/handle_auth_errors) | Simple |
+| Use circuit breaker | Client option | [→](examples/tasks/handle_circuit_breaker) | Advanced |
+| Rotate credentials | `WithCredentialProvider()` | [→](examples/tasks/credential_rotation) | Advanced |
+| Concurrent requests | Goroutines | [→](examples/tasks/concurrent_requests) | Advanced |
+| Bulk operations | Batch pattern | [→](examples/tasks/batch_operations) | Advanced |
 
 ---
 
@@ -270,6 +299,17 @@ client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
 
 **Special:** `Viewer(ctx)` - Get authenticated user, `Organization(ctx)` - Get workspace info
 
+**Method Signatures:**
+- **Get Single:** `func(ctx context.Context, id string) (*Resource, error)`
+- **List Multiple:** `func(ctx context.Context, first *int64, after *string) (*ResourceConnection, error)`
+- **Search:** `func(ctx context.Context, query string, first *int64, after *string) (*ResourceConnection, error)`
+
+**Parameters:**
+- `id`: Resource UUID (string)
+- `first`: Page size (*int64, max: 250, recommended: 50)
+- `after`: Pagination cursor from `PageInfo.EndCursor` (*string, nil for first page)
+- `query`: Search text with operators (string)
+
 ### Mutation Methods (Write Permission)
 
 | Resource | Create | Update | Delete |
@@ -279,6 +319,19 @@ client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
 | **Labels** | `IssueLabelCreate(ctx, input)` | `IssueLabelUpdate(ctx, id, input)` | `IssueLabelDelete(ctx, id)` |
 | **Teams** | `TeamCreate(ctx, input)` | `TeamUpdate(ctx, id, input)` | `TeamDelete(ctx, id)` |
 | **Projects** | `ProjectCreate(ctx, input)` | `ProjectUpdate(ctx, id, input)` | `ProjectDelete(ctx, id)` |
+
+**Method Signatures:**
+- **Create:** `func(ctx context.Context, input ResourceCreateInput) (*Resource, error)`
+- **Update:** `func(ctx context.Context, id string, input ResourceUpdateInput) (*Resource, error)`
+- **Delete:** `func(ctx context.Context, id string) (*ArchivePayload, error)`
+
+**Parameters:**
+- `input`: Input struct with fields for create/update
+- `id`: Resource UUID to update/delete (string)
+
+**Return Values:**
+- Create/Update return the created/updated resource
+- Delete returns `ArchivePayload` with `Success` boolean
 
 ### Pagination Iterators
 
@@ -370,6 +423,93 @@ if errors.As(err, &linearErr) {
 - `ForbiddenError` - Missing permission (403)
 
 **Error Chain Preservation:** All errors implement `Unwrap()` for proper `errors.As()` and `errors.Is()` support.
+
+---
+
+## Troubleshooting
+
+### "teamID is required"
+**Problem:** Missing required parameter for issue creation.
+
+**Solution:** Get team ID first:
+```go
+teams, err := client.Teams(ctx, nil, nil)
+if err != nil {
+    return err
+}
+teamID := teams.Nodes[0].ID
+```
+
+### "401 Unauthorized"
+**Problem:** Authentication failed.
+
+**Solutions:**
+1. Check API key is set: `echo $LINEAR_API_KEY`
+2. Verify key at https://linear.app/settings/account/security
+3. Ensure key hasn't been revoked or expired
+4. For OAuth tokens, Bearer prefix is added automatically
+
+### "429 Too Many Requests"
+**Problem:** Rate limit exceeded.
+
+**Solutions:**
+1. Client automatically retries with exponential backoff
+2. Increase retry configuration:
+```go
+client, _ := linear.NewClient(apiKey,
+    linear.WithRetry(10, 500*time.Millisecond, 2*time.Minute),
+)
+```
+3. Add rate limit monitoring:
+```go
+linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
+    log.Printf("Remaining: %d/%d requests", info.RequestsRemaining, info.RequestsLimit)
+})
+```
+4. Respect rate limits: ~2 requests/second sustained
+
+### "circuit breaker is open"
+**Problem:** Circuit breaker tripped due to high error rate.
+
+**Solutions:**
+1. Linear API is experiencing issues - wait for recovery
+2. Circuit automatically attempts recovery after timeout (default: 60s)
+3. Check Linear status: https://status.linear.app
+4. Adjust circuit breaker thresholds if too sensitive:
+```go
+cb := &linear.CircuitBreaker{
+    MaxFailures:  10,              // More tolerant
+    ResetTimeout: 120 * time.Second, // Longer recovery window
+}
+client, _ := linear.NewClient(apiKey, linear.WithCircuitBreaker(cb))
+```
+
+### Input validation errors
+**Problem:** Missing or invalid fields in mutation inputs.
+
+**Solutions:**
+
+**For IssueCreate:**
+- `TeamID`: Required (string UUID from `Teams()`)
+- `Title`: Required (*string pointer)
+- `Description`: Optional (*string, nil = omit)
+- `Priority`: Optional (*int64, 0-4 scale, nil = team default)
+- `StateID`: Optional (*string, nil = team's default "Todo" state)
+
+**For IssueUpdate:**
+- All fields optional (nil = unchanged)
+- Only provide fields you want to modify
+
+**Example:**
+```go
+title := "My Issue"
+priority := int64(2) // High
+issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
+    TeamID:   teamID,        // Required
+    Title:    &title,        // Required
+    Priority: &priority,     // Optional
+})
+```
 
 ---
 
