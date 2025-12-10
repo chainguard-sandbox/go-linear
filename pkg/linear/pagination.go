@@ -126,7 +126,7 @@ func (it *IssueIterator) Err() error {
 // TeamIterator provides automatic pagination over teams.
 //
 // NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
-type TeamIterator struct{
+type TeamIterator struct {
 	client  *Client
 	first   int64
 	buffer  []*intgraphql.ListTeams_Teams_Nodes
