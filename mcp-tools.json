@@ -1,5 +1,86 @@
 [
   {
+    "description": "Create a custom attachment with metadata on an issue.\n\nThis operation creates new attachment data and is safe to execute.\nUse for custom integrations (CI/CD, monitoring tools, external systems).\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --title: Attachment title (required)\n  --url: Attachment URL (required)\n  --subtitle: Optional subtitle text\n  --icon-url: Optional icon URL (20x20px PNG/JPG, max 1MB)\n  --metadata: Optional JSON metadata object\n\nExamples:\n  # Create CI/CD build attachment\n  linear attachment create --issue=ENG-123 --title=\"Build #42\" --url=https://ci.example.com/build/42\n\n  # With subtitle and icon\n  linear attachment create --issue=ENG-123 --title=\"Deploy\" --subtitle=\"Production\" \\\\\n    --url=https://deploy.example.com/123 --icon-url=https://example.com/icon.png\n\n  # With JSON metadata\n  linear attachment create --issue=ENG-123 --title=\"Test Report\" --url=https://tests.example.com \\\\\n    --metadata='{\"status\":\"passed\",\"coverage\":\"95%\"}'\n\nTIP: Use for integrating external tools (CI/CD, monitoring, analytics) with Linear issues\n\nRelated Commands:\n  - linear attachment link-url - Link simple URL without metadata\n  - linear attachment link-github - Link GitHub PR\n  - linear attachment link-slack - Link Slack thread",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "icon-url": {
+              "type": "string",
+              "description": "Icon URL (20x20px PNG/JPG, max 1MB)"
+            },
+            "issue": {
+              "type": "string",
+              "description": "Issue identifier or UUID (required)"
+            },
+            "metadata": {
+              "type": "string",
+              "description": "JSON metadata object"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "subtitle": {
+              "type": "string",
+              "description": "Subtitle text"
+            },
+            "title": {
+              "type": "string",
+              "description": "Attachment title (required)"
+            },
+            "url": {
+              "type": "string",
+              "description": "Attachment URL (required)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_attachment_create",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "Delete an attachment from Linear permanently.\n\n⚠️ DESTRUCTIVE OPERATION - Cannot be undone.\n\nThis permanently removes the attachment link.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear attachment delete \u003cuuid\u003e\n  linear attachment delete \u003cuuid\u003e --yes",
     "inputSchema": {
       "type": "object",
@@ -165,6 +246,71 @@
       "additionalProperties": false
     },
     "name": "linear_attachment_link-github",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Link a Slack thread or message to an issue as an attachment.\n\nThis operation creates new attachment data and is safe to execute.\nRequires Slack integration to be configured in your Linear workspace.\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --url: Slack message URL (required)\n\nSlack URL format:\n  https://\u003cworkspace\u003e.slack.com/archives/\u003cchannel-id\u003e/p\u003ctimestamp\u003e\n  Example: https://mycompany.slack.com/archives/C123ABC/p1234567890123456\n\nExamples:\n  # Link Slack thread to issue\n  linear attachment link-slack --issue=ENG-123 \\\\\n    --url=https://mycompany.slack.com/archives/C123ABC/p1234567890\n\n  # With JSON output\n  linear attachment link-slack --issue=ENG-123 --url=\u003cslack-url\u003e --output=json\n\nTIP: Copy Slack message link from \"Copy link\" option in Slack message menu\n\nCommon Errors:\n  - \"integration not configured\": Enable Slack integration in Linear settings\n  - \"invalid URL\": Must be a valid Slack message permalink\n\nRelated Commands:\n  - linear attachment link-url - Link generic external URL\n  - linear attachment link-github - Link GitHub PR\n  - linear attachment create - Create custom attachment with metadata",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "issue": {
+              "type": "string",
+              "description": "Issue identifier or UUID (required)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "url": {
+              "type": "string",
+              "description": "Slack message URL (required)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_attachment_link-slack",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1771,6 +1917,68 @@
     }
   },
   {
+    "description": "Delete a relationship between two issues.\n\n🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨\n\nThis PERMANENTLY removes the relationship between two issues.\nThe issues themselves are not deleted, only the relationship link.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID to delete (required)\n\nExamples:\n  # Delete relation with confirmation\n  linear issue unrelate \u003crelation-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear issue unrelate \u003crelation-uuid\u003e --yes\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see relations and their IDs\n\nCommon Errors:\n  - \"relation not found\": Relation ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue update-relation - Change relationship type\n  - linear issue get - View issue's current relationships",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003crelation-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "yes": {
+              "type": "boolean",
+              "description": "Skip confirmation prompt",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_issue_unrelate",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "Update an existing issue in Linear.\n\n⚠️ CAUTION: This modifies existing issue data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\n\nExamples:\n  linear issue update ENG-123 --state=Done\n  linear issue update ENG-123 --assignee=alice@company.com --priority=1\n  linear issue update ENG-123 --title=\"New title\" --description=\"Updated description\"\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see current values before updating",
     "inputSchema": {
       "type": "object",
@@ -1840,6 +2048,67 @@
       "additionalProperties": false
     },
     "name": "linear_issue_update",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Update the relationship type between two issues.\n\n⚠️ CAUTION: This modifies an existing relationship. Changes are immediate.\n\nChange the relationship type without deleting and recreating the relation.\nUseful when dependency structure changes during development.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID (required)\n  --type: New relationship type (required)\n\nRelationship types:\n  - blocks: First issue blocks the second (shows as dependency)\n  - blocked-by: First issue is blocked by the second (inverse of blocks)\n  - duplicate: Issues are duplicates of each other\n  - related: Issues are related but not blocking\n\nExamples:\n  # Change relation from 'related' to 'blocks'\n  linear issue update-relation \u003crelation-uuid\u003e --type=blocks\n\n  # Change blocking relation to duplicate\n  linear issue update-relation \u003crelation-uuid\u003e --type=duplicate --output=json\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see existing relations and their IDs\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue unrelate - Delete a relationship\n  - linear issue get - View issue's current relationships",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003crelation-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "type": {
+              "type": "string",
+              "description": "New relation type: blocks|blocked-by|duplicate|related (required)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_issue_update-relation",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2469,6 +2738,205 @@
       "additionalProperties": false
     },
     "name": "linear_project_list",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Create a new milestone (phase/stage) within a project.\n\nThis operation creates new milestone data and is safe to execute.\nMilestones represent phases or stages within a project (e.g., \"Q1 2025\", \"Beta Launch\", \"v1.0 Release\").\n\nParameters:\n  --project: Project name or ID (required)\n  --name: Milestone name (required)\n  --description: Markdown description (optional)\n  --target-date: Target completion date (ISO8601, \"2025-03-01\", or relative like \"30d\")\n\nExamples:\n  # Create Q1 milestone\n  linear project milestone-create --project=\"Platform Redesign\" --name=\"Q1 2025\" --target-date=2025-03-31\n\n  # Create with description\n  linear project milestone-create --project=MyProject --name=\"Beta Launch\" \\\\\n    --description=\"Launch beta version to selected users\" --target-date=30d\n\n  # Create with JSON output\n  linear project milestone-create --project=MyProject --name=\"v1.0\" --output=json\n\nTIP: Use 'linear project list' to discover available projects\n\nRelated Commands:\n  - linear project milestone-update - Update milestone details\n  - linear project milestone-delete - Delete a milestone\n  - linear project get - View project's milestones",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "description": {
+              "type": "string",
+              "description": "Milestone description (markdown)"
+            },
+            "name": {
+              "type": "string",
+              "description": "Milestone name (required)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "project": {
+              "type": "string",
+              "description": "Project name or ID (required)"
+            },
+            "target-date": {
+              "type": "string",
+              "description": "Target completion date (ISO8601 or relative)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_project_milestone-create",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Delete a project milestone permanently.\n\n🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨\n\nThis PERMANENTLY removes the milestone from the project.\nIssues associated with the milestone are NOT deleted, only the milestone itself.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID to delete (required)\n\nExamples:\n  # Delete milestone with confirmation\n  linear project milestone-delete \u003cmilestone-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear project milestone-delete \u003cmilestone-uuid\u003e --yes\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nCommon Errors:\n  - \"milestone not found\": Milestone ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-update - Update milestone details\n  - linear project get - View project's milestones",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cmilestone-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "yes": {
+              "type": "boolean",
+              "description": "Skip confirmation prompt",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_project_milestone-delete",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Update an existing project milestone.\n\n⚠️ CAUTION: This modifies existing milestone data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\nUse this to adjust timeline, descriptions, or milestone names.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID (required)\n  --name: New milestone name\n  --description: New description (markdown)\n  --target-date: New target completion date (ISO8601 or relative)\n\nExamples:\n  # Update target date\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=2025-06-30\n\n  # Update name and description\n  linear project milestone-update \u003cmilestone-uuid\u003e --name=\"Q2 2025\" \\\\\n    --description=\"Updated timeline for Q2 deliverables\"\n\n  # Move milestone out 2 weeks\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=14d --output=json\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-delete - Delete a milestone\n  - linear project get - View project's milestones",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cmilestone-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "description": {
+              "type": "string",
+              "description": "New description (markdown)"
+            },
+            "name": {
+              "type": "string",
+              "description": "New milestone name"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "target-date": {
+              "type": "string",
+              "description": "New target date (ISO8601 or relative)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_project_milestone-update",
     "outputSchema": {
       "type": "object",
       "required": [

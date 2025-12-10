@@ -276,3 +276,61 @@ func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, e
 	r.cache.Set(cacheKey, matches[0].ID)
 	return matches[0].ID, nil
 }
+
+// ResolveProject resolves a project name to its ID.
+// Accepts: project name or UUID.
+func (r *Resolver) ResolveProject(ctx context.Context, nameOrID string) (string, error) {
+	if nameOrID == "" {
+		return "", fmt.Errorf("project name/ID cannot be empty")
+	}
+
+	// Check if already a UUID
+	if uuidRegex.MatchString(nameOrID) {
+		return nameOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "project:" + strings.ToLower(nameOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Query API
+	first := int64(100)
+	projects, err := r.client.Projects(ctx, &first, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch projects: %w", err)
+	}
+
+	// Find by name (case-insensitive)
+	var matches []*struct {
+		ID   string
+		Name string
+	}
+
+	lower := strings.ToLower(nameOrID)
+	for _, project := range projects.Nodes {
+		if strings.EqualFold(project.Name, lower) {
+			matches = append(matches, &struct {
+				ID   string
+				Name string
+			}{ID: project.ID, Name: project.Name})
+		}
+	}
+
+	if len(matches) == 0 {
+		return "", fmt.Errorf("project not found: %s", nameOrID)
+	}
+
+	if len(matches) > 1 {
+		names := make([]string, len(matches))
+		for i, m := range matches {
+			names[i] = m.Name
+		}
+		return "", fmt.Errorf("ambiguous project name %q, matches: %s", nameOrID, strings.Join(names, ", "))
+	}
+
+	// Cache and return
+	r.cache.Set(cacheKey, matches[0].ID)
+	return matches[0].ID, nil
+}
