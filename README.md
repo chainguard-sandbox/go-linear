@@ -641,7 +641,13 @@ See development section above. Open issues for bugs/features. PRs welcome with t
 
 ## License
 
-MIT - See [LICENSE](LICENSE) for details
+Apache 2.0 - See [LICENSE](LICENSE) for details
+
+## Security
+
+For security vulnerabilities, please email [mark.esler@chainguard.dev](mailto:mark.esler@chainguard.dev).
+
+See [SECURITY.md](SECURITY.md) for our vulnerability disclosure policy.
 
 ---
 
