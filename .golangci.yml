@@ -1,0 +1,190 @@
+# golangci-lint configuration
+# Documentation: https://golangci-lint.run/usage/configuration/
+
+version: "2"
+
+run:
+  # Timeout for analysis
+  timeout: 5m
+
+  # Exit code when at least one issue was found
+  issues-exit-code: 1
+
+  # Include test files
+  tests: true
+
+  # Which directories to skip
+  skip-dirs:
+    - vendor
+    - third_party
+    - testdata
+    - examples
+    - docs
+    - upstream  # Upstream TypeScript SDK submodule (sync mode only)
+
+linters:
+  # Enable specific linters
+  enable:
+    # Core linters (high value, low false positives)
+    - staticcheck    # Most important static analysis tool
+    - gosec          # Security vulnerabilities
+    - gocritic       # Performance and style checks
+    - errorlint      # Error handling best practices
+
+    # Code quality
+    - misspell       # Spelling mistakes in comments
+    - unparam        # Detect unused function parameters
+    - unconvert      # Unnecessary type conversions
+    - whitespace     # Whitespace issues
+    - prealloc       # Slice preallocation
+
+    # HTTP and resource handling
+    - bodyclose      # HTTP response body must be closed
+
+    # Testing
+    - tparallel      # Detects inappropriate usage of t.Parallel()
+
+    # Modernization
+    - modernize      # Suggests modern Go features
+
+    # Import management
+    - gci            # Controls Go package import order
+
+    # Additional checks
+    - asciicheck     # Non-ASCII identifiers
+    - bidichk        # Dangerous unicode characters
+    - durationcheck  # Duration multiplication
+    - errname        # Error naming conventions
+    - nilerr         # Return nil even if err != nil
+
+    # Forbidden patterns
+    - forbidigo      # Forbid specific function calls (e.g., print statements)
+
+  # Disable linters that are too noisy or opinionated
+  disable:
+    - gocyclo        # Use gocritic instead
+    - gocognit       # Similar to gocyclo
+    - funlen         # Too opinionated about function length
+    - gochecknoglobals # Sometimes globals are fine
+    - gomnd          # Magic number detection is too strict
+
+linters-settings:
+  # gosec configuration
+  gosec:
+    # Exclude specific rules
+    excludes:
+      - G115  # Integer overflow - we handle this manually when needed
+
+  # forbidigo: forbid specific function calls
+  forbidigo:
+    # Forbid the following patterns
+    forbid:
+      - p: ^fmt\.Print.*$
+        msg: "Use structured logging (slog) instead of fmt.Print"
+      - p: ^print$
+        msg: "Use structured logging (slog) instead of print"
+      - p: ^println$
+        msg: "Use structured logging (slog) instead of println"
+    # Allow these in test files
+    analyze-types: false
+
+  # staticcheck configuration
+  staticcheck:
+    checks: ["all"]
+
+  # gocritic configuration
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+      - experimental
+      - opinionated
+    disabled-checks:
+      - hugeParam        # Sometimes large structs are passed
+      - rangeValCopy     # Sometimes acceptable
+      - unnamedResult    # Named results not always needed
+
+  # misspell configuration
+  misspell:
+    locale: US
+
+  # errorlint configuration
+  errorlint:
+    # Check for fmt.Errorf with %w verb
+    errorf: true
+    # Check for errors.As() and errors.Is() usage
+    asserts: true
+    # Check for error comparison
+    comparison: true
+
+  # gci configuration (import order)
+  gci:
+    sections:
+      - standard  # Standard library
+      - default   # Everything else
+      - prefix(github.com/eslerm/go-linear)  # This project
+
+issues:
+  # Maximum issues count per one linter
+  # Set to 0 to disable limit
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text
+  # Set to 0 to disable limit
+  max-same-issues: 0
+
+  # Exclude specific issues or files
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gosec       # Security checks less important in tests
+        - errcheck    # Error checking less strict in tests
+        - gocritic    # Style checks less important in tests
+        - forbidigo   # Allow print statements in tests
+
+    # Exclude linters from generated files (genqlient)
+    - path: "internal/graphql/generated\\.go"
+      linters:
+        - staticcheck
+        - gosec
+        - gocritic
+        - errorlint
+        - unparam
+        - misspell
+        - whitespace
+        - gci
+
+    # Exclude linters from protobuf generated files (if we add them later)
+    - path: ".*\\.pb\\.go"
+      linters:
+        - staticcheck
+        - gosec
+        - gocritic
+
+    # Exclude specific issues
+    - text: "G204"   # Subprocess launched with variable (often needed in CLIs)
+      linters:
+        - gosec
+
+formatters:
+  # Enable specific formatters
+  enable:
+    - gofmt          # Standard Go formatter
+    - goimports      # Manages imports and formatting
+
+# Output configuration
+output:
+  # Format: colored-line-number, line-number, json, tab, checkstyle, code-climate
+  formats:
+    - format: colored-line-number
+
+  # Print lines of code with issue
+  print-issued-lines: true
+
+  # Print linter name in the end of issue text
+  print-linter-name: true
+
+  # Sort results by file path
+  sort-results: true
