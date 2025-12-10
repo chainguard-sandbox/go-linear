@@ -340,12 +340,38 @@ func (t *GetComment_Comment) GetUser() *GetComment_Comment_User {
 	return t.User
 }
 
+type ListComments_Comments_Nodes_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListComments_Comments_Nodes_User) GetEmail() string {
+	if t == nil {
+		t = &ListComments_Comments_Nodes_User{}
+	}
+	return t.Email
+}
+func (t *ListComments_Comments_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListComments_Comments_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListComments_Comments_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListComments_Comments_Nodes_User{}
+	}
+	return t.Name
+}
+
 type ListComments_Comments_Nodes struct {
-	Body      string    "json:\"body\" graphql:\"body\""
-	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	ID        string    "json:\"id\" graphql:\"id\""
-	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL       string    "json:\"url\" graphql:\"url\""
+	Body      string                            "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                         "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                            "json:\"id\" graphql:\"id\""
+	UpdatedAt time.Time                         "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string                            "json:\"url\" graphql:\"url\""
+	User      *ListComments_Comments_Nodes_User "json:\"user,omitempty\" graphql:\"user\""
 }
 
 func (t *ListComments_Comments_Nodes) GetBody() string {
@@ -377,6 +403,12 @@ func (t *ListComments_Comments_Nodes) GetURL() string {
 		t = &ListComments_Comments_Nodes{}
 	}
 	return t.URL
+}
+func (t *ListComments_Comments_Nodes) GetUser() *ListComments_Comments_Nodes_User {
+	if t == nil {
+		t = &ListComments_Comments_Nodes{}
+	}
+	return t.User
 }
 
 type ListComments_Comments_PageInfo struct {
@@ -1135,18 +1167,59 @@ func (t *ListIssues_Issues_Nodes_Team) GetName() string {
 	return t.Name
 }
 
-type ListIssues_Issues_Nodes struct {
-	CreatedAt   time.Time                     "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string                       "json:\"description,omitempty\" graphql:\"description\""
-	ID          string                        "json:\"id\" graphql:\"id\""
-	Number      float64                       "json:\"number\" graphql:\"number\""
-	Priority    float64                       "json:\"priority\" graphql:\"priority\""
-	State       ListIssues_Issues_Nodes_State "json:\"state\" graphql:\"state\""
-	Team        ListIssues_Issues_Nodes_Team  "json:\"team\" graphql:\"team\""
-	Title       string                        "json:\"title\" graphql:\"title\""
-	URL         string                        "json:\"url\" graphql:\"url\""
+type ListIssues_Issues_Nodes_Assignee struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	Email       string "json:\"email\" graphql:\"email\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
 }
 
+func (t *ListIssues_Issues_Nodes_Assignee) GetDisplayName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Assignee{}
+	}
+	return t.DisplayName
+}
+func (t *ListIssues_Issues_Nodes_Assignee) GetEmail() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Assignee{}
+	}
+	return t.Email
+}
+func (t *ListIssues_Issues_Nodes_Assignee) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Assignee{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_Assignee) GetName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Assignee{}
+	}
+	return t.Name
+}
+
+type ListIssues_Issues_Nodes struct {
+	Assignee    *ListIssues_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	CreatedAt   time.Time                         "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                           "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                            "json:\"id\" graphql:\"id\""
+	Identifier  string                            "json:\"identifier\" graphql:\"identifier\""
+	Number      float64                           "json:\"number\" graphql:\"number\""
+	Priority    float64                           "json:\"priority\" graphql:\"priority\""
+	State       ListIssues_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
+	Team        ListIssues_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
+	Title       string                            "json:\"title\" graphql:\"title\""
+	UpdatedAt   time.Time                         "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string                            "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListIssues_Issues_Nodes) GetAssignee() *ListIssues_Issues_Nodes_Assignee {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Assignee
+}
 func (t *ListIssues_Issues_Nodes) GetCreatedAt() *time.Time {
 	if t == nil {
 		t = &ListIssues_Issues_Nodes{}
@@ -1164,6 +1237,12 @@ func (t *ListIssues_Issues_Nodes) GetID() string {
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return t.ID
+}
+func (t *ListIssues_Issues_Nodes) GetIdentifier() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Identifier
 }
 func (t *ListIssues_Issues_Nodes) GetNumber() float64 {
 	if t == nil {
@@ -1194,6 +1273,12 @@ func (t *ListIssues_Issues_Nodes) GetTitle() string {
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return t.Title
+}
+func (t *ListIssues_Issues_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return &t.UpdatedAt
 }
 func (t *ListIssues_Issues_Nodes) GetURL() string {
 	if t == nil {
@@ -2323,6 +2408,7 @@ type CreateIssue_IssueCreate_Issue struct {
 	CreatedAt   time.Time                           "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string                             "json:\"description,omitempty\" graphql:\"description\""
 	ID          string                              "json:\"id\" graphql:\"id\""
+	Identifier  string                              "json:\"identifier\" graphql:\"identifier\""
 	Number      float64                             "json:\"number\" graphql:\"number\""
 	Priority    float64                             "json:\"priority\" graphql:\"priority\""
 	State       CreateIssue_IssueCreate_Issue_State "json:\"state\" graphql:\"state\""
@@ -2348,6 +2434,12 @@ func (t *CreateIssue_IssueCreate_Issue) GetID() string {
 		t = &CreateIssue_IssueCreate_Issue{}
 	}
 	return t.ID
+}
+func (t *CreateIssue_IssueCreate_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.Identifier
 }
 func (t *CreateIssue_IssueCreate_Issue) GetNumber() float64 {
 	if t == nil {
@@ -2407,6 +2499,7 @@ func (t *CreateIssue_IssueCreate) GetSuccess() bool {
 type UpdateIssue_IssueUpdate_Issue struct {
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
 	ID          string    "json:\"id\" graphql:\"id\""
+	Identifier  string    "json:\"identifier\" graphql:\"identifier\""
 	Priority    float64   "json:\"priority\" graphql:\"priority\""
 	Title       string    "json:\"title\" graphql:\"title\""
 	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
@@ -2423,6 +2516,12 @@ func (t *UpdateIssue_IssueUpdate_Issue) GetID() string {
 		t = &UpdateIssue_IssueUpdate_Issue{}
 	}
 	return t.ID
+}
+func (t *UpdateIssue_IssueUpdate_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &UpdateIssue_IssueUpdate_Issue{}
+	}
+	return t.Identifier
 }
 func (t *UpdateIssue_IssueUpdate_Issue) GetPriority() float64 {
 	if t == nil {
@@ -3646,11 +3745,18 @@ func (t *SearchIssues_SearchIssues_Nodes_Team) GetName() string {
 }
 
 type SearchIssues_SearchIssues_Nodes_Assignee struct {
-	Email string "json:\"email\" graphql:\"email\""
-	ID    string "json:\"id\" graphql:\"id\""
-	Name  string "json:\"name\" graphql:\"name\""
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	Email       string "json:\"email\" graphql:\"email\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
 }
 
+func (t *SearchIssues_SearchIssues_Nodes_Assignee) GetDisplayName() string {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes_Assignee{}
+	}
+	return t.DisplayName
+}
 func (t *SearchIssues_SearchIssues_Nodes_Assignee) GetEmail() string {
 	if t == nil {
 		t = &SearchIssues_SearchIssues_Nodes_Assignee{}
@@ -3675,11 +3781,13 @@ type SearchIssues_SearchIssues_Nodes struct {
 	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
 	ID          string                                    "json:\"id\" graphql:\"id\""
+	Identifier  string                                    "json:\"identifier\" graphql:\"identifier\""
 	Number      float64                                   "json:\"number\" graphql:\"number\""
 	Priority    float64                                   "json:\"priority\" graphql:\"priority\""
 	State       SearchIssues_SearchIssues_Nodes_State     "json:\"state\" graphql:\"state\""
 	Team        SearchIssues_SearchIssues_Nodes_Team      "json:\"team\" graphql:\"team\""
 	Title       string                                    "json:\"title\" graphql:\"title\""
+	UpdatedAt   time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
 	URL         string                                    "json:\"url\" graphql:\"url\""
 }
 
@@ -3706,6 +3814,12 @@ func (t *SearchIssues_SearchIssues_Nodes) GetID() string {
 		t = &SearchIssues_SearchIssues_Nodes{}
 	}
 	return t.ID
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetIdentifier() string {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return t.Identifier
 }
 func (t *SearchIssues_SearchIssues_Nodes) GetNumber() float64 {
 	if t == nil {
@@ -3736,6 +3850,12 @@ func (t *SearchIssues_SearchIssues_Nodes) GetTitle() string {
 		t = &SearchIssues_SearchIssues_Nodes{}
 	}
 	return t.Title
+}
+func (t *SearchIssues_SearchIssues_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &SearchIssues_SearchIssues_Nodes{}
+	}
+	return &t.UpdatedAt
 }
 func (t *SearchIssues_SearchIssues_Nodes) GetURL() string {
 	if t == nil {
@@ -5276,6 +5396,11 @@ const ListCommentsDocument = `query ListComments ($first: Int, $after: String) {
 			createdAt
 			updatedAt
 			url
+			user {
+				id
+				name
+				email
+			}
 		}
 		pageInfo {
 			hasNextPage
@@ -5568,10 +5693,12 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 	issues(first: $first, after: $after) {
 		nodes {
 			id
+			identifier
 			title
 			description
 			priority
 			createdAt
+			updatedAt
 			number
 			url
 			state {
@@ -5582,6 +5709,12 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 				id
 				name
 				key
+			}
+			assignee {
+				id
+				name
+				displayName
+				email
 			}
 		}
 		pageInfo {
@@ -6233,6 +6366,7 @@ const CreateIssueDocument = `mutation CreateIssue ($input: IssueCreateInput!) {
 		success
 		issue {
 			id
+			identifier
 			title
 			description
 			priority
@@ -6275,6 +6409,7 @@ const UpdateIssueDocument = `mutation UpdateIssue ($id: String!, $input: IssueUp
 		success
 		issue {
 			id
+			identifier
 			title
 			description
 			priority
@@ -7020,11 +7155,13 @@ const SearchIssuesDocument = `query SearchIssues ($term: String!, $first: Int, $
 	searchIssues(term: $term, first: $first, after: $after, filter: $filter, includeArchived: $includeArchived) {
 		nodes {
 			id
+			identifier
 			title
 			description
 			priority
 			number
 			createdAt
+			updatedAt
 			url
 			state {
 				id
@@ -7038,6 +7175,7 @@ const SearchIssuesDocument = `query SearchIssues ($term: String!, $first: Int, $
 			assignee {
 				id
 				name
+				displayName
 				email
 			}
 		}

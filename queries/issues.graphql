@@ -31,10 +31,12 @@ query ListIssues($first: Int, $after: String) {
   issues(first: $first, after: $after) {
     nodes {
       id
+      identifier
       title
       description
       priority
       createdAt
+      updatedAt
       number
       url
       state {
@@ -45,6 +47,12 @@ query ListIssues($first: Int, $after: String) {
         id
         name
         key
+      }
+      assignee {
+        id
+        name
+        displayName
+        email
       }
     }
     pageInfo {

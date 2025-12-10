@@ -3,6 +3,7 @@ mutation CreateIssue($input: IssueCreateInput!) {
     success
     issue {
       id
+      identifier
       title
       description
       priority
@@ -27,6 +28,7 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
     success
     issue {
       id
+      identifier
       title
       description
       priority

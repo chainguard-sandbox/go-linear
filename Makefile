@@ -62,6 +62,28 @@ install: build  ## Install binary to $GOPATH/bin
 	@echo "✓ Installed to $(GOPATH)/bin/$(BINARY_NAME)"
 
 #
+# CLI tool targets
+#
+
+build-cli: $(BINDIR)/linear  ## Build the Linear CLI tool
+
+$(BINDIR)/linear: $(GOFILES)
+	@echo "Building Linear CLI..."
+	@mkdir -p $(BINDIR)
+	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ ./cmd/linear
+	@echo "✓ Built: $@"
+
+install-cli: build-cli  ## Install Linear CLI to $GOPATH/bin
+	@echo "Installing Linear CLI..."
+	@cp $(BINDIR)/linear $(GOPATH)/bin/linear
+	@echo "✓ Installed to $(GOPATH)/bin/linear"
+
+clean-cli:  ## Remove CLI binary
+	@echo "Cleaning CLI binary..."
+	@rm -f $(BINDIR)/linear
+	@echo "✓ Cleaned"
+
+#
 # Code generation
 #
 

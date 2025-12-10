@@ -2,11 +2,13 @@ query SearchIssues($term: String!, $first: Int, $after: String, $filter: IssueFi
   searchIssues(term: $term, first: $first, after: $after, filter: $filter, includeArchived: $includeArchived) {
     nodes {
       id
+      identifier
       title
       description
       priority
       number
       createdAt
+      updatedAt
       url
       state {
         id
@@ -20,6 +22,7 @@ query SearchIssues($term: String!, $first: Int, $after: String, $filter: IssueFi
       assignee {
         id
         name
+        displayName
         email
       }
     }
