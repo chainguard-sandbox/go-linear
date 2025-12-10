@@ -60,12 +60,12 @@ func main() {
 	fmt.Println()
 
 	// Step 2: Update the comment
-	newBody := fmt.Sprintf("%s\n\n---\n*Updated at %s by go-linear SDK*",
+	updatedBody := fmt.Sprintf("%s\n\n---\n*Updated at %s by go-linear SDK*",
 		comment.Body,
 		time.Now().Format(time.RFC3339))
 
 	updated, err := client.CommentUpdate(ctx, comment.ID, linear.CommentUpdateInput{
-		Body: &newBody,
+		Body: &updatedBody,
 	})
 	if err != nil {
 		log.Fatalf("Failed to update comment: %v", err)

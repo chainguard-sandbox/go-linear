@@ -108,9 +108,9 @@ func main() {
 
 	// Step 5: Update milestone target date
 	fmt.Printf("Updating '%s' target date...\n", milestone1.Name)
-	newDate := "2025-04-15"
+	updatedTargetDate := "2025-04-15"
 	updated, err := client.ProjectMilestoneUpdate(ctx, milestone1.ID, intgraphql.ProjectMilestoneUpdateInput{
-		TargetDate: &newDate,
+		TargetDate: &updatedTargetDate,
 	})
 	if err != nil {
 		log.Fatalf("Failed to update milestone: %v", err)

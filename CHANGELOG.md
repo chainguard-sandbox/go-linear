@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Improved variable naming in examples and documentation for clarity and consistency following Go best practices:
+  - Variables with `new*` prefix (e.g., `newTitle`, `newName`) renamed to more descriptive names using `updated*` prefix (e.g., `updatedTitle`, `updatedName`) or context-specific names (e.g., `updatedTargetDate`)
+  - `unassign` renamed to `emptyAssignee` to clarify its purpose
+  - `added` renamed to `labelIDsToAdd` to be more explicit
+
+  **Affected files:**
+  - Documentation examples in `pkg/linear/client.go`
+  - Example programs in `examples/tasks/`
+  - Test files in `pkg/linear/`
+
+  **Note**: This is a documentation-only change. If you copied code from examples, update variable names to match the new patterns. The API itself is unchanged.
+
 ## [1.0.0] - 2025-12-10
 
 ### Overview

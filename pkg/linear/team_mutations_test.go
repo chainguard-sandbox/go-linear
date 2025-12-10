@@ -42,9 +42,9 @@ func TestClient_TeamUpdate(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":{"teamUpdate":{"success":true,"team":{"id":"team-123","name":"Updated Team","key":"UPD","description":"Updated","updatedAt":"2024-01-02T00:00:00.000Z"}}}}`))
 	})
 
-	newName := "Updated Team"
+	updatedName := "Updated Team"
 	_, err := client.TeamUpdate(context.Background(), "team-123", intgraphql.TeamUpdateInput{
-		Name: &newName,
+		Name: &updatedName,
 	})
 
 	if err != nil {

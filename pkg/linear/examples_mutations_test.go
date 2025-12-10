@@ -42,12 +42,12 @@ func ExampleClient_IssueCreate() {
 func ExampleClient_IssueUpdate_content() {
 	client, _ := linear.NewClient("lin_api_xxx")
 
-	newTitle := "Updated: Fix critical login bug"
-	newDesc := "Added reproduction steps"
+	updatedTitle := "Updated: Fix critical login bug"
+	updatedDesc := "Added reproduction steps"
 
 	_, err := client.IssueUpdate(context.Background(), "issue-uuid", linear.IssueUpdateInput{
-		Title:       &newTitle,
-		Description: &newDesc,
+		Title:       &updatedTitle,
+		Description: &updatedDesc,
 	})
 
 	if err != nil {
@@ -104,9 +104,9 @@ func ExampleClient_IssueUpdate_assignee() {
 	}
 
 	// Unassign (empty string)
-	unassign := ""
+	emptyAssignee := ""
 	_, err = client.IssueUpdate(ctx, "issue-uuid", linear.IssueUpdateInput{
-		AssigneeID: &unassign,
+		AssigneeID: &emptyAssignee,
 	})
 
 	if err != nil {
@@ -155,9 +155,9 @@ func ExampleClient_IssueUpdate_labels() {
 	}
 
 	// Add label
-	added := []string{bugLabelID}
+	labelIDsToAdd := []string{bugLabelID}
 	_, err := client.IssueUpdate(ctx, "issue-uuid", linear.IssueUpdateInput{
-		AddedLabelIds: added,
+		AddedLabelIds: labelIDsToAdd,
 	})
 
 	if err != nil {
