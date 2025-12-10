@@ -835,9 +835,9 @@ See [SECURITY.md](SECURITY.md) for our vulnerability disclosure policy.
 
 ## Status
 
-**Pre-1.0:** API may change. Production-ready for use, but breaking changes possible until v1.0.0.
+**v1.0.0 Stable**: Production-ready with semantic versioning. API is stable and breaking changes will be avoided.
 
-**Current Features:**
+**Features:**
 - ✅ Type-safe GraphQL operations
 - ✅ Automatic retry with exponential backoff
 - ✅ Rate limit detection and handling
