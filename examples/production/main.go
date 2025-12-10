@@ -14,6 +14,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -124,10 +125,16 @@ func listIssuesWithIterator(ctx context.Context, client *linear.Client) error {
 	iter := linear.NewIssueIterator(client, 50)
 	count := 0
 
-	for iter.Next(ctx) {
-		issue := iter.Issue()
-		count++
+	for {
+		issue, err := iter.Next(ctx)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("iteration failed: %w", err)
+		}
 
+		count++
 		slog.Debug("issue retrieved",
 			"id", issue.ID,
 			"title", issue.Title,
@@ -139,10 +146,6 @@ func listIssuesWithIterator(ctx context.Context, client *linear.Client) error {
 		if count >= 10 {
 			break
 		}
-	}
-
-	if err := iter.Err(); err != nil {
-		return fmt.Errorf("iteration failed: %w", err)
 	}
 
 	slog.Info("issues retrieved", "count", count)

@@ -2,7 +2,9 @@ package linear_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/eslerm/go-linear/pkg/linear"
@@ -224,8 +226,14 @@ func ExampleNewIssueIterator_conditionalUpdate() {
 
 	// Bulk operation: Assign all unassigned in-progress issues to me
 	iter := linear.NewIssueIterator(client, 50)
-	for iter.Next(ctx) {
-		issue := iter.Issue()
+	for {
+		issue, err := iter.Next(ctx)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// Condition: in-progress and unassigned
 		if issue.State.Name == "Todo" {
@@ -236,10 +244,6 @@ func ExampleNewIssueIterator_conditionalUpdate() {
 				log.Printf("Update failed: %v", err)
 			}
 		}
-	}
-
-	if err := iter.Err(); err != nil {
-		log.Fatal(err)
 	}
 }
 

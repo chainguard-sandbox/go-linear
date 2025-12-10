@@ -73,16 +73,19 @@ if issues.PageInfo.HasNextPage {
 **Automatic pagination with iterator:**
 ```go
 iter := linear.NewIssueIterator(client, 100)
-for iter.Next(ctx) {
-    issue := iter.Issue()
+for {
+    issue, err := iter.Next(ctx)
+    if errors.Is(err, io.EOF) {
+        break
+    }
+    if err != nil {
+        return err
+    }
     fmt.Printf("%s: %s\n", issue.ID, issue.Title)
-}
-if err := iter.Err(); err != nil {
-    return err
 }
 ```
 
-**Note:** Iterators are NOT safe for concurrent use. Create separate iterators per goroutine.
+**Thread Safety:** Iterators NOT safe for concurrent use. Create separate iterators per goroutine.
 
 ### Create Issue
 
@@ -261,21 +264,30 @@ iter := linear.NewCommentIterator(client, pageSize)
 
 **Pattern:**
 ```go
-for iter.Next(ctx) {
-    item := iter.Issue() // or iter.Team(), iter.Project(), iter.Comment()
+for {
+    item, err := iter.Next(ctx)
+    if errors.Is(err, io.EOF) {
+        break  // Done
+    }
+    if err != nil {
+        return err
+    }
     // Process item
-}
-if err := iter.Err(); err != nil {
-    return err
 }
 ```
 
-**Thread Safety:** Iterators are NOT safe for concurrent use. Create separate iterators per goroutine:
+**Thread Safety:** Iterators NOT safe for concurrent use. Create separate iterators:
 ```go
+// Create separate iterator per goroutine
 for i := 0; i < 10; i++ {
     go func() {
-        iter := linear.NewIssueIterator(client, 50)  // Separate iterator
-        for iter.Next(ctx) { /* process */ }
+        iter := linear.NewIssueIterator(client, 50)  // Separate
+        for {
+            issue, err := iter.Next(ctx)
+            if errors.Is(err, io.EOF) { return }
+            if err != nil { return }
+            process(issue)
+        }
     }()
 }
 ```

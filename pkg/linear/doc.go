@@ -55,12 +55,15 @@
 // Or use iterators for automatic pagination:
 //
 //	iter := NewIssueIterator(client, 100)
-//	for iter.Next(ctx) {
-//	    issue := iter.Issue()
+//	for {
+//	    issue, err := iter.Next(ctx)
+//	    if errors.Is(err, io.EOF) {
+//	        break
+//	    }
+//	    if err != nil {
+//	        log.Fatal(err)
+//	    }
 //	    fmt.Println(issue.Title)
-//	}
-//	if err := iter.Err(); err != nil {
-//	    log.Fatal(err)
 //	}
 //
 // # Mutations

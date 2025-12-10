@@ -2,7 +2,9 @@ package linear_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/eslerm/go-linear/pkg/linear"
@@ -55,12 +57,14 @@ func ExampleNewIssueIterator() {
 
 	// Automatically iterate through all issues
 	iter := linear.NewIssueIterator(client, 50)
-	for iter.Next(context.Background()) {
-		issue := iter.Issue()
+	for {
+		issue, err := iter.Next(context.Background())
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Printf("Issue: %s\n", issue.Title)
-	}
-
-	if err := iter.Err(); err != nil {
-		log.Fatal(err)
 	}
 }

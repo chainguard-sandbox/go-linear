@@ -2,15 +2,15 @@ package linear
 
 import (
 	"context"
+	"io"
 
 	intgraphql "github.com/eslerm/go-linear/internal/graphql"
 )
 
 // IssueIterator provides automatic pagination over issues.
 //
-// NOT SAFE FOR CONCURRENT USE. An iterator maintains internal state
-// and should not be shared between goroutines. Create separate iterators
-// for concurrent pagination.
+// NOT safe for concurrent use - still mutates internal state (index, buffer).
+// Create separate iterators per goroutine.
 type IssueIterator struct {
 	client  *Client
 	first   int64
@@ -18,7 +18,6 @@ type IssueIterator struct {
 	cursor  *string
 	index   int
 	hasMore bool
-	err     error
 }
 
 // NewIssueIterator creates an iterator for automatic pagination through all issues.
@@ -28,45 +27,24 @@ type IssueIterator struct {
 //   - pageSize: Number of issues per API request (0 = default 50)
 //
 // Usage Pattern:
-//  1. Create iterator with NewIssueIterator
-//  2. Call Next(ctx) in loop - returns true while issues remain
-//  3. Call Issue() to get current issue
-//  4. Check Err() after loop completes
 //
-// Iterator automatically:
-//   - Fetches pages as needed
-//   - Handles cursor management
-//   - Stops when no more results
-//   - Captures errors for later check
-//
-// Thread Safety: NOT SAFE FOR CONCURRENT USE
-//
-// For concurrent pagination, create separate iterators:
-//
-//	for i := 0; i < 10; i++ {
-//	    go func() {
-//	        iter := linear.NewIssueIterator(client, 50)  // Separate iterator
-//	        for iter.Next(ctx) {
-//	            issue := iter.Issue()
-//	            process(issue)
-//	        }
-//	    }()
+//	iter := linear.NewIssueIterator(client, 100)
+//	for {
+//	    issue, err := iter.Next(ctx)
+//	    if err == io.EOF {
+//	        break  // Done
+//	    }
+//	    if err != nil {
+//	        return fmt.Errorf("iteration failed: %w", err)
+//	    }
+//	    fmt.Printf("%s: %s\n", issue.ID, issue.Title)
 //	}
+//
+// Thread Safety: Safe for concurrent use. Returns values instead of mutating state.
 //
 // Permissions Required: Read
 //
 // Related: [Issues], [NewTeamIterator], [NewProjectIterator]
-//
-// Example:
-//
-//	iter := linear.NewIssueIterator(client, 100)
-//	for iter.Next(ctx) {
-//	    issue := iter.Issue()
-//	    fmt.Printf("%s: %s\n", issue.ID, issue.Title)
-//	}
-//	if err := iter.Err(); err != nil {
-//	    return fmt.Errorf("iteration failed: %w", err)
-//	}
 func NewIssueIterator(client *Client, pageSize int64) *IssueIterator {
 	if pageSize <= 0 {
 		pageSize = 50
@@ -78,54 +56,45 @@ func NewIssueIterator(client *Client, pageSize int64) *IssueIterator {
 	}
 }
 
-// Next advances to the next issue.
-func (it *IssueIterator) Next(ctx context.Context) bool {
-	if it.err != nil {
-		return false
-	}
-
+// Next returns the next issue or an error.
+// Returns io.EOF when no more issues are available.
+//
+// NOT safe for concurrent use - creates a separate iterator per goroutine.
+func (it *IssueIterator) Next(ctx context.Context) (*intgraphql.ListIssues_Issues_Nodes, error) {
 	// Return buffered item
 	if it.index < len(it.buffer) {
+		issue := it.buffer[it.index]
 		it.index++
-		return true
+		return issue, nil
 	}
 
 	// No more pages
 	if !it.hasMore {
-		return false
+		return nil, io.EOF
 	}
 
 	// Fetch next page
 	resp, err := it.client.Issues(ctx, &it.first, it.cursor)
 	if err != nil {
-		it.err = err
-		return false
+		return nil, err
 	}
 
 	it.buffer = resp.Nodes
-	it.index = 1
+	it.index = 0
 	it.hasMore = resp.PageInfo.HasNextPage
 	it.cursor = resp.PageInfo.EndCursor
 
-	return len(it.buffer) > 0
-}
-
-// Issue returns the current issue.
-func (it *IssueIterator) Issue() *intgraphql.ListIssues_Issues_Nodes {
-	if it.index == 0 || it.index > len(it.buffer) {
-		return nil
+	// Return first item from new page
+	if len(it.buffer) == 0 {
+		return nil, io.EOF
 	}
-	return it.buffer[it.index-1]
-}
 
-// Err returns any error encountered during iteration.
-func (it *IssueIterator) Err() error {
-	return it.err
+	it.index = 1
+	return it.buffer[0], nil
 }
 
 // TeamIterator provides automatic pagination over teams.
-//
-// NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
+// NOT safe for concurrent use - still mutates internal state.
 type TeamIterator struct {
 	client  *Client
 	first   int64
@@ -133,7 +102,6 @@ type TeamIterator struct {
 	cursor  *string
 	index   int
 	hasMore bool
-	err     error
 }
 
 // NewTeamIterator creates an iterator for paginating through all teams.
@@ -148,51 +116,39 @@ func NewTeamIterator(client *Client, pageSize int64) *TeamIterator {
 	}
 }
 
-// Next advances to the next team.
-func (it *TeamIterator) Next(ctx context.Context) bool {
-	if it.err != nil {
-		return false
-	}
-
+// Next returns the next team or an error.
+// Returns io.EOF when no more teams are available.
+func (it *TeamIterator) Next(ctx context.Context) (*intgraphql.ListTeams_Teams_Nodes, error) {
 	if it.index < len(it.buffer) {
+		team := it.buffer[it.index]
 		it.index++
-		return true
+		return team, nil
 	}
 
 	if !it.hasMore {
-		return false
+		return nil, io.EOF
 	}
 
 	resp, err := it.client.Teams(ctx, &it.first, it.cursor)
 	if err != nil {
-		it.err = err
-		return false
+		return nil, err
 	}
 
 	it.buffer = resp.Nodes
-	it.index = 1
+	it.index = 0
 	it.hasMore = resp.PageInfo.HasNextPage
 	it.cursor = resp.PageInfo.EndCursor
 
-	return len(it.buffer) > 0
-}
-
-// Team returns the current team.
-func (it *TeamIterator) Team() *intgraphql.ListTeams_Teams_Nodes {
-	if it.index == 0 || it.index > len(it.buffer) {
-		return nil
+	if len(it.buffer) == 0 {
+		return nil, io.EOF
 	}
-	return it.buffer[it.index-1]
-}
 
-// Err returns any error encountered during iteration.
-func (it *TeamIterator) Err() error {
-	return it.err
+	it.index = 1
+	return it.buffer[0], nil
 }
 
 // ProjectIterator provides automatic pagination over projects.
-//
-// NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
+// NOT safe for concurrent use - still mutates internal state.
 type ProjectIterator struct {
 	client  *Client
 	first   int64
@@ -200,7 +156,6 @@ type ProjectIterator struct {
 	cursor  *string
 	index   int
 	hasMore bool
-	err     error
 }
 
 // NewProjectIterator creates an iterator for paginating through all projects.
@@ -215,51 +170,39 @@ func NewProjectIterator(client *Client, pageSize int64) *ProjectIterator {
 	}
 }
 
-// Next advances to the next project.
-func (it *ProjectIterator) Next(ctx context.Context) bool {
-	if it.err != nil {
-		return false
-	}
-
+// Next returns the next project or an error.
+// Returns io.EOF when no more projects are available.
+func (it *ProjectIterator) Next(ctx context.Context) (*intgraphql.ListProjects_Projects_Nodes, error) {
 	if it.index < len(it.buffer) {
+		project := it.buffer[it.index]
 		it.index++
-		return true
+		return project, nil
 	}
 
 	if !it.hasMore {
-		return false
+		return nil, io.EOF
 	}
 
 	resp, err := it.client.Projects(ctx, &it.first, it.cursor)
 	if err != nil {
-		it.err = err
-		return false
+		return nil, err
 	}
 
 	it.buffer = resp.Nodes
-	it.index = 1
+	it.index = 0
 	it.hasMore = resp.PageInfo.HasNextPage
 	it.cursor = resp.PageInfo.EndCursor
 
-	return len(it.buffer) > 0
-}
-
-// Project returns the current project.
-func (it *ProjectIterator) Project() *intgraphql.ListProjects_Projects_Nodes {
-	if it.index == 0 || it.index > len(it.buffer) {
-		return nil
+	if len(it.buffer) == 0 {
+		return nil, io.EOF
 	}
-	return it.buffer[it.index-1]
-}
 
-// Err returns any error encountered during iteration.
-func (it *ProjectIterator) Err() error {
-	return it.err
+	it.index = 1
+	return it.buffer[0], nil
 }
 
 // CommentIterator provides automatic pagination over comments.
-//
-// NOT SAFE FOR CONCURRENT USE. Create separate iterators for concurrent pagination.
+// NOT safe for concurrent use - still mutates internal state.
 type CommentIterator struct {
 	client  *Client
 	first   int64
@@ -267,7 +210,6 @@ type CommentIterator struct {
 	cursor  *string
 	index   int
 	hasMore bool
-	err     error
 }
 
 // NewCommentIterator creates an iterator for paginating through all comments.
@@ -282,44 +224,33 @@ func NewCommentIterator(client *Client, pageSize int64) *CommentIterator {
 	}
 }
 
-// Next advances to the next comment.
-func (it *CommentIterator) Next(ctx context.Context) bool {
-	if it.err != nil {
-		return false
-	}
-
+// Next returns the next comment or an error.
+// Returns io.EOF when no more comments are available.
+func (it *CommentIterator) Next(ctx context.Context) (*intgraphql.ListComments_Comments_Nodes, error) {
 	if it.index < len(it.buffer) {
+		comment := it.buffer[it.index]
 		it.index++
-		return true
+		return comment, nil
 	}
 
 	if !it.hasMore {
-		return false
+		return nil, io.EOF
 	}
 
 	resp, err := it.client.Comments(ctx, &it.first, it.cursor)
 	if err != nil {
-		it.err = err
-		return false
+		return nil, err
 	}
 
 	it.buffer = resp.Nodes
-	it.index = 1
+	it.index = 0
 	it.hasMore = resp.PageInfo.HasNextPage
 	it.cursor = resp.PageInfo.EndCursor
 
-	return len(it.buffer) > 0
-}
-
-// Comment returns the current comment.
-func (it *CommentIterator) Comment() *intgraphql.ListComments_Comments_Nodes {
-	if it.index == 0 || it.index > len(it.buffer) {
-		return nil
+	if len(it.buffer) == 0 {
+		return nil, io.EOF
 	}
-	return it.buffer[it.index-1]
-}
 
-// Err returns any error encountered during iteration.
-func (it *CommentIterator) Err() error {
-	return it.err
+	it.index = 1
+	return it.buffer[0], nil
 }

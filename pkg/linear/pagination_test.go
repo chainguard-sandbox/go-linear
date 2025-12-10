@@ -2,6 +2,8 @@ package linear
 
 import (
 	"context"
+	"errors"
+	"io"
 	"net/http"
 	"sync/atomic"
 	"testing"
@@ -27,15 +29,15 @@ func TestIssueIterator(t *testing.T) {
 	iter := NewIssueIterator(client, 2)
 	var issues []string
 
-	for iter.Next(context.Background()) {
-		issue := iter.Issue()
-		if issue != nil {
-			issues = append(issues, issue.Title)
+	for {
+		issue, err := iter.Next(context.Background())
+		if errors.Is(err, io.EOF) {
+			break
 		}
-	}
-
-	if err := iter.Err(); err != nil {
-		t.Fatalf("iterator error: %v", err)
+		if err != nil {
+			t.Fatalf("iterator error: %v", err)
+		}
+		issues = append(issues, issue.Title)
 	}
 
 	if len(issues) != 3 {
