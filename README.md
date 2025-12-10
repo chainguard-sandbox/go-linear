@@ -1,6 +1,6 @@
 # go-linear
 
-**Type-safe Go client for the Linear API.** Production-ready with automatic retry, rate limiting, Prometheus metrics, and comprehensive observability.
+**Type-safe Go client for the Linear API.** Production-ready with automatic retry, rate limiting, per-operation Prometheus metrics, and multi-tenancy support.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/eslerm/go-linear.svg)](https://pkg.go.dev/github.com/eslerm/go-linear)
 [![Go Report Card](https://goreportcard.com/badge/github.com/eslerm/go-linear)](https://goreportcard.com/report/github.com/eslerm/go-linear)
@@ -81,6 +81,8 @@ if err := iter.Err(); err != nil {
     return err
 }
 ```
+
+**Note:** Iterators are NOT safe for concurrent use. Create separate iterators per goroutine.
 
 ### Create Issue
 
@@ -268,6 +270,16 @@ if err := iter.Err(); err != nil {
 }
 ```
 
+**Thread Safety:** Iterators are NOT safe for concurrent use. Create separate iterators per goroutine:
+```go
+for i := 0; i < 10; i++ {
+    go func() {
+        iter := linear.NewIssueIterator(client, 50)  // Separate iterator
+        for iter.Next(ctx) { /* process */ }
+    }()
+}
+```
+
 ---
 
 ## Error Handling
@@ -276,7 +288,7 @@ if err := iter.Err(); err != nil {
 
 ### Error Types
 
-Use `errors.As()` to check specific error types:
+Use `errors.As()` to check specific error types. Error chains are preserved:
 
 ```go
 var rateLimitErr *linear.RateLimitError
@@ -299,14 +311,24 @@ if errors.As(err, &forbiddenErr) {
     // Missing permission (check API key scopes)
     return fmt.Errorf("permission denied: %w", err)
 }
+
+// Check underlying gqlgenc errors
+var linearErr *linear.LinearError
+if errors.As(err, &linearErr) {
+    // Access wrapped error
+    underlying := linearErr.Unwrap()
+    // Can check underlying error types via errors.Is()
+}
 ```
 
 ### Available Error Types
 
-- `LinearError` - Base error with status code, trace ID
+- `LinearError` - Base error with status code, trace ID, wrapped error chain
 - `RateLimitError` - Rate limit hit (requests + complexity limits)
 - `AuthenticationError` - Invalid/expired API key (401)
 - `ForbiddenError` - Missing permission (403)
+
+**Error Chain Preservation:** All errors implement `Unwrap()` for proper `errors.As()` and `errors.Is()` support.
 
 ---
 
@@ -355,8 +377,7 @@ if errors.As(err, &forbiddenErr) {
 
 ### Prometheus Metrics
 
-Enable Prometheus metrics for production monitoring:
-
+**Single Client (Shared Metrics):**
 ```go
 linear.EnableMetrics()
 
@@ -370,12 +391,31 @@ http.Handle("/metrics", promhttp.Handler())
 http.ListenAndServe(":2112", nil)
 ```
 
-**Metrics collected:**
-- `linear_requests_total{operation, status_code}` - Request counts
-- `linear_request_duration_seconds{operation}` - Request latency histogram
-- `linear_errors_total{operation, error_type}` - Error counts by type
+**Multi-Client (Isolated Metrics per Workspace):**
+```go
+// Production workspace
+prodReg := prometheus.NewRegistry()
+prodClient, _ := linear.NewClient(prodKey,
+    linear.WithMetricsRegistry(prodReg, "prod"))
+
+// Staging workspace
+stageReg := prometheus.NewRegistry()
+stageClient, _ := linear.NewClient(stageKey,
+    linear.WithMetricsRegistry(stageReg, "staging"))
+
+// Metrics are isolated:
+// - linear_prod_requests_total{operation="IssueCreate"}
+// - linear_staging_requests_total{operation="IssueCreate"}
+```
+
+**Metrics collected (per-operation visibility):**
+- `linear_requests_total{operation, status_code}` - Request counts by operation (Viewer, IssueCreate, ListIssues)
+- `linear_request_duration_seconds{operation}` - Request latency histogram per operation
+- `linear_errors_total{operation, error_type}` - Error counts by operation and type
 - `linear_retries_total{reason}` - Retry counts (rate_limited, server_error, network_error)
 - `linear_rate_limit_remaining{limit_type}` - Rate limit capacity (requests, complexity)
+
+**Operation names extracted automatically** from GraphQL requests. No more generic "graphql" label - you can see which specific operations are slow or failing.
 
 **See:** [examples/prometheus/main.go](examples/prometheus/main.go) for complete integration
 
@@ -455,7 +495,14 @@ type IssueUpdateInput struct {
 }
 ```
 
-**See:** `pkg/linear/types.go` for all input types with documentation
+**All mutation input types exported:**
+- Issue: `IssueCreateInput`, `IssueUpdateInput`
+- Comment: `CommentCreateInput`, `CommentUpdateInput`
+- Label: `IssueLabelCreateInput`, `IssueLabelUpdateInput`
+- Team: `TeamCreateInput`, `TeamUpdateInput`
+- Project: `ProjectCreateInput`, `ProjectUpdateInput`
+
+**See:** `pkg/linear/types.go` for complete documentation with field descriptions
 
 ---
 
@@ -608,13 +655,16 @@ MIT - See [LICENSE](LICENSE) for details
 - ✅ Rate limit detection and handling
 - ✅ Bounded retry time (prevents request hangs)
 - ✅ Structured logging (slog) with request_id correlation
-- ✅ Prometheus metrics (RED + rate limits)
+- ✅ **Per-operation Prometheus metrics** (IssueCreate, TeamUpdate, etc.)
+- ✅ **Multi-tenancy support** (instance-scoped metrics)
+- ✅ **Error chain preservation** (errors.As/Unwrap works)
 - ✅ Context support (timeout/cancellation)
 - ✅ Comprehensive API coverage (Issues, Teams, Projects, etc.)
-- ✅ Automatic pagination iterators
+- ✅ Automatic pagination iterators (thread-safety documented)
 - ✅ Production-ready error handling with operation context
+- ✅ **All mutation input types exported** (Team, Project, etc.)
 - ✅ TLS configuration
 - ✅ Operational documentation (runbook + monitoring guide)
-- ✅ 56%+ test coverage (mock + live tests)
+- ✅ 60%+ test coverage (mock + live tests)
 
 **Upstream Sync:** Schema automatically synced from [Linear TypeScript SDK](https://github.com/linear/linear)
