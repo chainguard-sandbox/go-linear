@@ -30,6 +30,36 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all templates",
+		Long: `List issue templates from Linear.
+
+Use this to:
+- Browse available issue templates for your workspace
+- Find templates for creating standardized issues
+- Discover template names for programmatic issue creation
+
+Issue templates provide pre-filled values for common issue types (bugs, features, etc).
+
+Output (--output=json):
+  Returns array of templates (note: not paginated)
+
+  Each template contains:
+  - id: Template UUID
+  - name: Template name
+  - description: Template description
+  - templateData: Pre-filled issue fields
+
+Examples:
+  # List all templates
+  linear template list
+
+  # JSON output for parsing
+  linear template list --output=json
+
+TIP: Use templates when creating issues to ensure consistent formatting
+
+Related Commands:
+  - linear template get - Get full template details
+  - linear issue create - Create issue (can reference templates)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -68,7 +98,30 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single template by ID",
-		Args:  cobra.ExactArgs(1),
+		Long: `Get detailed information about a specific issue template.
+
+Retrieve full template details including pre-filled values and structure.
+Use this to understand template configuration or prepare for issue creation.
+
+Parameters:
+  <id>: Template UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, description, templateData
+
+Examples:
+  # Get template by UUID
+  linear template get <template-uuid>
+
+  # Get with JSON output
+  linear template get <template-uuid> --output=json
+
+TIP: Use 'linear template list' to discover template IDs
+
+Related Commands:
+  - linear template list - List all templates
+  - linear issue create - Create issue using template`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

@@ -13,7 +13,30 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single initiative by ID",
-		Args:  cobra.ExactArgs(1),
+		Long: `Get detailed information about a specific strategic initiative.
+
+Retrieve full initiative details including name, description, target dates, and progress.
+Use this to track high-level strategic goals and their status.
+
+Parameters:
+  <id>: Initiative UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, description, targetDate, status
+
+Examples:
+  # Get initiative by UUID
+  linear initiative get <initiative-uuid>
+
+  # Get with JSON output
+  linear initiative get <initiative-uuid> --output=json
+
+TIP: Use 'linear initiative list' to discover initiative IDs
+
+Related Commands:
+  - linear initiative list - List all initiatives
+  - linear project list - List projects within initiatives`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

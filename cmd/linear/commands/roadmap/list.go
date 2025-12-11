@@ -15,11 +15,39 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all roadmaps",
-		Long: `List all roadmaps in the Linear workspace.
+		Long: `List roadmaps from Linear.
+
+Use this to:
+- Browse product roadmaps and planning timelines
+- Track milestone planning across teams
+- Discover roadmaps for strategic planning
+
+Roadmaps provide visual timeline views of project progress and planned features.
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of roadmaps
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each roadmap contains:
+  - id: Roadmap UUID
+  - name: Roadmap name
+  - description: Roadmap description
+  - createdAt: Creation timestamp
 
 Examples:
+  # List all roadmaps
   linear roadmap list
-  linear roadmap list --output=json`,
+
+  # List with limit
+  linear roadmap list --limit=10
+
+  # JSON output for parsing
+  linear roadmap list --output=json
+
+Related Commands:
+  - linear roadmap get - Get single roadmap details
+  - linear project list - List projects (roadmaps organize projects)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

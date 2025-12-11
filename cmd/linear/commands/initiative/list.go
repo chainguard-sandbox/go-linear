@@ -13,6 +13,39 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all initiatives",
+		Long: `List strategic initiatives from Linear.
+
+Use this to:
+- Browse company-wide strategic initiatives
+- Track high-level goals and objectives
+- Discover initiatives for organizational planning
+
+Initiatives represent large strategic efforts that span multiple projects and teams.
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of initiatives
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each initiative contains:
+  - id: Initiative UUID
+  - name: Initiative name
+  - description: Initiative description
+  - targetDate: Target completion date
+
+Examples:
+  # List all initiatives
+  linear initiative list
+
+  # List with limit
+  linear initiative list --limit=10
+
+  # JSON output for parsing
+  linear initiative list --output=json
+
+Related Commands:
+  - linear initiative get - Get single initiative details
+  - linear project list - List projects (initiatives contain projects)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

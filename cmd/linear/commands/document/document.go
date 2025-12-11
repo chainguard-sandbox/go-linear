@@ -31,6 +31,36 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all documents",
+		Long: `List knowledge base documents from Linear.
+
+Use this to:
+- Browse available documentation and guides
+- Find reference materials for your team
+- Discover documents by title for linking
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of documents
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each document contains:
+  - id: Document UUID
+  - title: Document title
+  - content: Markdown content
+  - createdAt: Creation timestamp
+
+Examples:
+  # List all documents
+  linear document list
+
+  # List with limit
+  linear document list --limit=20
+
+  # JSON output for programmatic access
+  linear document list --output=json
+
+Related Commands:
+  - linear document get - Get full document details including content`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -71,7 +101,29 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single document by ID",
-		Args:  cobra.ExactArgs(1),
+		Long: `Get detailed information about a specific knowledge base document.
+
+Retrieve full document details including title, content (markdown), and metadata.
+Use this to access documentation, guides, or reference materials.
+
+Parameters:
+  <id>: Document UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, title, content, createdAt, updatedAt
+
+Examples:
+  # Get document by UUID
+  linear document get <document-uuid>
+
+  # Get with JSON output for parsing
+  linear document get <document-uuid> --output=json
+
+TIP: Use 'linear document list' to discover document IDs
+
+Related Commands:
+  - linear document list - List all documents`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
