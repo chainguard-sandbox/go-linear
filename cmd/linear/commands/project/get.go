@@ -17,9 +17,26 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single project by ID",
 		Long: `Get detailed information about a specific project.
 
+Retrieve full project details including description, state, progress, milestones, and team information.
+
+Parameters:
+  <id>: Project UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, description, state, progress, lead, milestones, createdAt
+
 Examples:
+  # Get project by UUID
   linear project get <uuid>
-  linear project get <uuid> --output=json`,
+
+  # Get with JSON output (includes milestones)
+  linear project get <uuid> --output=json
+
+TIP: Use 'linear project list' to discover project IDs
+
+Related Commands:
+  - linear project list - List all projects
+  - linear project milestone-create - Add milestone to project`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

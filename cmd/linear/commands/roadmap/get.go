@@ -17,9 +17,26 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single roadmap by ID",
 		Long: `Get detailed information about a specific roadmap.
 
+Retrieve full roadmap details including name, description, and timeline configuration.
+
+Parameters:
+  <id>: Roadmap UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, description, createdAt
+
 Examples:
+  # Get roadmap by UUID
   linear roadmap get <uuid>
-  linear roadmap get <uuid> --output=json`,
+
+  # Get with JSON output
+  linear roadmap get <uuid> --output=json
+
+TIP: Use 'linear roadmap list' to discover roadmap IDs
+
+Related Commands:
+  - linear roadmap list - List all roadmaps
+  - linear project list - List projects shown in roadmaps`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -15,11 +15,28 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single cycle by ID",
-		Long: `Get detailed information about a specific cycle.
+		Long: `Get detailed information about a specific development cycle (sprint).
+
+Retrieve full cycle details including name, number, date range, and team information.
+
+Parameters:
+  <id>: Cycle UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, number, startsAt, endsAt, team
 
 Examples:
+  # Get cycle by UUID
   linear cycle get <uuid>
-  linear cycle get <uuid> --output=json`,
+
+  # Get with JSON output
+  linear cycle get <uuid> --output=json
+
+TIP: Use 'linear cycle list' to discover cycle IDs
+
+Related Commands:
+  - linear cycle list - List all cycles
+  - linear cycle update - Modify cycle details`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

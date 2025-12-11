@@ -17,9 +17,37 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all projects",
 		Long: `List all projects in the Linear workspace.
 
+Use this to browse active projects, discover project names for milestones, or track project progress.
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of projects
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each project contains:
+  - id: Project UUID
+  - name: Project name
+  - description: Project description
+  - state: Project state (planned, started, completed, etc.)
+  - progress: Completion percentage (0-100)
+  - lead: Project lead user reference
+
 Examples:
+  # List all projects
   linear project list
-  linear project list --output=json`,
+
+  # List with limit
+  linear project list --limit=20
+
+  # JSON output for parsing
+  linear project list --output=json
+
+TIP: Use project names when creating milestones
+
+Related Commands:
+  - linear project get - Get single project details with milestones
+  - linear project create - Create new project
+  - linear project milestone-create - Add milestone to project`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

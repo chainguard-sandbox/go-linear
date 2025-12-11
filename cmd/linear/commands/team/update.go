@@ -21,7 +21,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Examples:
   linear team update Engineering --name="Platform Engineering"
-  linear team update ENG --description="Platform and infrastructure"`,
+  linear team update ENG --description="Platform and infrastructure"
+
+TIP: Use 'linear team get <name>' to see current values before updating`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

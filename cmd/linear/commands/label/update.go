@@ -21,7 +21,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Examples:
   linear label update bug --name="critical-bug" --color="#ff0000"
-  linear label update <uuid> --description="Updated description"`,
+  linear label update <uuid> --description="Updated description"
+
+TIP: Use 'linear label list' to discover labels, hex color codes like #ff0000 for red`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

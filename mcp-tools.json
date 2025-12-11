@@ -657,7 +657,7 @@
     }
   },
   {
-    "description": "List comments from Linear.\n\nExamples:\n  linear comment list\n  linear comment list --output=json --limit=100",
+    "description": "List comments from Linear.\n\nUse this to browse comments across all issues or find specific discussion threads.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of comments\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each comment contains:\n  - id: Comment UUID\n  - body: Comment text (markdown)\n  - user: Author {id, name, email}\n  - issue: Associated issue reference\n  - createdAt: Creation timestamp\n\nExamples:\n  # List comments\n  linear comment list\n\n  # List with limit\n  linear comment list --limit=100\n\n  # JSON output for parsing\n  linear comment list --output=json\n\nRelated Commands:\n  - linear comment get - Get single comment details\n  - linear comment create - Create new comment\n  - linear comment update - Modify comment text",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -922,7 +922,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific cycle.\n\nExamples:\n  linear cycle get \u003cuuid\u003e\n  linear cycle get \u003cuuid\u003e --output=json",
+    "description": "Get detailed information about a specific development cycle (sprint).\n\nRetrieve full cycle details including name, number, date range, and team information.\n\nParameters:\n  \u003cid\u003e: Cycle UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, number, startsAt, endsAt, team\n\nExamples:\n  # Get cycle by UUID\n  linear cycle get \u003cuuid\u003e\n\n  # Get with JSON output\n  linear cycle get \u003cuuid\u003e --output=json\n\nTIP: Use 'linear cycle list' to discover cycle IDs\n\nRelated Commands:\n  - linear cycle list - List all cycles\n  - linear cycle update - Modify cycle details",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -979,7 +979,7 @@
     }
   },
   {
-    "description": "List all development cycles (sprints) in the Linear workspace.\n\nExamples:\n  linear cycle list\n  linear cycle list --output=json",
+    "description": "List all development cycles (sprints) in the Linear workspace.\n\nUse this to browse current and past sprints, track cycle progress, or discover cycle IDs.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of cycles\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each cycle contains:\n  - id: Cycle UUID\n  - name: Cycle name (optional, may be null)\n  - number: Cycle number\n  - startsAt: Cycle start date\n  - endsAt: Cycle end date\n  - team: Associated team reference\n\nExamples:\n  # List all cycles\n  linear cycle list\n\n  # List with limit\n  linear cycle list --limit=10\n\n  # JSON output for parsing\n  linear cycle list --output=json\n\nRelated Commands:\n  - linear cycle get - Get single cycle details\n  - linear cycle create - Create new cycle\n  - linear issue list --cycle=\u003cid\u003e - Filter issues by cycle",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1041,7 +1041,7 @@
     }
   },
   {
-    "description": "Update an existing cycle in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear cycle update \u003cuuid\u003e --name=\"Sprint 43\"\n  linear cycle update \u003cuuid\u003e --description=\"Extended sprint\"",
+    "description": "Update an existing cycle in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear cycle update \u003cuuid\u003e --name=\"Sprint 43\"\n  linear cycle update \u003cuuid\u003e --description=\"Extended sprint\"\n\nTIP: Use 'linear cycle get \u003cid\u003e --output=json' to see current values before updating",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1681,7 +1681,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific issue.\n\nExamples:\n  linear issue get ENG-123\n  linear issue get \u003cuuid\u003e --output=json",
+    "description": "Get detailed information about a specific issue.\n\nRetrieve full issue details including description, state, assignee, labels, and timestamps.\n\nParameters:\n  \u003cid\u003e: Issue identifier (e.g., ENG-123) or UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, identifier, title, description, state, assignee, priority, labels, createdAt, updatedAt\n\nExamples:\n  # Get issue by identifier\n  linear issue get ENG-123\n\n  # Get issue with JSON output\n  linear issue get ENG-123 --output=json\n\nTIP: Use 'linear issue list' to discover issue identifiers\n\nRelated Commands:\n  - linear issue list - List and filter issues\n  - linear issue update - Modify issue fields",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2511,7 +2511,7 @@
     }
   },
   {
-    "description": "Update an existing issue label in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear label update bug --name=\"critical-bug\" --color=\"#ff0000\"\n  linear label update \u003cuuid\u003e --description=\"Updated description\"",
+    "description": "Update an existing issue label in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear label update bug --name=\"critical-bug\" --color=\"#ff0000\"\n  linear label update \u003cuuid\u003e --description=\"Updated description\"\n\nTIP: Use 'linear label list' to discover labels, hex color codes like #ff0000 for red",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3010,7 +3010,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific project.\n\nExamples:\n  linear project get \u003cuuid\u003e\n  linear project get \u003cuuid\u003e --output=json",
+    "description": "Get detailed information about a specific project.\n\nRetrieve full project details including description, state, progress, milestones, and team information.\n\nParameters:\n  \u003cid\u003e: Project UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, state, progress, lead, milestones, createdAt\n\nExamples:\n  # Get project by UUID\n  linear project get \u003cuuid\u003e\n\n  # Get with JSON output (includes milestones)\n  linear project get \u003cuuid\u003e --output=json\n\nTIP: Use 'linear project list' to discover project IDs\n\nRelated Commands:\n  - linear project list - List all projects\n  - linear project milestone-create - Add milestone to project",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3067,7 +3067,7 @@
     }
   },
   {
-    "description": "List all projects in the Linear workspace.\n\nExamples:\n  linear project list\n  linear project list --output=json",
+    "description": "List all projects in the Linear workspace.\n\nUse this to browse active projects, discover project names for milestones, or track project progress.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of projects\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each project contains:\n  - id: Project UUID\n  - name: Project name\n  - description: Project description\n  - state: Project state (planned, started, completed, etc.)\n  - progress: Completion percentage (0-100)\n  - lead: Project lead user reference\n\nExamples:\n  # List all projects\n  linear project list\n\n  # List with limit\n  linear project list --limit=20\n\n  # JSON output for parsing\n  linear project list --output=json\n\nTIP: Use project names when creating milestones\n\nRelated Commands:\n  - linear project get - Get single project details with milestones\n  - linear project create - Create new project\n  - linear project milestone-create - Add milestone to project",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3328,7 +3328,7 @@
     }
   },
   {
-    "description": "Update an existing project in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear project update \u003cuuid\u003e --name=\"New Name\"\n  linear project update \u003cuuid\u003e --description=\"Updated description\"",
+    "description": "Update an existing project in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear project update \u003cuuid\u003e --name=\"New Name\"\n  linear project update \u003cuuid\u003e --description=\"Updated description\"\n\nTIP: Use 'linear project get \u003cid\u003e --output=json' to see current state before updating",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3514,7 +3514,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific roadmap.\n\nExamples:\n  linear roadmap get \u003cuuid\u003e\n  linear roadmap get \u003cuuid\u003e --output=json",
+    "description": "Get detailed information about a specific roadmap.\n\nRetrieve full roadmap details including name, description, and timeline configuration.\n\nParameters:\n  \u003cid\u003e: Roadmap UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, createdAt\n\nExamples:\n  # Get roadmap by UUID\n  linear roadmap get \u003cuuid\u003e\n\n  # Get with JSON output\n  linear roadmap get \u003cuuid\u003e --output=json\n\nTIP: Use 'linear roadmap list' to discover roadmap IDs\n\nRelated Commands:\n  - linear roadmap list - List all roadmaps\n  - linear project list - List projects shown in roadmaps",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3887,7 +3887,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific team.\n\nAccepts team name, key, or ID.\n\nExamples:\n  linear team get Engineering\n  linear team get ENG\n  linear team get \u003cuuid\u003e --output=json",
+    "description": "Get detailed information about a specific team.\n\nAccepts team name, key, or UUID for flexible querying.\n\nParameters:\n  \u003cname|id\u003e: Team name, key (e.g., \"ENG\"), or UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, key, description, color, private\n\nExamples:\n  # Get team by name\n  linear team get Engineering\n\n  # Get team by key\n  linear team get ENG\n\n  # Get with JSON output\n  linear team get Engineering --output=json\n\nTIP: Use 'linear team list' to discover team names and keys\n\nRelated Commands:\n  - linear team list - List all teams\n  - linear team members - List team members",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4070,7 +4070,7 @@
     }
   },
   {
-    "description": "Update an existing team in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear team update Engineering --name=\"Platform Engineering\"\n  linear team update ENG --description=\"Platform and infrastructure\"",
+    "description": "Update an existing team in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear team update Engineering --name=\"Platform Engineering\"\n  linear team update ENG --description=\"Platform and infrastructure\"\n\nTIP: Use 'linear team get \u003cname\u003e' to see current values before updating",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4334,7 +4334,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific user.\n\nAccepts user name, email, ID, or 'me' for current user.\n\nExamples:\n  linear user get me\n  linear user get alice@company.com\n  linear user get \u003cuuid\u003e --output=json",
+    "description": "Get detailed information about a specific user.\n\nAccepts user name, email, UUID, or 'me' for the current authenticated user.\n\nParameters:\n  \u003cname|email|id\u003e: User name, email, 'me', or UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, email, displayName, active, admin, avatarUrl\n\nExamples:\n  # Get current user\n  linear user get me\n\n  # Get user by email\n  linear user get alice@company.com\n\n  # Get with JSON output\n  linear user get me --output=json\n\nTIP: Use 'linear user list' to discover user names and emails\n\nRelated Commands:\n  - linear user list - List all users\n  - linear user completed - Get user's completed work",
     "inputSchema": {
       "type": "object",
       "required": [

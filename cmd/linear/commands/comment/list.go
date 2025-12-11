@@ -17,9 +17,34 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List comments",
 		Long: `List comments from Linear.
 
+Use this to browse comments across all issues or find specific discussion threads.
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of comments
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each comment contains:
+  - id: Comment UUID
+  - body: Comment text (markdown)
+  - user: Author {id, name, email}
+  - issue: Associated issue reference
+  - createdAt: Creation timestamp
+
 Examples:
+  # List comments
   linear comment list
-  linear comment list --output=json --limit=100`,
+
+  # List with limit
+  linear comment list --limit=100
+
+  # JSON output for parsing
+  linear comment list --output=json
+
+Related Commands:
+  - linear comment get - Get single comment details
+  - linear comment create - Create new comment
+  - linear comment update - Modify comment text`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

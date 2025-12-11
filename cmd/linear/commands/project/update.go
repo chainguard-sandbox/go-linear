@@ -22,7 +22,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Examples:
   linear project update <uuid> --name="New Name"
-  linear project update <uuid> --description="Updated description"`,
+  linear project update <uuid> --description="Updated description"
+
+TIP: Use 'linear project get <id> --output=json' to see current state before updating`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

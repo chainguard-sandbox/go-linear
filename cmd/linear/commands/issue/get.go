@@ -17,9 +17,26 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single issue by ID",
 		Long: `Get detailed information about a specific issue.
 
+Retrieve full issue details including description, state, assignee, labels, and timestamps.
+
+Parameters:
+  <id>: Issue identifier (e.g., ENG-123) or UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, identifier, title, description, state, assignee, priority, labels, createdAt, updatedAt
+
 Examples:
+  # Get issue by identifier
   linear issue get ENG-123
-  linear issue get <uuid> --output=json`,
+
+  # Get issue with JSON output
+  linear issue get ENG-123 --output=json
+
+TIP: Use 'linear issue list' to discover issue identifiers
+
+Related Commands:
+  - linear issue list - List and filter issues
+  - linear issue update - Modify issue fields`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

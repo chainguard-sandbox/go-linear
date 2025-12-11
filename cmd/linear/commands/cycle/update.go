@@ -20,7 +20,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Examples:
   linear cycle update <uuid> --name="Sprint 43"
-  linear cycle update <uuid> --description="Extended sprint"`,
+  linear cycle update <uuid> --description="Extended sprint"
+
+TIP: Use 'linear cycle get <id> --output=json' to see current values before updating`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

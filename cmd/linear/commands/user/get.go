@@ -18,12 +18,29 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single user",
 		Long: `Get detailed information about a specific user.
 
-Accepts user name, email, ID, or 'me' for current user.
+Accepts user name, email, UUID, or 'me' for the current authenticated user.
+
+Parameters:
+  <name|email|id>: User name, email, 'me', or UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, email, displayName, active, admin, avatarUrl
 
 Examples:
+  # Get current user
   linear user get me
+
+  # Get user by email
   linear user get alice@company.com
-  linear user get <uuid> --output=json`,
+
+  # Get with JSON output
+  linear user get me --output=json
+
+TIP: Use 'linear user list' to discover user names and emails
+
+Related Commands:
+  - linear user list - List all users
+  - linear user completed - Get user's completed work`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -18,12 +18,29 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single team",
 		Long: `Get detailed information about a specific team.
 
-Accepts team name, key, or ID.
+Accepts team name, key, or UUID for flexible querying.
+
+Parameters:
+  <name|id>: Team name, key (e.g., "ENG"), or UUID (required)
+
+Output (--output=json):
+  Returns JSON with: id, name, key, description, color, private
 
 Examples:
+  # Get team by name
   linear team get Engineering
+
+  # Get team by key
   linear team get ENG
-  linear team get <uuid> --output=json`,
+
+  # Get with JSON output
+  linear team get Engineering --output=json
+
+TIP: Use 'linear team list' to discover team names and keys
+
+Related Commands:
+  - linear team list - List all teams
+  - linear team members - List team members`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
