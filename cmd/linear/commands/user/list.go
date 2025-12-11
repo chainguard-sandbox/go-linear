@@ -17,9 +17,34 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all users",
 		Long: `List all users in the Linear workspace.
 
+Use this to discover user names and emails for assigning issues or filtering work.
+Essential for finding assignees when creating or updating issues.
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of users
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each user contains:
+  - id: User UUID
+  - name: Full name
+  - email: Email address (use for --assignee parameter)
+  - displayName: Display name
+  - active: Whether user is active in workspace
+
 Examples:
+  # List all users
   linear user list
-  linear user list --output=json`,
+
+  # JSON output for parameter discovery
+  linear user list --output=json
+
+TIP: Use email addresses or 'me' when assigning issues (e.g., --assignee=alice@company.com)
+
+Related Commands:
+  - linear user get - Get single user details
+  - linear user completed - Get user's completed work
+  - linear issue list --assignee=<email> - Filter issues by assignee`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

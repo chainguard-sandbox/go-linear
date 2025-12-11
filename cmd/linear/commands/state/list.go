@@ -17,11 +17,34 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all workflow states",
 		Long: `List all workflow states in the Linear workspace.
 
-Workflow states include: Todo, In Progress, Done, Canceled, etc.
+Use this to discover available states for filtering or updating issues.
+Workflow states define the issue lifecycle (Todo, In Progress, Done, Canceled, etc).
+
+Output (--output=json):
+  Returns JSON with:
+  - nodes: Array of workflow states
+  - pageInfo: {hasNextPage: bool, endCursor: string}
+
+  Each state contains:
+  - id: State UUID
+  - name: State name (e.g., "In Progress", "Done")
+  - type: State type (started, completed, canceled, etc.)
+  - color: State color hex code
+  - position: Display order
 
 Examples:
+  # List all workflow states
   linear state list
-  linear state list --output=json`,
+
+  # JSON output for parameter discovery
+  linear state list --output=json
+
+TIP: Use state names (not UUIDs) when filtering or updating issues (e.g., --state="In Progress")
+
+Related Commands:
+  - linear state get - Get single state details
+  - linear issue update --state=<name> - Update issue state
+  - linear issue list --state=<name> - Filter issues by state`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
