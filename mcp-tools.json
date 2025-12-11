@@ -81,7 +81,7 @@
     }
   },
   {
-    "description": "Delete an attachment from Linear permanently.\n\n⚠️ DESTRUCTIVE OPERATION - Cannot be undone.\n\nThis permanently removes the attachment link.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear attachment delete \u003cuuid\u003e\n  linear attachment delete \u003cuuid\u003e --yes",
+    "description": "Delete an attachment from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the attachment link.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear attachment delete \u003cuuid\u003e\n  linear attachment delete \u003cuuid\u003e --yes",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -200,7 +200,7 @@
     }
   },
   {
-    "description": "Link a GitHub PR to an issue",
+    "description": "Link a GitHub pull request as an attachment to an issue.\n\nThis operation creates new attachment data and is safe to execute.\nCreates automatic sync between Linear issues and GitHub PRs for development tracking.\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --url: GitHub PR URL (required, e.g., https://github.com/owner/repo/pull/123)\n\nExamples:\n  # Link GitHub PR to issue\n  linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123\n\n  # Link PR with JSON output\n  linear attachment link-github --issue=ENG-123 --url=\u003cgh-pr-url\u003e --output=json\n\nTIP: GitHub integration automatically updates PR status in Linear\n\nCommon Errors:\n  - \"invalid URL\": Must be a valid GitHub pull request URL\n  - \"integration not configured\": Enable GitHub integration in Linear settings\n\nRelated Commands:\n  - linear attachment link-url - Link generic external URL\n  - linear attachment link-slack - Link Slack thread\n  - linear attachment create - Create custom attachment",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -334,7 +334,7 @@
     }
   },
   {
-    "description": "Link an external URL to an issue",
+    "description": "Link an external URL as an attachment to an issue.\n\nThis operation creates new attachment data and is safe to execute.\nUse for linking design files, documentation, monitoring dashboards, or any external resource.\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --url: URL to link (required)\n  --title: Link title (optional, defaults to page title if available)\n\nExamples:\n  # Link URL to issue\n  linear attachment link-url --issue=ENG-123 --url=https://example.com/design\n\n  # Link with custom title\n  linear attachment link-url --issue=ENG-123 --url=https://example.com --title=\"Design Mockups\"\n\n  # Link with JSON output\n  linear attachment link-url --issue=ENG-123 --url=https://example.com --output=json\n\nTIP: URLs are automatically fetched to extract title and metadata\n\nRelated Commands:\n  - linear attachment link-github - Link GitHub PR\n  - linear attachment link-slack - Link Slack thread\n  - linear attachment create - Create custom attachment with metadata",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -407,7 +407,7 @@
     }
   },
   {
-    "description": "List all attachments",
+    "description": "List all file attachments and linked resources from Linear.\n\nUse this to:\n- Browse attachments across all issues\n- Find linked GitHub PRs, Slack threads, or external URLs\n- Audit attached resources for compliance or documentation\n\nAttachments can be files, external links, GitHub PRs, or Slack conversations.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of attachments\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each attachment contains:\n  - id: Attachment UUID\n  - title: Attachment title\n  - url: Attachment URL\n  - source: Source type (uploaded, url, github, slack)\n  - issue: Associated issue reference\n\nExamples:\n  # List all attachments\n  linear attachment list\n\n  # List with limit\n  linear attachment list --limit=30\n\n  # JSON output for parsing\n  linear attachment list --output=json\n\nRelated Commands:\n  - linear attachment get - Get single attachment details\n  - linear attachment create - Create custom attachment\n  - linear attachment link-url - Link external URL",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -538,7 +538,7 @@
     }
   },
   {
-    "description": "Delete a comment from Linear permanently.\n\n⚠️ DESTRUCTIVE OPERATION - Cannot be undone.\n\nThis permanently removes the comment and its history.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear comment delete \u003cuuid\u003e              # Will prompt for confirmation\n  linear comment delete \u003cuuid\u003e --yes        # Skip confirmation",
+    "description": "Delete a comment from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the comment and its history.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear comment delete \u003cuuid\u003e              # Will prompt for confirmation\n  linear comment delete \u003cuuid\u003e --yes        # Skip confirmation",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -723,7 +723,7 @@
     }
   },
   {
-    "description": "Update an existing comment on a Linear issue.\n\n⚠️ CAUTION: This modifies existing comment text. Changes are immediate and visible to all team members.\n\nExamples:\n  linear comment update \u003cuuid\u003e --body=\"Updated comment text\"\n\nTIP: Comments support markdown formatting",
+    "description": "Update an existing comment on a Linear issue.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear comment update \u003cuuid\u003e --body=\"Updated comment text\"\n\nTIP: Comments support markdown formatting",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -787,7 +787,7 @@
     }
   },
   {
-    "description": "Archive a cycle in Linear.\n\n⚠️ CAUTION: This archives the cycle, hiding it from default views.\nArchived cycles can be unarchived later.\n\nExamples:\n  linear cycle archive \u003cuuid\u003e\n  linear cycle archive \u003cuuid\u003e --output=json",
+    "description": "Archive a cycle in Linear.\n\n⚠️ Caution: This archives the cycle, hiding it from default views.\nArchived cycles can be unarchived later.\n\nExamples:\n  linear cycle archive \u003cuuid\u003e\n  linear cycle archive \u003cuuid\u003e --output=json",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1041,7 +1041,7 @@
     }
   },
   {
-    "description": "Update an existing cycle in Linear.\n\n⚠️ CAUTION: This modifies existing cycle data. Changes affect all team members.\n\nExamples:\n  linear cycle update \u003cuuid\u003e --name=\"Sprint 43\"\n  linear cycle update \u003cuuid\u003e --description=\"Extended sprint\"",
+    "description": "Update an existing cycle in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear cycle update \u003cuuid\u003e --name=\"Sprint 43\"\n  linear cycle update \u003cuuid\u003e --description=\"Extended sprint\"",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1106,7 +1106,7 @@
     }
   },
   {
-    "description": "Get a single document by ID",
+    "description": "Get detailed information about a specific knowledge base document.\n\nRetrieve full document details including title, content (markdown), and metadata.\nUse this to access documentation, guides, or reference materials.\n\nParameters:\n  \u003cid\u003e: Document UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, title, content, createdAt, updatedAt\n\nExamples:\n  # Get document by UUID\n  linear document get \u003cdocument-uuid\u003e\n\n  # Get with JSON output for parsing\n  linear document get \u003cdocument-uuid\u003e --output=json\n\nTIP: Use 'linear document list' to discover document IDs\n\nRelated Commands:\n  - linear document list - List all documents",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1163,7 +1163,7 @@
     }
   },
   {
-    "description": "List all documents",
+    "description": "List knowledge base documents from Linear.\n\nUse this to:\n- Browse available documentation and guides\n- Find reference materials for your team\n- Discover documents by title for linking\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of documents\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each document contains:\n  - id: Document UUID\n  - title: Document title\n  - content: Markdown content\n  - createdAt: Creation timestamp\n\nExamples:\n  # List all documents\n  linear document list\n\n  # List with limit\n  linear document list --limit=20\n\n  # JSON output for programmatic access\n  linear document list --output=json\n\nRelated Commands:\n  - linear document get - Get full document details including content",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1350,7 +1350,7 @@
     }
   },
   {
-    "description": "Get a single initiative by ID",
+    "description": "Get detailed information about a specific strategic initiative.\n\nRetrieve full initiative details including name, description, target dates, and progress.\nUse this to track high-level strategic goals and their status.\n\nParameters:\n  \u003cid\u003e: Initiative UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, targetDate, status\n\nExamples:\n  # Get initiative by UUID\n  linear initiative get \u003cinitiative-uuid\u003e\n\n  # Get with JSON output\n  linear initiative get \u003cinitiative-uuid\u003e --output=json\n\nTIP: Use 'linear initiative list' to discover initiative IDs\n\nRelated Commands:\n  - linear initiative list - List all initiatives\n  - linear project list - List projects within initiatives",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1407,7 +1407,7 @@
     }
   },
   {
-    "description": "List all initiatives",
+    "description": "List strategic initiatives from Linear.\n\nUse this to:\n- Browse company-wide strategic initiatives\n- Track high-level goals and objectives\n- Discover initiatives for organizational planning\n\nInitiatives represent large strategic efforts that span multiple projects and teams.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of initiatives\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each initiative contains:\n  - id: Initiative UUID\n  - name: Initiative name\n  - description: Initiative description\n  - targetDate: Target completion date\n\nExamples:\n  # List all initiatives\n  linear initiative list\n\n  # List with limit\n  linear initiative list --limit=10\n\n  # JSON output for parsing\n  linear initiative list --output=json\n\nRelated Commands:\n  - linear initiative get - Get single initiative details\n  - linear project list - List projects (initiatives contain projects)",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1619,7 +1619,7 @@
     }
   },
   {
-    "description": "Delete an issue from Linear permanently.\n\n🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨\n\nThis PERMANENTLY removes the issue, all its comments, attachments, and history.\nThere is NO way to recover deleted issues.\n\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear issue delete ENG-123              # Will prompt for confirmation\n  linear issue delete \u003cuuid\u003e --yes         # Skip confirmation (use with extreme caution)\n\nRECOMMENDATION: Archive issues instead of deleting them when possible.",
+    "description": "Delete an issue from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the issue, all its comments, attachments, and history.\nDeleted issues cannot be recovered.\n\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear issue delete ENG-123              # Will prompt for confirmation\n  linear issue delete \u003cuuid\u003e --yes         # Skip confirmation (use with extreme caution)\n\nRECOMMENDATION: Archive issues instead of deleting them when possible.",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2042,7 +2042,7 @@
     }
   },
   {
-    "description": "Delete a relationship between two issues.\n\n🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨\n\nThis PERMANENTLY removes the relationship between two issues.\nThe issues themselves are not deleted, only the relationship link.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID to delete (required)\n\nExamples:\n  # Delete relation with confirmation\n  linear issue unrelate \u003crelation-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear issue unrelate \u003crelation-uuid\u003e --yes\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see relations and their IDs\n\nCommon Errors:\n  - \"relation not found\": Relation ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue update-relation - Change relationship type\n  - linear issue get - View issue's current relationships",
+    "description": "Delete a relationship between two issues.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the relationship between two issues.\nThe issues themselves are not deleted, only the relationship link.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID to delete (required)\n\nExamples:\n  # Delete relation with confirmation\n  linear issue unrelate \u003crelation-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear issue unrelate \u003crelation-uuid\u003e --yes\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see relations and their IDs\n\nCommon Errors:\n  - \"relation not found\": Relation ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue update-relation - Change relationship type\n  - linear issue get - View issue's current relationships",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2104,7 +2104,7 @@
     }
   },
   {
-    "description": "Update an existing issue in Linear.\n\n⚠️ CAUTION: This modifies existing issue data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\n\nExamples:\n  linear issue update ENG-123 --state=Done\n  linear issue update ENG-123 --assignee=alice@company.com --priority=1\n  linear issue update ENG-123 --title=\"New title\" --description=\"Updated description\"\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see current values before updating",
+    "description": "Update an existing issue in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\n\nExamples:\n  linear issue update ENG-123 --state=Done\n  linear issue update ENG-123 --assignee=alice@company.com --priority=1\n  linear issue update ENG-123 --title=\"New title\" --description=\"Updated description\"\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see current values before updating",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2196,7 +2196,7 @@
     }
   },
   {
-    "description": "Update the relationship type between two issues.\n\n⚠️ CAUTION: This modifies an existing relationship. Changes are immediate.\n\nChange the relationship type without deleting and recreating the relation.\nUseful when dependency structure changes during development.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID (required)\n  --type: New relationship type (required)\n\nRelationship types:\n  - blocks: First issue blocks the second (shows as dependency)\n  - blocked-by: First issue is blocked by the second (inverse of blocks)\n  - duplicate: Issues are duplicates of each other\n  - related: Issues are related but not blocking\n\nExamples:\n  # Change relation from 'related' to 'blocks'\n  linear issue update-relation \u003crelation-uuid\u003e --type=blocks\n\n  # Change blocking relation to duplicate\n  linear issue update-relation \u003crelation-uuid\u003e --type=duplicate --output=json\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see existing relations and their IDs\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue unrelate - Delete a relationship\n  - linear issue get - View issue's current relationships",
+    "description": "Update the relationship type between two issues.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nChange the relationship type without deleting and recreating the relation.\nUseful when dependency structure changes during development.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID (required)\n  --type: New relationship type (required)\n\nRelationship types:\n  - blocks: First issue blocks the second (shows as dependency)\n  - blocked-by: First issue is blocked by the second (inverse of blocks)\n  - duplicate: Issues are duplicates of each other\n  - related: Issues are related but not blocking\n\nExamples:\n  # Change relation from 'related' to 'blocks'\n  linear issue update-relation \u003crelation-uuid\u003e --type=blocks\n\n  # Change blocking relation to duplicate\n  linear issue update-relation \u003crelation-uuid\u003e --type=duplicate --output=json\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see existing relations and their IDs\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue unrelate - Delete a relationship\n  - linear issue get - View issue's current relationships",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2330,7 +2330,7 @@
     }
   },
   {
-    "description": "Delete a label from Linear permanently.\n\n⚠️ DESTRUCTIVE OPERATION - Cannot be undone.\n\nThis permanently removes the label from all issues using it.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear label delete bug\n  linear label delete \u003cuuid\u003e --yes",
+    "description": "Delete a label from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the label from all issues using it.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear label delete bug\n  linear label delete \u003cuuid\u003e --yes",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2449,7 +2449,7 @@
     }
   },
   {
-    "description": "List all issue labels in the Linear workspace.\n\nExamples:\n  linear label list\n  linear label list --output=json",
+    "description": "List all issue labels in the Linear workspace.\n\nUse this to discover available labels for categorizing and filtering issues.\nLabels help organize issues by type (bug, feature), priority, or custom categories.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of labels\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each label contains:\n  - id: Label UUID\n  - name: Label name (e.g., \"bug\", \"feature\")\n  - description: Label description\n  - color: Label color hex code\n\nExamples:\n  # List all labels\n  linear label list\n\n  # JSON output for parameter discovery\n  linear label list --output=json\n\nTIP: Use label names (not UUIDs) when filtering or adding to issues (e.g., --label=bug)\n\nRelated Commands:\n  - linear label get - Get single label details\n  - linear label create - Create new label\n  - linear issue list --label=\u003cname\u003e - Filter issues by label\n  - linear issue add-label - Add label to issue",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2511,7 +2511,7 @@
     }
   },
   {
-    "description": "Update an existing issue label in Linear.\n\n⚠️ CAUTION: This modifies existing label. All issues using this label will reflect changes.\n\nExamples:\n  linear label update bug --name=\"critical-bug\" --color=\"#ff0000\"\n  linear label update \u003cuuid\u003e --description=\"Updated description\"",
+    "description": "Update an existing issue label in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear label update bug --name=\"critical-bug\" --color=\"#ff0000\"\n  linear label update \u003cuuid\u003e --description=\"Updated description\"",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2580,7 +2580,7 @@
     }
   },
   {
-    "description": "Archive a notification to remove it from inbox.\n\n⚠️ CAUTION: This modifies notification state. Changes are immediate.\n\nArchived notifications can be restored through the Linear UI if needed.\nUse this to clean up processed or irrelevant notifications.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID to archive (required)\n\nExamples:\n  # Archive notification\n  linear notification archive \u003cnotif-uuid\u003e\n\nTIP: Archived notifications are hidden but not deleted (can be restored in UI)\n\nRelated Commands:\n  - linear notification update - Mark as read or snooze instead\n  - linear notification subscribe - Subscribe to updates",
+    "description": "Archive a notification to remove it from inbox.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nArchived notifications can be restored through the Linear UI if needed.\nUse this to clean up processed or irrelevant notifications.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID to archive (required)\n\nExamples:\n  # Archive notification\n  linear notification archive \u003cnotif-uuid\u003e\n\nTIP: Archived notifications are hidden but not deleted (can be restored in UI)\n\nRelated Commands:\n  - linear notification update - Mark as read or snooze instead\n  - linear notification subscribe - Subscribe to updates",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2757,7 +2757,7 @@
     }
   },
   {
-    "description": "Update notification status (mark as read or snooze).\n\n⚠️ CAUTION: This modifies notification state. Changes are immediate.\n\nUse this to manage notification inbox programmatically.\nMark notifications as read after processing or snooze for later review.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID (required)\n  --read: Mark as read (sets readAt to current time)\n  --snooze-until: Snooze until date/time (ISO8601, relative like \"tomorrow\", \"3d\")\n\nExamples:\n  # Mark notification as read\n  linear notification update \u003cnotif-uuid\u003e --read\n\n  # Snooze until tomorrow\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=tomorrow\n\n  # Snooze for 3 days\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=3d --output=json\n\nTIP: Use snoozed notifications to defer non-urgent items\n\nRelated Commands:\n  - linear notification archive - Archive notification (alternative)\n  - linear notification subscribe - Subscribe to issue/project updates",
+    "description": "Update notification status (mark as read or snooze).\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nUse this to manage notification inbox programmatically.\nMark notifications as read after processing or snooze for later review.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID (required)\n  --read: Mark as read (sets readAt to current time)\n  --snooze-until: Snooze until date/time (ISO8601, relative like \"tomorrow\", \"3d\")\n\nExamples:\n  # Mark notification as read\n  linear notification update \u003cnotif-uuid\u003e --read\n\n  # Snooze until tomorrow\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=tomorrow\n\n  # Snooze for 3 days\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=3d --output=json\n\nTIP: Use snoozed notifications to defer non-urgent items\n\nRelated Commands:\n  - linear notification archive - Archive notification (alternative)\n  - linear notification subscribe - Subscribe to issue/project updates",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2948,7 +2948,7 @@
     }
   },
   {
-    "description": "Delete a project from Linear permanently.\n\n⚠️ DESTRUCTIVE OPERATION - Cannot be undone.\n\nThis permanently removes the project and its data.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear project delete \u003cuuid\u003e\n  linear project delete \u003cuuid\u003e --yes",
+    "description": "Delete a project from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the project and its data.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear project delete \u003cuuid\u003e\n  linear project delete \u003cuuid\u003e --yes",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3202,7 +3202,7 @@
     }
   },
   {
-    "description": "Delete a project milestone permanently.\n\n🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨\n\nThis PERMANENTLY removes the milestone from the project.\nIssues associated with the milestone are NOT deleted, only the milestone itself.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID to delete (required)\n\nExamples:\n  # Delete milestone with confirmation\n  linear project milestone-delete \u003cmilestone-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear project milestone-delete \u003cmilestone-uuid\u003e --yes\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nCommon Errors:\n  - \"milestone not found\": Milestone ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-update - Update milestone details\n  - linear project get - View project's milestones",
+    "description": "Delete a project milestone permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the milestone from the project.\nIssues associated with the milestone are not deleted, only the milestone itself.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID to delete (required)\n\nExamples:\n  # Delete milestone with confirmation\n  linear project milestone-delete \u003cmilestone-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear project milestone-delete \u003cmilestone-uuid\u003e --yes\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nCommon Errors:\n  - \"milestone not found\": Milestone ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-update - Update milestone details\n  - linear project get - View project's milestones",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3259,7 +3259,7 @@
     }
   },
   {
-    "description": "Update an existing project milestone.\n\n⚠️ CAUTION: This modifies existing milestone data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\nUse this to adjust timeline, descriptions, or milestone names.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID (required)\n  --name: New milestone name\n  --description: New description (markdown)\n  --target-date: New target completion date (ISO8601 or relative)\n\nExamples:\n  # Update target date\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=2025-06-30\n\n  # Update name and description\n  linear project milestone-update \u003cmilestone-uuid\u003e --name=\"Q2 2025\" \\\\\n    --description=\"Updated timeline for Q2 deliverables\"\n\n  # Move milestone out 2 weeks\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=14d --output=json\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-delete - Delete a milestone\n  - linear project get - View project's milestones",
+    "description": "Update an existing project milestone.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\nUse this to adjust timeline, descriptions, or milestone names.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID (required)\n  --name: New milestone name\n  --description: New description (markdown)\n  --target-date: New target completion date (ISO8601 or relative)\n\nExamples:\n  # Update target date\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=2025-06-30\n\n  # Update name and description\n  linear project milestone-update \u003cmilestone-uuid\u003e --name=\"Q2 2025\" \\\\\n    --description=\"Updated timeline for Q2 deliverables\"\n\n  # Move milestone out 2 weeks\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=14d --output=json\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-delete - Delete a milestone\n  - linear project get - View project's milestones",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3328,7 +3328,7 @@
     }
   },
   {
-    "description": "Update an existing project in Linear.\n\n⚠️ CAUTION: This modifies existing project data. Changes are immediate and visible to all team members.\n\nExamples:\n  linear project update \u003cuuid\u003e --name=\"New Name\"\n  linear project update \u003cuuid\u003e --description=\"Updated description\"",
+    "description": "Update an existing project in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear project update \u003cuuid\u003e --name=\"New Name\"\n  linear project update \u003cuuid\u003e --description=\"Updated description\"",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3571,7 +3571,7 @@
     }
   },
   {
-    "description": "List all roadmaps in the Linear workspace.\n\nExamples:\n  linear roadmap list\n  linear roadmap list --output=json",
+    "description": "List roadmaps from Linear.\n\nUse this to:\n- Browse product roadmaps and planning timelines\n- Track milestone planning across teams\n- Discover roadmaps for strategic planning\n\nRoadmaps provide visual timeline views of project progress and planned features.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of roadmaps\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each roadmap contains:\n  - id: Roadmap UUID\n  - name: Roadmap name\n  - description: Roadmap description\n  - createdAt: Creation timestamp\n\nExamples:\n  # List all roadmaps\n  linear roadmap list\n\n  # List with limit\n  linear roadmap list --limit=10\n\n  # JSON output for parsing\n  linear roadmap list --output=json\n\nRelated Commands:\n  - linear roadmap get - Get single roadmap details\n  - linear project list - List projects (roadmaps organize projects)",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3690,7 +3690,7 @@
     }
   },
   {
-    "description": "List all workflow states in the Linear workspace.\n\nWorkflow states include: Todo, In Progress, Done, Canceled, etc.\n\nExamples:\n  linear state list\n  linear state list --output=json",
+    "description": "List all workflow states in the Linear workspace.\n\nUse this to discover available states for filtering or updating issues.\nWorkflow states define the issue lifecycle (Todo, In Progress, Done, Canceled, etc).\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of workflow states\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each state contains:\n  - id: State UUID\n  - name: State name (e.g., \"In Progress\", \"Done\")\n  - type: State type (started, completed, canceled, etc.)\n  - color: State color hex code\n  - position: Display order\n\nExamples:\n  # List all workflow states\n  linear state list\n\n  # JSON output for parameter discovery\n  linear state list --output=json\n\nTIP: Use state names (not UUIDs) when filtering or updating issues (e.g., --state=\"In Progress\")\n\nRelated Commands:\n  - linear state get - Get single state details\n  - linear issue update --state=\u003cname\u003e - Update issue state\n  - linear issue list --state=\u003cname\u003e - Filter issues by state",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3825,7 +3825,7 @@
     }
   },
   {
-    "description": "Delete a team from Linear permanently.\n\n🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨\n\nThis PERMANENTLY removes the team and may affect issues assigned to it.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear team delete TestTeam\n  linear team delete \u003cuuid\u003e --yes\n\nRECOMMENDATION: Ensure team has no active issues before deleting.",
+    "description": "Delete a team from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the team and may affect issues assigned to it.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear team delete TestTeam\n  linear team delete \u003cuuid\u003e --yes\n\nRECOMMENDATION: Ensure team has no active issues before deleting.",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3944,7 +3944,7 @@
     }
   },
   {
-    "description": "List all teams in the Linear workspace.\n\nExamples:\n  linear team list\n  linear team list --output=json",
+    "description": "List all teams in the Linear workspace.\n\nUse this to discover team names and keys for filtering issues, creating projects, or assigning work.\nEssential for parameter discovery when creating or filtering issues.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of teams\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each team contains:\n  - id: Team UUID\n  - name: Team name (e.g., \"Engineering\")\n  - key: Team key (e.g., \"ENG\" - used in issue identifiers like ENG-123)\n  - description: Team description\n  - color: Team color hex code\n\nExamples:\n  # List all teams\n  linear team list\n\n  # JSON output for parameter discovery\n  linear team list --output=json\n\nTIP: Use team names or keys (not UUIDs) when creating or filtering issues\n\nRelated Commands:\n  - linear team get - Get single team details\n  - linear team members - List team members\n  - linear issue list --team=\u003cname\u003e - Filter issues by team",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4070,7 +4070,7 @@
     }
   },
   {
-    "description": "Update an existing team in Linear.\n\n⚠️ CAUTION: This modifies existing team data. Changes affect all team members.\n\nExamples:\n  linear team update Engineering --name=\"Platform Engineering\"\n  linear team update ENG --description=\"Platform and infrastructure\"",
+    "description": "Update an existing team in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear team update Engineering --name=\"Platform Engineering\"\n  linear team update ENG --description=\"Platform and infrastructure\"",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4135,7 +4135,7 @@
     }
   },
   {
-    "description": "Get a single template by ID",
+    "description": "Get detailed information about a specific issue template.\n\nRetrieve full template details including pre-filled values and structure.\nUse this to understand template configuration or prepare for issue creation.\n\nParameters:\n  \u003cid\u003e: Template UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, templateData\n\nExamples:\n  # Get template by UUID\n  linear template get \u003ctemplate-uuid\u003e\n\n  # Get with JSON output\n  linear template get \u003ctemplate-uuid\u003e --output=json\n\nTIP: Use 'linear template list' to discover template IDs\n\nRelated Commands:\n  - linear template list - List all templates\n  - linear issue create - Create issue using template",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4192,7 +4192,7 @@
     }
   },
   {
-    "description": "List all templates",
+    "description": "List issue templates from Linear.\n\nUse this to:\n- Browse available issue templates for your workspace\n- Find templates for creating standardized issues\n- Discover template names for programmatic issue creation\n\nIssue templates provide pre-filled values for common issue types (bugs, features, etc).\n\nOutput (--output=json):\n  Returns array of templates (note: not paginated)\n\n  Each template contains:\n  - id: Template UUID\n  - name: Template name\n  - description: Template description\n  - templateData: Pre-filled issue fields\n\nExamples:\n  # List all templates\n  linear template list\n\n  # JSON output for parsing\n  linear template list --output=json\n\nTIP: Use templates when creating issues to ensure consistent formatting\n\nRelated Commands:\n  - linear template get - Get full template details\n  - linear issue create - Create issue (can reference templates)",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4391,7 +4391,7 @@
     }
   },
   {
-    "description": "List all users in the Linear workspace.\n\nExamples:\n  linear user list\n  linear user list --output=json",
+    "description": "List all users in the Linear workspace.\n\nUse this to discover user names and emails for assigning issues or filtering work.\nEssential for finding assignees when creating or updating issues.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of users\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each user contains:\n  - id: User UUID\n  - name: Full name\n  - email: Email address (use for --assignee parameter)\n  - displayName: Display name\n  - active: Whether user is active in workspace\n\nExamples:\n  # List all users\n  linear user list\n\n  # JSON output for parameter discovery\n  linear user list --output=json\n\nTIP: Use email addresses or 'me' when assigning issues (e.g., --assignee=alice@company.com)\n\nRelated Commands:\n  - linear user get - Get single user details\n  - linear user completed - Get user's completed work\n  - linear issue list --assignee=\u003cemail\u003e - Filter issues by assignee",
     "inputSchema": {
       "type": "object",
       "required": [
