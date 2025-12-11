@@ -17,7 +17,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing team",
 		Long: `Update an existing team in Linear.
 
-⚠️ CAUTION: This modifies existing team data. Changes affect all team members.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Examples:
   linear team update Engineering --name="Platform Engineering"

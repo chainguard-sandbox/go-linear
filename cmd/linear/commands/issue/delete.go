@@ -20,10 +20,10 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete an issue permanently",
 		Long: `Delete an issue from Linear permanently.
 
-🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨
+⚠️ Warning: Destructive operation - cannot be undone
 
-This PERMANENTLY removes the issue, all its comments, attachments, and history.
-There is NO way to recover deleted issues.
+This permanently removes the issue, all its comments, attachments, and history.
+Deleted issues cannot be recovered.
 
 Confirmation prompt appears unless --yes flag is used.
 

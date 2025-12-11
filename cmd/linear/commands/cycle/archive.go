@@ -15,7 +15,7 @@ func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Archive a cycle",
 		Long: `Archive a cycle in Linear.
 
-⚠️ CAUTION: This archives the cycle, hiding it from default views.
+⚠️ Caution: This archives the cycle, hiding it from default views.
 Archived cycles can be unarchived later.
 
 Examples:

@@ -18,7 +18,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a project permanently",
 		Long: `Delete a project from Linear permanently.
 
-⚠️ DESTRUCTIVE OPERATION - Cannot be undone.
+⚠️ Warning: Destructive operation - cannot be undone
 
 This permanently removes the project and its data.
 Confirmation prompt appears unless --yes flag is used.

@@ -17,7 +17,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing label",
 		Long: `Update an existing issue label in Linear.
 
-⚠️ CAUTION: This modifies existing label. All issues using this label will reflect changes.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Examples:
   linear label update bug --name="critical-bug" --color="#ff0000"

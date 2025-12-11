@@ -19,7 +19,7 @@ func NewMilestoneUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update a project milestone",
 		Long: `Update an existing project milestone.
 
-⚠️ CAUTION: This modifies existing milestone data. Changes are immediate.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Only specified fields are updated. Unspecified fields remain unchanged.
 Use this to adjust timeline, descriptions, or milestone names.

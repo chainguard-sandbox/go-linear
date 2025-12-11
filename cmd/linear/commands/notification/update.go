@@ -20,7 +20,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Mark a notification as read or snooze it",
 		Long: `Update notification status (mark as read or snooze).
 
-⚠️ CAUTION: This modifies notification state. Changes are immediate.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Use this to manage notification inbox programmatically.
 Mark notifications as read after processing or snooze for later review.

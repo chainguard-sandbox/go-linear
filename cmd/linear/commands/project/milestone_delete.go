@@ -19,10 +19,10 @@ func NewMilestoneDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a project milestone",
 		Long: `Delete a project milestone permanently.
 
-🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨
+⚠️ Warning: Destructive operation - cannot be undone
 
-This PERMANENTLY removes the milestone from the project.
-Issues associated with the milestone are NOT deleted, only the milestone itself.
+This permanently removes the milestone from the project.
+Issues associated with the milestone are not deleted, only the milestone itself.
 
 Confirmation prompt appears unless --yes flag is used.
 

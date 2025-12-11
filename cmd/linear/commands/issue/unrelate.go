@@ -19,9 +19,9 @@ func NewUnrelateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete an issue relationship",
 		Long: `Delete a relationship between two issues.
 
-🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨
+⚠️ Warning: Destructive operation - cannot be undone
 
-This PERMANENTLY removes the relationship between two issues.
+This permanently removes the relationship between two issues.
 The issues themselves are not deleted, only the relationship link.
 
 Confirmation prompt appears unless --yes flag is used.

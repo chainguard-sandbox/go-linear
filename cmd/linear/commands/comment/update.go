@@ -18,7 +18,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing comment",
 		Long: `Update an existing comment on a Linear issue.
 
-⚠️ CAUTION: This modifies existing comment text. Changes are immediate and visible to all team members.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Examples:
   linear comment update <uuid> --body="Updated comment text"

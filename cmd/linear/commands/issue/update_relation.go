@@ -18,7 +18,7 @@ func NewUpdateRelationCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update the type of an existing issue relationship",
 		Long: `Update the relationship type between two issues.
 
-⚠️ CAUTION: This modifies an existing relationship. Changes are immediate.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Change the relationship type without deleting and recreating the relation.
 Useful when dependency structure changes during development.

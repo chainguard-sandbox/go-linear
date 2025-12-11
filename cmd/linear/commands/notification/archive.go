@@ -16,7 +16,7 @@ func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Archive a notification",
 		Long: `Archive a notification to remove it from inbox.
 
-⚠️ CAUTION: This modifies notification state. Changes are immediate.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Archived notifications can be restored through the Linear UI if needed.
 Use this to clean up processed or irrelevant notifications.

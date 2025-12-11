@@ -20,7 +20,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a comment permanently",
 		Long: `Delete a comment from Linear permanently.
 
-⚠️ DESTRUCTIVE OPERATION - Cannot be undone.
+⚠️ Warning: Destructive operation - cannot be undone
 
 This permanently removes the comment and its history.
 Confirmation prompt appears unless --yes flag is used.

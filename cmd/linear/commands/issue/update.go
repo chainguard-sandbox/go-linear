@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update an existing issue in Linear.
 
-⚠️ CAUTION: This modifies existing issue data. Changes are immediate.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Only specified fields are updated. Unspecified fields remain unchanged.
 

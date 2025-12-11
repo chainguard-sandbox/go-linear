@@ -18,7 +18,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing project",
 		Long: `Update an existing project in Linear.
 
-⚠️ CAUTION: This modifies existing project data. Changes are immediate and visible to all team members.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Examples:
   linear project update <uuid> --name="New Name"

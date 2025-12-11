@@ -19,9 +19,9 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a team permanently",
 		Long: `Delete a team from Linear permanently.
 
-🚨 DESTRUCTIVE OPERATION - CANNOT BE UNDONE 🚨
+⚠️ Warning: Destructive operation - cannot be undone
 
-This PERMANENTLY removes the team and may affect issues assigned to it.
+This permanently removes the team and may affect issues assigned to it.
 Confirmation prompt appears unless --yes flag is used.
 
 Examples:

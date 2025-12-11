@@ -16,7 +16,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing cycle",
 		Long: `Update an existing cycle in Linear.
 
-⚠️ CAUTION: This modifies existing cycle data. Changes affect all team members.
+⚠️ Caution: This modifies existing data. Changes are immediate.
 
 Examples:
   linear cycle update <uuid> --name="Sprint 43"
