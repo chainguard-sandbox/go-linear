@@ -2580,6 +2580,249 @@
     }
   },
   {
+    "description": "Archive a notification to remove it from inbox.\n\n⚠️ CAUTION: This modifies notification state. Changes are immediate.\n\nArchived notifications can be restored through the Linear UI if needed.\nUse this to clean up processed or irrelevant notifications.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID to archive (required)\n\nExamples:\n  # Archive notification\n  linear notification archive \u003cnotif-uuid\u003e\n\nTIP: Archived notifications are hidden but not deleted (can be restored in UI)\n\nRelated Commands:\n  - linear notification update - Mark as read or snooze instead\n  - linear notification subscribe - Subscribe to updates",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cnotification-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_notification_archive",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Subscribe to receive notifications for updates to a project, cycle, team, or user.\n\nThis operation creates new subscription data and is safe to execute.\nGet notified when the resource is updated or has new activity.\n\nParameters (mutually exclusive - specify exactly one):\n  --project: Project name or UUID\n  --cycle: Cycle UUID\n  --team: Team name or UUID\n  --user: User name, email, or UUID\n\nExamples:\n  # Subscribe to project updates\n  linear notification subscribe --project=\"Platform Redesign\"\n\n  # Subscribe to team updates\n  linear notification subscribe --team=Engineering\n\n  # Subscribe to cycle updates\n  linear notification subscribe --cycle=\u003ccycle-uuid\u003e --output=json\n\nTIP: Subscriptions help track important resources without manual checking\n\nCommon Errors:\n  - \"must specify exactly one resource\": Provide one of the resource flags\n\nRelated Commands:\n  - linear notification unsubscribe - Remove subscription\n  - linear notification update - Manage notifications\n  - linear notification archive - Archive notifications",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "cycle": {
+              "type": "string",
+              "description": "Cycle UUID"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "project": {
+              "type": "string",
+              "description": "Project name or UUID"
+            },
+            "team": {
+              "type": "string",
+              "description": "Team name or UUID"
+            },
+            "user": {
+              "type": "string",
+              "description": "User name, email, or UUID"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_notification_subscribe",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Remove a notification subscription to stop receiving updates.\n\nThis operation is safe and can be reversed by subscribing again.\nStop notifications for issues, projects, or cycles you no longer need to track.\n\nParameters:\n  \u003csubscription-id\u003e: NotificationSubscription UUID to delete (required)\n\nExamples:\n  # Unsubscribe from updates\n  linear notification unsubscribe \u003csubscription-uuid\u003e\n\nTIP: Find subscription IDs in Linear notification settings or via API\n\nRelated Commands:\n  - linear notification subscribe - Subscribe to updates\n  - linear notification update - Manage notification status\n  - linear notification archive - Archive notifications",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003csubscription-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_notification_unsubscribe",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Update notification status (mark as read or snooze).\n\n⚠️ CAUTION: This modifies notification state. Changes are immediate.\n\nUse this to manage notification inbox programmatically.\nMark notifications as read after processing or snooze for later review.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID (required)\n  --read: Mark as read (sets readAt to current time)\n  --snooze-until: Snooze until date/time (ISO8601, relative like \"tomorrow\", \"3d\")\n\nExamples:\n  # Mark notification as read\n  linear notification update \u003cnotif-uuid\u003e --read\n\n  # Snooze until tomorrow\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=tomorrow\n\n  # Snooze for 3 days\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=3d --output=json\n\nTIP: Use snoozed notifications to defer non-urgent items\n\nRelated Commands:\n  - linear notification archive - Archive notification (alternative)\n  - linear notification subscribe - Subscribe to issue/project updates",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003cnotification-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "read": {
+              "type": "boolean",
+              "description": "Mark notification as read",
+              "default": false
+            },
+            "snooze-until": {
+              "type": "string",
+              "description": "Snooze until date/time (ISO8601 or relative)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_notification_update",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "description": "Get information about the current Linear organization/workspace.\n\nExamples:\n  linear organization\n  linear org --output=json",
     "inputSchema": {
       "type": "object",
@@ -3127,6 +3370,127 @@
       "additionalProperties": false
     },
     "name": "linear_project_update",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Add an emoji reaction to an issue or comment.\n\nThis operation creates new reaction data and is safe to execute.\nReactions provide quick feedback without creating a full comment.\nPerfect for lightweight acknowledgment, approval, or sentiment.\n\nParameters:\n  --emoji: Single emoji character (required, e.g., 👍, ❤️, 🎉)\n  --issue: Issue identifier (e.g., ENG-123) or UUID\n  --comment: Comment UUID\n\nNote: Specify exactly one of --issue OR --comment (mutually exclusive)\n\nExamples:\n  # React to an issue with thumbs up\n  linear reaction create --issue=ENG-123 --emoji=👍\n\n  # React to a comment\n  linear reaction create --comment=\u003ccomment-uuid\u003e --emoji=🎉\n\n  # With JSON output\n  linear reaction create --issue=ENG-123 --emoji=❤️ --output=json\n\nTIP: Use emoji keyboard shortcuts or copy from web (macOS: Ctrl+Cmd+Space)\n\nCommon Errors:\n  - \"must specify exactly one resource\": Provide --issue OR --comment, not both\n  - \"invalid emoji\": Must be a single emoji character\n\nRelated Commands:\n  - linear reaction delete - Remove a reaction\n  - linear comment create - Create a full comment instead",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "comment": {
+              "type": "string",
+              "description": "Comment UUID"
+            },
+            "emoji": {
+              "type": "string",
+              "description": "Single emoji character (required)"
+            },
+            "issue": {
+              "type": "string",
+              "description": "Issue identifier or UUID"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_reaction_create",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Remove an emoji reaction from an issue or comment.\n\nThis operation is safe and can be reversed by re-adding the reaction.\n\nParameters:\n  \u003creaction-id\u003e: Reaction UUID to delete (required)\n\nExamples:\n  # Remove a reaction\n  linear reaction delete \u003creaction-uuid\u003e\n\nTIP: View reactions in Linear UI or via API to find reaction IDs\n\nRelated Commands:\n  - linear reaction create - Add an emoji reaction",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments\nUsage pattern: \u003creaction-id\u003e",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "linear_reaction_delete",
     "outputSchema": {
       "type": "object",
       "required": [

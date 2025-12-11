@@ -6,7 +6,7 @@ The go-linear project provides **two complementary MCP servers** optimized for d
 
 | Server | Purpose | Tools | When to Use |
 |--------|---------|-------|-------------|
-| **linear-cli** | Execute Linear operations | **26** | "List my issues", "Who completed work yesterday?" |
+| **linear-cli** | Execute Linear operations | **70** | "List my issues", "Who completed work yesterday?" |
 | **linear-sdk** | Write go-linear code | **15** | "How do I create an issue?", "Show pagination example" |
 
 ---
@@ -15,7 +15,7 @@ The go-linear project provides **two complementary MCP servers** optimized for d
 
 **Binary**: `bin/linear`
 **Purpose**: Execute Linear operations and return data
-**Tools**: **26 commands** (full CRUD + complex queries)
+**Tools**: **70 commands** (complete SDK coverage with full CRUD + complex queries)
 
 ### Key Features
 ✅ **AI-optimized** - Parameter-rich commands, no multi-step workflows
@@ -24,7 +24,11 @@ The go-linear project provides **two complementary MCP servers** optimized for d
 ✅ **Rich filtering** - 15+ parameters per command
 ✅ **Complex queries** - Single-command aggregations
 
-### Available Tools (26)
+### Available Tools (70)
+
+**Complete SDK Coverage**: All 69 SDK client methods (100% parity)
+
+#### Core Operations
 
 #### Issues (7 tools)
 - `linear_issue_list` - List with rich filtering (team, assignee, dates, priority, labels)
@@ -427,7 +431,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | ./bin/linear-mcp
 ## Coverage Stats
 
 **SDK Methods**: 69 total
-**CLI Tools**: 26 (38% coverage)
+**CLI Tools**: 70 (100% coverage) ✅
 **SDK MCP Tools**: 15 (22% coverage)
 
 **Top operations covered**:
