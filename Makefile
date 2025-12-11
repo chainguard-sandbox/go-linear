@@ -48,39 +48,43 @@ help:  ## Show this help message
 # Build targets
 #
 
-build: $(BINDIR)/$(BINARY_NAME)  ## Build the binary
-
-$(BINDIR)/$(BINARY_NAME): $(GOFILES)
-	@echo "Building $(BINARY_NAME)..."
-	@mkdir -p $(BINDIR)
-	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ .
-	@echo "✓ Built: $@"
-
-install: build  ## Install binary to $GOPATH/bin
-	@echo "Installing $(BINARY_NAME)..."
-	@cp $(BINDIR)/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
-	@echo "✓ Installed to $(GOPATH)/bin/$(BINARY_NAME)"
+build: build-mcp-cli build-mcp-sdk  ## Build both MCP servers
 
 #
-# CLI tool targets
+# MCP Server targets
 #
 
-build-cli: $(BINDIR)/linear  ## Build the Linear CLI tool
+build-mcp-cli: $(BINDIR)/linear-mcp-cli  ## Build the Linear CLI MCP server (70 tools)
 
-$(BINDIR)/linear: $(GOFILES)
-	@echo "Building Linear CLI..."
+$(BINDIR)/linear-mcp-cli: $(GOFILES)
+	@echo "Building Linear CLI MCP server..."
 	@mkdir -p $(BINDIR)
 	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ ./cmd/linear
 	@echo "✓ Built: $@"
 
-install-cli: build-cli  ## Install Linear CLI to $GOPATH/bin
-	@echo "Installing Linear CLI..."
-	@cp $(BINDIR)/linear $(GOPATH)/bin/linear
-	@echo "✓ Installed to $(GOPATH)/bin/linear"
+build-mcp-sdk: $(BINDIR)/linear-mcp-sdk  ## Build the Linear SDK MCP server (15 tools)
 
-clean-cli:  ## Remove CLI binary
-	@echo "Cleaning CLI binary..."
-	@rm -f $(BINDIR)/linear
+$(BINDIR)/linear-mcp-sdk: $(GOFILES)
+	@echo "Building Linear SDK MCP server..."
+	@mkdir -p $(BINDIR)
+	@cp cmd/linear-mcp/linear-mcp $@
+	@chmod +x $@
+	@echo "✓ Built: $@"
+
+install: build  ## Install both MCP servers to $GOPATH/bin
+	@echo "Installing MCP servers..."
+	@cp $(BINDIR)/linear-mcp-cli $(GOPATH)/bin/linear-mcp-cli
+	@cp $(BINDIR)/linear-mcp-sdk $(GOPATH)/bin/linear-mcp-sdk
+	@echo "✓ Installed MCP servers to $(GOPATH)/bin/"
+
+# Legacy aliases for backwards compatibility
+build-cli: build-mcp-cli  ## Alias for build-mcp-cli
+$(BINDIR)/linear: $(BINDIR)/linear-mcp-cli
+	@ln -sf linear-mcp-cli $@
+
+clean-cli:  ## Remove MCP binaries
+	@echo "Cleaning MCP binaries..."
+	@rm -f $(BINDIR)/linear-mcp-cli $(BINDIR)/linear-mcp-sdk $(BINDIR)/linear $(BINDIR)/go-linear
 	@echo "✓ Cleaned"
 
 #
