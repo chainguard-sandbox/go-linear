@@ -1,6 +1,7 @@
 package fieldfilter
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -145,7 +146,7 @@ func TestFilter(t *testing.T) {
 				gotNorm, _ := json.Marshal(gotObj)
 				wantNorm, _ := json.Marshal(wantObj)
 
-				if string(gotNorm) != string(wantNorm) {
+				if !bytes.Equal(gotNorm, wantNorm) {
 					t.Errorf("Filter() = %s, want %s", string(gotNorm), string(wantNorm))
 				}
 			}

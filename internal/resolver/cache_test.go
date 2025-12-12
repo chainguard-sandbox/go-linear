@@ -71,16 +71,16 @@ func TestCacheConcurrency(t *testing.T) {
 
 	// Concurrent writes
 	done := make(chan bool)
-	for i := 0; i < 10; i++ {
-		go func(n int) {
+	for range 10 {
+		go func() {
 			cache.Set("key", "value")
 			cache.Get("key")
 			done <- true
-		}(i)
+		}()
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 
