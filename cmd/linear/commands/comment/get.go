@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
@@ -47,6 +48,7 @@ TIP: Use 'linear comment list' to discover comment IDs from issues`,
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,body')")
 
 	return cmd
 }
@@ -60,9 +62,15 @@ func runGet(cmd *cobra.Command, client *linear.Client, commentID string) error {
 	}
 
 	output, _ := cmd.Flags().GetString("output")
+	fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), comment, true)
+		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), comment, true, fieldSelector)
 	case "table":
 		// Simple table output for single comment
 		fmt.Fprintf(cmd.OutOrStdout(), "ID:          %s\n", comment.ID)

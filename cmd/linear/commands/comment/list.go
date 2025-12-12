@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
@@ -59,6 +60,7 @@ Related Commands:
 	cmd.Flags().IntP("limit", "l", 50, "Number of comments to return")
 	cmd.Flags().String("after", "", "Cursor for pagination")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,body')")
 
 	return cmd
 }
@@ -81,9 +83,15 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	output, _ := cmd.Flags().GetString("output")
+	fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), comments, true)
+		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), comments, true, fieldSelector)
 	case "table":
 		if len(comments.Nodes) == 0 {
 			fmt.Fprintln(cmd.OutOrStdout(), "No comments found")

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -54,6 +55,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name,key')")
 
 	return cmd
 }
@@ -74,9 +76,15 @@ func runGet(cmd *cobra.Command, client *linear.Client, nameOrID string) error {
 	}
 
 	output, _ := cmd.Flags().GetString("output")
+	fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), team, true)
+		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), team, true, fieldSelector)
 	case "table":
 		fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", team.Name)
 		fmt.Fprintf(cmd.OutOrStdout(), "Key:  %s\n", team.Key)
