@@ -315,6 +315,44 @@ LINEAR_METRICS_ENABLED=true LINEAR_API_KEY=xxx ./bin/go-linear-mcp mcp start
 }
 ```
 
+### AI Agent Optimizations
+
+**Sparse field selection** (reduce token usage):
+```bash
+# Full response: ~2.8KB
+linear issue get ENG-123 --output=json
+
+# Sparse response: ~85 bytes (97% reduction)
+linear issue get ENG-123 --fields=id,title,priority --output=json
+
+# Nested field selection
+linear issue get ENG-123 --fields=id,title,assignee.name,state.name --output=json
+# Returns: {"id":"...","title":"...","assignee":{"name":"..."},"state":{"name":"..."}}
+
+# List with filtering
+linear issue list --team=Engineering --fields=identifier,title,priority --output=json
+```
+
+**Rate limit monitoring**:
+```bash
+# Check API quota
+linear status
+
+# Output:
+# LINEAR API RATE LIMIT STATUS
+#
+# REQUEST-BASED LIMITS
+#   Remaining: 2,485 / 2,500 (99.4%)
+#   Resets in: 54m32s (at 2025-12-11T19:47:30Z)
+#
+# COMPLEXITY-BASED LIMITS
+#   Remaining: 248,750 / 250,000 (99.5%)
+#   Resets in: 54m32s (at 2025-12-11T19:47:30Z)
+
+# JSON format for scripting
+linear status --output=json
+```
+
 ---
 
 ## Architecture
