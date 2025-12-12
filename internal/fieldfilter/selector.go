@@ -77,17 +77,21 @@ func (fs *FieldSelector) filterObject(obj map[string]any) map[string]any {
 
 		// Check for nested field selection (e.g., "assignee.name")
 		hasNested := false
+		nestedFields := make(map[string]bool)
 		prefix := key + "."
 		for field := range fs.fields {
 			if strings.HasPrefix(field, prefix) {
 				hasNested = true
-				break
+				// Extract the nested part (e.g., "assignee.name" → "name")
+				nestedField := strings.TrimPrefix(field, prefix)
+				nestedFields[nestedField] = true
 			}
 		}
 
 		if hasNested {
-			// Include parent object, filter recursively
-			result[key] = fs.filterValue(value)
+			// Create a new field selector for the nested object
+			nestedSelector := &FieldSelector{fields: nestedFields}
+			result[key] = nestedSelector.filterValue(value)
 		}
 	}
 
