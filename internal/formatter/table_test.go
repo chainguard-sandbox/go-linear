@@ -57,9 +57,9 @@ func TestFormatTime(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name  string
-		time  time.Time
-		want  string
+		name string
+		time time.Time
+		want string
 	}{
 		{"just now", now.Add(-30 * time.Second), "just now"},
 		{"1 min ago", now.Add(-1 * time.Minute), "1 min ago"},
