@@ -60,3 +60,7 @@ internal/mcptools/
 internal/schema/
 cmd/schema-gen/
 cmd/go-linear-mcp/enhance/
+
+# Generated files (can be regenerated from source)
+pkg/linear/schema.json
+mcp/tools.json
