@@ -25,6 +25,14 @@ func TestLive_ResolveTeam(t *testing.T) {
 	r := New(client)
 	ctx := context.Background()
 
+	// Get first team from workspace for dynamic testing
+	teams, err := client.Teams(ctx, nil, nil)
+	if err != nil || len(teams.Nodes) == 0 {
+		t.Skip("No teams available for testing")
+	}
+
+	firstTeam := teams.Nodes[0]
+
 	tests := []struct {
 		name    string
 		input   string
@@ -32,17 +40,17 @@ func TestLive_ResolveTeam(t *testing.T) {
 	}{
 		{
 			name:    "resolve by team name",
-			input:   "Engineering",
+			input:   firstTeam.Name,
 			wantErr: false,
 		},
 		{
 			name:    "resolve by team key",
-			input:   "ENG",
+			input:   firstTeam.Key,
 			wantErr: false,
 		},
 		{
 			name:    "nonexistent team",
-			input:   "nonexistent-team-xyz",
+			input:   "nonexistent-team-xyz-12345",
 			wantErr: true,
 		},
 		{

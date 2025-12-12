@@ -10,7 +10,7 @@ dist/
 *_example_bin
 
 # MCP server binary
-cmd/linear-mcp/linear-mcp
+cmd/go-linear-mcp/go-linear-mcp
 
 # Test binary, built with `go test -c`
 *.test
@@ -54,8 +54,9 @@ docs/MCP-COMPARISON.md
 scripts/
 
 # Development tooling (internal utilities)
-internal/grouper/
+# Note: grouper binary excluded, but internal/grouper/ package is tracked
+/grouper
 internal/mcptools/
 internal/schema/
 cmd/schema-gen/
-cmd/linear-mcp/enhance/
+cmd/go-linear-mcp/enhance/
