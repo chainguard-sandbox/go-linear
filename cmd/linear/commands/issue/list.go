@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/filter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -84,6 +85,7 @@ Common Errors:
 
 	// Output
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'identifier,title,state.name')")
 
 	return cmd
 }
@@ -123,9 +125,17 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		// Convert search nodes to list format for display
 		// SearchIssues returns different node types but with same structure
 		output, _ := cmd.Flags().GetString("output")
+		fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 		switch output {
 		case "json":
-			return formatter.FormatJSON(cmd.OutOrStdout(), searchResult, true)
+			// Parse field selector
+			fieldSelector, err := fieldfilter.New(fieldsSpec)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), searchResult, true, fieldSelector)
 		case "table":
 			// For table, we need to display the search results
 			// The structure is similar but uses SearchIssues_SearchIssues_Nodes
@@ -152,9 +162,17 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 		// Format output
 		output, _ := cmd.Flags().GetString("output")
+		fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 		switch output {
 		case "json":
-			return formatter.FormatJSON(cmd.OutOrStdout(), issues, true)
+			// Parse field selector
+			fieldSelector, err := fieldfilter.New(fieldsSpec)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), issues, true, fieldSelector)
 		case "table":
 			return formatter.FormatIssuesTable(cmd.OutOrStdout(), issues.Nodes)
 		default:
