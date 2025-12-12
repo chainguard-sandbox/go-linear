@@ -27,6 +27,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/reaction"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/roadmap"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/state"
+	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/status"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/team"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/template"
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/user"
@@ -307,6 +308,7 @@ Environment Variables:
 	rootCmd.AddCommand(reaction.NewReactionCommand(getClient))
 	rootCmd.AddCommand(roadmap.NewRoadmapCommand(getClient))
 	rootCmd.AddCommand(state.NewStateCommand(getClient))
+	rootCmd.AddCommand(status.NewStatusCommand())
 	rootCmd.AddCommand(team.NewTeamCommand(getClient))
 	rootCmd.AddCommand(template.NewTemplateCommand(getClient))
 	rootCmd.AddCommand(user.NewUserCommand(getClient))
