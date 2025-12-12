@@ -31,13 +31,13 @@ func TestLive_ResolveTeam(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "resolve by team name hexproof",
-			input:   "hexproof",
+			name:    "resolve by team name",
+			input:   "Engineering",
 			wantErr: false,
 		},
 		{
-			name:    "resolve by team key HEX",
-			input:   "HEX",
+			name:    "resolve by team key",
+			input:   "ENG",
 			wantErr: false,
 		},
 		{
