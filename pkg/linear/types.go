@@ -2,6 +2,30 @@ package linear
 
 import intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 
+// Priority represents Linear issue priority levels.
+//
+// These constants provide type-safe, self-documenting priority values.
+// The underlying type is int64 to match Linear's API.
+//
+// Example:
+//
+//	priority := int64(linear.PriorityUrgent)
+//	issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
+//	    TeamID:   teamID,
+//	    Title:    &title,
+//	    Priority: &priority,
+//	})
+type Priority int64
+
+// Priority constants for Linear issues.
+const (
+	PriorityNone   Priority = iota // No priority
+	PriorityUrgent                 // Urgent
+	PriorityHigh                   // High
+	PriorityNormal                 // Normal
+	PriorityLow                    // Low
+)
+
 // Input types re-exported from internal/graphql for discoverability via go doc.
 //
 // These types are used as parameters to mutation methods. Re-exporting them

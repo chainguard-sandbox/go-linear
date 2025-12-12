@@ -22,7 +22,7 @@ func ExampleClient_IssueCreate() {
 	// Create issue
 	title := "Fix login bug"
 	desc := "Users can't log in on Safari"
-	priority := int64(1) // Urgent
+	priority := int64(linear.PriorityUrgent)
 
 	issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
 		TeamID:      teamID,
@@ -199,7 +199,7 @@ func ExampleClient_IssueCreate_fullContext() {
 
 	// Create with all relationships
 	title := "Comprehensive issue"
-	priority := int64(1)
+	priority := int64(linear.PriorityUrgent)
 
 	issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
 		TeamID:     teamID,

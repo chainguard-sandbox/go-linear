@@ -1,9 +1,10 @@
 # go-linear
 
-**Type-safe Go client for the Linear API.** Production-ready with automatic retry, rate limiting, per-operation Prometheus metrics, and multi-tenancy support.
+Type-safe Go client for the Linear GraphQL API with production reliability features and Model Context Protocol (MCP) server for AI agent integration.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-sandbox/go-linear.svg)](https://pkg.go.dev/github.com/chainguard-sandbox/go-linear)
 [![Go Report Card](https://goreportcard.com/badge/github.com/chainguard-sandbox/go-linear)](https://goreportcard.com/report/github.com/chainguard-sandbox/go-linear)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ```bash
 go get github.com/chainguard-sandbox/go-linear
@@ -11,16 +12,44 @@ go get github.com/chainguard-sandbox/go-linear
 
 ---
 
+## Components
+
+**Core Library (`pkg/linear`)**
+- GraphQL client generated from Linear's schema via gqlgenc (~7400 LOC)
+- Complete API coverage: Issues, Teams, Projects, Comments, Labels, Workflows, etc.
+- Automatic pagination with thread-safe iterators
+- Retry logic with exponential backoff, circuit breakers, bounded retry windows
+- TLS 1.2+ enforcement, optional certificate pinning
+- Structured logging (slog), per-operation Prometheus metrics
+- Rate limit detection with automatic backoff
+- Multi-tenant metrics isolation
+
+**MCP Server (`cmd/linear`)**
+- CLI-based MCP server with ~70 tools auto-generated via [ophis](https://github.com/njayp/ophis)
+- Exposes full CLI functionality to AI agents
+- JSON-RPC 2.0 over stdio
+- Agents work with CLI commands, not raw GraphQL (less context overhead)
+- CLI layer minimizes output, reducing noise for agents
+- Production-ready: retry, circuit breaker, TLS 1.2+, configurable via env vars
+
+### Design
+
+- **Type Safety**: Generated from GraphQL schema. Schema changes caught at compile time.
+- **Reliability**: Circuit breakers open after 5 consecutive failures. Retry bounded to 90s total.
+- **Observability**: All operations logged with request_id. Metrics include operation name (not generic "graphql").
+- **Error Handling**: Typed errors with `errors.As()` support. Error chains preserved with `Unwrap()`.
+
+---
+
 ## Quick Start
 
-**Prerequisites:** Linear API key from https://linear.app/settings/account/security
+### Basic Usage
 
 ```go
 package main
 
 import (
     "context"
-    "fmt"
     "log"
 
     "github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -35,203 +64,33 @@ func main() {
 
     ctx := context.Background()
 
-    // Get authenticated user
     viewer, err := client.Viewer(ctx)
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Printf("Authenticated as: %s\n", viewer.Email)
-}
-```
+    log.Printf("Authenticated as: %s", viewer.Email)
 
-**What's next?**
-1. **Create an issue:** [examples/tasks/create_issue.go](examples/tasks/create_issue)
-2. **Search issues:** [examples/tasks/search_issues.go](examples/tasks/search_issues)
-3. **List with iterator:** [examples/tasks/list_issues_iterator.go](examples/tasks/list_issues_iterator)
-4. **Production setup:** [examples/production/main.go](examples/production/main.go)
-5. **MCP Server for AI:** [cmd/linear-mcp](cmd/linear-mcp) - Use with Claude Desktop
+    // Create issue
+    title := "Payment processing timeout"
+    priority := int64(1) // Urgent
 
----
-
-## AI Integration (MCP Server)
-
-**Use Linear with AI agents** via the Model Context Protocol (MCP) server.
-
-⚠️ **Safety Note**: Implements **13 tools** (9 read-only, 4 mutable). All mutable operations (create, update, comment, delete) require user confirmation and are marked with ⚠️ warnings. See [docs/MCP.md](docs/MCP.md) for details.
-
-```bash
-cd cmd/linear-mcp
-go build
-export LINEAR_API_KEY=lin_api_xxx
-./linear-mcp
-```
-
-**Configure Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "linear": {
-      "command": "/path/to/linear-mcp",
-      "env": {"LINEAR_API_KEY": "lin_api_xxx"}
-    }
-  }
-}
-```
-
-AI agents can now:
-- List teams and issues
-- Create and update issues
-- Search with natural language
-- Add comments and labels
-
-**Documentation:**
-- **Full MCP Guide:** [docs/MCP.md](docs/MCP.md)
-- **Tool Definitions:** [mcp/tools.json](mcp/tools.json)
-- **JSON Schema:** [pkg/linear/schema.json](pkg/linear/schema.json) - Complete API type definitions for AI
-
-**Test:** `cd mcp && ./test-mcp.sh`
-
----
-
-## Common Tasks
-
-| I want to... | Method | Example | Complexity |
-|--------------|--------|---------|------------|
-| Create an issue | `IssueCreate()` | [→](examples/tasks/create_issue) | Simple |
-| Search for issues | `SearchIssues()` | [→](examples/tasks/search_issues) | Medium |
-| Update an issue | `IssueUpdate()` | [→](examples/tasks/update_issue) | Simple |
-| Delete an issue | `IssueDelete()` | [→](examples/tasks/delete_issue) | Simple |
-| List all issues (manual) | `Issues()` | [→](examples/tasks/list_issues_paginated) | Medium |
-| List all issues (auto) | `NewIssueIterator()` | [→](examples/tasks/list_issues_iterator) | Simple |
-| Add comment to issue | `CommentCreate()` | [→](examples/tasks/add_comment) | Simple |
-| Update a comment | `CommentUpdate()` | [→](examples/tasks/update_comment) | Simple |
-| List comments | `Comments()` | [→](examples/tasks/list_comments) | Simple |
-| Create a label | `IssueLabelCreate()` | [→](examples/tasks/create_label) | Simple |
-| Assign label to issue | `IssueUpdate()` | [→](examples/tasks/assign_label) | Medium |
-| List all labels | `IssueLabels()` | [→](examples/tasks/list_labels) | Simple |
-| Handle rate limits | Error pattern | [→](examples/tasks/handle_rate_limits) | Medium |
-| Handle auth errors | Error pattern | [→](examples/tasks/handle_auth_errors) | Simple |
-| Use circuit breaker | Client option | [→](examples/tasks/handle_circuit_breaker) | Advanced |
-| Rotate credentials | `WithCredentialProvider()` | [→](examples/tasks/credential_rotation) | Advanced |
-| Concurrent requests | Goroutines | [→](examples/tasks/concurrent_requests) | Advanced |
-| Bulk operations | Batch pattern | [→](examples/tasks/batch_operations) | Advanced |
-
----
-
-## Common Operations
-
-### List Issues with Pagination
-
-**Manual pagination:**
-```go
-first := int64(50)
-issues, err := client.Issues(ctx, &first, nil)
-if err != nil {
-    return err
-}
-
-for _, issue := range issues.Nodes {
-    fmt.Printf("%s: %s\n", issue.ID, issue.Title)
-}
-
-// Next page
-if issues.PageInfo.HasNextPage {
-    issues, err = client.Issues(ctx, &first, issues.PageInfo.EndCursor)
-}
-```
-
-**Automatic pagination with iterator:**
-```go
-iter := linear.NewIssueIterator(client, 100)
-for {
-    issue, err := iter.Next(ctx)
-    if errors.Is(err, io.EOF) {
-        break
-    }
+    teams, _ := client.Teams(ctx, nil, nil)
+    issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
+        TeamID:   teams.Nodes[0].ID,
+        Title:    &title,
+        Priority: &priority,
+    })
     if err != nil {
-        return err
+        log.Fatal(err)
     }
-    fmt.Printf("%s: %s\n", issue.ID, issue.Title)
+    log.Printf("Created: %s", issue.URL)
 }
 ```
 
-**Thread Safety:** Iterators are safe for concurrent use (mutex-protected).
-
-### Create Issue
-
-**Required:** `TeamID` (string)
-**Optional:** All fields are pointers (`*string`, `*int64`), `nil` = omit
+### Production Configuration
 
 ```go
-// Get team ID first
-teams, err := client.Teams(ctx, nil, nil)
-teamID := teams.Nodes[0].ID
-
-// Create issue
-title := "Fix authentication bug"
-description := "Users cannot log in on Safari"
-priority := int64(1) // 0=none, 1=urgent, 2=high, 3=normal, 4=low
-
-issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
-    TeamID:      teamID,
-    Title:       &title,
-    Description: &description,
-    Priority:    &priority,
-})
-if err != nil {
-    return err
-}
-fmt.Printf("Created: %s\n", issue.URL)
-```
-
-### Update Issue
-
-**All fields optional.** `nil` = unchanged, provide value = update
-
-```go
-newTitle := "Fix critical authentication bug"
-newPriority := int64(1) // Urgent
-
-updated, err := client.IssueUpdate(ctx, issueID, linear.IssueUpdateInput{
-    Title:    &newTitle,
-    Priority: &newPriority,
-})
-```
-
-### Get Single Resource
-
-**Pattern:** Singular method name + ID parameter
-
-```go
-issue, err := client.Issue(ctx, "issue-uuid")
-team, err := client.Team(ctx, "team-uuid")
-user, err := client.User(ctx, "user-uuid")
-comment, err := client.Comment(ctx, "comment-uuid")
-```
-
-### List Resources
-
-**Pattern:** Plural method name + pagination parameters (`first`, `after`)
-
-```go
-first := int64(50)
-issues, err := client.Issues(ctx, &first, nil)
-teams, err := client.Teams(ctx, &first, nil)
-users, err := client.Users(ctx, &first, nil)
-comments, err := client.Comments(ctx, &first, nil)
-```
-
----
-
-## Production Setup
-
-**Install:** Copy this configuration for production deployments
-
-```go
-package main
-
 import (
-    "context"
     "crypto/tls"
     "log/slog"
     "os"
@@ -240,53 +99,335 @@ import (
     "github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-func main() {
-    // Structured logging (JSON for production)
-    logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-        Level: slog.LevelInfo,
-    }))
+logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+    Level: slog.LevelInfo,
+}))
 
-    client, err := linear.NewClient(os.Getenv("LINEAR_API_KEY"),
-        // Automatic retry: 5 attempts, 500ms-60s backoff
-        linear.WithRetry(5, 500*time.Millisecond, 60*time.Second),
+client, err := linear.NewClient(os.Getenv("LINEAR_API_KEY"),
+    // Retry configuration
+    linear.WithRetry(5, 1*time.Second, 30*time.Second),
+    linear.WithTimeout(30*time.Second),
 
-        // Request timeout
-        linear.WithTimeout(30*time.Second),
+    // Circuit breaker: fail-fast after 5 consecutive failures
+    linear.WithCircuitBreaker(&linear.CircuitBreaker{
+        MaxFailures:  5,
+        ResetTimeout: 60*time.Second,
+    }),
 
-        // Structured logging (all requests/errors)
-        linear.WithLogger(logger),
+    // Security
+    linear.WithTLSConfig(&tls.Config{
+        MinVersion: tls.VersionTLS12,
+    }),
 
-        // Rate limit monitoring (for metrics)
-        linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
-            slog.Info("rate limit status",
-                "requests_remaining", info.RequestsRemaining,
-                "requests_limit", info.RequestsLimit,
-            )
-        }),
+    // Observability
+    linear.WithLogger(logger),
+    linear.WithMetrics(),
+    linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
+        logger.Info("rate_limit",
+            "requests_remaining", info.RequestsRemaining,
+            "requests_limit", info.RequestsLimit,
+        )
+    }),
+)
+```
 
-        // TLS security (enforce TLS 1.2+)
-        linear.WithTLSConfig(&tls.Config{
-            MinVersion: tls.VersionTLS12,
-        }),
+**See also:**
+- [Production example](examples/production/main.go) - Complete setup
+- [Prometheus integration](examples/prometheus/main.go) - Metrics collection
+- [Error handling](examples/tasks/handle_auth_errors/main.go) - Typed error patterns
 
-        // Circuit breaker (fail-fast during outages)
-        linear.WithCircuitBreaker(&linear.CircuitBreaker{
-            MaxFailures:  5,
-            ResetTimeout: 60 * time.Second,
-        }),
-    )
-    if err != nil {
-        logger.Error("client creation failed", "error", err)
-        os.Exit(1)
+---
+
+## MCP Server
+
+The `go-linear-mcp` server exposes the full Linear CLI to AI agents via JSON-RPC 2.0 over stdio. Built using [ophis](https://github.com/njayp/ophis), which auto-generates ~70 MCP tools from CLI commands.
+
+**Why CLI-based:**
+- Agents work with high-level commands (`linear issue list --priority=urgent`)
+- Minimal context overhead - agents don't need GraphQL schema knowledge
+- CLI layer minimizes output, reducing noise for agents
+- Battle-tested UX from existing CLI
+
+### Architecture
+
+```
+AI Agent (Claude) ─stdio─► go-linear-mcp ─CLI─► pkg/linear ─GraphQL─► Linear API
+                           (JSON-RPC 2.0)      (ophis)    (client)
+```
+
+The CLI layer minimizes output before returning to the agent, reducing noise in the signal.
+
+### Security Model
+
+The MCP server exposes ~70 tools from the CLI. Tool categories:
+
+| Category | Examples | User Confirmation |
+|----------|----------|-------------------|
+| Read-Only | `list`, `get` operations | No |
+| Mutable | `create`, `update` operations | Via Claude Desktop |
+| Destructive | `delete` operations | Via Claude Desktop |
+
+Mutable operations require user confirmation in Claude Desktop. Destructive operations cannot be undone.
+
+### Setup
+
+**Build:**
+
+```bash
+make build-mcp
+# Creates: bin/go-linear-mcp
+```
+
+**Claude Desktop Configuration** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "linear": {
+      "command": "/absolute/path/to/go-linear/bin/go-linear-mcp",
+      "args": ["mcp", "start"],
+      "env": {
+        "LINEAR_API_KEY": "lin_api_xxx"
+      }
     }
-    defer client.Close()
-
-    // Your application code here
+  }
 }
 ```
 
-**Advanced: Dynamic Credentials** (AWS Secrets Manager, HashiCorp Vault, etc.)
+**With observability enabled:**
+```json
+{
+  "mcpServers": {
+    "linear": {
+      "command": "/absolute/path/to/go-linear/bin/go-linear-mcp",
+      "args": ["mcp", "start"],
+      "env": {
+        "LINEAR_API_KEY": "lin_api_xxx",
+        "LINEAR_LOG_LEVEL": "info",
+        "LINEAR_METRICS_ENABLED": "true"
+      }
+    }
+  }
+}
+```
 
+Logs written to: `~/Library/Logs/Claude/mcp-server-linear.log`
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LINEAR_API_KEY` | Required | Linear API key |
+| `LINEAR_BASE_URL` | api.linear.app/graphql | Custom API endpoint |
+| `LINEAR_TIMEOUT` | 30s | Request timeout |
+| `LINEAR_RETRY_ATTEMPTS` | 3 | Retry count (0 to disable) |
+| `LINEAR_RETRY_INITIAL` | 1s | Initial retry backoff |
+| `LINEAR_RETRY_MAX` | 30s | Maximum retry backoff |
+| `LINEAR_CIRCUIT_BREAKER_FAILURES` | 5 | Failures before circuit opens |
+| `LINEAR_CIRCUIT_BREAKER_TIMEOUT` | 60s | Circuit reset timeout |
+| `LINEAR_TLS_MIN_VERSION` | 1.2 | Minimum TLS version (1.2 or 1.3) |
+| `LINEAR_LOG_LEVEL` | disabled | Logging level (debug, info, warn, error) |
+| `LINEAR_METRICS_ENABLED` | false | Enable Prometheus metrics (true/false) |
+
+**Note:** All environment variables are read once at CLI startup for optimal performance.
+
+### Available Commands
+
+The MCP server exposes ~70 tools auto-generated from CLI commands. Major command groups:
+
+| Command Group | Examples | Description |
+|---------------|----------|-------------|
+| `issue` | `list`, `get`, `create`, `update`, `delete` | Issue management |
+| `comment` | `list`, `get`, `create`, `update`, `delete` | Comment operations |
+| `team` | `list`, `get` | Team discovery |
+| `project` | `list`, `get`, `create`, `update` | Project management |
+| `label` | `list`, `get`, `create`, `update`, `delete` | Label operations |
+| `user` | `list`, `get`, `completed` | User information |
+| `state` | `list`, `get` | Workflow states |
+| `cycle` | `list`, `get`, `create`, `update` | Sprint cycles |
+| `viewer` | `get` | Authenticated user |
+| `attachment` | `list`, `get`, `create`, `delete` | File attachments |
+| `document` | `list`, `get` | Document management |
+| `roadmap` | `list`, `get` | Roadmap planning |
+| `initiative` | `list`, `get` | Strategic initiatives |
+| `template` | `list`, `get` | Issue templates |
+| `favorite` | `list`, `create`, `delete` | Favorites |
+| `reaction` | `create`, `delete` | Emoji reactions |
+| `notification` | `list`, `subscribe`, `unsubscribe` | Notifications |
+
+**View all commands:**
+```bash
+./bin/go-linear-mcp --help
+```
+
+**List MCP tools:**
+```bash
+./bin/go-linear-mcp mcp list-tools
+```
+
+**Testing:**
+```bash
+npx @modelcontextprotocol/inspector bin/go-linear-mcp -- mcp start
+```
+
+### Observability
+
+**Enable structured logging:**
+```bash
+# Info level (requests, errors)
+LINEAR_LOG_LEVEL=info LINEAR_API_KEY=xxx ./bin/go-linear-mcp mcp start 2>mcp.log
+
+# Debug level (includes request/response details)
+LINEAR_API_KEY=xxx ./bin/go-linear-mcp --verbose mcp start 2>debug.log
+
+# Log output (JSON to stderr):
+# {"time":"2025-12-11T18:00:00Z","level":"INFO","msg":"request_completed","operation":"ListIssues","status":200,"duration_ms":234}
+```
+
+**Enable Prometheus metrics:**
+```bash
+# Metrics collected internally (for future export)
+LINEAR_METRICS_ENABLED=true LINEAR_API_KEY=xxx ./bin/go-linear-mcp mcp start
+
+# Metrics tracked:
+# - linear_requests_total{operation="ListIssues"}
+# - linear_request_duration_seconds{operation="ListIssues"}
+# - linear_errors_total{operation="ListIssues",error_type="RateLimited"}
+# - linear_rate_limit_remaining{limit_type="requests"}
+```
+
+**Production setup:**
+```json
+{
+  "mcpServers": {
+    "linear": {
+      "command": "/absolute/path/to/go-linear/bin/go-linear-mcp",
+      "args": ["mcp", "start"],
+      "env": {
+        "LINEAR_API_KEY": "lin_api_xxx",
+        "LINEAR_LOG_LEVEL": "info",
+        "LINEAR_METRICS_ENABLED": "true",
+        "LINEAR_CIRCUIT_BREAKER_FAILURES": "3",
+        "LINEAR_TIMEOUT": "45s"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Architecture
+
+### Project Structure
+
+```
+go-linear/
+├── pkg/linear/              # Public API
+│   ├── client.go           # 45 methods
+│   ├── transport.go        # Retry, circuit breaker, metrics
+│   ├── errors.go           # Typed error hierarchy
+│   ├── pagination.go       # Thread-safe iterators
+│   ├── options.go          # Functional options
+│   └── metrics.go          # Prometheus collectors
+├── internal/graphql/       # Generated code (gqlgenc)
+│   ├── client.go
+│   └── models.go          # ~30k lines
+├── cmd/go-linear-mcp/      # MCP server
+│   └── main.go
+├── queries/                # GraphQL definitions
+└── examples/               # 25+ examples
+```
+
+### Code Generation
+
+```
+schema.graphql → gqlgenc → internal/graphql/* → pkg/linear
+```
+
+Changes to `schema.graphql` require `make generate`. Schema synced from Linear's TypeScript SDK.
+
+### Error Handling
+
+```go
+_, err := client.IssueCreate(ctx, input)
+if err != nil {
+    var rateLimitErr *linear.RateLimitError
+    if errors.As(err, &rateLimitErr) {
+        log.Printf("Rate limited. Retry after %ds", rateLimitErr.RetryAfter)
+        // Client already retried with backoff
+    }
+
+    var authErr *linear.AuthenticationError
+    if errors.As(err, &authErr) {
+        // Invalid API key (401)
+    }
+
+    var forbiddenErr *linear.ForbiddenError
+    if errors.As(err, &forbiddenErr) {
+        // Permission denied (403)
+    }
+}
+```
+
+All errors preserve underlying errors for `errors.Unwrap()`.
+
+### Metrics
+
+```go
+// Per-operation metrics (not generic "graphql")
+linear_requests_total{operation="IssueCreate", status_code="200"}
+linear_request_duration_seconds{operation="IssueCreate", quantile="0.95"}
+linear_errors_total{operation="IssueCreate", error_type="RateLimited"}
+linear_retries_total{reason="rate_limited"}
+linear_rate_limit_remaining{limit_type="requests"}
+
+// Multi-tenant: isolated registries
+prodClient, _ := linear.NewClient(prodKey,
+    linear.WithMetricsRegistry(prodRegistry, "prod"))
+```
+
+### Performance
+
+| Operation | p50 | p95 | Notes |
+|-----------|-----|-----|-------|
+| `Viewer()` | 80ms | 150ms | Cached by Linear |
+| `Issues(50)` | 120ms | 250ms | ~500 complexity points |
+| `IssueCreate()` | 200ms | 400ms | Includes webhooks |
+| `SearchIssues()` | 150ms | 350ms | ElasticSearch backend |
+
+**Rate Limits:**
+- API Keys: 250,000 complexity points/hour
+- Users: 1,500 requests/hour
+- Leaky bucket algorithm
+
+---
+
+## Security
+
+### Threat Mitigation
+
+| Threat | Mitigation |
+|--------|------------|
+| Credential theft | TLS 1.2+, no plaintext storage |
+| API abuse | Circuit breakers, rate monitoring, bounded retries |
+| Injection | Typed GraphQL parameters |
+| MITM | Certificate validation, optional pinning |
+| Supply chain | Dependency scanning (govulncheck, trivy) |
+
+### Features
+
+**TLS Configuration:**
+```go
+linear.WithTLSConfig(&tls.Config{
+    MinVersion: tls.VersionTLS12,
+    VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+        // Optional: certificate pinning
+    },
+})
+```
+
+**Credential Rotation (⚠️ Experimental - not production-tested):**
 ```go
 type SecretsProvider struct {
     secretName string
@@ -294,122 +435,106 @@ type SecretsProvider struct {
 }
 
 func (p *SecretsProvider) GetCredential(ctx context.Context) (string, error) {
-    result, err := p.manager.GetSecretValue(&secretsmanager.GetSecretValueInput{
+    result, _ := p.manager.GetSecretValue(&secretsmanager.GetSecretValueInput{
         SecretId: aws.String(p.secretName),
     })
-    if err != nil {
-        return "", err
-    }
     return *result.SecretString, nil
 }
 
-// Create client with credential provider
-provider := &SecretsProvider{secretName: "linear-api-key"}
-client, err := linear.NewClient("", linear.WithCredentialProvider(provider))
+// Client refreshes on 401 and retries once
+// NOTE: Requires production testing before deployment
+client, _ := linear.NewClient("", linear.WithCredentialProvider(&SecretsProvider{...}))
 ```
 
-**Production Examples:**
-- [examples/production/main.go](examples/production/main.go) - Complete production setup with graceful shutdown
-- [examples/prometheus/main.go](examples/prometheus/main.go) - Prometheus metrics integration
+**Audit Logging:**
+```json
+{
+  "level": "INFO",
+  "msg": "request_completed",
+  "operation": "IssueCreate",
+  "status": 200,
+  "duration_ms": 234,
+  "request_id": "req-abc-123"
+}
+```
 
-**Operational Docs:**
-- [docs/RUNBOOK.md](docs/RUNBOOK.md) - Incident response procedures
-- [docs/MONITORING.md](docs/MONITORING.md) - Prometheus queries and alerts
+All requests include `request_id` for correlation with Linear support.
+
+### Compliance
+
+**GDPR:** Issue data may contain PII. `IssueDelete` supports data deletion. Linear hosted in US.
+
+**SOC 2:** Structured audit logs, circuit breakers for availability.
+
+**Vulnerability Disclosure:** mark.esler@chainguard.dev (72-hour acknowledgment SLA). See [SECURITY.md](SECURITY.md).
 
 ---
 
 ## API Coverage
 
-### Query Methods (Read Permission)
+### Query Methods
 
-| Resource | Get Single | List Multiple | Search |
-|----------|-----------|---------------|--------|
-| **Issues** | `Issue(ctx, id)` | `Issues(ctx, first, after)` | `SearchIssues(ctx, term, first, after, filter, includeArchived)` |
-| **Teams** | `Team(ctx, id)` | `Teams(ctx, first, after)` | - |
-| **Projects** | `Project(ctx, id)` | `Projects(ctx, first, after)` | - |
-| **Users** | `User(ctx, id)` | `Users(ctx, first, after)` | - |
-| **Comments** | `Comment(ctx, id)` | `Comments(ctx, first, after)` | - |
-| **Labels** | `IssueLabel(ctx, id)` | `IssueLabels(ctx, first, after)` | - |
-| **Workflow States** | `WorkflowState(ctx, id)` | `WorkflowStates(ctx, first, after)` | - |
-| **Cycles** | `Cycle(ctx, id)` | `Cycles(ctx, first, after)` | - |
-| **Roadmaps** | `Roadmap(ctx, id)` | `Roadmaps(ctx, first, after)` | - |
-| **Documents** | `Document(ctx, id)` | `Documents(ctx, first, after)` | - |
-| **Attachments** | `Attachment(ctx, id)` | `Attachments(ctx, first, after)` | - |
-| **Initiatives** | `Initiative(ctx, id)` | `Initiatives(ctx, first, after)` | - |
-| **Templates** | `Template(ctx, id)` | `Templates(ctx)` | - |
+| Resource | Get | List | Search | Iterator |
+|----------|-----|------|--------|----------|
+| Issues | `Issue(ctx, id)` | `Issues(ctx, first, after)` | `SearchIssues(...)` | `NewIssueIterator(...)` |
+| Teams | `Team(ctx, id)` | `Teams(ctx, first, after)` | - | `NewTeamIterator(...)` |
+| Projects | `Project(ctx, id)` | `Projects(ctx, first, after)` | - | `NewProjectIterator(...)` |
+| Users | `User(ctx, id)` | `Users(ctx, first, after)` | - | - |
+| Comments | `Comment(ctx, id)` | `Comments(ctx, first, after)` | - | `NewCommentIterator(...)` |
+| Labels | `IssueLabel(ctx, id)` | `IssueLabels(ctx, first, after)` | - | - |
+| Workflow States | `WorkflowState(ctx, id)` | `WorkflowStates(ctx, first, after)` | - | - |
+| Cycles | `Cycle(ctx, id)` | `Cycles(ctx, first, after)` | - | - |
+| Other | Roadmaps, Documents, Attachments, Initiatives, Templates | | | |
 
-**Special:** `Viewer(ctx)` - Get authenticated user, `Organization(ctx)` - Get workspace info
+Special: `Viewer(ctx)` - authenticated user, `Organization(ctx)` - workspace info
 
-**Method Signatures:**
-- **Get Single:** `func(ctx context.Context, id string) (*Resource, error)`
-- **List Multiple:** `func(ctx context.Context, first *int64, after *string) (*ResourceConnection, error)`
-- **Search:** `func(ctx context.Context, query string, first *int64, after *string) (*ResourceConnection, error)`
+### Mutation Methods
 
-**Parameters:**
-- `id`: Resource UUID (string)
-- `first`: Page size (*int64, max: 250, recommended: 50)
-- `after`: Pagination cursor from `PageInfo.EndCursor` (*string, nil for first page)
-- `query`: Search text with operators (string)
-
-### Mutation Methods (Write Permission)
-
-| Resource | Create | Update | Delete/Archive |
+| Resource | Create | Update | Delete |
 |----------|--------|--------|--------|
-| **Issues** | `IssueCreate(ctx, input)` | `IssueUpdate(ctx, id, input)` | `IssueDelete(ctx, id)` |
-| **Comments** | `CommentCreate(ctx, input)` | `CommentUpdate(ctx, id, input)` | `CommentDelete(ctx, id)` |
-| **Labels** | `IssueLabelCreate(ctx, input)` | `IssueLabelUpdate(ctx, id, input)` | `IssueLabelDelete(ctx, id)` |
-| **Teams** | `TeamCreate(ctx, input)` | `TeamUpdate(ctx, id, input)` | `TeamDelete(ctx, id)` |
-| **Projects** | `ProjectCreate(ctx, input)` | `ProjectUpdate(ctx, id, input)` | `ProjectDelete(ctx, id)` |
-| **Cycles** | `CycleCreate(ctx, input)` | `CycleUpdate(ctx, id, input)` | `CycleArchive(ctx, id)` |
+| Issues | `IssueCreate(ctx, input)` | `IssueUpdate(ctx, id, input)` | `IssueDelete(ctx, id)` |
+| Comments | `CommentCreate(ctx, input)` | `CommentUpdate(ctx, id, input)` | `CommentDelete(ctx, id)` |
+| Labels | `IssueLabelCreate(ctx, input)` | `IssueLabelUpdate(ctx, id, input)` | `IssueLabelDelete(ctx, id)` |
+| Teams | `TeamCreate(ctx, input)` | `TeamUpdate(ctx, id, input)` | `TeamDelete(ctx, id)` |
+| Projects | `ProjectCreate(ctx, input)` | `ProjectUpdate(ctx, id, input)` | `ProjectDelete(ctx, id)` |
+| Cycles | `CycleCreate(ctx, input)` | `CycleUpdate(ctx, id, input)` | `CycleArchive(ctx, id)` |
 
-**Method Signatures:**
-- **Create:** `func(ctx context.Context, input ResourceCreateInput) (*Resource, error)`
-- **Update:** `func(ctx context.Context, id string, input ResourceUpdateInput) (*Resource, error)`
-- **Delete:** `func(ctx context.Context, id string) (*ArchivePayload, error)`
+### Pagination
 
-**Parameters:**
-- `input`: Input struct with fields for create/update
-- `id`: Resource UUID to update/delete (string)
-
-**Return Values:**
-- Create/Update return the created/updated resource
-- Delete returns `ArchivePayload` with `Success` boolean
-
-### Pagination Iterators
-
-Automatic pagination for large result sets:
-
+**Manual:**
 ```go
-iter := linear.NewIssueIterator(client, pageSize)
-iter := linear.NewTeamIterator(client, pageSize)
-iter := linear.NewProjectIterator(client, pageSize)
-iter := linear.NewCommentIterator(client, pageSize)
+first := int64(50)
+issues, _ := client.Issues(ctx, &first, nil)
+
+for _, issue := range issues.Nodes {
+    fmt.Printf("%s: %s\n", issue.ID, issue.Title)
+}
+
+if issues.PageInfo.HasNextPage {
+    issues, _ = client.Issues(ctx, &first, issues.PageInfo.EndCursor)
+}
 ```
 
-**Pattern:**
+**Automatic (Thread-Safe):**
 ```go
+iter := linear.NewIssueIterator(client, 100)
+
 for {
-    item, err := iter.Next(ctx)
+    issue, err := iter.Next(ctx)
     if errors.Is(err, io.EOF) {
-        break  // Done
+        break
     }
     if err != nil {
         return err
     }
-    // Process item
+    process(issue)
 }
-```
 
-**Thread Safety:** Iterators are safe for concurrent use. Can share across goroutines:
-```go
-// Shared iterator across multiple goroutines
-iter := linear.NewIssueIterator(client, 50)
+// Concurrent iteration safe (mutex-protected)
 for i := 0; i < 10; i++ {
     go func() {
         for {
-            issue, err := iter.Next(ctx)  // Mutex-protected
-            if errors.Is(err, io.EOF) { return }
-            if err != nil { return }
+            issue, _ := iter.Next(ctx)  // Safe
             process(issue)
         }
     }()
@@ -418,482 +543,290 @@ for i := 0; i < 10; i++ {
 
 ---
 
-## Error Handling
+## Monitoring
 
-**All methods return errors.** Check `err != nil` first.
+### Prometheus Alerts
 
-### Error Types
+**Critical:**
+```promql
+# Error rate > 50%
+rate(linear_errors_total[5m]) / rate(linear_requests_total[5m]) > 0.5
 
-Use `errors.As()` to check specific error types. Error chains are preserved:
-
-```go
-var rateLimitErr *linear.RateLimitError
-if errors.As(err, &rateLimitErr) {
-    // Rate limited - retry after N seconds
-    fmt.Printf("Retry after: %d seconds\n", rateLimitErr.RetryAfter)
-    fmt.Printf("Requests remaining: %d/%d\n",
-        rateLimitErr.RequestsRemaining,
-        rateLimitErr.RequestsLimit)
-}
-
-var authErr *linear.AuthenticationError
-if errors.As(err, &authErr) {
-    // Invalid API key
-    return fmt.Errorf("authentication failed: %w", err)
-}
-
-var forbiddenErr *linear.ForbiddenError
-if errors.As(err, &forbiddenErr) {
-    // Missing permission (check API key scopes)
-    return fmt.Errorf("permission denied: %w", err)
-}
-
-// Check underlying gqlgenc errors
-var linearErr *linear.LinearError
-if errors.As(err, &linearErr) {
-    // Access wrapped error
-    underlying := linearErr.Unwrap()
-    // Can check underlying error types via errors.Is()
-}
+# All requests failing
+rate(linear_requests_total{status_code=~"2.."}[3m]) == 0
+  and rate(linear_requests_total[3m]) > 0
 ```
 
-### Available Error Types
+**Warning:**
+```promql
+# Rate limit < 10%
+linear_rate_limit_remaining{limit_type="requests"} /
+  linear_rate_limit_remaining{limit_type="requests"} offset 5m < 0.1
 
-- `LinearError` - Base error with status code, trace ID, wrapped error chain
-- `RateLimitError` - Rate limit hit (requests + complexity limits)
-- `AuthenticationError` - Invalid/expired API key (401)
-- `ForbiddenError` - Missing permission (403)
+# Retry rate > 10%
+rate(linear_retries_total[10m]) / rate(linear_requests_total[10m]) > 0.1
 
-**Error Chain Preservation:** All errors implement `Unwrap()` for proper `errors.As()` and `errors.Is()` support.
-
----
-
-## Troubleshooting
-
-### "teamID is required"
-**Problem:** Missing required parameter for issue creation.
-
-**Solution:** Get team ID first:
-```go
-teams, err := client.Teams(ctx, nil, nil)
-if err != nil {
-    return err
-}
-teamID := teams.Nodes[0].ID
+# p95 latency > 5s
+histogram_quantile(0.95,
+  rate(linear_request_duration_seconds_bucket[10m])) > 5
 ```
 
-### "401 Unauthorized"
-**Problem:** Authentication failed.
-
-**Solutions:**
-1. Check API key is set: `echo $LINEAR_API_KEY`
-2. Verify key at https://linear.app/settings/account/security
-3. Ensure key hasn't been revoked or expired
-4. For OAuth tokens, Bearer prefix is added automatically
-
-### "429 Too Many Requests"
-**Problem:** Rate limit exceeded.
-
-**Solutions:**
-1. Client automatically retries with exponential backoff
-2. Increase retry configuration:
-```go
-client, _ := linear.NewClient(apiKey,
-    linear.WithRetry(10, 500*time.Millisecond, 2*time.Minute),
-)
-```
-3. Add rate limit monitoring:
-```go
-linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
-    log.Printf("Remaining: %d/%d requests", info.RequestsRemaining, info.RequestsLimit)
-})
-```
-4. Respect rate limits: ~2 requests/second sustained
-
-### "circuit breaker is open"
-**Problem:** Circuit breaker tripped due to high error rate.
-
-**Solutions:**
-1. Linear API is experiencing issues - wait for recovery
-2. Circuit automatically attempts recovery after timeout (default: 60s)
-3. Check Linear status: https://status.linear.app
-4. Adjust circuit breaker thresholds if too sensitive:
-```go
-cb := &linear.CircuitBreaker{
-    MaxFailures:  10,              // More tolerant
-    ResetTimeout: 120 * time.Second, // Longer recovery window
-}
-client, _ := linear.NewClient(apiKey, linear.WithCircuitBreaker(cb))
-```
-
-### Input validation errors
-**Problem:** Missing or invalid fields in mutation inputs.
-
-**Solutions:**
-
-**For IssueCreate:**
-- `TeamID`: Required (string UUID from `Teams()`)
-- `Title`: Required (*string pointer)
-- `Description`: Optional (*string, nil = omit)
-- `Priority`: Optional (*int64, 0-4 scale, nil = team default)
-- `StateID`: Optional (*string, nil = team's default "Todo" state)
-
-**For IssueUpdate:**
-- All fields optional (nil = unchanged)
-- Only provide fields you want to modify
-
-**Example:**
-```go
-title := "My Issue"
-priority := int64(2) // High
-issue, err := client.IssueCreate(ctx, linear.IssueCreateInput{
-    TeamID:   teamID,        // Required
-    Title:    &title,        // Required
-    Priority: &priority,     // Optional
-})
-```
-
----
-
-## Configuration Options
-
-### Client Options
-
-| Option | Purpose | Example |
-|--------|---------|---------|
-| `WithTimeout(duration)` | Request timeout | `linear.WithTimeout(30*time.Second)` |
-| `WithRetry(max, initial, max backoff)` | Automatic retry | `linear.WithRetry(5, 500*time.Millisecond, 60*time.Second)` |
-| `WithMaxRetryDuration(duration)` | Max total retry time | `linear.WithMaxRetryDuration(90*time.Second)` |
-| `WithLogger(logger)` | Structured logging | `linear.WithLogger(slog.Default())` |
-| `WithMetrics()` | Prometheus metrics | `linear.WithMetrics()` |
-| `WithRateLimitCallback(func)` | Monitor rate limits | `linear.WithRateLimitCallback(metricsFunc)` |
-| `WithTLSConfig(config)` | TLS settings | `linear.WithTLSConfig(&tls.Config{MinVersion: tls.VersionTLS12})` |
-| `WithTransport(transport)` | Custom RoundTripper | `linear.WithTransport(customTransport)` |
-| `WithHTTPClient(client)` | Custom HTTP client | `linear.WithHTTPClient(customClient)` |
-| `WithBaseURL(url)` | API endpoint | `linear.WithBaseURL("https://api.linear.app/graphql")` |
-| `WithUserAgent(ua)` | User agent string | `linear.WithUserAgent("myapp/1.0")` |
-
-### Production Features
-
-**Automatic Retry:**
-- Exponential backoff with jitter
-- Retries 429 (rate limit) and 5xx errors
-- Respects `Retry-After` header
-- Context cancellation support
-- Bounded total retry time (default: 90s)
-
-**Rate Limiting:**
-- Parses `X-RateLimit-*` headers
-- Tracks request + complexity limits
-- Callback for metrics integration
-- Automatic backoff on 429
-
-**Observability:**
-- Structured logging with `log/slog`
-- Request/response logging with request_id
-- Prometheus metrics (RED + rate limits)
-- Error logging with operation context
-
----
-
-## Monitoring & Observability
-
-### Prometheus Metrics
-
-**Single Client (Shared Metrics):**
-```go
-linear.EnableMetrics()
-
-client, _ := linear.NewClient(apiKey,
-    linear.WithMetrics(),
-    linear.WithLogger(logger),
-)
-
-// Expose metrics at /metrics
-http.Handle("/metrics", promhttp.Handler())
-http.ListenAndServe(":2112", nil)
-```
-
-**Multi-Client (Isolated Metrics per Workspace):**
-```go
-// Production workspace
-prodReg := prometheus.NewRegistry()
-prodClient, _ := linear.NewClient(prodKey,
-    linear.WithMetricsRegistry(prodReg, "prod"))
-
-// Staging workspace
-stageReg := prometheus.NewRegistry()
-stageClient, _ := linear.NewClient(stageKey,
-    linear.WithMetricsRegistry(stageReg, "staging"))
-
-// Metrics are isolated:
-// - linear_prod_requests_total{operation="IssueCreate"}
-// - linear_staging_requests_total{operation="IssueCreate"}
-```
-
-**Metrics collected (per-operation visibility):**
-- `linear_requests_total{operation, status_code}` - Request counts by operation (Viewer, IssueCreate, ListIssues)
-- `linear_request_duration_seconds{operation}` - Request latency histogram per operation
-- `linear_errors_total{operation, error_type}` - Error counts by operation and type
-- `linear_retries_total{reason}` - Retry counts (rate_limited, server_error, network_error)
-- `linear_rate_limit_remaining{limit_type}` - Rate limit capacity (requests, complexity)
-
-**Operation names extracted automatically** from GraphQL requests. No more generic "graphql" label - you can see which specific operations are slow or failing.
-
-**See:** [examples/prometheus/main.go](examples/prometheus/main.go) for complete integration
-
-### Recommended Alerts
-
-**Critical (Page):**
-- Error rate > 50% for 5 minutes
-- All requests failing for 3 minutes
-
-**Warning (Slack):**
-- Rate limit < 10% remaining for 5 minutes
-- Retry rate > 10% for 10 minutes
-- p95 latency > 5s for 10 minutes
-
-**See:** [docs/MONITORING.md](docs/MONITORING.md) for complete alert rules and PromQL queries
-
-### Request Correlation
-
-All requests log `request_id` for correlation with Linear support during incidents:
+### Structured Logging
 
 ```json
 {
+  "time": "2025-01-15T10:30:00Z",
   "level": "INFO",
-  "msg": "request completed",
-  "method": "POST",
-  "url": "https://api.linear.app/graphql",
+  "msg": "request_completed",
+  "operation": "IssueCreate",
   "status": 200,
-  "duration": "245ms",
-  "request_id": "req-abc-123"
+  "duration_ms": 234,
+  "request_id": "req-abc-123",
+  "rate_limit_remaining": 1450
+}
+
+{
+  "time": "2025-01-15T10:30:15Z",
+  "level": "WARN",
+  "msg": "retry_attempt",
+  "operation": "SearchIssues",
+  "attempt": 2,
+  "backoff_ms": 2000,
+  "reason": "rate_limited",
+  "request_id": "req-def-456"
 }
 ```
 
-When debugging issues with Linear support, provide the `request_id` from your logs.
-
-**Incident Response:** [docs/RUNBOOK.md](docs/RUNBOOK.md) - Covers common incidents with mitigation steps
-**Monitoring Setup:** [docs/MONITORING.md](docs/MONITORING.md) - Complete Prometheus queries and alert rules
+**Documentation:**
+- [Incident Response](docs/RUNBOOK.md)
+- [Monitoring Setup](docs/MONITORING.md)
 
 ---
 
-## Input Types
+## Examples
 
-### Common Patterns
+| Task | File | Notes |
+|------|------|-------|
+| Create issue | [create_issue](examples/tasks/create_issue/main.go) | Basic |
+| Search issues | [search_issues](examples/tasks/search_issues/main.go) | Operators |
+| Pagination | [list_issues_iterator](examples/tasks/list_issues_iterator/main.go) | Auto-pagination |
+| Rate limits | [handle_rate_limits](examples/tasks/handle_rate_limits/main.go) | Backoff |
+| Credential rotation | [credential_rotation](examples/tasks/credential_rotation/main.go) | ⚠️ Experimental |
+| Circuit breaker | [handle_circuit_breaker](examples/tasks/handle_circuit_breaker/main.go) | Fail-fast |
+| Concurrent requests | [concurrent_requests](examples/tasks/concurrent_requests/main.go) | Goroutines |
 
-**Required fields:** Non-pointer types
-**Optional fields:** Pointer types, `nil` = omit (Create) or unchanged (Update)
+---
 
-### IssueCreateInput
+## Configuration
 
-```go
-type IssueCreateInput struct {
-    TeamID      string    // Required: Team UUID
-    Title       *string   // Optional: Issue title
-    Description *string   // Optional: Markdown description
-    Priority    *int64    // Optional: 0=none, 1=urgent, 2=high, 3=normal, 4=low
-    AssigneeID  *string   // Optional: User UUID
-    StateID     *string   // Optional: WorkflowState UUID
-    LabelIds    []string  // Optional: Label UUIDs
-    ParentID    *string   // Optional: Parent issue UUID (for sub-issues)
-    DueDate     *string   // Optional: YYYY-MM-DD format
-    // ... 20+ more fields in internal/graphql/models.go
-}
-```
+### Client Options
 
-### IssueUpdateInput
+| Option | Default | Description |
+|--------|---------|-------------|
+| `WithTimeout(d)` | 30s | Request timeout |
+| `WithRetry(max, initial, maxBackoff)` | 3, 1s, 30s | Exponential backoff |
+| `WithMaxRetryDuration(d)` | 90s | Total retry limit |
+| `WithCircuitBreaker(config)` | nil | Fail-fast config |
+| `WithLogger(logger)` | nil | slog logger |
+| `WithMetrics()` | disabled | Prometheus metrics |
+| `WithMetricsRegistry(reg, ns)` | global, "linear" | Multi-tenant metrics |
+| `WithRateLimitCallback(f)` | nil | Rate limit monitoring |
+| `WithTLSConfig(config)` | TLS 1.2+ | TLS settings |
+| `WithCredentialProvider(p)` | static | ⚠️ Experimental rotation |
+| `WithBaseURL(url)` | api.linear.app | Custom endpoint |
 
-```go
-type IssueUpdateInput struct {
-    Title       *string   // nil = unchanged, value = update
-    Description *string
-    Priority    *int64
-    AssigneeID  *string   // Empty string "" = unassign
-    StateID     *string
-    LabelIds    []string  // Replace all labels
-    AddedLabelIds   []string  // Add these labels
-    RemovedLabelIds []string  // Remove these labels
-    // ... all fields optional
-}
-```
+### Transport Behavior
 
-**All mutation input types exported:**
-- Issue: `IssueCreateInput`, `IssueUpdateInput`
-- Comment: `CommentCreateInput`, `CommentUpdateInput`
-- Label: `IssueLabelCreateInput`, `IssueLabelUpdateInput`
-- Team: `TeamCreateInput`, `TeamUpdateInput`
-- Project: `ProjectCreateInput`, `ProjectUpdateInput`
+**Retry:**
+- Retries: 429 (rate limit), 5xx (server errors), timeouts
+- No retry: 4xx (except 429), 2xx responses
+- Respects `Retry-After` header
+- Bounded total time (90s default)
 
-**See:** `pkg/linear/types.go` for complete documentation with field descriptions
+**Circuit Breaker:**
+- Opens after N failures (default: 5)
+- Half-open after timeout (default: 60s)
+- Closes on successful request
+
+**Rate Limiting:**
+- Parses `X-RateLimit-*` headers
+- Tracks request and complexity limits
+- Automatic backoff on 429
 
 ---
 
 ## Testing
 
-### Run Tests
-
 ```bash
-# Mock tests (no API key required)
+# Unit tests (no API key)
 make test
 
-# Live read-only tests (requires LINEAR_API_KEY with Read permission)
+# Integration - read-only
 LINEAR_API_KEY=lin_api_xxx make test-read
 
-# Live mutation tests (requires Write permission, modifies data)
+# Integration - mutations
 LINEAR_API_KEY=lin_api_xxx make test-write
 
-# All tests
-LINEAR_API_KEY=lin_api_xxx make test-all
+# Coverage
+LINEAR_API_KEY=lin_api_xxx make test-coverage
 ```
 
-### Build Tags
+**Build Tags:**
+- No tag: Mock tests (httptest.Server)
+- `//go:build read`: Read-only integration
+- `//go:build write`: Mutation integration
 
-Tests use build tags for permission levels:
-
-- `//go:build read` - Read-only tests (Viewer, Issues, Teams)
-- `//go:build write` - Mutation tests (IssueCreate, IssueUpdate)
-- No tag - Mock tests (httptest.Server, no API key needed)
+Coverage: 60%+ (target: 80%)
 
 ---
 
 ## Development
-
-### Prerequisites
-
-- Go 1.24+
-- Linear API key (for live tests)
 
 ### Setup
 
 ```bash
 git clone https://github.com/chainguard-sandbox/go-linear
 cd go-linear
-make dev  # Install tools and dependencies
+make dev
 ```
 
-### Common Commands
+### Commands
 
 ```bash
-make help          # Show all commands
-make check         # Run all checks (fmt, vet, lint, test)
+make check         # fmt, vet, lint, test
 make fmt           # Format code
-make lint          # Run linters
-make test          # Run tests
-make test-coverage # Generate coverage report
+make lint          # golangci-lint
+make generate      # Regenerate GraphQL client
+make test-coverage # Coverage report
 ```
 
 ### Code Generation
 
-GraphQL client is auto-generated from `schema.graphql`:
-
 ```bash
-make generate  # Regenerate internal/graphql/*
+make generate
+# 1. Fetches Linear schema (or uses local)
+# 2. Runs gqlgenc with queries/*.graphql
+# 3. Generates internal/graphql/*
 ```
 
-**Config:** See `gqlgenc.yaml` for generation settings
+Config: `gqlgenc.yaml`
 
----
+### Contributing
 
-## Architecture
+1. Open issue
+2. Fork repository
+3. Create feature branch
+4. Add tests
+5. Run `make check`
+6. Submit PR
 
-```
-go-linear/
-├── pkg/linear/              # Public API
-│   ├── client.go           # Main client (45 methods)
-│   ├── errors.go           # Error types
-│   ├── transport.go        # Retry/rate limiting
-│   ├── options.go          # Client configuration
-│   ├── pagination.go       # Iterators
-│   └── types.go            # Re-exported input types
-├── internal/graphql/       # Generated GraphQL client
-│   ├── client.go          # Generated by gqlgenc
-│   └── models.go          # Generated types (30k+ lines)
-├── queries/                # GraphQL query definitions
-│   ├── issues.graphql
-│   ├── teams.graphql
-│   └── mutations/
-└── examples/production/    # Production example code
-```
-
-**Design:** Type-safe GraphQL via [genqlient](https://github.com/Khan/genqlient), generated code in `internal/`, clean public API in `pkg/linear/`
+**Review criteria:**
+- Type safety maintained
+- Tests included
+- golangci-lint passes
+- Coverage maintained
 
 ---
 
 ## FAQ
 
-### How do I get required IDs for mutations?
+**Q: Official Linear SDK?**
+A: No. This is a third-party Go client. Official Linear SDKs at https://github.com/linear
 
-**TeamID:** `teams, _ := client.Teams(ctx, nil, nil); teamID := teams.Nodes[0].ID`
-**UserID:** `viewer, _ := client.Viewer(ctx); userID := viewer.ID`
-**StateID:** `states, _ := client.WorkflowStates(ctx, nil, nil); stateID := states.Nodes[0].ID`
-**LabelID:** `labels, _ := client.IssueLabels(ctx, nil, nil); labelID := labels.Nodes[0].ID`
+**Q: API key permissions?**
+A: Read for queries, Write for mutations. Configure at https://linear.app/settings/account/security
 
-### What permissions does my API key need?
+**Q: Webhooks supported?**
+A: No. Use Linear's webhook API directly.
 
-**Read:** Query methods (Viewer, Issues, Teams, etc.)
-**Write:** Mutation methods (IssueCreate, IssueUpdate, etc.)
+**Q: Thread-safe iterators?**
+A: Yes. Mutex-protected, safe for concurrent use.
 
-Check/configure at: https://linear.app/settings/account/security
+**Q: Credential rotation production-ready?**
+A: No. `WithCredentialProvider` is experimental. Test thoroughly before deployment.
 
-### How do I handle rate limits?
+**Q: Circuit breaker behavior?**
+A: Opens after 5 failures, resets after 60s. Returns errors immediately while open.
 
-**Automatic:** Client retries 429 errors with exponential backoff
-**Monitoring:** Use `WithRateLimitCallback` to track limits
-**Manual:** Check `RateLimitError.RequestsRemaining` and back off proactively
-
-### Does this support webhooks?
-
-**No.** This is an API client library. For webhooks, use Linear's webhook API directly with your HTTP server.
-
-### How do I contribute?
-
-See development section above. Open issues for bugs/features. PRs welcome with tests.
+**Q: Multi-workspace support?**
+A: Yes. Use `WithMetricsRegistry()` for isolated metrics per workspace.
 
 ---
 
 ## Resources
 
-- **API Documentation:** https://pkg.go.dev/github.com/chainguard-sandbox/go-linear
-- **Linear API Docs:** https://developers.linear.app
-- **GraphQL Schema:** https://studio.apollographql.com/public/Linear-API/variant/current/home
-- **Examples:** [examples/production/main.go](examples/production/main.go)
-- **Issue Tracker:** https://github.com/chainguard-sandbox/go-linear/issues
+**Documentation:**
+- [Go Package Docs](https://pkg.go.dev/github.com/chainguard-sandbox/go-linear)
+- [Linear GraphQL API](https://developers.linear.app)
+- [Linear Schema](https://studio.apollographql.com/public/Linear-API/variant/current/home)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
 
----
+**Repositories:**
+- [go-linear](https://github.com/chainguard-sandbox/go-linear)
+- [Linear TypeScript SDK](https://github.com/linear/linear)
+- [MCP Specification](https://github.com/anthropics/mcp)
 
-## License
-
-Apache 2.0 - See [LICENSE](LICENSE) for details
-
-## Security
-
-For security vulnerabilities, please email [mark.esler@chainguard.dev](mailto:mark.esler@chainguard.dev).
-
-See [SECURITY.md](SECURITY.md) for our vulnerability disclosure policy.
+**Support:**
+- [GitHub Issues](https://github.com/chainguard-sandbox/go-linear/issues)
+- [Linear Status](https://status.linear.app)
+- Security: mark.esler@chainguard.dev
 
 ---
 
 ## Status
 
-**v1.0.0 Stable**: Production-ready with semantic versioning. API is stable and breaking changes will be avoided.
+### v1.0.0 (Stable)
 
 **Features:**
-- ✅ Type-safe GraphQL operations
-- ✅ Automatic retry with exponential backoff
+- ✅ Type-safe GraphQL operations (7400 LOC)
+- ✅ Complete API coverage (45 methods)
+- ✅ Automatic retry, exponential backoff
 - ✅ Rate limit detection and handling
-- ✅ Bounded retry time (prevents request hangs)
-- ✅ Structured logging (slog) with request_id correlation
-- ✅ **Per-operation Prometheus metrics** (IssueCreate, TeamUpdate, etc.)
-- ✅ **Multi-tenancy support** (instance-scoped metrics)
-- ✅ **Error chain preservation** (errors.As/Unwrap works)
-- ✅ Context support (timeout/cancellation)
-- ✅ Comprehensive API coverage (Issues, Teams, Projects, etc.)
-- ✅ Automatic pagination iterators (thread-safety documented)
-- ✅ Production-ready error handling with operation context
-- ✅ **All mutation input types exported** (Team, Project, etc.)
-- ✅ TLS configuration
-- ✅ Operational documentation (runbook + monitoring guide)
-- ✅ 60%+ test coverage (mock + live tests)
+- ✅ Circuit breakers
+- ✅ Bounded retry time
+- ✅ Structured logging (slog)
+- ✅ Per-operation Prometheus metrics
+- ✅ Multi-tenancy support
+- ✅ Error chain preservation
+- ✅ Thread-safe pagination iterators
+- ✅ TLS 1.2+ enforcement
+- ✅ MCP server (13 tools)
+- ✅ 60%+ test coverage
 
-**Upstream Sync:** Schema automatically synced from [Linear TypeScript SDK](https://github.com/linear/linear)
+**Experimental:**
+- ⚠️ Credential rotation (not production-tested)
+
+**Stability:**
+- Semantic versioning
+- No breaking changes in v1.x
+- Schema changes require minor bump
+
+### Roadmap
+
+**v1.1.0:**
+- [ ] OpenTelemetry tracing
+- [ ] Query complexity estimation
+- [ ] Webhook validation helpers
+- [ ] Credential rotation testing
+
+**v1.2.0:**
+- [ ] Batch mutations
+- [ ] GraphQL subscriptions
+- [ ] Performance benchmarks
+
+---
+
+## License
+
+Apache 2.0 - See [LICENSE](LICENSE)
+
+**Dependencies:** See [go.mod](go.mod). All Apache 2.0 or MIT licensed.
+
+---
+
+**Built with:**
+- [gqlgenc](https://github.com/Yamashou/gqlgenc) - GraphQL generation
+- [Prometheus client_golang](https://github.com/prometheus/client_golang)
+- [slog](https://pkg.go.dev/log/slog)
+
+Chainguard, Inc. | [chainguard.dev](https://chainguard.dev)

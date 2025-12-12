@@ -8,7 +8,7 @@
 
 # Project configuration
 BINARY_NAME := go-linear
-MODULE := github.com/eslerm/go-linear
+MODULE := github.com/chainguard-sandbox/go-linear
 BINDIR := bin
 GOFILES := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./upstream/*" -not -path "./internal/graphql/generated.go")
 
@@ -48,43 +48,28 @@ help:  ## Show this help message
 # Build targets
 #
 
-build: build-mcp-cli build-mcp-sdk  ## Build both MCP servers
+build: build-mcp  ## Build MCP server
 
 #
 # MCP Server targets
 #
 
-build-mcp-cli: $(BINDIR)/linear-mcp-cli  ## Build the Linear CLI MCP server (70 tools)
+build-mcp: $(BINDIR)/go-linear-mcp  ## Build the Linear MCP server (CLI-based, ~70 tools)
 
-$(BINDIR)/linear-mcp-cli: $(GOFILES)
-	@echo "Building Linear CLI MCP server..."
+$(BINDIR)/go-linear-mcp: $(GOFILES)
+	@echo "Building Linear MCP server..."
 	@mkdir -p $(BINDIR)
 	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ ./cmd/linear
 	@echo "✓ Built: $@"
 
-build-mcp-sdk: $(BINDIR)/linear-mcp-sdk  ## Build the Linear SDK MCP server (15 tools)
+install: build  ## Install MCP server to $GOPATH/bin
+	@echo "Installing MCP server..."
+	@cp $(BINDIR)/go-linear-mcp $(GOPATH)/bin/go-linear-mcp
+	@echo "✓ Installed go-linear-mcp to $(GOPATH)/bin/"
 
-$(BINDIR)/linear-mcp-sdk: $(GOFILES)
-	@echo "Building Linear SDK MCP server..."
-	@mkdir -p $(BINDIR)
-	@cp cmd/linear-mcp/linear-mcp $@
-	@chmod +x $@
-	@echo "✓ Built: $@"
-
-install: build  ## Install both MCP servers to $GOPATH/bin
-	@echo "Installing MCP servers..."
-	@cp $(BINDIR)/linear-mcp-cli $(GOPATH)/bin/linear-mcp-cli
-	@cp $(BINDIR)/linear-mcp-sdk $(GOPATH)/bin/linear-mcp-sdk
-	@echo "✓ Installed MCP servers to $(GOPATH)/bin/"
-
-# Legacy aliases for backwards compatibility
-build-cli: build-mcp-cli  ## Alias for build-mcp-cli
-$(BINDIR)/linear: $(BINDIR)/linear-mcp-cli
-	@ln -sf linear-mcp-cli $@
-
-clean-cli:  ## Remove MCP binaries
+clean-mcp:  ## Remove MCP binaries
 	@echo "Cleaning MCP binaries..."
-	@rm -f $(BINDIR)/linear-mcp-cli $(BINDIR)/linear-mcp-sdk $(BINDIR)/linear $(BINDIR)/go-linear
+	@rm -f $(BINDIR)/go-linear-mcp $(BINDIR)/linear
 	@echo "✓ Cleaned"
 
 #

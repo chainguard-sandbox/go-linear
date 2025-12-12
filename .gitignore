@@ -46,3 +46,16 @@ Thumbs.db
 tmp/
 temp/
 .claude/
+
+# Research and development (not for release)
+# MCP comparison research for v1.3.0
+docs/mcp-comparison/
+docs/MCP-COMPARISON.md
+scripts/
+
+# Development tooling (internal utilities)
+internal/grouper/
+internal/mcptools/
+internal/schema/
+cmd/schema-gen/
+cmd/linear-mcp/enhance/

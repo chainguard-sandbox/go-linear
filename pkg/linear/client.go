@@ -494,7 +494,7 @@ func (c *Client) Comments(ctx context.Context, first *int64, after *string) (*in
 //
 //	title := "Fix login bug"
 //	desc := "Users can't log in on Safari"
-//	priority := 1 // Urgent
+//	priority := int64(linear.PriorityUrgent)
 //
 //	issue, err := client.IssueCreate(ctx, IssueCreateInput{
 //	    TeamID: "team-uuid",
@@ -543,7 +543,7 @@ func (c *Client) IssueCreate(ctx context.Context, input intgraphql.IssueCreateIn
 // Example:
 //
 //	updatedTitle := "Updated: Fix critical bug"
-//	priority := 1 // Urgent
+//	priority := int64(linear.PriorityUrgent)
 //
 //	updated, err := client.IssueUpdate(ctx, issueID, IssueUpdateInput{
 //	    Title: &updatedTitle,

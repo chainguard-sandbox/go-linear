@@ -96,16 +96,14 @@ func TestIterator_Concurrency(t *testing.T) {
 	// Multiple goroutines calling Next() concurrently
 	// With mutex: no panic. Without mutex: data race/panic.
 	for range 5 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for range 3 {
 				_, err := iter.Next(context.Background())
 				if err != nil {
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -123,11 +121,9 @@ func TestTeamIterator_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 3 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			_, _ = iter.Next(context.Background())
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -144,11 +140,9 @@ func TestProjectIterator_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 3 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			_, _ = iter.Next(context.Background())
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -165,11 +159,9 @@ func TestCommentIterator_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 3 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			_, _ = iter.Next(context.Background())
-		}()
+		})
 	}
 
 	wg.Wait()
