@@ -37,6 +37,7 @@ Related: issue_list, issue_get`,
 	cmd.Flags().IntP("limit", "l", 50, "Number of results to return")
 	cmd.Flags().String("after", "", "Cursor for pagination")
 	cmd.Flags().BoolP("include-archived", "a", false, "Include archived issues")
+	cmd.Flags().Bool("count", false, "Return only count, not results (99% token reduction)")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra")
 
@@ -67,7 +68,26 @@ func runSearch(cmd *cobra.Command, client *linear.Client, query string) error {
 		return fmt.Errorf("failed to search issues: %w", err)
 	}
 
-	// Format output
+	// Check if count mode
+	countMode, _ := cmd.Flags().GetBool("count")
+	if countMode {
+		// Return just the count
+		output, _ := cmd.Flags().GetString("output")
+		switch output {
+		case "json":
+			result := map[string]any{
+				"count": searchResult.TotalCount,
+			}
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
+		case "table":
+			fmt.Fprintf(cmd.OutOrStdout(), "%.0f\n", searchResult.TotalCount)
+			return nil
+		default:
+			return fmt.Errorf("unsupported output format: %s", output)
+		}
+	}
+
+	// Format output (normal mode)
 	output, _ := cmd.Flags().GetString("output")
 	fieldsSpec, _ := cmd.Flags().GetString("fields")
 

@@ -2,7 +2,9 @@ package issue
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 
 	"github.com/spf13/cobra"
 
@@ -62,6 +64,7 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().StringArray("label", []string{}, "Label names (repeatable)")
 
 	// Output
+	cmd.Flags().Bool("count", false, "Return only count, not results (99% token reduction)")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,...")
 
@@ -79,7 +82,63 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 	issueFilter := filterBuilder.Build()
 
-	// Get pagination parameters
+	// Check if count mode
+	countMode, _ := cmd.Flags().GetBool("count")
+
+	if countMode {
+		// Count mode: return just the total count
+		count := 0
+
+		if issueFilter != nil {
+			// With filters: Paginate through all filtered results
+			var after *string
+			pageSize := int64(100)
+
+			for {
+				result, err := client.IssuesFiltered(ctx, &pageSize, after, issueFilter)
+				if err != nil {
+					return fmt.Errorf("failed to count issues: %w", err)
+				}
+
+				count += len(result.Nodes)
+
+				if !result.PageInfo.HasNextPage {
+					break
+				}
+				after = result.PageInfo.EndCursor
+			}
+		} else {
+			// No filters: Use iterator
+			it := linear.NewIssueIterator(client, 100)
+			for {
+				_, err := it.Next(ctx)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				if err != nil {
+					return fmt.Errorf("failed to iterate issues: %w", err)
+				}
+				count++
+			}
+		}
+
+		// Return count
+		output, _ := cmd.Flags().GetString("output")
+		switch output {
+		case "json":
+			result := map[string]any{
+				"count": count,
+			}
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
+		case "table":
+			fmt.Fprintf(cmd.OutOrStdout(), "%d\n", count)
+			return nil
+		default:
+			return fmt.Errorf("unsupported output format: %s", output)
+		}
+	}
+
+	// Normal list mode: Get pagination parameters
 	limit, _ := cmd.Flags().GetInt("limit")
 	first := int64(limit)
 
@@ -89,7 +148,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		afterPtr = &after
 	}
 
-	// Query issues - use SearchIssues if we have filters, otherwise use Issues
+	// Query issues - use IssuesFiltered if we have filters, otherwise use Issues
 	var nodes []any
 	var _ any // pageInfo unused for now
 
