@@ -22,6 +22,7 @@ type LinearGraphQLClient interface {
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
+	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
 	ListLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListLabels, error)
 	AttachmentCreate(ctx context.Context, input AttachmentCreateInput, interceptors ...clientv2.RequestInterceptor) (*AttachmentCreate, error)
@@ -1319,6 +1320,205 @@ func (t *ListIssues_Issues) GetNodes() []*ListIssues_Issues_Nodes {
 func (t *ListIssues_Issues) GetPageInfo() *ListIssues_Issues_PageInfo {
 	if t == nil {
 		t = &ListIssues_Issues{}
+	}
+	return &t.PageInfo
+}
+
+type ListIssuesFiltered_Issues_Nodes_State struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_State) GetID() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_State{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes_State) GetName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_State{}
+	}
+	return t.Name
+}
+
+type ListIssuesFiltered_Issues_Nodes_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_Team) GetID() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Team{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Team) GetKey() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Team{}
+	}
+	return t.Key
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Team) GetName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Team{}
+	}
+	return t.Name
+}
+
+type ListIssuesFiltered_Issues_Nodes_Assignee struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	Email       string "json:\"email\" graphql:\"email\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_Assignee) GetDisplayName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Assignee{}
+	}
+	return t.DisplayName
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Assignee) GetEmail() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Assignee{}
+	}
+	return t.Email
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Assignee) GetID() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Assignee{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Assignee) GetName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Assignee{}
+	}
+	return t.Name
+}
+
+type ListIssuesFiltered_Issues_Nodes struct {
+	Assignee    *ListIssuesFiltered_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                                    "json:\"id\" graphql:\"id\""
+	Identifier  string                                    "json:\"identifier\" graphql:\"identifier\""
+	Number      float64                                   "json:\"number\" graphql:\"number\""
+	Priority    float64                                   "json:\"priority\" graphql:\"priority\""
+	State       ListIssuesFiltered_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
+	Team        ListIssuesFiltered_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
+	Title       string                                    "json:\"title\" graphql:\"title\""
+	UpdatedAt   time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string                                    "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes) GetAssignee() *ListIssuesFiltered_Issues_Nodes_Assignee {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Assignee
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetID() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetIdentifier() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Identifier
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetNumber() float64 {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Number
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetPriority() float64 {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Priority
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetState() *ListIssuesFiltered_Issues_Nodes_State {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return &t.State
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetTeam() *ListIssuesFiltered_Issues_Nodes_Team {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return &t.Team
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetTitle() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Title
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.URL
+}
+
+type ListIssuesFiltered_Issues_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListIssuesFiltered_Issues_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListIssuesFiltered_Issues_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListIssuesFiltered_Issues struct {
+	Nodes    []*ListIssuesFiltered_Issues_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListIssuesFiltered_Issues_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListIssuesFiltered_Issues) GetNodes() []*ListIssuesFiltered_Issues_Nodes {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues{}
+	}
+	return t.Nodes
+}
+func (t *ListIssuesFiltered_Issues) GetPageInfo() *ListIssuesFiltered_Issues_PageInfo {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues{}
 	}
 	return &t.PageInfo
 }
@@ -4666,6 +4866,17 @@ func (t *ListIssues) GetIssues() *ListIssues_Issues {
 	return &t.Issues
 }
 
+type ListIssuesFiltered struct {
+	Issues ListIssuesFiltered_Issues "json:\"issues\" graphql:\"issues\""
+}
+
+func (t *ListIssuesFiltered) GetIssues() *ListIssuesFiltered_Issues {
+	if t == nil {
+		t = &ListIssuesFiltered{}
+	}
+	return &t.Issues
+}
+
 type GetLabel struct {
 	IssueLabel GetLabel_IssueLabel "json:\"issueLabel\" graphql:\"issueLabel\""
 }
@@ -5733,6 +5944,61 @@ func (c *Client) ListIssues(ctx context.Context, first *int64, after *string, in
 
 	var res ListIssues
 	if err := c.Client.Post(ctx, "ListIssues", ListIssuesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $after: String, $filter: IssueFilter) {
+	issues(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			identifier
+			title
+			description
+			priority
+			createdAt
+			updatedAt
+			number
+			url
+			state {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+			assignee {
+				id
+				name
+				displayName
+				email
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListIssuesFiltered
+	if err := c.Client.Post(ctx, "ListIssuesFiltered", ListIssuesFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -7515,6 +7781,7 @@ var DocumentOperationNames = map[string]string{
 	ListInitiativesDocument:                "ListInitiatives",
 	GetIssueDocument:                       "GetIssue",
 	ListIssuesDocument:                     "ListIssues",
+	ListIssuesFilteredDocument:             "ListIssuesFiltered",
 	GetLabelDocument:                       "GetLabel",
 	ListLabelsDocument:                     "ListLabels",
 	AttachmentCreateDocument:               "AttachmentCreate",

@@ -94,14 +94,19 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	var _ any // pageInfo unused for now
 
 	if issueFilter != nil {
-		// Use SearchIssues with empty query and filters
-		searchResult, err := client.SearchIssues(ctx, "", &first, afterPtr, issueFilter, nil)
+		// Use IssuesFiltered with filters (no search term required)
+		filteredResult, err := client.IssuesFiltered(ctx, &first, afterPtr, issueFilter)
 		if err != nil {
-			return fmt.Errorf("failed to search issues: %w", err)
+			return fmt.Errorf("failed to filter issues: %w", err)
 		}
 
-		// Convert search nodes to list format for display
-		// SearchIssues returns different node types but with same structure
+		// Convert filtered nodes to generic format
+		nodes = make([]any, len(filteredResult.Nodes))
+		for i, n := range filteredResult.Nodes {
+			nodes[i] = n
+		}
+
+		// Format output
 		output, _ := cmd.Flags().GetString("output")
 		fieldsSpec, _ := cmd.Flags().GetString("fields")
 
@@ -124,13 +129,14 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
 
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), searchResult, true, fieldSelector)
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), filteredResult, true, fieldSelector)
 		case "table":
-			// For table, we need to display the search results
-			// The structure is similar but uses SearchIssues_SearchIssues_Nodes
-			fmt.Fprintf(cmd.OutOrStdout(), "Found %d issues\n\n", len(searchResult.Nodes))
-			// Format the search results in a simple way for now
-			for _, node := range searchResult.Nodes {
+			// Display filtered results
+			if len(filteredResult.Nodes) == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "No issues found")
+				return nil
+			}
+			for _, node := range filteredResult.Nodes {
 				fmt.Fprintf(cmd.OutOrStdout(), "%s: %s\n", node.Identifier, node.Title)
 			}
 			return nil

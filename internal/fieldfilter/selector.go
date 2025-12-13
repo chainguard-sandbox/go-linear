@@ -152,8 +152,9 @@ func NewForList(fieldSpec string, commandDefaults []string) (*FieldSelector, err
 
 	// Always preserve pagination wrapper fields
 	fs.preserveFields = map[string]bool{
-		"nodes":    true,
-		"pageInfo": true,
+		"nodes":      true,
+		"pageInfo":   true,
+		"totalCount": true,
 	}
 
 	return fs, nil

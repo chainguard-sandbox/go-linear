@@ -270,6 +270,30 @@ func (c *Client) Issues(ctx context.Context, first *int64, after *string) (*intg
 	return &resp.Issues, nil
 }
 
+// IssuesFiltered retrieves a paginated list of issues with filtering.
+//
+// Parameters:
+//   - first: Number of issues to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//   - filter: Issue filter (team, assignee, state, priority, dates, labels)
+//
+// Returns:
+//   - Issues.Nodes: Array of issues matching filter (may be empty)
+//   - Issues.PageInfo.HasNextPage: true if more results available
+//   - Issues.PageInfo.EndCursor: Cursor for next page
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [Issues], [SearchIssues], [Issue]
+func (c *Client) IssuesFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.IssueFilter) (*intgraphql.ListIssuesFiltered_Issues, error) {
+	resp, err := c.gqlClient.ListIssuesFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, fmt.Errorf("issues filtered query failed: %w", err)
+	}
+	return &resp.Issues, nil
+}
+
 // Team retrieves a single team by ID.
 //
 // Returns:
