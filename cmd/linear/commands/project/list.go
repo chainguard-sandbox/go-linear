@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,39 +17,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all projects",
-		Long: `List all projects in the Linear workspace.
+		Long: `List projects. Returns 4 default fields per project.
 
-Use this to browse active projects, discover project names for milestones, or track project progress.
+Example: go-linear-cli project list --output=json
 
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of projects
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each project contains:
-  - id: Project UUID
-  - name: Project name
-  - description: Project description
-  - state: Project state (planned, started, completed, etc.)
-  - progress: Completion percentage (0-100)
-  - lead: Project lead user reference
-
-Examples:
-  # List all projects
-  linear project list
-
-  # List with limit
-  linear project list --limit=20
-
-  # JSON output for parsing
-  linear project list --output=json
-
-TIP: Use project names when creating milestones
-
-Related Commands:
-  - linear project get - Get single project details with milestones
-  - linear project create - Create new project
-  - linear project milestone-create - Add milestone to project`,
+Related: project_get, project_create, project_milestone-create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -62,7 +35,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 50, "Number of projects to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -83,7 +56,13 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("project.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

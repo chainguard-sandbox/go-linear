@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,36 +17,12 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all users",
-		Long: `List all users in the Linear workspace.
+		Long: `List users. Returns 6 default fields per user. Use for discovering emails for --assignee.
 
-Use this to discover user names and emails for assigning issues or filtering work.
-Essential for finding assignees when creating or updating issues.
+Example: go-linear-cli user list --output=json
 
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of users
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each user contains:
-  - id: User UUID
-  - name: Full name
-  - email: Email address (use for --assignee parameter)
-  - displayName: Display name
-  - active: Whether user is active in workspace
-
-Examples:
-  # List all users
-  linear user list
-
-  # JSON output for parameter discovery
-  linear user list --output=json
-
-TIP: Use email addresses or 'me' when assigning issues (e.g., --assignee=alice@company.com)
-
-Related Commands:
-  - linear user get - Get single user details
-  - linear user completed - Get user's completed work
-  - linear issue list --assignee=<email> - Filter issues by assignee`,
+Returns: {nodes: [{6 user fields}...], pageInfo: {hasNextPage, endCursor}}
+Related: user_get, user_completed, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -59,7 +36,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 250, "Number of users to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name,email')")
+	cmd.Flags().String("fields", "", "defaults (id,name,displayName,email,active,avatarUrl) | none | defaults,extra | id,email,...")
 
 	return cmd
 }
@@ -80,10 +57,22 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		// Load config for field defaults
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+
+		// Get command defaults
+		defaults := fieldfilter.GetDefaults("user.list", configOverrides)
+
+		// Parse field selector with defaults (list command preserves nodes/pageInfo)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
+
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), users, true, fieldSelector)
 	case "table":
 		return formatter.FormatUsersTable(cmd.OutOrStdout(), users.Nodes)

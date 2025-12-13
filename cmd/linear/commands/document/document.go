@@ -7,6 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
@@ -31,36 +33,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all documents",
-		Long: `List knowledge base documents from Linear.
+		Long: `List documents. Returns 4 default fields per document.
 
-Use this to:
-- Browse available documentation and guides
-- Find reference materials for your team
-- Discover documents by title for linking
+Example: go-linear-cli document list --output=json
 
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of documents
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each document contains:
-  - id: Document UUID
-  - title: Document title
-  - content: Markdown content
-  - createdAt: Creation timestamp
-
-Examples:
-  # List all documents
-  linear document list
-
-  # List with limit
-  linear document list --limit=20
-
-  # JSON output for programmatic access
-  linear document list --output=json
-
-Related Commands:
-  - linear document get - Get full document details including content`,
+Related: document_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -80,7 +57,18 @@ Related Commands:
 			output, _ := cmd.Flags().GetString("output")
 			switch output {
 			case "json":
-				return formatter.FormatJSON(cmd.OutOrStdout(), documents, true)
+				cfg, _ := config.Load()
+				var configOverrides map[string]string
+				if cfg != nil {
+					configOverrides = cfg.FieldDefaults
+				}
+				defaults := fieldfilter.GetDefaults("document.list", configOverrides)
+				fieldsSpec, _ := cmd.Flags().GetString("fields")
+				fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+				if err != nil {
+					return fmt.Errorf("invalid --fields: %w", err)
+				}
+				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), documents, true, fieldSelector)
 			case "table":
 				for _, doc := range documents.Nodes {
 					fmt.Fprintf(cmd.OutOrStdout(), "%s\n", doc.Title)
@@ -94,6 +82,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 50, "Number to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,title,content,createdAt) | none | defaults,extra")
 	return cmd
 }
 
@@ -101,28 +90,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single document by ID",
-		Long: `Get detailed information about a specific knowledge base document.
+		Long: `Get document by UUID. Returns 4 default fields.
 
-Retrieve full document details including title, content (markdown), and metadata.
-Use this to access documentation, guides, or reference materials.
+Example: go-linear-cli document get <uuid> --output=json
 
-Parameters:
-  <id>: Document UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, title, content, createdAt, updatedAt
-
-Examples:
-  # Get document by UUID
-  linear document get <document-uuid>
-
-  # Get with JSON output for parsing
-  linear document get <document-uuid> --output=json
-
-TIP: Use 'linear document list' to discover document IDs
-
-Related Commands:
-  - linear document list - List all documents`,
+Related: document_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -138,9 +110,21 @@ Related Commands:
 			}
 
 			output, _ := cmd.Flags().GetString("output")
+			fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 			switch output {
 			case "json":
-				return formatter.FormatJSON(cmd.OutOrStdout(), document, true)
+				cfg, _ := config.Load()
+				var configOverrides map[string]string
+				if cfg != nil {
+					configOverrides = cfg.FieldDefaults
+				}
+				defaults := fieldfilter.GetDefaults("document.get", configOverrides)
+				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+				if err != nil {
+					return fmt.Errorf("invalid --fields: %w", err)
+				}
+				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), document, true, fieldSelector)
 			case "table":
 				fmt.Fprintf(cmd.OutOrStdout(), "Title: %s\n", document.Title)
 				return nil
@@ -151,5 +135,6 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,title,content,createdAt) | none | defaults,extra")
 	return cmd
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,24 +17,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <label-id>",
 		Short: "Get a single label by ID",
-		Long: `Get detailed information about a specific issue label.
+		Long: `Get label by UUID. Returns 5 default fields.
 
-Retrieve full label details including name, description, color, and creation metadata.
+Example: go-linear-cli label get <label-uuid> --output=json
 
-Parameters:
-  <label-id>: Label UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, description, color, createdAt
-
-Examples:
-  # Get label by UUID
-  linear label get <label-uuid>
-
-  # Get label with JSON output
-  linear label get <label-uuid> --output=json
-
-TIP: Use 'linear label list' to discover label IDs and names`,
+Related: label_list, label_create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -47,7 +35,7 @@ TIP: Use 'linear label list' to discover label IDs and names`,
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,color,createdAt,description) | none | defaults,extra")
 
 	return cmd
 }
@@ -65,7 +53,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, labelID string) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("label.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

@@ -35,41 +35,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all attachments",
-		Long: `List all file attachments and linked resources from Linear.
+		Long: `List attachments. Returns 5 default fields per attachment.
 
-Use this to:
-- Browse attachments across all issues
-- Find linked GitHub PRs, Slack threads, or external URLs
-- Audit attached resources for compliance or documentation
+Example: go-linear-cli attachment list --limit=30 --output=json
 
-Attachments can be files, external links, GitHub PRs, or Slack conversations.
-
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of attachments
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each attachment contains:
-  - id: Attachment UUID
-  - title: Attachment title
-  - url: Attachment URL
-  - source: Source type (uploaded, url, github, slack)
-  - issue: Associated issue reference
-
-Examples:
-  # List all attachments
-  linear attachment list
-
-  # List with limit
-  linear attachment list --limit=30
-
-  # JSON output for parsing
-  linear attachment list --output=json
-
-Related Commands:
-  - linear attachment get - Get single attachment details
-  - linear attachment create - Create custom attachment
-  - linear attachment link-url - Link external URL`,
+Related: attachment_get, attachment_create, attachment_link-url`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -99,6 +69,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 50, "Number to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,title,url,source,createdAt) | none | defaults,extra")
 	return cmd
 }
 
@@ -106,32 +77,14 @@ func NewLinkURLCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "link-url",
 		Short: "Link an external URL to an issue",
-		Long: `Link an external URL as an attachment to an issue.
+		Long: `Link URL to issue. Safe operation.
 
-This operation creates new attachment data and is safe to execute.
-Use for linking design files, documentation, monitoring dashboards, or any external resource.
+Required: --issue (ID from issue_list), --url
+Optional: --title
 
-Parameters:
-  --issue: Issue identifier (e.g., ENG-123) or UUID (required)
-  --url: URL to link (required)
-  --title: Link title (optional, defaults to page title if available)
+Example: go-linear-cli attachment link-url --issue=ENG-123 --url=https://example.com/design --output=json
 
-Examples:
-  # Link URL to issue
-  linear attachment link-url --issue=ENG-123 --url=https://example.com/design
-
-  # Link with custom title
-  linear attachment link-url --issue=ENG-123 --url=https://example.com --title="Design Mockups"
-
-  # Link with JSON output
-  linear attachment link-url --issue=ENG-123 --url=https://example.com --output=json
-
-TIP: URLs are automatically fetched to extract title and metadata
-
-Related Commands:
-  - linear attachment link-github - Link GitHub PR
-  - linear attachment link-slack - Link Slack thread
-  - linear attachment create - Create custom attachment with metadata`,
+Related: attachment_link-github, attachment_link-slack, attachment_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -177,32 +130,13 @@ func NewLinkGitHubCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "link-github",
 		Short: "Link a GitHub PR to an issue",
-		Long: `Link a GitHub pull request as an attachment to an issue.
+		Long: `Link GitHub PR to issue. Safe operation.
 
-This operation creates new attachment data and is safe to execute.
-Creates automatic sync between Linear issues and GitHub PRs for development tracking.
+Required: --issue (ID from issue_list), --url (GitHub PR URL like https://github.com/owner/repo/pull/123)
 
-Parameters:
-  --issue: Issue identifier (e.g., ENG-123) or UUID (required)
-  --url: GitHub PR URL (required, e.g., https://github.com/owner/repo/pull/123)
+Example: go-linear-cli attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123 --output=json
 
-Examples:
-  # Link GitHub PR to issue
-  linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123
-
-  # Link PR with JSON output
-  linear attachment link-github --issue=ENG-123 --url=<gh-pr-url> --output=json
-
-TIP: GitHub integration automatically updates PR status in Linear
-
-Common Errors:
-  - "invalid URL": Must be a valid GitHub pull request URL
-  - "integration not configured": Enable GitHub integration in Linear settings
-
-Related Commands:
-  - linear attachment link-url - Link generic external URL
-  - linear attachment link-slack - Link Slack thread
-  - linear attachment create - Create custom attachment`,
+Related: attachment_link-url, attachment_link-slack, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

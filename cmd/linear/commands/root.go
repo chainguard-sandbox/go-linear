@@ -217,7 +217,7 @@ func NewRootCommand() *cobra.Command {
 	cfg := loadClientConfig()
 
 	rootCmd := &cobra.Command{
-		Use:   "linear",
+		Use:   "go-linear-cli",
 		Short: "Linear CLI for humans and AI agents",
 		Long: `Linear CLI provides command-line access to Linear's issue tracking system.
 
@@ -226,13 +226,13 @@ Supports parameter-rich commands for complex queries without multi-step workflow
 
 Examples:
   # List my urgent issues
-  linear issue list --assignee=me --priority=1
+  go-linear-cli issue list --assignee=me --priority=1
 
   # Find completed issues from yesterday
-  linear issue list --team=Engineering --completed-after=yesterday --completed-before=today
+  go-linear-cli issue list --team=Engineering --completed-after=yesterday --completed-before=today
 
   # Get user's completed work
-  linear user completed --user=alice@company.com --completed-after=7d
+  go-linear-cli user completed --user=alice@company.com --completed-after=7d
 
 Environment Variables:
   LINEAR_API_KEY                     Linear API key (required)

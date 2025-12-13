@@ -15,15 +15,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <name|id>",
 		Short: "Update an existing label",
-		Long: `Update an existing issue label in Linear.
+		Long: `Update label. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Fields: --name, --color (hex), --description
 
-Examples:
-  linear label update bug --name="critical-bug" --color="#ff0000"
-  linear label update <uuid> --description="Updated description"
+Example: go-linear-cli label update bug --color="#ff0000" --description="Critical bugs" --output=json
 
-TIP: Use 'linear label list' to discover labels, hex color codes like #ff0000 for red`,
+Related: label_get, label_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

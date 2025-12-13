@@ -15,37 +15,13 @@ func NewLinkSlackCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "link-slack",
 		Short: "Link a Slack message to an issue",
-		Long: `Link a Slack thread or message to an issue as an attachment.
+		Long: `Link Slack message to issue. Requires Slack integration. Safe operation.
 
-This operation creates new attachment data and is safe to execute.
-Requires Slack integration to be configured in your Linear workspace.
+Required: --issue (ID from issue_list), --url (Slack permalink)
 
-Parameters:
-  --issue: Issue identifier (e.g., ENG-123) or UUID (required)
-  --url: Slack message URL (required)
+Example: go-linear-cli attachment link-slack --issue=ENG-123 --url=https://workspace.slack.com/archives/C123/p1234567890 --output=json
 
-Slack URL format:
-  https://<workspace>.slack.com/archives/<channel-id>/p<timestamp>
-  Example: https://mycompany.slack.com/archives/C123ABC/p1234567890123456
-
-Examples:
-  # Link Slack thread to issue
-  linear attachment link-slack --issue=ENG-123 \\
-    --url=https://mycompany.slack.com/archives/C123ABC/p1234567890
-
-  # With JSON output
-  linear attachment link-slack --issue=ENG-123 --url=<slack-url> --output=json
-
-TIP: Copy Slack message link from "Copy link" option in Slack message menu
-
-Common Errors:
-  - "integration not configured": Enable Slack integration in Linear settings
-  - "invalid URL": Must be a valid Slack message permalink
-
-Related Commands:
-  - linear attachment link-url - Link generic external URL
-  - linear attachment link-github - Link GitHub PR
-  - linear attachment create - Create custom attachment with metadata`,
+Related: attachment_link-url, attachment_link-github, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

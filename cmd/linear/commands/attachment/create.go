@@ -16,37 +16,14 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a custom attachment on an issue",
-		Long: `Create a custom attachment with metadata on an issue.
+		Long: `Create custom attachment with metadata. Safe operation.
 
-This operation creates new attachment data and is safe to execute.
-Use for custom integrations (CI/CD, monitoring tools, external systems).
+Required: --issue (ID from issue_list), --title, --url
+Optional: --subtitle, --icon-url, --metadata (JSON)
 
-Parameters:
-  --issue: Issue identifier (e.g., ENG-123) or UUID (required)
-  --title: Attachment title (required)
-  --url: Attachment URL (required)
-  --subtitle: Optional subtitle text
-  --icon-url: Optional icon URL (20x20px PNG/JPG, max 1MB)
-  --metadata: Optional JSON metadata object
+Example: go-linear-cli attachment create --issue=ENG-123 --title="Build #42" --url=https://ci.example.com/42 --metadata='{"status":"passed"}' --output=json
 
-Examples:
-  # Create CI/CD build attachment
-  linear attachment create --issue=ENG-123 --title="Build #42" --url=https://ci.example.com/build/42
-
-  # With subtitle and icon
-  linear attachment create --issue=ENG-123 --title="Deploy" --subtitle="Production" \\
-    --url=https://deploy.example.com/123 --icon-url=https://example.com/icon.png
-
-  # With JSON metadata
-  linear attachment create --issue=ENG-123 --title="Test Report" --url=https://tests.example.com \\
-    --metadata='{"status":"passed","coverage":"95%"}'
-
-TIP: Use for integrating external tools (CI/CD, monitoring, analytics) with Linear issues
-
-Related Commands:
-  - linear attachment link-url - Link simple URL without metadata
-  - linear attachment link-github - Link GitHub PR
-  - linear attachment link-slack - Link Slack thread`,
+Related: issue_get, attachment_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

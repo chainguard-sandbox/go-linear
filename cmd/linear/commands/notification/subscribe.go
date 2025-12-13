@@ -16,36 +16,11 @@ func NewSubscribeCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "subscribe",
 		Short: "Subscribe to notifications for a project, cycle, team, or user",
-		Long: `Subscribe to receive notifications for updates to a project, cycle, team, or user.
+		Long: `Subscribe to updates. Safe operation. Must specify exactly one of: --project, --cycle, --team, --user.
 
-This operation creates new subscription data and is safe to execute.
-Get notified when the resource is updated or has new activity.
+Example: go-linear-cli notification subscribe --project=<uuid> --output=json
 
-Parameters (mutually exclusive - specify exactly one):
-  --project: Project name or UUID
-  --cycle: Cycle UUID
-  --team: Team name or UUID
-  --user: User name, email, or UUID
-
-Examples:
-  # Subscribe to project updates
-  linear notification subscribe --project="Platform Redesign"
-
-  # Subscribe to team updates
-  linear notification subscribe --team=Engineering
-
-  # Subscribe to cycle updates
-  linear notification subscribe --cycle=<cycle-uuid> --output=json
-
-TIP: Subscriptions help track important resources without manual checking
-
-Common Errors:
-  - "must specify exactly one resource": Provide one of the resource flags
-
-Related Commands:
-  - linear notification unsubscribe - Remove subscription
-  - linear notification update - Manage notifications
-  - linear notification archive - Archive notifications`,
+Related: notification_unsubscribe, notification_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

@@ -17,16 +17,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
 		Short: "Delete a label permanently",
-		Long: `Delete a label from Linear permanently.
+		Long: `⚠️ Delete label. Removes from all issues. Cannot be undone. Prompts unless --yes.
 
-⚠️ Warning: Destructive operation - cannot be undone
+Example: go-linear-cli label delete bug
 
-This permanently removes the label from all issues using it.
-Confirmation prompt appears unless --yes flag is used.
-
-Examples:
-  linear label delete bug
-  linear label delete <uuid> --yes`,
+Related: label_list, label_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

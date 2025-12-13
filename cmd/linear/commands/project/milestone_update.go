@@ -17,36 +17,13 @@ func NewMilestoneUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "milestone-update <milestone-id>",
 		Short: "Update a project milestone",
-		Long: `Update an existing project milestone.
+		Long: `Update project milestone. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Fields: --name, --description, --target-date (date formats: see issue_list)
 
-Only specified fields are updated. Unspecified fields remain unchanged.
-Use this to adjust timeline, descriptions, or milestone names.
+Example: go-linear-cli project milestone-update <uuid> --name="Q2 2025" --target-date=14d --output=json
 
-Parameters:
-  <milestone-id>: Milestone UUID (required)
-  --name: New milestone name
-  --description: New description (markdown)
-  --target-date: New target completion date (ISO8601 or relative)
-
-Examples:
-  # Update target date
-  linear project milestone-update <milestone-uuid> --target-date=2025-06-30
-
-  # Update name and description
-  linear project milestone-update <milestone-uuid> --name="Q2 2025" \\
-    --description="Updated timeline for Q2 deliverables"
-
-  # Move milestone out 2 weeks
-  linear project milestone-update <milestone-uuid> --target-date=14d --output=json
-
-TIP: Use 'linear project get <project-id> --output=json' to see milestones and their IDs
-
-Related Commands:
-  - linear project milestone-create - Create a new milestone
-  - linear project milestone-delete - Delete a milestone
-  - linear project get - View project's milestones`,
+Related: project_milestone-create, project_milestone-delete, project_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 )
@@ -14,39 +15,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all initiatives",
-		Long: `List strategic initiatives from Linear.
+		Long: `List initiatives. Returns 4 default fields per initiative.
 
-Use this to:
-- Browse company-wide strategic initiatives
-- Track high-level goals and objectives
-- Discover initiatives for organizational planning
+Example: go-linear-cli initiative list --output=json
 
-Initiatives represent large strategic efforts that span multiple projects and teams.
-
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of initiatives
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each initiative contains:
-  - id: Initiative UUID
-  - name: Initiative name
-  - description: Initiative description
-  - targetDate: Target completion date
-
-Examples:
-  # List all initiatives
-  linear initiative list
-
-  # List with limit
-  linear initiative list --limit=10
-
-  # JSON output for parsing
-  linear initiative list --output=json
-
-Related Commands:
-  - linear initiative get - Get single initiative details
-  - linear project list - List projects (initiatives contain projects)`,
+Related: initiative_get, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -68,7 +41,13 @@ Related Commands:
 
 			switch output {
 			case "json":
-				fieldSelector, err := fieldfilter.New(fieldsSpec)
+				cfg, _ := config.Load()
+				var configOverrides map[string]string
+				if cfg != nil {
+					configOverrides = cfg.FieldDefaults
+				}
+				defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
+				fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 				if err != nil {
 					return fmt.Errorf("invalid --fields: %w", err)
 				}
@@ -86,7 +65,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 50, "Number to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 
 	return cmd
 }

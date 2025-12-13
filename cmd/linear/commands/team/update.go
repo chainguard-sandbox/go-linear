@@ -15,15 +15,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <name|id>",
 		Short: "Update an existing team",
-		Long: `Update an existing team in Linear.
+		Long: `Update team. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Fields: --name, --description
 
-Examples:
-  linear team update Engineering --name="Platform Engineering"
-  linear team update ENG --description="Platform and infrastructure"
+Example: go-linear-cli team update ENG --name="Platform Engineering" --description="Updated" --output=json
 
-TIP: Use 'linear team get <name>' to see current values before updating`,
+Related: team_get, team_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

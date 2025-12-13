@@ -18,20 +18,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an issue permanently",
-		Long: `Delete an issue from Linear permanently.
+		Long: `⚠️ Delete issue. Cannot be undone. Prompts for confirmation unless --yes.
 
-⚠️ Warning: Destructive operation - cannot be undone
+Example: go-linear-cli issue delete ENG-123
 
-This permanently removes the issue, all its comments, attachments, and history.
-Deleted issues cannot be recovered.
-
-Confirmation prompt appears unless --yes flag is used.
-
-Examples:
-  linear issue delete ENG-123              # Will prompt for confirmation
-  linear issue delete <uuid> --yes         # Skip confirmation (use with extreme caution)
-
-RECOMMENDATION: Archive issues instead of deleting them when possible.`,
+Related: issue_list, issue_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

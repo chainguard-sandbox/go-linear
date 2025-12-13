@@ -18,34 +18,14 @@ func NewMilestoneCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "milestone-create",
 		Short: "Create a milestone within a project",
-		Long: `Create a new milestone (phase/stage) within a project.
+		Long: `Create project milestone. Safe operation.
 
-This operation creates new milestone data and is safe to execute.
-Milestones represent phases or stages within a project (e.g., "Q1 2025", "Beta Launch", "v1.0 Release").
+Required: --project (UUID from project_list), --name
+Optional: --description, --target-date (date formats: see issue_list)
 
-Parameters:
-  --project: Project name or ID (required)
-  --name: Milestone name (required)
-  --description: Markdown description (optional)
-  --target-date: Target completion date (ISO8601, "2025-03-01", or relative like "30d")
+Example: go-linear-cli project milestone-create --project=<uuid> --name="Q1 2025" --target-date=2025-03-31 --output=json
 
-Examples:
-  # Create Q1 milestone
-  linear project milestone-create --project="Platform Redesign" --name="Q1 2025" --target-date=2025-03-31
-
-  # Create with description
-  linear project milestone-create --project=MyProject --name="Beta Launch" \\
-    --description="Launch beta version to selected users" --target-date=30d
-
-  # Create with JSON output
-  linear project milestone-create --project=MyProject --name="v1.0" --output=json
-
-TIP: Use 'linear project list' to discover available projects
-
-Related Commands:
-  - linear project milestone-update - Update milestone details
-  - linear project milestone-delete - Delete a milestone
-  - linear project get - View project's milestones`,
+Related: project_milestone-update, project_milestone-delete, project_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

@@ -18,33 +18,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <notification-id>",
 		Short: "Mark a notification as read or snooze it",
-		Long: `Update notification status (mark as read or snooze).
+		Long: `Update notification. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Flags: --read (mark as read) | --snooze-until=tomorrow|3d (date formats: see issue_list)
 
-Use this to manage notification inbox programmatically.
-Mark notifications as read after processing or snooze for later review.
+Example: go-linear-cli notification update <uuid> --snooze-until=tomorrow --output=json
 
-Parameters:
-  <notification-id>: Notification UUID (required)
-  --read: Mark as read (sets readAt to current time)
-  --snooze-until: Snooze until date/time (ISO8601, relative like "tomorrow", "3d")
-
-Examples:
-  # Mark notification as read
-  linear notification update <notif-uuid> --read
-
-  # Snooze until tomorrow
-  linear notification update <notif-uuid> --snooze-until=tomorrow
-
-  # Snooze for 3 days
-  linear notification update <notif-uuid> --snooze-until=3d --output=json
-
-TIP: Use snoozed notifications to defer non-urgent items
-
-Related Commands:
-  - linear notification archive - Archive notification (alternative)
-  - linear notification subscribe - Subscribe to issue/project updates`,
+Related: notification_archive, notification_subscribe`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

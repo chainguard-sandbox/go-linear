@@ -17,18 +17,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <id>",
 		Short: "Update an existing issue",
-		Long: `Update an existing issue in Linear.
+		Long: `Update issue. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Fields: --title, --description, --assignee=me, --state, --priority (0-4, see issue_create), --add-label, --remove-label
 
-Only specified fields are updated. Unspecified fields remain unchanged.
+Example: go-linear-cli issue update ENG-123 --assignee=me --priority=1 --state=Done --output=json
 
-Examples:
-  linear issue update ENG-123 --state=Done
-  linear issue update ENG-123 --assignee=alice@company.com --priority=1
-  linear issue update ENG-123 --title="New title" --description="Updated description"
-
-TIP: Use 'linear issue get ENG-123 --output=json' to see current values before updating`,
+Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,36 +17,13 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all workflow states",
-		Long: `List all workflow states in the Linear workspace.
+		Long: `List workflow states. Returns 5 default fields per state. Use for discovering state names.
 
-Use this to discover available states for filtering or updating issues.
-Workflow states define the issue lifecycle (Todo, In Progress, Done, Canceled, etc).
+States define issue lifecycle: triage, backlog, unstarted, started, completed, canceled.
 
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of workflow states
-  - pageInfo: {hasNextPage: bool, endCursor: string}
+Example: go-linear-cli state list --output=json
 
-  Each state contains:
-  - id: State UUID
-  - name: State name (e.g., "In Progress", "Done")
-  - type: State type (started, completed, canceled, etc.)
-  - color: State color hex code
-  - position: Display order
-
-Examples:
-  # List all workflow states
-  linear state list
-
-  # JSON output for parameter discovery
-  linear state list --output=json
-
-TIP: Use state names (not UUIDs) when filtering or updating issues (e.g., --state="In Progress")
-
-Related Commands:
-  - linear state get - Get single state details
-  - linear issue update --state=<name> - Update issue state
-  - linear issue list --state=<name> - Filter issues by state`,
+Related: state_get, issue_update, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -59,7 +37,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 100, "Number of states to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,type,color,position) | none | defaults,extra")
 
 	return cmd
 }
@@ -80,7 +58,13 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("state.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

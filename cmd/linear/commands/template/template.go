@@ -7,6 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
@@ -30,36 +32,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all templates",
-		Long: `List issue templates from Linear.
+		Long: `List templates. Returns 4 default fields per template.
 
-Use this to:
-- Browse available issue templates for your workspace
-- Find templates for creating standardized issues
-- Discover template names for programmatic issue creation
+Example: go-linear-cli template list --output=json
 
-Issue templates provide pre-filled values for common issue types (bugs, features, etc).
-
-Output (--output=json):
-  Returns array of templates (note: not paginated)
-
-  Each template contains:
-  - id: Template UUID
-  - name: Template name
-  - description: Template description
-  - templateData: Pre-filled issue fields
-
-Examples:
-  # List all templates
-  linear template list
-
-  # JSON output for parsing
-  linear template list --output=json
-
-TIP: Use templates when creating issues to ensure consistent formatting
-
-Related Commands:
-  - linear template get - Get full template details
-  - linear issue create - Create issue (can reference templates)`,
+Related: template_get, issue_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -75,9 +52,21 @@ Related Commands:
 			}
 
 			output, _ := cmd.Flags().GetString("output")
+			fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 			switch output {
 			case "json":
-				return formatter.FormatJSON(cmd.OutOrStdout(), templates, true)
+				cfg, _ := config.Load()
+				var configOverrides map[string]string
+				if cfg != nil {
+					configOverrides = cfg.FieldDefaults
+				}
+				defaults := fieldfilter.GetDefaults("template.list", configOverrides)
+				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+				if err != nil {
+					return fmt.Errorf("invalid --fields: %w", err)
+				}
+				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), templates, true, fieldSelector)
 			case "table":
 				for _, tmpl := range templates {
 					fmt.Fprintf(cmd.OutOrStdout(), "%s\n", tmpl.Name)
@@ -91,6 +80,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 50, "Number to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 	return cmd
 }
 
@@ -98,29 +88,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single template by ID",
-		Long: `Get detailed information about a specific issue template.
+		Long: `Get template by UUID. Returns 4 default fields.
 
-Retrieve full template details including pre-filled values and structure.
-Use this to understand template configuration or prepare for issue creation.
+Example: go-linear-cli template get <uuid> --output=json
 
-Parameters:
-  <id>: Template UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, description, templateData
-
-Examples:
-  # Get template by UUID
-  linear template get <template-uuid>
-
-  # Get with JSON output
-  linear template get <template-uuid> --output=json
-
-TIP: Use 'linear template list' to discover template IDs
-
-Related Commands:
-  - linear template list - List all templates
-  - linear issue create - Create issue using template`,
+Related: template_list, issue_create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -138,7 +110,18 @@ Related Commands:
 			output, _ := cmd.Flags().GetString("output")
 			switch output {
 			case "json":
-				return formatter.FormatJSON(cmd.OutOrStdout(), template, true)
+				cfg, _ := config.Load()
+				var configOverrides map[string]string
+				if cfg != nil {
+					configOverrides = cfg.FieldDefaults
+				}
+				fieldsSpec, _ := cmd.Flags().GetString("fields")
+				defaults := fieldfilter.GetDefaults("template.get", configOverrides)
+				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+				if err != nil {
+					return fmt.Errorf("invalid --fields: %w", err)
+				}
+				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), template, true, fieldSelector)
 			case "table":
 				fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", template.Name)
 				return nil
@@ -149,5 +132,6 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 	return cmd
 }

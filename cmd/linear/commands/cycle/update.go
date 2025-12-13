@@ -14,15 +14,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <id>",
 		Short: "Update an existing cycle",
-		Long: `Update an existing cycle in Linear.
+		Long: `Update cycle. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Fields: --name, --description
 
-Examples:
-  linear cycle update <uuid> --name="Sprint 43"
-  linear cycle update <uuid> --description="Extended sprint"
+Example: go-linear-cli cycle update <uuid> --name="Sprint 43" --description="Extended" --output=json
 
-TIP: Use 'linear cycle get <id> --output=json' to see current values before updating`,
+Related: cycle_get, cycle_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

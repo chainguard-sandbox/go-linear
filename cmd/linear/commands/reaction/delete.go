@@ -14,21 +14,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <reaction-id>",
 		Short: "Remove an emoji reaction",
-		Long: `Remove an emoji reaction from an issue or comment.
+		Long: `Remove emoji reaction. Safe operation.
 
-This operation is safe and can be reversed by re-adding the reaction.
+Example: go-linear-cli reaction delete <reaction-uuid>
 
-Parameters:
-  <reaction-id>: Reaction UUID to delete (required)
-
-Examples:
-  # Remove a reaction
-  linear reaction delete <reaction-uuid>
-
-TIP: View reactions in Linear UI or via API to find reaction IDs
-
-Related Commands:
-  - linear reaction create - Add an emoji reaction`,
+Related: reaction_create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

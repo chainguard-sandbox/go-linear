@@ -16,31 +16,11 @@ func NewAddLabelCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-label <issue-id> <label>",
 		Short: "Add a label to an issue",
-		Long: `Add a label to an existing issue.
+		Long: `Add label to issue. Safe operation.
 
-This operation is safe and can be reversed with 'issue remove-label'.
-Simpler than using 'issue update --add-label' for single label operations.
+Example: go-linear-cli issue add-label ENG-123 bug --output=json
 
-Parameters:
-  <issue-id>: Issue identifier (e.g., ENG-123) or UUID (required)
-  <label>: Label name or UUID to add (required)
-
-Examples:
-  # Add 'bug' label to issue
-  linear issue add-label ENG-123 bug
-
-  # Add label using UUID
-  linear issue add-label <issue-uuid> <label-uuid>
-
-  # Add label with JSON output
-  linear issue add-label ENG-123 feature --output=json
-
-TIP: Use 'linear label list' to discover available labels
-
-Related Commands:
-  - linear issue remove-label - Remove a label from an issue
-  - linear issue update --add-label - Alternative using update command
-  - linear label list - List all available labels`,
+Related: issue_remove-label, label_list`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

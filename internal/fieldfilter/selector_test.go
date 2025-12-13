@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs, err := New(tt.fieldSpec)
+			fs, err := New(tt.fieldSpec, nil) // No defaults for these tests
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -118,7 +118,7 @@ func TestFilter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs, err := New(tt.fieldSpec)
+			fs, err := New(tt.fieldSpec, nil)
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}

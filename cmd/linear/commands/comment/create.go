@@ -16,15 +16,13 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a comment on an issue",
-		Long: `Create a new comment on a Linear issue.
+		Long: `Create comment on issue. Supports markdown. Safe operation.
 
-This operation creates new data and is safe to execute.
+Required: --issue (ID from issue_list), --body
 
-Examples:
-  linear comment create --issue=ENG-123 --body="This is a comment"
-  linear comment create --issue=<uuid> --body="Added fix" --output=json
+Example: go-linear-cli comment create --issue=ENG-123 --body="Fixed in PR #42" --output=json
 
-TIP: Comments support markdown formatting`,
+Related: comment_list, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

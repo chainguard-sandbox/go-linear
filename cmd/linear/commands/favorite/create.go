@@ -16,43 +16,11 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Star an issue, project, cycle, or document",
-		Long: `Star (favorite) an item for quick access in Linear.
+		Long: `Star item. Safe operation. Must specify exactly one of: --issue, --project, --cycle, --document.
 
-This operation creates new favorite data and is safe to execute.
-Starred items appear in Linear's "Favorites" section for easy retrieval.
+Example: go-linear-cli favorite create --issue=ENG-123 --output=json
 
-Use favorites for:
-- Bookmarking important issues to track
-- Quick access to active projects
-- Pinning frequently referenced documents
-- Following current sprint cycles
-
-Parameters (mutually exclusive - specify exactly one):
-  --issue: Issue identifier (e.g., ENG-123) or UUID
-  --project: Project name or UUID
-  --cycle: Cycle UUID
-  --document: Document UUID
-
-Examples:
-  # Star an issue for quick access
-  linear favorite create --issue=ENG-123
-
-  # Star a project
-  linear favorite create --project="Platform Redesign"
-
-  # Star with JSON output
-  linear favorite create --issue=ENG-123 --output=json
-
-TIP: Favorites sync across web, desktop, and mobile Linear apps
-
-Common Errors:
-  - "must specify exactly one resource": Provide --issue OR --project, not both
-  - "resource not found": Check ID/name is valid
-
-Related Commands:
-  - linear favorite delete - Unstar an item
-  - linear issue list - Find issues to favorite
-  - linear project list - Find projects to favorite`,
+Related: favorite_delete, issue_list, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

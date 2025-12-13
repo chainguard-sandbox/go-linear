@@ -14,25 +14,11 @@ func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "archive <notification-id>",
 		Short: "Archive a notification",
-		Long: `Archive a notification to remove it from inbox.
+		Long: `Archive notification. Hides from inbox. Can be restored in UI.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Example: go-linear-cli notification archive <uuid>
 
-Archived notifications can be restored through the Linear UI if needed.
-Use this to clean up processed or irrelevant notifications.
-
-Parameters:
-  <notification-id>: Notification UUID to archive (required)
-
-Examples:
-  # Archive notification
-  linear notification archive <notif-uuid>
-
-TIP: Archived notifications are hidden but not deleted (can be restored in UI)
-
-Related Commands:
-  - linear notification update - Mark as read or snooze instead
-  - linear notification subscribe - Subscribe to updates`,
+Related: notification_update`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

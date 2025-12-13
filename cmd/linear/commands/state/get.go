@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,29 +17,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <state-id>",
 		Short: "Get a single workflow state by ID",
-		Long: `Get detailed information about a specific workflow state.
+		Long: `Get workflow state by UUID. Returns 5 default fields.
 
-Retrieve full state details including name, type, position, color, and team information.
-Workflow states represent stages in the issue lifecycle (e.g., "Todo", "In Progress", "Done").
+Example: go-linear-cli state get <state-uuid> --output=json
 
-Parameters:
-  <state-id>: Workflow state UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, type, position, color, team
-
-Examples:
-  # Get state by UUID
-  linear state get <state-uuid>
-
-  # Get state with JSON output
-  linear state get <state-uuid> --output=json
-
-TIP: Use 'linear state list' to discover state IDs and names
-
-Related Commands:
-  - linear state list - List all workflow states
-  - linear issue update --state=<name> - Set issue state`,
+Related: state_list, issue_update`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -52,7 +35,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,type,color,position) | none | defaults,extra")
 
 	return cmd
 }
@@ -70,7 +53,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, stateID string) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("state.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

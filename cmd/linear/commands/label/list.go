@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,36 +17,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all issue labels",
-		Long: `List all issue labels in the Linear workspace.
+		Long: `List labels. Returns 4 default fields per label. Use for discovering label names.
 
-Use this to discover available labels for categorizing and filtering issues.
-Labels help organize issues by type (bug, feature), priority, or custom categories.
+Example: go-linear-cli label list --output=json
 
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of labels
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each label contains:
-  - id: Label UUID
-  - name: Label name (e.g., "bug", "feature")
-  - description: Label description
-  - color: Label color hex code
-
-Examples:
-  # List all labels
-  linear label list
-
-  # JSON output for parameter discovery
-  linear label list --output=json
-
-TIP: Use label names (not UUIDs) when filtering or adding to issues (e.g., --label=bug)
-
-Related Commands:
-  - linear label get - Get single label details
-  - linear label create - Create new label
-  - linear issue list --label=<name> - Filter issues by label
-  - linear issue add-label - Add label to issue`,
+Related: label_get, label_create, issue_add-label`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -59,7 +35,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 250, "Number of labels to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,color,createdAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -80,7 +56,13 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("label.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

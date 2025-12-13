@@ -16,15 +16,14 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new project",
-		Long: `Create a new project in Linear.
+		Long: `Create project. Safe operation.
 
-This operation creates new project data and is safe to execute.
+Required: --name
+Optional: --description
 
-Examples:
-  linear project create --name="Q1 Platform" --description="Platform improvements"
-  linear project create --name="Mobile App Redesign" --description="Complete UI overhaul"
+Example: go-linear-cli project create --name="Q1 Platform" --description="Platform improvements" --output=json
 
-TIP: Projects help organize multiple related issues across teams`,
+Related: project_list, project_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

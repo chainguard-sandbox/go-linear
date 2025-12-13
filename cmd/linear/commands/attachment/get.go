@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,30 +17,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <attachment-id>",
 		Short: "Get a single attachment by ID",
-		Long: `Get detailed information about a specific attachment.
+		Long: `Get attachment by UUID. Returns 5 default fields.
 
-Retrieve full attachment details including title, URL, subtitle, metadata, and associated issue.
-Attachments can be files, external links, GitHub PRs, or Slack threads.
+Example: go-linear-cli attachment get <uuid> --output=json
 
-Parameters:
-  <attachment-id>: Attachment UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, title, url, subtitle, source, issue, creator, createdAt
-
-Examples:
-  # Get attachment by UUID
-  linear attachment get <attachment-uuid>
-
-  # Get attachment with JSON output
-  linear attachment get <attachment-uuid> --output=json
-
-TIP: Use 'linear attachment list' to discover attachment IDs from issues
-
-Related Commands:
-  - linear attachment list - List all attachments
-  - linear attachment link-url - Link external URL to issue
-  - linear attachment link-github - Link GitHub PR to issue`,
+Related: issue_get, attachment_delete`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -53,7 +35,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,title,url')")
+	cmd.Flags().String("fields", "", "defaults (id,title,url,source,createdAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -71,7 +53,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, attachmentID string) erro
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("attachment.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

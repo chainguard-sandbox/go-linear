@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,36 +17,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List comments",
-		Long: `List comments from Linear.
+		Long: `List comments. Returns 5 default fields per comment.
 
-Use this to browse comments across all issues or find specific discussion threads.
+Example: go-linear-cli comment list --limit=100 --output=json
 
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of comments
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each comment contains:
-  - id: Comment UUID
-  - body: Comment text (markdown)
-  - user: Author {id, name, email}
-  - issue: Associated issue reference
-  - createdAt: Creation timestamp
-
-Examples:
-  # List comments
-  linear comment list
-
-  # List with limit
-  linear comment list --limit=100
-
-  # JSON output for parsing
-  linear comment list --output=json
-
-Related Commands:
-  - linear comment get - Get single comment details
-  - linear comment create - Create new comment
-  - linear comment update - Modify comment text`,
+Related: comment_get, comment_create, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -60,7 +36,7 @@ Related Commands:
 	cmd.Flags().IntP("limit", "l", 50, "Number of comments to return")
 	cmd.Flags().String("after", "", "Cursor for pagination")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,body')")
+	cmd.Flags().String("fields", "", "defaults (id,body,createdAt,user.name,url) | none | defaults,extra")
 
 	return cmd
 }
@@ -87,10 +63,22 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		// Load config for field defaults
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+
+		// Get command defaults
+		defaults := fieldfilter.GetDefaults("comment.list", configOverrides)
+
+		// Parse field selector with defaults (list command preserves nodes/pageInfo)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
+
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), comments, true, fieldSelector)
 	case "table":
 		if len(comments.Nodes) == 0 {

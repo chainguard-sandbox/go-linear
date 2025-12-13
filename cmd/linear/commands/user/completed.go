@@ -19,42 +19,15 @@ func NewCompletedCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "completed",
 		Short: "Get users' completed issues",
-		Long: `Get completed issues for users, optionally filtered by team.
+		Long: `Get completed issues by user or team. Complex query - replaces 5-step workflow.
 
-⭐ COMPLEX QUERY COMMAND - Optimized for AI agents to answer:
-"Find all users from Engineering team who completed tasks yesterday"
+Filters: --user=me or email (single user) | --team (all team members), --completed-after=yesterday|7d (see issue_list), --completed-before=today
+Must specify EITHER --user OR --team.
 
-This single command replaces a 5-step workflow:
-1. ❌ List teams → find team ID
-2. ❌ List users → filter by team
-3. ❌ For each user → list their issues
-4. ❌ Filter by completion date
-5. ❌ Aggregate results
-→ ✅ ONE COMMAND with --team and --completed-after flags
+Example: go-linear-cli user completed --team=ENG --completed-after=yesterday --completed-before=today --output=json
 
-Parameters:
-  --user: User email, name, 'me', or UUID (mutually exclusive with --team)
-  --team: Team name or UUID - queries ALL team members (mutually exclusive with --user)
-  --completed-after: Start date - supports ISO8601 (2025-12-10), relative (yesterday), duration (7d)
-  --completed-before: End date - defaults to 'today'
-
-Output (--output=json):
-  Returns array of {user: {name, email}, count: number}
-  Use for metrics, reports, team velocity analysis
-
-Examples:
-  # Get completed work for a specific user
-  linear user completed --user=alice@company.com --completed-after=yesterday --completed-before=today
-
-  # Get all Engineering team members who completed work yesterday (COMMON USE CASE)
-  linear user completed --team=Engineering --completed-after=yesterday --completed-before=today --output=json
-
-  # Get my completed work from the last 7 days
-  linear user completed --user=me --completed-after=7d
-
-Common Errors:
-  - Must specify EITHER --user OR --team (not both, not neither)
-  - Team/user not found: Use 'linear team list' or 'linear user list' to discover`,
+Returns: [{user: {name, email}, count: number}...]
+Related: user_list, team_list, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -110,11 +83,11 @@ func runCompleted(cmd *cobra.Command, client *linear.Client) error {
 
 	// Validation: mutually exclusive
 	if userName == "" && teamName == "" {
-		return fmt.Errorf("must specify either --user or --team\n\nExamples:\n  linear user completed --user=me --completed-after=7d\n  linear user completed --team=Engineering --completed-after=yesterday")
+		return fmt.Errorf("must specify either --user or --team\n\nExamples:\n  go-linear-cli user completed --user=me --completed-after=7d\n  go-linear-cli user completed --team=Engineering --completed-after=yesterday")
 	}
 
 	if userName != "" && teamName != "" {
-		return fmt.Errorf("cannot specify both --user and --team (choose one)\n\nFor a specific user:\n  linear user completed --user=alice@company.com\n\nFor all team members:\n  linear user completed --team=Engineering")
+		return fmt.Errorf("cannot specify both --user and --team (choose one)\n\nFor a specific user:\n  go-linear-cli user completed --user=alice@company.com\n\nFor all team members:\n  go-linear-cli user completed --team=Engineering")
 	}
 
 	if teamName != "" {

@@ -17,18 +17,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
 		Short: "Delete a team permanently",
-		Long: `Delete a team from Linear permanently.
+		Long: `⚠️ Delete team. Cannot be undone. Prompts unless --yes.
 
-⚠️ Warning: Destructive operation - cannot be undone
+Example: go-linear-cli team delete TestTeam
 
-This permanently removes the team and may affect issues assigned to it.
-Confirmation prompt appears unless --yes flag is used.
-
-Examples:
-  linear team delete TestTeam
-  linear team delete <uuid> --yes
-
-RECOMMENDATION: Ensure team has no active issues before deleting.`,
+Related: team_list, team_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -16,16 +16,14 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new issue label",
-		Long: `Create a new issue label in Linear.
+		Long: `Create label. Safe operation.
 
-This operation creates new label data and is safe to execute.
+Required: --name, --color (hex like #ff0000)
+Optional: --description
 
-Examples:
-  linear label create --name=bug --color="#ff0000"
-  linear label create --name=feature --color="#00ff00" --description="New features"
-  linear label create --name=urgent --color="#ff6b6b" --description="Needs immediate attention"
+Example: go-linear-cli label create --name=bug --color="#ff0000" --description="Bug reports" --output=json
 
-TIP: Use hex color codes (e.g., #ff0000 for red, #00ff00 for green)`,
+Related: label_list, label_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

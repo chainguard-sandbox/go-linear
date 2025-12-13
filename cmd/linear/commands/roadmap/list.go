@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,39 +17,11 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all roadmaps",
-		Long: `List roadmaps from Linear.
+		Long: `List roadmaps. Returns 4 default fields per roadmap.
 
-Use this to:
-- Browse product roadmaps and planning timelines
-- Track milestone planning across teams
-- Discover roadmaps for strategic planning
+Example: go-linear-cli roadmap list --output=json
 
-Roadmaps provide visual timeline views of project progress and planned features.
-
-Output (--output=json):
-  Returns JSON with:
-  - nodes: Array of roadmaps
-  - pageInfo: {hasNextPage: bool, endCursor: string}
-
-  Each roadmap contains:
-  - id: Roadmap UUID
-  - name: Roadmap name
-  - description: Roadmap description
-  - createdAt: Creation timestamp
-
-Examples:
-  # List all roadmaps
-  linear roadmap list
-
-  # List with limit
-  linear roadmap list --limit=10
-
-  # JSON output for parsing
-  linear roadmap list --output=json
-
-Related Commands:
-  - linear roadmap get - Get single roadmap details
-  - linear project list - List projects (roadmaps organize projects)`,
+Related: roadmap_get, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -62,7 +35,7 @@ Related Commands:
 
 	cmd.Flags().IntP("limit", "l", 50, "Number of roadmaps to return")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -83,7 +56,13 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("roadmap.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

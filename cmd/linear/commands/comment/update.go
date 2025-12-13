@@ -16,14 +16,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <id>",
 		Short: "Update an existing comment",
-		Long: `Update an existing comment on a Linear issue.
+		Long: `Update comment text. Supports markdown. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Required: --body
 
-Examples:
-  linear comment update <uuid> --body="Updated comment text"
+Example: go-linear-cli comment update <uuid> --body="Updated text" --output=json
 
-TIP: Comments support markdown formatting`,
+Related: comment_get, comment_create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

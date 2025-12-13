@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,25 +17,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <comment-id>",
 		Short: "Get a single comment by ID",
-		Long: `Get detailed information about a specific comment.
+		Long: `Get comment by UUID. Returns 6 default fields.
 
-Retrieve full comment details including body text, author, creation timestamp,
-and associated issue information.
+Example: go-linear-cli comment get <comment-uuid> --output=json
 
-Parameters:
-  <comment-id>: Comment UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, body, user (author), issue, createdAt, updatedAt
-
-Examples:
-  # Get comment by UUID
-  linear comment get <comment-uuid>
-
-  # Get comment with JSON output
-  linear comment get <comment-uuid> --output=json
-
-TIP: Use 'linear comment list' to discover comment IDs from issues`,
+Related: comment_list, issue_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -48,7 +35,7 @@ TIP: Use 'linear comment list' to discover comment IDs from issues`,
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,body')")
+	cmd.Flags().String("fields", "", "defaults (id,body,createdAt,user.name,url,editedAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -66,7 +53,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, commentID string) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("comment.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

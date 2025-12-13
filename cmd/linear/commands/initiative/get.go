@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 )
@@ -14,29 +15,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single initiative by ID",
-		Long: `Get detailed information about a specific strategic initiative.
+		Long: `Get initiative by UUID. Returns 4 default fields.
 
-Retrieve full initiative details including name, description, target dates, and progress.
-Use this to track high-level strategic goals and their status.
+Example: go-linear-cli initiative get <uuid> --output=json
 
-Parameters:
-  <id>: Initiative UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, description, targetDate, status
-
-Examples:
-  # Get initiative by UUID
-  linear initiative get <initiative-uuid>
-
-  # Get with JSON output
-  linear initiative get <initiative-uuid> --output=json
-
-TIP: Use 'linear initiative list' to discover initiative IDs
-
-Related Commands:
-  - linear initiative list - List all initiatives
-  - linear project list - List projects within initiatives`,
+Related: initiative_list, project_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -56,7 +39,13 @@ Related Commands:
 
 			switch output {
 			case "json":
-				fieldSelector, err := fieldfilter.New(fieldsSpec)
+				cfg, _ := config.Load()
+				var configOverrides map[string]string
+				if cfg != nil {
+					configOverrides = cfg.FieldDefaults
+				}
+				defaults := fieldfilter.GetDefaults("initiative.get", configOverrides)
+				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 				if err != nil {
 					return fmt.Errorf("invalid --fields: %w", err)
 				}
@@ -71,6 +60,6 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 	return cmd
 }

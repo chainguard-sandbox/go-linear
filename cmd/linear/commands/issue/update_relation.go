@@ -16,36 +16,13 @@ func NewUpdateRelationCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-relation <relation-id>",
 		Short: "Update the type of an existing issue relationship",
-		Long: `Update the relationship type between two issues.
+		Long: `Update issue relationship type. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Required: --type (blocks|blocked-by|duplicate|related, see issue_relate)
 
-Change the relationship type without deleting and recreating the relation.
-Useful when dependency structure changes during development.
+Example: go-linear-cli issue update-relation <relation-uuid> --type=blocks --output=json
 
-Parameters:
-  <relation-id>: IssueRelation UUID (required)
-  --type: New relationship type (required)
-
-Relationship types:
-  - blocks: First issue blocks the second (shows as dependency)
-  - blocked-by: First issue is blocked by the second (inverse of blocks)
-  - duplicate: Issues are duplicates of each other
-  - related: Issues are related but not blocking
-
-Examples:
-  # Change relation from 'related' to 'blocks'
-  linear issue update-relation <relation-uuid> --type=blocks
-
-  # Change blocking relation to duplicate
-  linear issue update-relation <relation-uuid> --type=duplicate --output=json
-
-TIP: Use 'linear issue get ENG-123 --output=json' to see existing relations and their IDs
-
-Related Commands:
-  - linear issue relate - Create a new relationship
-  - linear issue unrelate - Delete a relationship
-  - linear issue get - View issue's current relationships`,
+Related: issue_relate, issue_unrelate, issue_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

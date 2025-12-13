@@ -16,21 +16,13 @@ func NewRelateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relate <issue-id> <related-issue-id>",
 		Short: "Create a relationship between two issues",
-		Long: `Create a relationship between two issues.
+		Long: `Relate two issues. Safe operation.
 
-This operation creates new relationship data and is safe to execute.
+Types: blocks | blocked-by | duplicate | related (default)
 
-Relationship types:
-  - blocks: First issue blocks the second (shows as dependency)
-  - blocked-by: First issue is blocked by the second (inverse of blocks)
-  - duplicate: Issues are duplicates of each other
-  - related: Issues are related but not blocking
+Example: go-linear-cli issue relate ENG-123 ENG-124 --type=blocks --output=json
 
-Examples:
-  linear issue relate ENG-123 ENG-124 --type=blocks
-  linear issue relate ENG-123 ENG-125 --type=related --output=json
-
-TIP: Use blocking relationships for dependency tracking in project planning`,
+Related: issue_unrelate, issue_update-relation`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

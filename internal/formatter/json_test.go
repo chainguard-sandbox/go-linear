@@ -83,7 +83,7 @@ func TestFormatJSONFiltered(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs, err := fieldfilter.New(tt.fieldSpec)
+			fs, err := fieldfilter.New(tt.fieldSpec, nil)
 			if err != nil {
 				t.Fatalf("fieldfilter.New() error = %v", err)
 			}

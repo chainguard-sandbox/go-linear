@@ -48,28 +48,28 @@ help:  ## Show this help message
 # Build targets
 #
 
-build: build-mcp  ## Build MCP server
+build: build-cli  ## Build CLI
 
 #
-# MCP Server targets
+# CLI targets
 #
 
-build-mcp: $(BINDIR)/go-linear-mcp  ## Build the Linear MCP server (CLI-based, ~70 tools)
+build-cli: $(BINDIR)/go-linear-cli  ## Build the Linear CLI (MCP-enabled, ~70 tools)
 
-$(BINDIR)/go-linear-mcp: $(GOFILES)
-	@echo "Building Linear MCP server..."
+$(BINDIR)/go-linear-cli: $(GOFILES)
+	@echo "Building Linear CLI..."
 	@mkdir -p $(BINDIR)
 	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ ./cmd/linear
 	@echo "✓ Built: $@"
 
-install: build  ## Install MCP server to $GOPATH/bin
-	@echo "Installing MCP server..."
-	@cp $(BINDIR)/go-linear-mcp $(GOPATH)/bin/go-linear-mcp
-	@echo "✓ Installed go-linear-mcp to $(GOPATH)/bin/"
+install: build  ## Install CLI to $GOPATH/bin
+	@echo "Installing CLI..."
+	@cp $(BINDIR)/go-linear-cli $(GOPATH)/bin/go-linear-cli
+	@echo "✓ Installed go-linear-cli to $(GOPATH)/bin/"
 
-clean-mcp:  ## Remove MCP binaries
-	@echo "Cleaning MCP binaries..."
-	@rm -f $(BINDIR)/go-linear-mcp $(BINDIR)/linear
+clean-cli:  ## Remove CLI binaries
+	@echo "Cleaning CLI binaries..."
+	@rm -f $(BINDIR)/go-linear-cli $(BINDIR)/go-linear-mcp $(BINDIR)/linear
 	@echo "✓ Cleaned"
 
 #

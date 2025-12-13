@@ -53,10 +53,10 @@ Output shows:
 
 Examples:
   # Show status in table format
-  linear status
+  go-linear-cli status
 
   # JSON format for scripting
-  linear status --output=json`,
+  go-linear-cli status --output=json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runStatus(cmd)
 		},

@@ -14,24 +14,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <favorite-id>",
 		Short: "Unstar a favorited item",
-		Long: `Remove an item from your favorites (unstar).
+		Long: `Unstar item. Safe operation.
 
-This operation is safe and can be reversed by favoriting the item again.
-The underlying resource (issue, project, etc.) is not affected.
+Example: go-linear-cli favorite delete <favorite-uuid>
 
-Parameters:
-  <favorite-id>: Favorite UUID to delete (required)
-
-Examples:
-  # Unstar an item
-  linear favorite delete <favorite-uuid>
-
-TIP: View favorites in Linear UI to find favorite IDs, or use API to list favorites
-
-Related Commands:
-  - linear favorite create - Star an item
-  - linear issue list - Find issues
-  - linear project list - Find projects`,
+Related: favorite_create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -14,24 +14,11 @@ func NewUnsubscribeCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsubscribe <subscription-id>",
 		Short: "Remove a notification subscription",
-		Long: `Remove a notification subscription to stop receiving updates.
+		Long: `Unsubscribe from updates. Safe operation.
 
-This operation is safe and can be reversed by subscribing again.
-Stop notifications for issues, projects, or cycles you no longer need to track.
+Example: go-linear-cli notification unsubscribe <subscription-uuid>
 
-Parameters:
-  <subscription-id>: NotificationSubscription UUID to delete (required)
-
-Examples:
-  # Unsubscribe from updates
-  linear notification unsubscribe <subscription-uuid>
-
-TIP: Find subscription IDs in Linear notification settings or via API
-
-Related Commands:
-  - linear notification subscribe - Subscribe to updates
-  - linear notification update - Manage notification status
-  - linear notification archive - Archive notifications`,
+Related: notification_subscribe, notification_update`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

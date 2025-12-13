@@ -16,16 +16,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an attachment permanently",
-		Long: `Delete an attachment from Linear permanently.
+		Long: `⚠️ Delete attachment. Cannot be undone. Prompts unless --yes.
 
-⚠️ Warning: Destructive operation - cannot be undone
+Example: go-linear-cli attachment delete <uuid>
 
-This permanently removes the attachment link.
-Confirmation prompt appears unless --yes flag is used.
-
-Examples:
-  linear attachment delete <uuid>
-  linear attachment delete <uuid> --yes`,
+Related: attachment_get, issue_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -17,31 +18,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <name|id>",
 		Short: "Get a single team",
-		Long: `Get detailed information about a specific team.
+		Long: `Get team by name, key (e.g., ENG), or UUID. Returns 8 default fields.
 
-Accepts team name, key, or UUID for flexible querying.
+Example: go-linear-cli team get ENG --output=json
 
-Parameters:
-  <name|id>: Team name, key (e.g., "ENG"), or UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, key, description, color, private
-
-Examples:
-  # Get team by name
-  linear team get Engineering
-
-  # Get team by key
-  linear team get ENG
-
-  # Get with JSON output
-  linear team get Engineering --output=json
-
-TIP: Use 'linear team list' to discover team names and keys
-
-Related Commands:
-  - linear team list - List all teams
-  - linear team members - List team members`,
+Related: team_list, team_members`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -55,7 +36,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name,key')")
+	cmd.Flags().String("fields", "", "defaults (id,name,key,description,icon,createdAt,color,private) | none | defaults,extra")
 
 	return cmd
 }
@@ -80,10 +61,22 @@ func runGet(cmd *cobra.Command, client *linear.Client, nameOrID string) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		// Load config for field defaults
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+
+		// Get command defaults
+		defaults := fieldfilter.GetDefaults("team.get", configOverrides)
+
+		// Parse field selector with defaults
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
+
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), team, true, fieldSelector)
 	case "table":
 		fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", team.Name)

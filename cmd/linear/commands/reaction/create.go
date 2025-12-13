@@ -17,38 +17,13 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Add an emoji reaction to an issue or comment",
-		Long: `Add an emoji reaction to an issue or comment.
+		Long: `Add emoji reaction. Safe operation. Must specify exactly one of: --issue, --comment.
 
-This operation creates new reaction data and is safe to execute.
-Reactions provide quick feedback without creating a full comment.
-Perfect for lightweight acknowledgment, approval, or sentiment.
+Required: --emoji (single emoji like 👍)
 
-Parameters:
-  --emoji: Single emoji character (required, e.g., 👍, ❤️, 🎉)
-  --issue: Issue identifier (e.g., ENG-123) or UUID
-  --comment: Comment UUID
+Example: go-linear-cli reaction create --issue=ENG-123 --emoji=👍 --output=json
 
-Note: Specify exactly one of --issue OR --comment (mutually exclusive)
-
-Examples:
-  # React to an issue with thumbs up
-  linear reaction create --issue=ENG-123 --emoji=👍
-
-  # React to a comment
-  linear reaction create --comment=<comment-uuid> --emoji=🎉
-
-  # With JSON output
-  linear reaction create --issue=ENG-123 --emoji=❤️ --output=json
-
-TIP: Use emoji keyboard shortcuts or copy from web (macOS: Ctrl+Cmd+Space)
-
-Common Errors:
-  - "must specify exactly one resource": Provide --issue OR --comment, not both
-  - "invalid emoji": Must be a single emoji character
-
-Related Commands:
-  - linear reaction delete - Remove a reaction
-  - linear comment create - Create a full comment instead`,
+Related: reaction_delete, comment_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,28 +17,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single project by ID",
-		Long: `Get detailed information about a specific project.
+		Long: `Get project by UUID. Returns 6 default fields.
 
-Retrieve full project details including description, state, progress, milestones, and team information.
+Example: go-linear-cli project get <uuid> --output=json
 
-Parameters:
-  <id>: Project UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, description, state, progress, lead, milestones, createdAt
-
-Examples:
-  # Get project by UUID
-  linear project get <uuid>
-
-  # Get with JSON output (includes milestones)
-  linear project get <uuid> --output=json
-
-TIP: Use 'linear project list' to discover project IDs
-
-Related Commands:
-  - linear project list - List all projects
-  - linear project milestone-create - Add milestone to project`,
+Related: project_list, project_milestone-create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -51,7 +35,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt,color,state) | none | defaults,extra")
 
 	return cmd
 }
@@ -69,7 +53,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, projectID string) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("project.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

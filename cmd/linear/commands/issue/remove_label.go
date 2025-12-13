@@ -16,31 +16,11 @@ func NewRemoveLabelCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove-label <issue-id> <label>",
 		Short: "Remove a label from an issue",
-		Long: `Remove a label from an existing issue.
+		Long: `Remove label from issue. Safe operation.
 
-This operation is safe and can be reversed with 'issue add-label'.
-Simpler than using 'issue update --remove-label' for single label operations.
+Example: go-linear-cli issue remove-label ENG-123 bug --output=json
 
-Parameters:
-  <issue-id>: Issue identifier (e.g., ENG-123) or UUID (required)
-  <label>: Label name or UUID to remove (required)
-
-Examples:
-  # Remove 'bug' label from issue
-  linear issue remove-label ENG-123 bug
-
-  # Remove label using UUID
-  linear issue remove-label <issue-uuid> <label-uuid>
-
-  # Remove label with JSON output
-  linear issue remove-label ENG-123 feature --output=json
-
-TIP: Use 'linear issue get ENG-123 --output=json' to see current labels
-
-Related Commands:
-  - linear issue add-label - Add a label to an issue
-  - linear issue update --remove-label - Alternative using update command
-  - linear label list - List all available labels`,
+Related: issue_add-label, issue_get, label_list`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

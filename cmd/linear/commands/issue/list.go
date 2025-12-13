@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/filter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
@@ -18,39 +19,16 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List issues with filtering",
-		Long: `List issues from Linear with comprehensive filtering options.
+		Long: `List issues with filtering. Returns 8 default fields per issue.
 
-Supports filtering by team, assignee, state, priority, dates, and labels.
-AI agents can use parameter-rich flags for precise queries.
+Filters: --team (name/key), --assignee=me (current user) or email, --state (name), --priority (0-4), --label (name), --created-after=yesterday|7d|2w|2025-12-10
 
-Parameters:
-  --team: Team name (e.g., "Engineering") or UUID - use 'linear team list' to discover names
-  --assignee: User email, name, or 'me' - use 'linear user list' to discover users
-  --state: State name (e.g., "In Progress") - use 'linear state list' for available states
-  --priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low
-  --completed-after/before: ISO8601 (2025-12-10), relative (yesterday, today), or duration (7d, 2w, 3m)
-  --label: Label names - use 'linear label list' to discover available labels
+Pagination: --limit (default 50), --after (cursor from pageInfo.endCursor)
 
-Output (--output=json):
-  Returns JSON with: nodes (array of issues), pageInfo (pagination info)
-  Each issue has: identifier, title, state, assignee, priority, team, dates
+Example: go-linear-cli issue list --team=ENG --assignee=me --priority=1 --completed-after=7d --output=json
 
-Examples:
-  # List my urgent issues
-  linear issue list --assignee=me --priority=1
-
-  # Find completed issues from yesterday
-  linear issue list --team=Engineering --completed-after=yesterday --completed-before=today --output=json
-
-  # List issues in specific state
-  linear issue list --state="In Progress" --team=Engineering
-
-  # Complex multi-filter query
-  linear issue list --team=Engineering --priority=1 --created-after=7d --label=bug --output=json
-
-Common Errors:
-  - "team not found": Check spelling or use 'linear team list' to see available teams
-  - "ambiguous match": Use team key (e.g., "ENG") instead of full name`,
+Returns: {nodes: [{8 issue fields}...], pageInfo: {hasNextPage, endCursor}}
+Related: issue_get, issue_create, team_list, user_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -85,7 +63,7 @@ Common Errors:
 
 	// Output
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'identifier,title,state.name')")
+	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,...")
 
 	return cmd
 }
@@ -129,8 +107,19 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 		switch output {
 		case "json":
-			// Parse field selector
-			fieldSelector, err := fieldfilter.New(fieldsSpec)
+			// Load config for field defaults
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
+			}
+
+			// Get command defaults
+			defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
+
+			// Parse field selector with defaults
+			// For list commands, fields apply to items in nodes array, not the wrapper
+			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
@@ -166,8 +155,19 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 		switch output {
 		case "json":
-			// Parse field selector
-			fieldSelector, err := fieldfilter.New(fieldsSpec)
+			// Load config for field defaults
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
+			}
+
+			// Get command defaults
+			defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
+
+			// Parse field selector with defaults
+			// For list commands, fields apply to items in nodes array, not the wrapper
+			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}

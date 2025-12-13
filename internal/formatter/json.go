@@ -46,3 +46,21 @@ func FormatJSONFiltered(w io.Writer, data any, pretty bool, fieldSelector *field
 	_, err = w.Write(jsonData)
 	return err
 }
+
+// FormatJSONWithFields writes JSON with field filtering based on fieldSpec and defaults.
+// This is a convenience wrapper that creates the FieldSelector from spec + defaults.
+//
+// Special field specs:
+//   - "defaults" - use commandDefaults
+//   - "none" or "" - no filtering (all fields)
+//   - "defaults,field1,field2" - defaults + additional fields
+//   - "field1,field2" - only specified fields
+func FormatJSONWithFields(w io.Writer, data any, pretty bool, fieldSpec string, commandDefaults []string) error {
+	// Create field selector with defaults support
+	selector, err := fieldfilter.New(fieldSpec, commandDefaults)
+	if err != nil {
+		return err
+	}
+
+	return FormatJSONFiltered(w, data, pretty, selector)
+}

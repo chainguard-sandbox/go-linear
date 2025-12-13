@@ -16,15 +16,14 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new team",
-		Long: `Create a new team in Linear.
+		Long: `Create team. Safe operation.
 
-This operation creates new team data and is safe to execute.
+Required: --name, --key (2-5 uppercase letters, used in issue IDs like PLT-123)
+Optional: --description
 
-Examples:
-  linear team create --name=Platform --key=PLT
-  linear team create --name="Mobile Team" --key=MOB --description="iOS and Android"
+Example: go-linear-cli team create --name=Platform --key=PLT --description="Platform team" --output=json
 
-TIP: Team keys are short identifiers (2-5 uppercase letters) used in issue IDs (e.g., PLT-123)`,
+Related: team_list, team_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

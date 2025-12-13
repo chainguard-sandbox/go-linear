@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,28 +17,14 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single issue by ID",
-		Long: `Get detailed information about a specific issue.
-
-Retrieve full issue details including description, state, assignee, labels, and timestamps.
-
-Parameters:
-  <id>: Issue identifier (e.g., ENG-123) or UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, identifier, title, description, state, assignee, priority, labels, createdAt, updatedAt
+		Long: `Get issue by identifier (e.g., ENG-123) or UUID. Returns 10 default fields.
 
 Examples:
-  # Get issue by identifier
-  linear issue get ENG-123
+  go-linear-cli issue get ENG-123 --output=json
+  go-linear-cli issue get ENG-123 --fields=defaults,estimate --output=json
+  go-linear-cli issue get ENG-123 --fields=id,title,url --output=json
 
-  # Get issue with JSON output
-  linear issue get ENG-123 --output=json
-
-TIP: Use 'linear issue list' to discover issue identifiers
-
-Related Commands:
-  - linear issue list - List and filter issues
-  - linear issue update - Modify issue fields`,
+Related: linear issue list (discover IDs), linear issue update`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -51,7 +38,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,title,assignee.name')")
+	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt,description,assignee.name) | none | defaults,extra | id,title,...")
 
 	return cmd
 }
@@ -69,8 +56,18 @@ func runGet(cmd *cobra.Command, client *linear.Client, issueID string) error {
 
 	switch output {
 	case "json":
-		// Parse field selector
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		// Load config for field defaults
+		cfg, _ := config.Load() // Ignore error - config is optional
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+
+		// Get command defaults
+		defaults := fieldfilter.GetDefaults("issue.get", configOverrides)
+
+		// Parse field selector with defaults
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

@@ -16,11 +16,13 @@ func NewMembersCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "members",
 		Short: "List members of a team",
-		Long: `List all members of a specific team.
+		Long: `List team members.
 
-Examples:
-  linear team members --team=Engineering
-  linear team members --team=ENG --output=json`,
+Required: --team (from team_list)
+
+Example: go-linear-cli team members --team=ENG --output=json
+
+Related: team_get, user_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

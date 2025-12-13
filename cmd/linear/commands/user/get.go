@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -17,31 +18,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <name|email|id>",
 		Short: "Get a single user",
-		Long: `Get detailed information about a specific user.
+		Long: `Get user by name, email, 'me', or UUID. Returns 7 default fields.
 
-Accepts user name, email, UUID, or 'me' for the current authenticated user.
+Example: go-linear-cli user get me --output=json
 
-Parameters:
-  <name|email|id>: User name, email, 'me', or UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, email, displayName, active, admin, avatarUrl
-
-Examples:
-  # Get current user
-  linear user get me
-
-  # Get user by email
-  linear user get alice@company.com
-
-  # Get with JSON output
-  linear user get me --output=json
-
-TIP: Use 'linear user list' to discover user names and emails
-
-Related Commands:
-  - linear user list - List all users
-  - linear user completed - Get user's completed work`,
+Related: user_list, user_completed`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -55,7 +36,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name,email')")
+	cmd.Flags().String("fields", "", "defaults (id,name,displayName,email,active,avatarUrl,admin) | none | defaults,extra")
 
 	return cmd
 }
@@ -80,7 +61,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, nameOrEmailOrID string) e
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("user.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}

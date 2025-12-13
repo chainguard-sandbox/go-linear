@@ -18,16 +18,11 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete a comment permanently",
-		Long: `Delete a comment from Linear permanently.
+		Long: `⚠️ Delete comment. Cannot be undone. Prompts unless --yes.
 
-⚠️ Warning: Destructive operation - cannot be undone
+Example: go-linear-cli comment delete <uuid>
 
-This permanently removes the comment and its history.
-Confirmation prompt appears unless --yes flag is used.
-
-Examples:
-  linear comment delete <uuid>              # Will prompt for confirmation
-  linear comment delete <uuid> --yes        # Skip confirmation`,
+Related: comment_list, comment_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

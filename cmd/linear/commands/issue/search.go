@@ -6,6 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
@@ -15,14 +17,11 @@ func NewSearchCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "search <query>",
 		Short: "Search issues by text query",
-		Long: `Search issues using full-text search.
+		Long: `Search issues by text. Returns 8 default fields per result. Searches titles and descriptions.
 
-Searches across issue titles and descriptions.
+Example: go-linear-cli issue search "authentication bug" --limit=20 --output=json
 
-Examples:
-  linear issue search "authentication bug"
-  linear issue search "performance" --output=json
-  linear issue search "login" --limit=10`,
+Related: issue_list, issue_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -39,6 +38,7 @@ Examples:
 	cmd.Flags().String("after", "", "Cursor for pagination")
 	cmd.Flags().BoolP("include-archived", "a", false, "Include archived issues")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -69,9 +69,27 @@ func runSearch(cmd *cobra.Command, client *linear.Client, query string) error {
 
 	// Format output
 	output, _ := cmd.Flags().GetString("output")
+	fieldsSpec, _ := cmd.Flags().GetString("fields")
+
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), searchResult, true)
+		// Load config for field defaults
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+
+		// Get command defaults (use same as issue.list)
+		defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
+
+		// Parse field selector with defaults (search returns same structure as list)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), searchResult, true, fieldSelector)
 	case "table":
 		fmt.Fprintf(cmd.OutOrStdout(), "Found %.0f issues\n\n", searchResult.TotalCount)
 		for _, node := range searchResult.Nodes {

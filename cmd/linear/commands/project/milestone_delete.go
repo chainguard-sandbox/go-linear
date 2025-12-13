@@ -17,35 +17,11 @@ func NewMilestoneDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "milestone-delete <milestone-id>",
 		Short: "Delete a project milestone",
-		Long: `Delete a project milestone permanently.
+		Long: `⚠️ Delete project milestone. Cannot be undone. Prompts unless --yes.
 
-⚠️ Warning: Destructive operation - cannot be undone
+Example: go-linear-cli project milestone-delete <uuid>
 
-This permanently removes the milestone from the project.
-Issues associated with the milestone are not deleted, only the milestone itself.
-
-Confirmation prompt appears unless --yes flag is used.
-
-Parameters:
-  <milestone-id>: Milestone UUID to delete (required)
-
-Examples:
-  # Delete milestone with confirmation
-  linear project milestone-delete <milestone-uuid>
-
-  # Delete without confirmation (use with caution)
-  linear project milestone-delete <milestone-uuid> --yes
-
-TIP: Use 'linear project get <project-id> --output=json' to see milestones and their IDs
-
-Common Errors:
-  - "milestone not found": Milestone ID may be invalid or already deleted
-  - "permission denied": Check API key has write permissions
-
-Related Commands:
-  - linear project milestone-create - Create a new milestone
-  - linear project milestone-update - Update milestone details
-  - linear project get - View project's milestones`,
+Related: project_get, project_milestone-create`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

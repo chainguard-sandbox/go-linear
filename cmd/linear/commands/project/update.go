@@ -16,15 +16,13 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <id>",
 		Short: "Update an existing project",
-		Long: `Update an existing project in Linear.
+		Long: `Update project. Modifies existing data.
 
-⚠️ Caution: This modifies existing data. Changes are immediate.
+Fields: --name, --description
 
-Examples:
-  linear project update <uuid> --name="New Name"
-  linear project update <uuid> --description="Updated description"
+Example: go-linear-cli project update <uuid> --name="New Name" --description="Updated" --output=json
 
-TIP: Use 'linear project get <id> --output=json' to see current state before updating`,
+Related: project_get, project_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

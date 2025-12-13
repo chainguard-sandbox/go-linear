@@ -13,14 +13,11 @@ func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "archive <id>",
 		Short: "Archive a cycle",
-		Long: `Archive a cycle in Linear.
+		Long: `Archive cycle. Hides from default views. Can be unarchived.
 
-⚠️ Caution: This archives the cycle, hiding it from default views.
-Archived cycles can be unarchived later.
+Example: go-linear-cli cycle archive <uuid> --output=json
 
-Examples:
-  linear cycle archive <uuid>
-  linear cycle archive <uuid> --output=json`,
+Related: cycle_list, cycle_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

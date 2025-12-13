@@ -16,15 +16,14 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new cycle",
-		Long: `Create a new development cycle (sprint) in Linear.
+		Long: `Create cycle (sprint). Safe operation.
 
-This operation creates new cycle data and is safe to execute.
+Required: --team (from team_list), --starts-at, --ends-at (date formats: see issue_list)
+Optional: --name
 
-Examples:
-  linear cycle create --team=Engineering --starts-at=2025-12-16 --ends-at=2025-12-30
-  linear cycle create --team=PLT --starts-at=today --ends-at=14d --name="Sprint 42"
+Example: go-linear-cli cycle create --team=ENG --starts-at=2025-12-16 --ends-at=14d --name="Sprint 42" --output=json
 
-TIP: Cycles help organize work into sprints/iterations`,
+Related: cycle_list, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

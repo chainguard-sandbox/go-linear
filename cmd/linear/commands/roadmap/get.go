@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -16,28 +17,11 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single roadmap by ID",
-		Long: `Get detailed information about a specific roadmap.
+		Long: `Get roadmap by UUID. Returns 4 default fields.
 
-Retrieve full roadmap details including name, description, and timeline configuration.
+Example: go-linear-cli roadmap get <uuid> --output=json
 
-Parameters:
-  <id>: Roadmap UUID (required)
-
-Output (--output=json):
-  Returns JSON with: id, name, description, createdAt
-
-Examples:
-  # Get roadmap by UUID
-  linear roadmap get <uuid>
-
-  # Get with JSON output
-  linear roadmap get <uuid> --output=json
-
-TIP: Use 'linear roadmap list' to discover roadmap IDs
-
-Related Commands:
-  - linear roadmap list - List all roadmaps
-  - linear project list - List projects shown in roadmaps`,
+Related: roadmap_list, project_list`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
@@ -51,7 +35,7 @@ Related Commands:
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "Comma-separated fields for JSON output (e.g., 'id,name')")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 
 	return cmd
 }
@@ -69,7 +53,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, roadmapID string) error {
 
 	switch output {
 	case "json":
-		fieldSelector, err := fieldfilter.New(fieldsSpec)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("roadmap.get", configOverrides)
+		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
