@@ -20,7 +20,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --issue (ID from issue_list), --body
 
-Example: go-linear-cli comment create --issue=ENG-123 --body="Fixed in PR #42" --output=json
+Example: go-linear comment create --issue=ENG-123 --body="Fixed in PR #42" --output=json
 
 Related: comment_list, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single label by ID",
 		Long: `Get label by UUID. Returns 5 default fields.
 
-Example: go-linear-cli label get <label-uuid> --output=json
+Example: go-linear label get <label-uuid> --output=json
 
 Related: label_list, label_create`,
 		Args: cobra.ExactArgs(1),

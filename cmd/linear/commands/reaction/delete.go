@@ -16,7 +16,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Remove an emoji reaction",
 		Long: `Remove emoji reaction. Safe operation.
 
-Example: go-linear-cli reaction delete <reaction-uuid>
+Example: go-linear reaction delete <reaction-uuid>
 
 Related: reaction_create`,
 		Args: cobra.ExactArgs(1),

@@ -20,7 +20,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Fields: --name, --description
 
-Example: go-linear-cli project update <uuid> --name="New Name" --description="Updated" --output=json
+Example: go-linear project update <uuid> --name="New Name" --description="Updated" --output=json
 
 Related: project_get, project_list`,
 		Args: cobra.ExactArgs(1),

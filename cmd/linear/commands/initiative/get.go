@@ -17,7 +17,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single initiative by ID",
 		Long: `Get initiative by UUID. Returns 4 default fields.
 
-Example: go-linear-cli initiative get <uuid> --output=json
+Example: go-linear initiative get <uuid> --output=json
 
 Related: initiative_list, project_list`,
 		Args: cobra.ExactArgs(1),

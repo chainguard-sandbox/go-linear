@@ -21,7 +21,7 @@ func NewMilestoneUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Fields: --name, --description, --target-date (date formats: see issue_list)
 
-Example: go-linear-cli project milestone-update <uuid> --name="Q2 2025" --target-date=14d --output=json
+Example: go-linear project milestone-update <uuid> --name="Q2 2025" --target-date=14d --output=json
 
 Related: project_milestone-create, project_milestone-delete, project_get`,
 		Args: cobra.ExactArgs(1),

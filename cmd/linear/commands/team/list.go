@@ -21,7 +21,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 
 Team keys appear in issue identifiers (e.g., ENG-123 where ENG is the team key).
 
-Example: go-linear-cli team list --output=json
+Example: go-linear team list --output=json
 
 Returns: {nodes: [{6 team fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: team_get, team_members, issue_list`,

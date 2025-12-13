@@ -18,7 +18,7 @@ func NewAddLabelCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Add a label to an issue",
 		Long: `Add label to issue. Safe operation.
 
-Example: go-linear-cli issue add-label ENG-123 bug --output=json
+Example: go-linear issue add-label ENG-123 bug --output=json
 
 Related: issue_remove-label, label_list`,
 		Args: cobra.ExactArgs(2),

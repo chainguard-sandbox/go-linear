@@ -18,7 +18,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Star an issue, project, cycle, or document",
 		Long: `Star item. Safe operation. Must specify exactly one of: --issue, --project, --cycle, --document.
 
-Example: go-linear-cli favorite create --issue=ENG-123 --output=json
+Example: go-linear favorite create --issue=ENG-123 --output=json
 
 Related: favorite_delete, issue_list, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

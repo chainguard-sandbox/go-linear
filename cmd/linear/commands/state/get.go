@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single workflow state by ID",
 		Long: `Get workflow state by UUID. Returns 5 default fields.
 
-Example: go-linear-cli state get <state-uuid> --output=json
+Example: go-linear state get <state-uuid> --output=json
 
 Related: state_list, issue_update`,
 		Args: cobra.ExactArgs(1),

@@ -17,7 +17,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all initiatives",
 		Long: `List initiatives. Returns 4 default fields per initiative.
 
-Example: go-linear-cli initiative list --output=json
+Example: go-linear initiative list --output=json
 
 Related: initiative_get, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -20,7 +20,7 @@ func NewMembersCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --team (from team_list)
 
-Example: go-linear-cli team members --team=ENG --output=json
+Example: go-linear team members --team=ENG --output=json
 
 Related: team_get, user_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

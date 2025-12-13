@@ -19,7 +19,7 @@ func NewMilestoneDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a project milestone",
 		Long: `⚠️ Delete project milestone. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli project milestone-delete <uuid>
+Example: go-linear project milestone-delete <uuid>
 
 Related: project_get, project_milestone-create`,
 		Args: cobra.ExactArgs(1),

@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single roadmap by ID",
 		Long: `Get roadmap by UUID. Returns 4 default fields.
 
-Example: go-linear-cli roadmap get <uuid> --output=json
+Example: go-linear roadmap get <uuid> --output=json
 
 Related: roadmap_list, project_list`,
 		Args: cobra.ExactArgs(1),

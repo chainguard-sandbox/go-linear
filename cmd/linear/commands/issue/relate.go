@@ -20,7 +20,7 @@ func NewRelateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Types: blocks | blocked-by | duplicate | related (default)
 
-Example: go-linear-cli issue relate ENG-123 ENG-124 --type=blocks --output=json
+Example: go-linear issue relate ENG-123 ENG-124 --type=blocks --output=json
 
 Related: issue_unrelate, issue_update-relation`,
 		Args: cobra.ExactArgs(2),

@@ -35,7 +35,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all documents",
 		Long: `List documents. Returns 4 default fields per document.
 
-Example: go-linear-cli document list --output=json
+Example: go-linear document list --output=json
 
 Related: document_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -92,7 +92,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single document by ID",
 		Long: `Get document by UUID. Returns 4 default fields.
 
-Example: go-linear-cli document get <uuid> --output=json
+Example: go-linear document get <uuid> --output=json
 
 Related: document_list`,
 		Args: cobra.ExactArgs(1),

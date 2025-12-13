@@ -19,7 +19,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all users",
 		Long: `List users. Returns 6 default fields per user. Use for discovering emails for --assignee.
 
-Example: go-linear-cli user list --output=json
+Example: go-linear user list --output=json
 
 Returns: {nodes: [{6 user fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: user_get, user_completed, issue_list`,

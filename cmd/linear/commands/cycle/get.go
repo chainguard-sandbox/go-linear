@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single cycle by ID",
 		Long: `Get cycle by UUID. Returns 6 default fields.
 
-Example: go-linear-cli cycle get <uuid> --output=json
+Example: go-linear cycle get <uuid> --output=json
 
 Related: cycle_list, cycle_update`,
 		Args: cobra.ExactArgs(1),

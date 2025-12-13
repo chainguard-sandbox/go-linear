@@ -19,7 +19,7 @@ func NewSearchCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Search issues by text query",
 		Long: `Search issues by text. Returns 8 default fields per result. Searches titles and descriptions.
 
-Example: go-linear-cli issue search "authentication bug" --limit=20 --output=json
+Example: go-linear issue search "authentication bug" --limit=20 --output=json
 
 Related: issue_list, issue_get`,
 		Args: cobra.ExactArgs(1),

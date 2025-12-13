@@ -20,7 +20,7 @@ func NewUpdateRelationCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --type (blocks|blocked-by|duplicate|related, see issue_relate)
 
-Example: go-linear-cli issue update-relation <relation-uuid> --type=blocks --output=json
+Example: go-linear issue update-relation <relation-uuid> --type=blocks --output=json
 
 Related: issue_relate, issue_unrelate, issue_get`,
 		Args: cobra.ExactArgs(1),

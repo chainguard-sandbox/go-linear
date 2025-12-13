@@ -21,7 +21,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 
 States define issue lifecycle: triage, backlog, unstarted, started, completed, canceled.
 
-Example: go-linear-cli state list --output=json
+Example: go-linear state list --output=json
 
 Related: state_get, issue_update, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

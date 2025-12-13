@@ -18,7 +18,7 @@ func NewSubscribeCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Subscribe to notifications for a project, cycle, team, or user",
 		Long: `Subscribe to updates. Safe operation. Must specify exactly one of: --project, --cycle, --team, --user.
 
-Example: go-linear-cli notification subscribe --project=<uuid> --output=json
+Example: go-linear notification subscribe --project=<uuid> --output=json
 
 Related: notification_unsubscribe, notification_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {

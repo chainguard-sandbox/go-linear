@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Fields: --name, --color (hex), --description
 
-Example: go-linear-cli label update bug --color="#ff0000" --description="Critical bugs" --output=json
+Example: go-linear label update bug --color="#ff0000" --description="Critical bugs" --output=json
 
 Related: label_get, label_list`,
 		Args: cobra.ExactArgs(1),

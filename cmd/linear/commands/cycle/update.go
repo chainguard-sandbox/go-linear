@@ -18,7 +18,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Fields: --name, --description
 
-Example: go-linear-cli cycle update <uuid> --name="Sprint 43" --description="Extended" --output=json
+Example: go-linear cycle update <uuid> --name="Sprint 43" --description="Extended" --output=json
 
 Related: cycle_get, cycle_list`,
 		Args: cobra.ExactArgs(1),

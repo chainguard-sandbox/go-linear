@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single attachment by ID",
 		Long: `Get attachment by UUID. Returns 5 default fields.
 
-Example: go-linear-cli attachment get <uuid> --output=json
+Example: go-linear attachment get <uuid> --output=json
 
 Related: issue_get, attachment_delete`,
 		Args: cobra.ExactArgs(1),

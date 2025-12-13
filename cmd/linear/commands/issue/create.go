@@ -22,7 +22,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --team (name/key from team_list), --title
 Optional: --description, --assignee=me or email, --priority (0=none, 1=urgent, 2=high, 3=normal, 4=low), --state, --label (repeatable)
 
-Example: go-linear-cli issue create --team=ENG --title="Fix bug" --assignee=me --priority=1 --description="Details" --output=json
+Example: go-linear issue create --team=ENG --title="Fix bug" --assignee=me --priority=1 --description="Details" --output=json
 
 Related: issue_get, issue_list, team_list, user_list, label_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

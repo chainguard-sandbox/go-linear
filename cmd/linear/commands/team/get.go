@@ -20,7 +20,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single team",
 		Long: `Get team by name, key (e.g., ENG), or UUID. Returns 8 default fields.
 
-Example: go-linear-cli team get ENG --output=json
+Example: go-linear team get ENG --output=json
 
 Related: team_list, team_members`,
 		Args: cobra.ExactArgs(1),

@@ -24,8 +24,8 @@ func NewViewerCommand(clientFactory ClientFactory) *cobra.Command {
 		Long: `Get information about the currently authenticated user.
 
 Examples:
-  go-linear-cli viewer
-  go-linear-cli viewer --output=json`,
+  go-linear viewer
+  go-linear viewer --output=json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

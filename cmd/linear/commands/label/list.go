@@ -19,7 +19,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all issue labels",
 		Long: `List labels. Returns 4 default fields per label. Use for discovering label names.
 
-Example: go-linear-cli label list --output=json
+Example: go-linear label list --output=json
 
 Related: label_get, label_create, issue_add-label`,
 		RunE: func(cmd *cobra.Command, args []string) error {

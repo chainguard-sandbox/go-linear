@@ -20,7 +20,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a comment permanently",
 		Long: `⚠️ Delete comment. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli comment delete <uuid>
+Example: go-linear comment delete <uuid>
 
 Related: comment_list, comment_get`,
 		Args: cobra.ExactArgs(1),

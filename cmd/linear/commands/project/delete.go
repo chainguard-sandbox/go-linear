@@ -18,7 +18,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a project permanently",
 		Long: `⚠️ Delete project. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli project delete <uuid>
+Example: go-linear project delete <uuid>
 
 Related: project_list, project_get`,
 		Args: cobra.ExactArgs(1),

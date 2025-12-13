@@ -16,7 +16,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Unstar a favorited item",
 		Long: `Unstar item. Safe operation.
 
-Example: go-linear-cli favorite delete <favorite-uuid>
+Example: go-linear favorite delete <favorite-uuid>
 
 Related: favorite_create`,
 		Args: cobra.ExactArgs(1),

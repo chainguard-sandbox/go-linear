@@ -37,7 +37,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all attachments",
 		Long: `List attachments. Returns 5 default fields per attachment.
 
-Example: go-linear-cli attachment list --limit=30 --output=json
+Example: go-linear attachment list --limit=30 --output=json
 
 Related: attachment_get, attachment_create, attachment_link-url`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -82,7 +82,7 @@ func NewLinkURLCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --issue (ID from issue_list), --url
 Optional: --title
 
-Example: go-linear-cli attachment link-url --issue=ENG-123 --url=https://example.com/design --output=json
+Example: go-linear attachment link-url --issue=ENG-123 --url=https://example.com/design --output=json
 
 Related: attachment_link-github, attachment_link-slack, attachment_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -134,7 +134,7 @@ func NewLinkGitHubCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --issue (ID from issue_list), --url (GitHub PR URL like https://github.com/owner/repo/pull/123)
 
-Example: go-linear-cli attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123 --output=json
+Example: go-linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123 --output=json
 
 Related: attachment_link-url, attachment_link-slack, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -19,7 +19,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all roadmaps",
 		Long: `List roadmaps. Returns 4 default fields per roadmap.
 
-Example: go-linear-cli roadmap list --output=json
+Example: go-linear roadmap list --output=json
 
 Related: roadmap_get, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

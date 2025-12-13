@@ -19,7 +19,7 @@ func NewLinkSlackCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --issue (ID from issue_list), --url (Slack permalink)
 
-Example: go-linear-cli attachment link-slack --issue=ENG-123 --url=https://workspace.slack.com/archives/C123/p1234567890 --output=json
+Example: go-linear attachment link-slack --issue=ENG-123 --url=https://workspace.slack.com/archives/C123/p1234567890 --output=json
 
 Related: attachment_link-url, attachment_link-github, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

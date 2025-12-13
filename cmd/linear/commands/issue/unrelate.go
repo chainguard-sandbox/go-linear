@@ -19,7 +19,7 @@ func NewUnrelateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete an issue relationship",
 		Long: `⚠️ Delete issue relationship. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli issue unrelate <relation-uuid>
+Example: go-linear issue unrelate <relation-uuid>
 
 Related: issue_relate, issue_get`,
 		Args: cobra.ExactArgs(1),

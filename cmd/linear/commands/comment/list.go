@@ -19,7 +19,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List comments",
 		Long: `List comments. Returns 5 default fields per comment.
 
-Example: go-linear-cli comment list --limit=100 --output=json
+Example: go-linear comment list --limit=100 --output=json
 
 Related: comment_get, comment_create, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

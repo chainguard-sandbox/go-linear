@@ -19,7 +19,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all cycles",
 		Long: `List cycles (sprints). Returns 5 default fields per cycle.
 
-Example: go-linear-cli cycle list --output=json
+Example: go-linear cycle list --output=json
 
 Related: cycle_get, cycle_create, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

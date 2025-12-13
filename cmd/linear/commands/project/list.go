@@ -19,7 +19,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all projects",
 		Long: `List projects. Returns 4 default fields per project.
 
-Example: go-linear-cli project list --output=json
+Example: go-linear project list --output=json
 
 Related: project_get, project_create, project_milestone-create`,
 		RunE: func(cmd *cobra.Command, args []string) error {

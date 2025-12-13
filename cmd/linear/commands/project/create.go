@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --name
 Optional: --description
 
-Example: go-linear-cli project create --name="Q1 Platform" --description="Platform improvements" --output=json
+Example: go-linear project create --name="Q1 Platform" --description="Platform improvements" --output=json
 
 Related: project_list, project_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

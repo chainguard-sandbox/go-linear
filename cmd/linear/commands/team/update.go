@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Fields: --name, --description
 
-Example: go-linear-cli team update ENG --name="Platform Engineering" --description="Updated" --output=json
+Example: go-linear team update ENG --name="Platform Engineering" --description="Updated" --output=json
 
 Related: team_get, team_list`,
 		Args: cobra.ExactArgs(1),

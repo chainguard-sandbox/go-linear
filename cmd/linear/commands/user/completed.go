@@ -24,7 +24,7 @@ func NewCompletedCommand(clientFactory ClientFactory) *cobra.Command {
 Filters: --user=me or email (single user) | --team (all team members), --completed-after=yesterday|7d (see issue_list), --completed-before=today
 Must specify EITHER --user OR --team.
 
-Example: go-linear-cli user completed --team=ENG --completed-after=yesterday --completed-before=today --output=json
+Example: go-linear user completed --team=ENG --completed-after=yesterday --completed-before=today --output=json
 
 Returns: [{user: {name, email}, count: number}...]
 Related: user_list, team_list, issue_list`,
@@ -83,11 +83,11 @@ func runCompleted(cmd *cobra.Command, client *linear.Client) error {
 
 	// Validation: mutually exclusive
 	if userName == "" && teamName == "" {
-		return fmt.Errorf("must specify either --user or --team\n\nExamples:\n  go-linear-cli user completed --user=me --completed-after=7d\n  go-linear-cli user completed --team=Engineering --completed-after=yesterday")
+		return fmt.Errorf("must specify either --user or --team\n\nExamples:\n  go-linear user completed --user=me --completed-after=7d\n  go-linear user completed --team=Engineering --completed-after=yesterday")
 	}
 
 	if userName != "" && teamName != "" {
-		return fmt.Errorf("cannot specify both --user and --team (choose one)\n\nFor a specific user:\n  go-linear-cli user completed --user=alice@company.com\n\nFor all team members:\n  go-linear-cli user completed --team=Engineering")
+		return fmt.Errorf("cannot specify both --user and --team (choose one)\n\nFor a specific user:\n  go-linear user completed --user=alice@company.com\n\nFor all team members:\n  go-linear user completed --team=Engineering")
 	}
 
 	if teamName != "" {

@@ -19,7 +19,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a team permanently",
 		Long: `⚠️ Delete team. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli team delete TestTeam
+Example: go-linear team delete TestTeam
 
 Related: team_list, team_get`,
 		Args: cobra.ExactArgs(1),

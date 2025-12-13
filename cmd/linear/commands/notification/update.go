@@ -22,7 +22,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Flags: --read (mark as read) | --snooze-until=tomorrow|3d (date formats: see issue_list)
 
-Example: go-linear-cli notification update <uuid> --snooze-until=tomorrow --output=json
+Example: go-linear notification update <uuid> --snooze-until=tomorrow --output=json
 
 Related: notification_archive, notification_subscribe`,
 		Args: cobra.ExactArgs(1),

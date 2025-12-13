@@ -20,7 +20,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single user",
 		Long: `Get user by name, email, 'me', or UUID. Returns 7 default fields.
 
-Example: go-linear-cli user get me --output=json
+Example: go-linear user get me --output=json
 
 Related: user_list, user_completed`,
 		Args: cobra.ExactArgs(1),

@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --issue (ID from issue_list), --title, --url
 Optional: --subtitle, --icon-url, --metadata (JSON)
 
-Example: go-linear-cli attachment create --issue=ENG-123 --title="Build #42" --url=https://ci.example.com/42 --metadata='{"status":"passed"}' --output=json
+Example: go-linear attachment create --issue=ENG-123 --title="Build #42" --url=https://ci.example.com/42 --metadata='{"status":"passed"}' --output=json
 
 Related: issue_get, attachment_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

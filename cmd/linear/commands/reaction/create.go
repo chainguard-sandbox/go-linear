@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --emoji (single emoji like 👍)
 
-Example: go-linear-cli reaction create --issue=ENG-123 --emoji=👍 --output=json
+Example: go-linear reaction create --issue=ENG-123 --emoji=👍 --output=json
 
 Related: reaction_delete, comment_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {

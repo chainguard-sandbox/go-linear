@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --name, --key (2-5 uppercase letters, used in issue IDs like PLT-123)
 Optional: --description
 
-Example: go-linear-cli team create --name=Platform --key=PLT --description="Platform team" --output=json
+Example: go-linear team create --name=Platform --key=PLT --description="Platform team" --output=json
 
 Related: team_list, team_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

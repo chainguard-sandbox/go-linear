@@ -21,7 +21,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Fields: --title, --description, --assignee=me, --state, --priority (0-4, see issue_create), --add-label, --remove-label
 
-Example: go-linear-cli issue update ENG-123 --assignee=me --priority=1 --state=Done --output=json
+Example: go-linear issue update ENG-123 --assignee=me --priority=1 --state=Done --output=json
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),

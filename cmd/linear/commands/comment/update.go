@@ -20,7 +20,7 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 
 Required: --body
 
-Example: go-linear-cli comment update <uuid> --body="Updated text" --output=json
+Example: go-linear comment update <uuid> --body="Updated text" --output=json
 
 Related: comment_get, comment_create`,
 		Args: cobra.ExactArgs(1),

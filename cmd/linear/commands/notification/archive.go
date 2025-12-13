@@ -16,7 +16,7 @@ func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Archive a notification",
 		Long: `Archive notification. Hides from inbox. Can be restored in UI.
 
-Example: go-linear-cli notification archive <uuid>
+Example: go-linear notification archive <uuid>
 
 Related: notification_update`,
 		Args: cobra.ExactArgs(1),

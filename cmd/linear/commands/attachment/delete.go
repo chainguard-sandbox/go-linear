@@ -18,7 +18,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete an attachment permanently",
 		Long: `⚠️ Delete attachment. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli attachment delete <uuid>
+Example: go-linear attachment delete <uuid>
 
 Related: attachment_get, issue_get`,
 		Args: cobra.ExactArgs(1),

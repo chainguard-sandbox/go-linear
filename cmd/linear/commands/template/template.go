@@ -34,7 +34,7 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "List all templates",
 		Long: `List templates. Returns 4 default fields per template.
 
-Example: go-linear-cli template list --output=json
+Example: go-linear template list --output=json
 
 Related: template_get, issue_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -90,7 +90,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single template by ID",
 		Long: `Get template by UUID. Returns 4 default fields.
 
-Example: go-linear-cli template get <uuid> --output=json
+Example: go-linear template get <uuid> --output=json
 
 Related: template_list, issue_create`,
 		Args: cobra.ExactArgs(1),

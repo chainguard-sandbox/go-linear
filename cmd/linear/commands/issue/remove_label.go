@@ -18,7 +18,7 @@ func NewRemoveLabelCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Remove a label from an issue",
 		Long: `Remove label from issue. Safe operation.
 
-Example: go-linear-cli issue remove-label ENG-123 bug --output=json
+Example: go-linear issue remove-label ENG-123 bug --output=json
 
 Related: issue_add-label, issue_get, label_list`,
 		Args: cobra.ExactArgs(2),

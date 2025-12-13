@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single project by ID",
 		Long: `Get project by UUID. Returns 6 default fields.
 
-Example: go-linear-cli project get <uuid> --output=json
+Example: go-linear project get <uuid> --output=json
 
 Related: project_list, project_milestone-create`,
 		Args: cobra.ExactArgs(1),

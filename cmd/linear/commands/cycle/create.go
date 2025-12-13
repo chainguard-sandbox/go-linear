@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --team (from team_list), --starts-at, --ends-at (date formats: see issue_list)
 Optional: --name
 
-Example: go-linear-cli cycle create --team=ENG --starts-at=2025-12-16 --ends-at=14d --name="Sprint 42" --output=json
+Example: go-linear cycle create --team=ENG --starts-at=2025-12-16 --ends-at=14d --name="Sprint 42" --output=json
 
 Related: cycle_list, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

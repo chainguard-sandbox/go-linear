@@ -20,7 +20,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete an issue permanently",
 		Long: `⚠️ Delete issue. Cannot be undone. Prompts for confirmation unless --yes.
 
-Example: go-linear-cli issue delete ENG-123
+Example: go-linear issue delete ENG-123
 
 Related: issue_list, issue_get`,
 		Args: cobra.ExactArgs(1),

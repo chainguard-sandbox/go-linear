@@ -25,8 +25,8 @@ func NewOrganizationCommand(clientFactory ClientFactory) *cobra.Command {
 		Long: `Get information about the current Linear organization/workspace.
 
 Examples:
-  go-linear-cli organization
-  go-linear-cli org --output=json`,
+  go-linear organization
+  go-linear org --output=json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

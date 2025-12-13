@@ -20,9 +20,9 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Long: `Get issue by identifier (e.g., ENG-123) or UUID. Returns 10 default fields.
 
 Examples:
-  go-linear-cli issue get ENG-123 --output=json
-  go-linear-cli issue get ENG-123 --fields=defaults,estimate --output=json
-  go-linear-cli issue get ENG-123 --fields=id,title,url --output=json
+  go-linear issue get ENG-123 --output=json
+  go-linear issue get ENG-123 --fields=defaults,estimate --output=json
+  go-linear issue get ENG-123 --fields=id,title,url --output=json
 
 Related: linear issue list (discover IDs), linear issue update`,
 		Args: cobra.ExactArgs(1),

@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --name, --color (hex like #ff0000)
 Optional: --description
 
-Example: go-linear-cli label create --name=bug --color="#ff0000" --description="Bug reports" --output=json
+Example: go-linear label create --name=bug --color="#ff0000" --description="Bug reports" --output=json
 
 Related: label_list, label_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {

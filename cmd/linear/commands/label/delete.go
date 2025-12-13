@@ -19,7 +19,7 @@ func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Delete a label permanently",
 		Long: `⚠️ Delete label. Removes from all issues. Cannot be undone. Prompts unless --yes.
 
-Example: go-linear-cli label delete bug
+Example: go-linear label delete bug
 
 Related: label_list, label_get`,
 		Args: cobra.ExactArgs(1),

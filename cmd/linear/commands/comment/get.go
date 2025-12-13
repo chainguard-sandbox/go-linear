@@ -19,7 +19,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Get a single comment by ID",
 		Long: `Get comment by UUID. Returns 6 default fields.
 
-Example: go-linear-cli comment get <comment-uuid> --output=json
+Example: go-linear comment get <comment-uuid> --output=json
 
 Related: comment_list, issue_get`,
 		Args: cobra.ExactArgs(1),

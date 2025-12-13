@@ -16,7 +16,7 @@ func NewUnsubscribeCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Remove a notification subscription",
 		Long: `Unsubscribe from updates. Safe operation.
 
-Example: go-linear-cli notification unsubscribe <subscription-uuid>
+Example: go-linear notification unsubscribe <subscription-uuid>
 
 Related: notification_subscribe, notification_update`,
 		Args: cobra.ExactArgs(1),

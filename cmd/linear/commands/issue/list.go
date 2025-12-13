@@ -25,7 +25,7 @@ Filters: --team (name/key), --assignee=me (current user) or email, --state (name
 
 Pagination: --limit (default 50), --after (cursor from pageInfo.endCursor)
 
-Example: go-linear-cli issue list --team=ENG --assignee=me --priority=1 --completed-after=7d --output=json
+Example: go-linear issue list --team=ENG --assignee=me --priority=1 --completed-after=7d --output=json
 
 Returns: {nodes: [{8 issue fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: issue_get, issue_create, team_list, user_list`,

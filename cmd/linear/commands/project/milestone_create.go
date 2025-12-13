@@ -23,7 +23,7 @@ func NewMilestoneCreateCommand(clientFactory ClientFactory) *cobra.Command {
 Required: --project (UUID from project_list), --name
 Optional: --description, --target-date (date formats: see issue_list)
 
-Example: go-linear-cli project milestone-create --project=<uuid> --name="Q1 2025" --target-date=2025-03-31 --output=json
+Example: go-linear project milestone-create --project=<uuid> --name="Q1 2025" --target-date=2025-03-31 --output=json
 
 Related: project_milestone-update, project_milestone-delete, project_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
