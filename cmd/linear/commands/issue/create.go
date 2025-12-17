@@ -49,6 +49,10 @@ Related: issue_get, issue_list, team_list, user_list, label_list`,
 	cmd.Flags().String("state", "", "Initial state name or ID")
 	cmd.Flags().Int("priority", -1, "Priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
 	cmd.Flags().StringArray("label", []string{}, "Label names (repeatable)")
+	cmd.Flags().String("cycle", "", "Cycle UUID")
+	cmd.Flags().String("project", "", "Project UUID")
+	cmd.Flags().String("parent", "", "Parent issue ID (creates sub-issue)")
+	cmd.Flags().Int("estimate", -1, "Story points/estimate")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -110,6 +114,24 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 			labelIDs = append(labelIDs, labelID)
 		}
 		input.LabelIds = labelIDs
+	}
+
+	// Additional optional fields
+	if cycle, _ := cmd.Flags().GetString("cycle"); cycle != "" {
+		input.CycleID = &cycle
+	}
+
+	if project, _ := cmd.Flags().GetString("project"); project != "" {
+		input.ProjectID = &project
+	}
+
+	if parent, _ := cmd.Flags().GetString("parent"); parent != "" {
+		input.ParentID = &parent
+	}
+
+	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
+		e := int64(estimate)
+		input.Estimate = &e
 	}
 
 	// Create issue
