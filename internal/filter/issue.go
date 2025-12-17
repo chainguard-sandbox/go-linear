@@ -106,7 +106,42 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 8. attachments - AttachmentCollectionFilter - skip (nested collection filter)
+	// 8. attachments (by creator)
+	attachmentBy, _ := cmd.Flags().GetStringArray("attachment-by")
+	if len(attachmentBy) > 0 {
+		userIDs := make([]string, 0, len(attachmentBy))
+		for _, user := range attachmentBy {
+			userID, err := b.resolver.ResolveUser(ctx, user)
+			if err != nil {
+				return fmt.Errorf("failed to resolve attachment-by user %q: %w", user, err)
+			}
+			userIDs = append(userIDs, userID)
+		}
+
+		// Has attachments by any of these users
+		// Optimize: single user uses Eq, multiple uses In
+		if len(userIDs) == 1 {
+			b.filter.Attachments = &intgraphql.AttachmentCollectionFilter{
+				Some: &intgraphql.AttachmentFilter{
+					Creator: &intgraphql.NullableUserFilter{
+						ID: &intgraphql.IDComparator{
+							Eq: &userIDs[0],
+						},
+					},
+				},
+			}
+		} else {
+			b.filter.Attachments = &intgraphql.AttachmentCollectionFilter{
+				Some: &intgraphql.AttachmentFilter{
+					Creator: &intgraphql.NullableUserFilter{
+						ID: &intgraphql.IDComparator{
+							In: userIDs,
+						},
+					},
+				},
+			}
+		}
+	}
 
 	// 9. autoArchivedAt
 	if after, _ := cmd.Flags().GetString("auto-archived-after"); after != "" {
@@ -180,9 +215,52 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		b.filter.CanceledAt.Lt = &tStr
 	}
 
-	// 12. children - IssueCollectionFilter - skip (nested collection filter)
+	// 12. children (has sub-issues)
+	if hasChildren, _ := cmd.Flags().GetBool("has-children"); hasChildren {
+		// Has at least one child issue
+		b.filter.Children = &intgraphql.IssueCollectionFilter{
+			Length: &intgraphql.NumberComparator{
+				Gt: ptrFloat(0),
+			},
+		}
+	}
 
-	// 13. comments - CommentCollectionFilter - skip (nested collection filter)
+	// 13. comments (by user)
+	commentBy, _ := cmd.Flags().GetStringArray("comment-by")
+	if len(commentBy) > 0 {
+		userIDs := make([]string, 0, len(commentBy))
+		for _, user := range commentBy {
+			userID, err := b.resolver.ResolveUser(ctx, user)
+			if err != nil {
+				return fmt.Errorf("failed to resolve comment-by user %q: %w", user, err)
+			}
+			userIDs = append(userIDs, userID)
+		}
+
+		// Has comments by any of these users
+		// Optimize: single user uses Eq, multiple uses In
+		if len(userIDs) == 1 {
+			b.filter.Comments = &intgraphql.CommentCollectionFilter{
+				Some: &intgraphql.CommentFilter{
+					User: &intgraphql.UserFilter{
+						ID: &intgraphql.IDComparator{
+							Eq: &userIDs[0],
+						},
+					},
+				},
+			}
+		} else {
+			b.filter.Comments = &intgraphql.CommentCollectionFilter{
+				Some: &intgraphql.CommentFilter{
+					User: &intgraphql.UserFilter{
+						ID: &intgraphql.IDComparator{
+							In: userIDs,
+						},
+					},
+				},
+			}
+		}
+	}
 
 	// 14. completedAt (already implemented below)
 
@@ -369,7 +447,15 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 
 	// 38. leadTime - [Internal] - skip
 
-	// 39. needs - CustomerNeedCollectionFilter - skip (nested collection filter)
+	// 39. needs (has customer needs)
+	if hasNeeds, _ := cmd.Flags().GetBool("has-needs"); hasNeeds {
+		// Has at least one customer need
+		b.filter.Needs = &intgraphql.CustomerNeedCollectionFilter{
+			Length: &intgraphql.NumberComparator{
+				Gt: ptrFloat(0),
+			},
+		}
+	}
 
 	// 40. number
 	if number, _ := cmd.Flags().GetInt("number"); number >= 0 {
@@ -410,7 +496,15 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 46. reactions - ReactionCollectionFilter - skip (nested collection filter)
+	// 46. reactions (has reactions)
+	if hasReactions, _ := cmd.Flags().GetBool("has-reactions"); hasReactions {
+		// Has at least one reaction
+		b.filter.Reactions = &intgraphql.ReactionCollectionFilter{
+			Length: &intgraphql.NumberComparator{
+				Gt: ptrFloat(0),
+			},
+		}
+	}
 
 	// 47. recurringIssueTemplate - [ALPHA] - skip
 
@@ -483,7 +577,38 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 
 	// 54. state (already implemented below)
 
-	// 55. subscribers - UserCollectionFilter - skip (nested collection filter)
+	// 55. subscribers
+	subscribers, _ := cmd.Flags().GetStringArray("subscriber")
+	if len(subscribers) > 0 {
+		userIDs := make([]string, 0, len(subscribers))
+		for _, user := range subscribers {
+			userID, err := b.resolver.ResolveUser(ctx, user)
+			if err != nil {
+				return fmt.Errorf("failed to resolve subscriber %q: %w", user, err)
+			}
+			userIDs = append(userIDs, userID)
+		}
+
+		// Has subscribers matching any of these users
+		// Optimize: single user uses Eq, multiple uses In
+		if len(userIDs) == 1 {
+			b.filter.Subscribers = &intgraphql.UserCollectionFilter{
+				Some: &intgraphql.UserFilter{
+					ID: &intgraphql.IDComparator{
+						Eq: &userIDs[0],
+					},
+				},
+			}
+		} else {
+			b.filter.Subscribers = &intgraphql.UserCollectionFilter{
+				Some: &intgraphql.UserFilter{
+					ID: &intgraphql.IDComparator{
+						In: userIDs,
+					},
+				},
+			}
+		}
+	}
 
 	// 56. suggestions - [Internal] - skip
 
@@ -658,7 +783,7 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 // Returns nil if no filters were set.
 func (b *IssueFilterBuilder) Build() *intgraphql.IssueFilter {
 	// Check if any filters were actually set
-	// With 20+ filters now, check the most commonly used ones
+	// With 40+ filters now, use reflection would be cleaner but checking common ones
 	if b.filter.Team == nil &&
 		b.filter.Assignee == nil &&
 		b.filter.State == nil &&
@@ -678,9 +803,41 @@ func (b *IssueFilterBuilder) Build() *intgraphql.IssueFilter {
 		b.filter.HasSuggestedTeams == nil &&
 		b.filter.HasSuggestedAssignees == nil &&
 		b.filter.HasSuggestedProjects == nil &&
-		b.filter.HasSuggestedLabels == nil {
+		b.filter.HasSuggestedLabels == nil &&
+		b.filter.Comments == nil &&
+		b.filter.Attachments == nil &&
+		b.filter.Subscribers == nil &&
+		b.filter.Children == nil &&
+		b.filter.Needs == nil &&
+		b.filter.Reactions == nil &&
+		b.filter.DueDate == nil &&
+		b.filter.Estimate == nil &&
+		b.filter.Title == nil &&
+		b.filter.Description == nil &&
+		b.filter.Number == nil &&
+		b.filter.ID == nil &&
+		b.filter.Delegate == nil &&
+		b.filter.SnoozedBy == nil &&
+		b.filter.SnoozedUntilAt == nil &&
+		b.filter.AutoArchivedAt == nil &&
+		b.filter.AutoClosedAt == nil &&
+		b.filter.AddedToCycleAt == nil &&
+		b.filter.AddedToCyclePeriod == nil &&
+		b.filter.ProjectMilestone == nil &&
+		b.filter.LastAppliedTemplate == nil &&
+		b.filter.CustomerCount == nil &&
+		b.filter.CustomerImportantCount == nil &&
+		b.filter.HasBlockedByRelations == nil &&
+		b.filter.HasBlockingRelations == nil &&
+		b.filter.HasDuplicateRelations == nil &&
+		b.filter.HasRelatedRelations == nil {
 		return nil
 	}
 
 	return b.filter
+}
+
+// ptrFloat returns a pointer to a float64
+func ptrFloat(f float64) *float64 {
+	return &f
 }

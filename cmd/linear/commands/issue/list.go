@@ -61,8 +61,11 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().String("updated-after", "", "Updated after date")
 	cmd.Flags().String("updated-before", "", "Updated before date")
 
-	// Labels/Projects
+	// Collection filters (repeatable, OR logic)
 	cmd.Flags().StringArray("label", []string{}, "Label names (repeatable)")
+	cmd.Flags().StringArray("attachment-by", []string{}, "Has attachments by user (name/email/'me', repeatable)")
+	cmd.Flags().StringArray("comment-by", []string{}, "Has comments by user (name/email/'me', repeatable)")
+	cmd.Flags().StringArray("subscriber", []string{}, "Has subscriber (name/email/'me', repeatable)")
 
 	// Additional date filters (alphabetical)
 	cmd.Flags().String("added-to-cycle-after", "", "Added to cycle after date")
@@ -105,7 +108,10 @@ Related: issue_get, issue_create, team_list, user_list`,
 	// Boolean filters (alphabetical)
 	cmd.Flags().Bool("has-blocked-by", false, "Has blocked-by relations")
 	cmd.Flags().Bool("has-blocking", false, "Has blocking relations")
+	cmd.Flags().Bool("has-children", false, "Has sub-issues")
 	cmd.Flags().Bool("has-duplicate", false, "Has duplicate relations")
+	cmd.Flags().Bool("has-needs", false, "Has customer needs")
+	cmd.Flags().Bool("has-reactions", false, "Has reactions")
 	cmd.Flags().Bool("has-related", false, "Has related relations")
 	cmd.Flags().Bool("has-suggested-assignees", false, "Has AI assignee suggestions")
 	cmd.Flags().Bool("has-suggested-labels", false, "Has AI label suggestions")
