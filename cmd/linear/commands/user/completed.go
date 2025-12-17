@@ -162,19 +162,17 @@ func runCompleted(cmd *cobra.Command, client *linear.Client) error {
 			},
 		}
 
-		// Query using SearchIssues with empty term
-		searchResult, err := client.SearchIssues(ctx, "", &first, nil, filter, nil)
+		// Query using IssuesFiltered (no search term required)
+		filteredResult, err := client.IssuesFiltered(ctx, &first, nil, filter)
 		if err != nil {
 			// Skip on error, continue with other users
 			continue
 		}
 
-		if len(searchResult.Nodes) > 0 {
-			// Convert search nodes to list nodes format
-			// (they have the same structure but different types)
+		if len(filteredResult.Nodes) > 0 {
 			results = append(results, UserCompletion{
 				User:  userMap[userID],
-				Count: len(searchResult.Nodes),
+				Count: len(filteredResult.Nodes),
 			})
 		}
 	}
