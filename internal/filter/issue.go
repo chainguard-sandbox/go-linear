@@ -196,9 +196,21 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 17. customerCount - complex NumberComparator - skip for now
+	// 17. customerCount
+	if count, _ := cmd.Flags().GetInt("customer-count"); count >= 0 {
+		c := float64(count)
+		b.filter.CustomerCount = &intgraphql.NumberComparator{
+			Eq: &c,
+		}
+	}
 
-	// 18. customerImportantCount - complex NumberComparator - skip for now
+	// 18. customerImportantCount
+	if count, _ := cmd.Flags().GetInt("customer-important-count"); count >= 0 {
+		c := float64(count)
+		b.filter.CustomerImportantCount = &intgraphql.NumberComparator{
+			Eq: &c,
+		}
+	}
 
 	// 19. cycle
 	if cycle, _ := cmd.Flags().GetString("cycle"); cycle != "" {
