@@ -106,40 +106,49 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 8. attachments (by creator)
+	// 8. attachments (by creator and/or source type)
 	attachmentBy, _ := cmd.Flags().GetStringArray("attachment-by")
-	if len(attachmentBy) > 0 {
-		userIDs := make([]string, 0, len(attachmentBy))
-		for _, user := range attachmentBy {
-			userID, err := b.resolver.ResolveUser(ctx, user)
-			if err != nil {
-				return fmt.Errorf("failed to resolve attachment-by user %q: %w", user, err)
+	attachmentSource, _ := cmd.Flags().GetString("attachment-source-type")
+
+	if len(attachmentBy) > 0 || attachmentSource != "" {
+		attachmentFilter := &intgraphql.AttachmentFilter{}
+
+		// Creator filter
+		if len(attachmentBy) > 0 {
+			userIDs := make([]string, 0, len(attachmentBy))
+			for _, user := range attachmentBy {
+				userID, err := b.resolver.ResolveUser(ctx, user)
+				if err != nil {
+					return fmt.Errorf("failed to resolve attachment-by user %q: %w", user, err)
+				}
+				userIDs = append(userIDs, userID)
 			}
-			userIDs = append(userIDs, userID)
+
+			// Optimize: single user uses Eq, multiple uses In
+			if len(userIDs) == 1 {
+				attachmentFilter.Creator = &intgraphql.NullableUserFilter{
+					ID: &intgraphql.IDComparator{
+						Eq: &userIDs[0],
+					},
+				}
+			} else {
+				attachmentFilter.Creator = &intgraphql.NullableUserFilter{
+					ID: &intgraphql.IDComparator{
+						In: userIDs,
+					},
+				}
+			}
 		}
 
-		// Has attachments by any of these users
-		// Optimize: single user uses Eq, multiple uses In
-		if len(userIDs) == 1 {
-			b.filter.Attachments = &intgraphql.AttachmentCollectionFilter{
-				Some: &intgraphql.AttachmentFilter{
-					Creator: &intgraphql.NullableUserFilter{
-						ID: &intgraphql.IDComparator{
-							Eq: &userIDs[0],
-						},
-					},
-				},
+		// Source type filter
+		if attachmentSource != "" {
+			attachmentFilter.SourceType = &intgraphql.SourceTypeComparator{
+				Contains: &attachmentSource,
 			}
-		} else {
-			b.filter.Attachments = &intgraphql.AttachmentCollectionFilter{
-				Some: &intgraphql.AttachmentFilter{
-					Creator: &intgraphql.NullableUserFilter{
-						ID: &intgraphql.IDComparator{
-							In: userIDs,
-						},
-					},
-				},
-			}
+		}
+
+		b.filter.Attachments = &intgraphql.AttachmentCollectionFilter{
+			Some: attachmentFilter,
 		}
 	}
 
@@ -225,40 +234,49 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 13. comments (by user)
+	// 13. comments (by user and/or text)
 	commentBy, _ := cmd.Flags().GetStringArray("comment-by")
-	if len(commentBy) > 0 {
-		userIDs := make([]string, 0, len(commentBy))
-		for _, user := range commentBy {
-			userID, err := b.resolver.ResolveUser(ctx, user)
-			if err != nil {
-				return fmt.Errorf("failed to resolve comment-by user %q: %w", user, err)
+	commentContains, _ := cmd.Flags().GetString("comment-contains")
+
+	if len(commentBy) > 0 || commentContains != "" {
+		commentFilter := &intgraphql.CommentFilter{}
+
+		// User filter
+		if len(commentBy) > 0 {
+			userIDs := make([]string, 0, len(commentBy))
+			for _, user := range commentBy {
+				userID, err := b.resolver.ResolveUser(ctx, user)
+				if err != nil {
+					return fmt.Errorf("failed to resolve comment-by user %q: %w", user, err)
+				}
+				userIDs = append(userIDs, userID)
 			}
-			userIDs = append(userIDs, userID)
+
+			// Optimize: single user uses Eq, multiple uses In
+			if len(userIDs) == 1 {
+				commentFilter.User = &intgraphql.UserFilter{
+					ID: &intgraphql.IDComparator{
+						Eq: &userIDs[0],
+					},
+				}
+			} else {
+				commentFilter.User = &intgraphql.UserFilter{
+					ID: &intgraphql.IDComparator{
+						In: userIDs,
+					},
+				}
+			}
 		}
 
-		// Has comments by any of these users
-		// Optimize: single user uses Eq, multiple uses In
-		if len(userIDs) == 1 {
-			b.filter.Comments = &intgraphql.CommentCollectionFilter{
-				Some: &intgraphql.CommentFilter{
-					User: &intgraphql.UserFilter{
-						ID: &intgraphql.IDComparator{
-							Eq: &userIDs[0],
-						},
-					},
-				},
+		// Text filter
+		if commentContains != "" {
+			commentFilter.Body = &intgraphql.StringComparator{
+				Contains: &commentContains,
 			}
-		} else {
-			b.filter.Comments = &intgraphql.CommentCollectionFilter{
-				Some: &intgraphql.CommentFilter{
-					User: &intgraphql.UserFilter{
-						ID: &intgraphql.IDComparator{
-							In: userIDs,
-						},
-					},
-				},
-			}
+		}
+
+		b.filter.Comments = &intgraphql.CommentCollectionFilter{
+			Some: commentFilter,
 		}
 	}
 
@@ -510,7 +528,12 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 
 	// 48. searchableContent - [Internal] - skip
 
-	// 49. slaStatus - SlaStatusComparator - skip (complex SLA logic)
+	// 49. slaStatus
+	if slaStatus, _ := cmd.Flags().GetString("sla-status"); slaStatus != "" {
+		b.filter.SLAStatus = &intgraphql.SLAStatusComparator{
+			Eq: (*intgraphql.SLAStatus)(&slaStatus),
+		}
+	}
 
 	// 50. snoozedBy
 	if snoozedBy, _ := cmd.Flags().GetString("snoozed-by"); snoozedBy != "" {

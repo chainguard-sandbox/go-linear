@@ -67,6 +67,10 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().StringArray("comment-by", []string{}, "Has comments by user (name/email/'me', repeatable)")
 	cmd.Flags().StringArray("subscriber", []string{}, "Has subscriber (name/email/'me', repeatable)")
 
+	// Collection text filters
+	cmd.Flags().String("attachment-source-type", "", "Attachment source type (uploaded, url, github, slack)")
+	cmd.Flags().String("comment-contains", "", "Text in comments")
+
 	// Additional date filters (alphabetical)
 	cmd.Flags().String("added-to-cycle-after", "", "Added to cycle after date")
 	cmd.Flags().String("added-to-cycle-before", "", "Added to cycle before date")
@@ -98,6 +102,7 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().String("parent", "", "Parent issue ID")
 	cmd.Flags().String("project", "", "Project UUID")
 	cmd.Flags().String("project-milestone", "", "Project milestone UUID")
+	cmd.Flags().String("sla-status", "", "SLA status: breached, highRisk, mediumRisk, onTrack")
 	cmd.Flags().String("snoozed-by", "", "Who snoozed (name, email, or 'me')")
 	cmd.Flags().String("title", "", "Text in title")
 
