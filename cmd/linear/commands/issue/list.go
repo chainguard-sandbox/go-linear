@@ -107,7 +107,9 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().String("snoozed-by", "", "Who snoozed (name, email, or 'me')")
 	cmd.Flags().String("title", "", "Text in title")
 
-	// Numeric filters
+	// Numeric filters (alphabetical)
+	cmd.Flags().Int("customer-count", -1, "Customer count")
+	cmd.Flags().Int("customer-important-count", -1, "Important customer count")
 	cmd.Flags().Int("estimate", -1, "Story points/estimate")
 	cmd.Flags().Int("number", -1, "Issue number")
 
