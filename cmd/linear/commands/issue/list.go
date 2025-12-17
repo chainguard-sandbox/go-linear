@@ -85,11 +85,13 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().String("snoozed-until-before", "", "Snoozed until before date")
 
 	// Entity filters (alphabetical)
+	cmd.Flags().String("added-to-cycle-period", "", "When added to cycle: before, during, after")
 	cmd.Flags().String("creator", "", "Creator name, email, or 'me'")
 	cmd.Flags().String("cycle", "", "Cycle UUID")
 	cmd.Flags().String("delegate", "", "Delegated agent name, email, or 'me'")
 	cmd.Flags().String("description", "", "Text in description")
 	cmd.Flags().String("id", "", "Issue ID (UUID)")
+	cmd.Flags().String("last-applied-template", "", "Last applied template UUID")
 	cmd.Flags().String("parent", "", "Parent issue ID")
 	cmd.Flags().String("project", "", "Project UUID")
 	cmd.Flags().String("project-milestone", "", "Project milestone UUID")

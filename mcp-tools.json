@@ -1,6 +1,6 @@
 [
   {
-    "description": "Create a custom attachment with metadata on an issue.\n\nThis operation creates new attachment data and is safe to execute.\nUse for custom integrations (CI/CD, monitoring tools, external systems).\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --title: Attachment title (required)\n  --url: Attachment URL (required)\n  --subtitle: Optional subtitle text\n  --icon-url: Optional icon URL (20x20px PNG/JPG, max 1MB)\n  --metadata: Optional JSON metadata object\n\nExamples:\n  # Create CI/CD build attachment\n  linear attachment create --issue=ENG-123 --title=\"Build #42\" --url=https://ci.example.com/build/42\n\n  # With subtitle and icon\n  linear attachment create --issue=ENG-123 --title=\"Deploy\" --subtitle=\"Production\" \\\\\n    --url=https://deploy.example.com/123 --icon-url=https://example.com/icon.png\n\n  # With JSON metadata\n  linear attachment create --issue=ENG-123 --title=\"Test Report\" --url=https://tests.example.com \\\\\n    --metadata='{\"status\":\"passed\",\"coverage\":\"95%\"}'\n\nTIP: Use for integrating external tools (CI/CD, monitoring, analytics) with Linear issues\n\nRelated Commands:\n  - linear attachment link-url - Link simple URL without metadata\n  - linear attachment link-github - Link GitHub PR\n  - linear attachment link-slack - Link Slack thread",
+    "description": "Create custom attachment with metadata. Safe operation.\n\nRequired: --issue (ID from issue_list), --title, --url\nOptional: --subtitle, --icon-url, --metadata (JSON)\n\nExample: go-linear attachment create --issue=ENG-123 --title=\"Build #42\" --url=https://ci.example.com/42 --metadata='{\"status\":\"passed\"}' --output=json\n\nRelated: issue_get, attachment_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -50,6 +50,11 @@
             "url": {
               "type": "string",
               "description": "Attachment URL (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -57,7 +62,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_create",
+    "name": "go-linear_attachment_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -81,7 +86,7 @@
     }
   },
   {
-    "description": "Delete an attachment from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the attachment link.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear attachment delete \u003cuuid\u003e\n  linear attachment delete \u003cuuid\u003e --yes",
+    "description": "⚠️ Delete attachment. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear attachment delete \u003cuuid\u003e\n\nRelated: attachment_get, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -108,6 +113,11 @@
               "description": "Output format: json|table",
               "default": "table"
             },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
+            },
             "yes": {
               "type": "boolean",
               "description": "Skip confirmation",
@@ -119,7 +129,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_delete",
+    "name": "go-linear_attachment_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -143,7 +153,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific attachment.\n\nRetrieve full attachment details including title, URL, subtitle, metadata, and associated issue.\nAttachments can be files, external links, GitHub PRs, or Slack threads.\n\nParameters:\n  \u003cattachment-id\u003e: Attachment UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, title, url, subtitle, source, issue, creator, createdAt\n\nExamples:\n  # Get attachment by UUID\n  linear attachment get \u003cattachment-uuid\u003e\n\n  # Get attachment with JSON output\n  linear attachment get \u003cattachment-uuid\u003e --output=json\n\nTIP: Use 'linear attachment list' to discover attachment IDs from issues\n\nRelated Commands:\n  - linear attachment list - List all attachments\n  - linear attachment link-url - Link external URL to issue\n  - linear attachment link-github - Link GitHub PR to issue",
+    "description": "Get attachment by UUID. Returns 5 default fields.\n\nExample: go-linear attachment get \u003cuuid\u003e --output=json\n\nRelated: issue_get, attachment_delete",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -165,10 +175,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,title,url,source,createdAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -176,7 +195,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_get",
+    "name": "go-linear_attachment_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -200,7 +219,7 @@
     }
   },
   {
-    "description": "Link a GitHub pull request as an attachment to an issue.\n\nThis operation creates new attachment data and is safe to execute.\nCreates automatic sync between Linear issues and GitHub PRs for development tracking.\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --url: GitHub PR URL (required, e.g., https://github.com/owner/repo/pull/123)\n\nExamples:\n  # Link GitHub PR to issue\n  linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123\n\n  # Link PR with JSON output\n  linear attachment link-github --issue=ENG-123 --url=\u003cgh-pr-url\u003e --output=json\n\nTIP: GitHub integration automatically updates PR status in Linear\n\nCommon Errors:\n  - \"invalid URL\": Must be a valid GitHub pull request URL\n  - \"integration not configured\": Enable GitHub integration in Linear settings\n\nRelated Commands:\n  - linear attachment link-url - Link generic external URL\n  - linear attachment link-slack - Link Slack thread\n  - linear attachment create - Create custom attachment",
+    "description": "Link GitHub PR to issue. Safe operation.\n\nRequired: --issue (ID from issue_list), --url (GitHub PR URL like https://github.com/owner/repo/pull/123)\n\nExample: go-linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123 --output=json\n\nRelated: attachment_link-url, attachment_link-slack, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -238,6 +257,11 @@
             "url": {
               "type": "string",
               "description": "GitHub PR URL (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -245,7 +269,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_link-github",
+    "name": "go-linear_attachment_link-github",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -269,7 +293,7 @@
     }
   },
   {
-    "description": "Link a Slack thread or message to an issue as an attachment.\n\nThis operation creates new attachment data and is safe to execute.\nRequires Slack integration to be configured in your Linear workspace.\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --url: Slack message URL (required)\n\nSlack URL format:\n  https://\u003cworkspace\u003e.slack.com/archives/\u003cchannel-id\u003e/p\u003ctimestamp\u003e\n  Example: https://mycompany.slack.com/archives/C123ABC/p1234567890123456\n\nExamples:\n  # Link Slack thread to issue\n  linear attachment link-slack --issue=ENG-123 \\\\\n    --url=https://mycompany.slack.com/archives/C123ABC/p1234567890\n\n  # With JSON output\n  linear attachment link-slack --issue=ENG-123 --url=\u003cslack-url\u003e --output=json\n\nTIP: Copy Slack message link from \"Copy link\" option in Slack message menu\n\nCommon Errors:\n  - \"integration not configured\": Enable Slack integration in Linear settings\n  - \"invalid URL\": Must be a valid Slack message permalink\n\nRelated Commands:\n  - linear attachment link-url - Link generic external URL\n  - linear attachment link-github - Link GitHub PR\n  - linear attachment create - Create custom attachment with metadata",
+    "description": "Link Slack message to issue. Requires Slack integration. Safe operation.\n\nRequired: --issue (ID from issue_list), --url (Slack permalink)\n\nExample: go-linear attachment link-slack --issue=ENG-123 --url=https://workspace.slack.com/archives/C123/p1234567890 --output=json\n\nRelated: attachment_link-url, attachment_link-github, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -303,6 +327,11 @@
             "url": {
               "type": "string",
               "description": "Slack message URL (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -310,7 +339,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_link-slack",
+    "name": "go-linear_attachment_link-slack",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -334,7 +363,7 @@
     }
   },
   {
-    "description": "Link an external URL as an attachment to an issue.\n\nThis operation creates new attachment data and is safe to execute.\nUse for linking design files, documentation, monitoring dashboards, or any external resource.\n\nParameters:\n  --issue: Issue identifier (e.g., ENG-123) or UUID (required)\n  --url: URL to link (required)\n  --title: Link title (optional, defaults to page title if available)\n\nExamples:\n  # Link URL to issue\n  linear attachment link-url --issue=ENG-123 --url=https://example.com/design\n\n  # Link with custom title\n  linear attachment link-url --issue=ENG-123 --url=https://example.com --title=\"Design Mockups\"\n\n  # Link with JSON output\n  linear attachment link-url --issue=ENG-123 --url=https://example.com --output=json\n\nTIP: URLs are automatically fetched to extract title and metadata\n\nRelated Commands:\n  - linear attachment link-github - Link GitHub PR\n  - linear attachment link-slack - Link Slack thread\n  - linear attachment create - Create custom attachment with metadata",
+    "description": "Link URL to issue. Safe operation.\n\nRequired: --issue (ID from issue_list), --url\nOptional: --title\n\nExample: go-linear attachment link-url --issue=ENG-123 --url=https://example.com/design --output=json\n\nRelated: attachment_link-github, attachment_link-slack, attachment_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -376,6 +405,11 @@
             "url": {
               "type": "string",
               "description": "URL to link (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -383,7 +417,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_link-url",
+    "name": "go-linear_attachment_link-url",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -407,7 +441,7 @@
     }
   },
   {
-    "description": "List all file attachments and linked resources from Linear.\n\nUse this to:\n- Browse attachments across all issues\n- Find linked GitHub PRs, Slack threads, or external URLs\n- Audit attached resources for compliance or documentation\n\nAttachments can be files, external links, GitHub PRs, or Slack conversations.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of attachments\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each attachment contains:\n  - id: Attachment UUID\n  - title: Attachment title\n  - url: Attachment URL\n  - source: Source type (uploaded, url, github, slack)\n  - issue: Associated issue reference\n\nExamples:\n  # List all attachments\n  linear attachment list\n\n  # List with limit\n  linear attachment list --limit=30\n\n  # JSON output for parsing\n  linear attachment list --output=json\n\nRelated Commands:\n  - linear attachment get - Get single attachment details\n  - linear attachment create - Create custom attachment\n  - linear attachment link-url - Link external URL",
+    "description": "List attachments. Returns 5 default fields per attachment.\n\nExample: go-linear attachment list --limit=30 --output=json\n\nRelated: attachment_get, attachment_create, attachment_link-url",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -429,6 +463,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,title,url,source,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number to return",
@@ -438,6 +476,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -445,7 +488,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_attachment_list",
+    "name": "go-linear_attachment_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -469,7 +512,7 @@
     }
   },
   {
-    "description": "Create a new comment on a Linear issue.\n\nThis operation creates new data and is safe to execute.\n\nExamples:\n  linear comment create --issue=ENG-123 --body=\"This is a comment\"\n  linear comment create --issue=\u003cuuid\u003e --body=\"Added fix\" --output=json\n\nTIP: Comments support markdown formatting",
+    "description": "Create comment on issue. Supports markdown. Safe operation.\n\nRequired: --issue (ID from issue_list), --body\n\nExample: go-linear comment create --issue=ENG-123 --body=\"Fixed in PR #42\" --output=json\n\nRelated: comment_list, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -507,6 +550,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -514,7 +562,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_comment_create",
+    "name": "go-linear_comment_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -538,7 +586,7 @@
     }
   },
   {
-    "description": "Delete a comment from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the comment and its history.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear comment delete \u003cuuid\u003e              # Will prompt for confirmation\n  linear comment delete \u003cuuid\u003e --yes        # Skip confirmation",
+    "description": "⚠️ Delete comment. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear comment delete \u003cuuid\u003e\n\nRelated: comment_list, comment_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -565,6 +613,11 @@
               "description": "Output format: json|table",
               "default": "table"
             },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
+            },
             "yes": {
               "type": "boolean",
               "description": "Skip confirmation prompt",
@@ -576,7 +629,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_comment_delete",
+    "name": "go-linear_comment_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -600,7 +653,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific comment.\n\nRetrieve full comment details including body text, author, creation timestamp,\nand associated issue information.\n\nParameters:\n  \u003ccomment-id\u003e: Comment UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, body, user (author), issue, createdAt, updatedAt\n\nExamples:\n  # Get comment by UUID\n  linear comment get \u003ccomment-uuid\u003e\n\n  # Get comment with JSON output\n  linear comment get \u003ccomment-uuid\u003e --output=json\n\nTIP: Use 'linear comment list' to discover comment IDs from issues",
+    "description": "Get comment by UUID. Returns 6 default fields.\n\nExample: go-linear comment get \u003ccomment-uuid\u003e --output=json\n\nRelated: comment_list, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -622,10 +675,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,body,createdAt,user.name,url,editedAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -633,7 +695,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_comment_get",
+    "name": "go-linear_comment_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -657,7 +719,7 @@
     }
   },
   {
-    "description": "List comments from Linear.\n\nUse this to browse comments across all issues or find specific discussion threads.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of comments\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each comment contains:\n  - id: Comment UUID\n  - body: Comment text (markdown)\n  - user: Author {id, name, email}\n  - issue: Associated issue reference\n  - createdAt: Creation timestamp\n\nExamples:\n  # List comments\n  linear comment list\n\n  # List with limit\n  linear comment list --limit=100\n\n  # JSON output for parsing\n  linear comment list --output=json\n\nRelated Commands:\n  - linear comment get - Get single comment details\n  - linear comment create - Create new comment\n  - linear comment update - Modify comment text",
+    "description": "List comments. Returns 5 default fields per comment.\n\nExample: go-linear comment list --limit=100 --output=json\n\nRelated: comment_get, comment_create, issue_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -683,6 +745,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,body,createdAt,user.name,url) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number of comments to return",
@@ -692,6 +758,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -699,7 +770,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_comment_list",
+    "name": "go-linear_comment_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -723,7 +794,7 @@
     }
   },
   {
-    "description": "Update an existing comment on a Linear issue.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear comment update \u003cuuid\u003e --body=\"Updated comment text\"\n\nTIP: Comments support markdown formatting",
+    "description": "Update comment text. Supports markdown. Modifies existing data.\n\nRequired: --body\n\nExample: go-linear comment update \u003cuuid\u003e --body=\"Updated text\" --output=json\n\nRelated: comment_get, comment_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -756,6 +827,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -763,7 +839,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_comment_update",
+    "name": "go-linear_comment_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -787,7 +863,7 @@
     }
   },
   {
-    "description": "Archive a cycle in Linear.\n\n⚠️ Caution: This archives the cycle, hiding it from default views.\nArchived cycles can be unarchived later.\n\nExamples:\n  linear cycle archive \u003cuuid\u003e\n  linear cycle archive \u003cuuid\u003e --output=json",
+    "description": "Archive cycle. Hides from default views. Can be unarchived.\n\nExample: go-linear cycle archive \u003cuuid\u003e --output=json\n\nRelated: cycle_list, cycle_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -813,6 +889,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -820,7 +901,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_cycle_archive",
+    "name": "go-linear_cycle_archive",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -844,7 +925,7 @@
     }
   },
   {
-    "description": "Create a new development cycle (sprint) in Linear.\n\nThis operation creates new cycle data and is safe to execute.\n\nExamples:\n  linear cycle create --team=Engineering --starts-at=2025-12-16 --ends-at=2025-12-30\n  linear cycle create --team=PLT --starts-at=today --ends-at=14d --name=\"Sprint 42\"\n\nTIP: Cycles help organize work into sprints/iterations",
+    "description": "Create cycle (sprint). Safe operation.\n\nRequired: --team (from team_list), --starts-at, --ends-at (date formats: see issue_list)\nOptional: --name\n\nExample: go-linear cycle create --team=ENG --starts-at=2025-12-16 --ends-at=14d --name=\"Sprint 42\" --output=json\n\nRelated: cycle_list, team_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -891,6 +972,11 @@
             "team": {
               "type": "string",
               "description": "Team name or ID (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -898,7 +984,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_cycle_create",
+    "name": "go-linear_cycle_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -922,7 +1008,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific development cycle (sprint).\n\nRetrieve full cycle details including name, number, date range, and team information.\n\nParameters:\n  \u003cid\u003e: Cycle UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, number, startsAt, endsAt, team\n\nExamples:\n  # Get cycle by UUID\n  linear cycle get \u003cuuid\u003e\n\n  # Get with JSON output\n  linear cycle get \u003cuuid\u003e --output=json\n\nTIP: Use 'linear cycle list' to discover cycle IDs\n\nRelated Commands:\n  - linear cycle list - List all cycles\n  - linear cycle update - Modify cycle details",
+    "description": "Get cycle by UUID. Returns 6 default fields.\n\nExample: go-linear cycle get \u003cuuid\u003e --output=json\n\nRelated: cycle_list, cycle_update",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -944,10 +1030,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,startsAt,endsAt,createdAt,description) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -955,7 +1050,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_cycle_get",
+    "name": "go-linear_cycle_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -979,7 +1074,7 @@
     }
   },
   {
-    "description": "List all development cycles (sprints) in the Linear workspace.\n\nUse this to browse current and past sprints, track cycle progress, or discover cycle IDs.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of cycles\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each cycle contains:\n  - id: Cycle UUID\n  - name: Cycle name (optional, may be null)\n  - number: Cycle number\n  - startsAt: Cycle start date\n  - endsAt: Cycle end date\n  - team: Associated team reference\n\nExamples:\n  # List all cycles\n  linear cycle list\n\n  # List with limit\n  linear cycle list --limit=10\n\n  # JSON output for parsing\n  linear cycle list --output=json\n\nRelated Commands:\n  - linear cycle get - Get single cycle details\n  - linear cycle create - Create new cycle\n  - linear issue list --cycle=\u003cid\u003e - Filter issues by cycle",
+    "description": "List cycles (sprints). Returns 5 default fields per cycle.\n\nExample: go-linear cycle list --output=json\n\nRelated: cycle_get, cycle_create, issue_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1001,6 +1096,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,startsAt,endsAt,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number of cycles to return",
@@ -1010,6 +1109,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1017,7 +1121,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_cycle_list",
+    "name": "go-linear_cycle_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1041,7 +1145,7 @@
     }
   },
   {
-    "description": "Update an existing cycle in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear cycle update \u003cuuid\u003e --name=\"Sprint 43\"\n  linear cycle update \u003cuuid\u003e --description=\"Extended sprint\"\n\nTIP: Use 'linear cycle get \u003cid\u003e --output=json' to see current values before updating",
+    "description": "Update cycle. Modifies existing data.\n\nFields: --name, --description\n\nExample: go-linear cycle update \u003cuuid\u003e --name=\"Sprint 43\" --description=\"Extended\" --output=json\n\nRelated: cycle_get, cycle_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1075,6 +1179,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1082,7 +1191,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_cycle_update",
+    "name": "go-linear_cycle_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1106,7 +1215,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific knowledge base document.\n\nRetrieve full document details including title, content (markdown), and metadata.\nUse this to access documentation, guides, or reference materials.\n\nParameters:\n  \u003cid\u003e: Document UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, title, content, createdAt, updatedAt\n\nExamples:\n  # Get document by UUID\n  linear document get \u003cdocument-uuid\u003e\n\n  # Get with JSON output for parsing\n  linear document get \u003cdocument-uuid\u003e --output=json\n\nTIP: Use 'linear document list' to discover document IDs\n\nRelated Commands:\n  - linear document list - List all documents",
+    "description": "Get document by UUID. Returns 4 default fields.\n\nExample: go-linear document get \u003cuuid\u003e --output=json\n\nRelated: document_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1128,10 +1237,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,title,content,createdAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1139,7 +1257,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_document_get",
+    "name": "go-linear_document_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1163,7 +1281,7 @@
     }
   },
   {
-    "description": "List knowledge base documents from Linear.\n\nUse this to:\n- Browse available documentation and guides\n- Find reference materials for your team\n- Discover documents by title for linking\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of documents\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each document contains:\n  - id: Document UUID\n  - title: Document title\n  - content: Markdown content\n  - createdAt: Creation timestamp\n\nExamples:\n  # List all documents\n  linear document list\n\n  # List with limit\n  linear document list --limit=20\n\n  # JSON output for programmatic access\n  linear document list --output=json\n\nRelated Commands:\n  - linear document get - Get full document details including content",
+    "description": "List documents. Returns 4 default fields per document.\n\nExample: go-linear document list --output=json\n\nRelated: document_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1185,6 +1303,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,title,content,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number to return",
@@ -1194,6 +1316,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1201,7 +1328,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_document_list",
+    "name": "go-linear_document_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1225,7 +1352,7 @@
     }
   },
   {
-    "description": "Star (favorite) an item for quick access in Linear.\n\nThis operation creates new favorite data and is safe to execute.\nStarred items appear in Linear's \"Favorites\" section for easy retrieval.\n\nUse favorites for:\n- Bookmarking important issues to track\n- Quick access to active projects\n- Pinning frequently referenced documents\n- Following current sprint cycles\n\nParameters (mutually exclusive - specify exactly one):\n  --issue: Issue identifier (e.g., ENG-123) or UUID\n  --project: Project name or UUID\n  --cycle: Cycle UUID\n  --document: Document UUID\n\nExamples:\n  # Star an issue for quick access\n  linear favorite create --issue=ENG-123\n\n  # Star a project\n  linear favorite create --project=\"Platform Redesign\"\n\n  # Star with JSON output\n  linear favorite create --issue=ENG-123 --output=json\n\nTIP: Favorites sync across web, desktop, and mobile Linear apps\n\nCommon Errors:\n  - \"must specify exactly one resource\": Provide --issue OR --project, not both\n  - \"resource not found\": Check ID/name is valid\n\nRelated Commands:\n  - linear favorite delete - Unstar an item\n  - linear issue list - Find issues to favorite\n  - linear project list - Find projects to favorite",
+    "description": "Star item. Safe operation. Must specify exactly one of: --issue, --project, --cycle, --document.\n\nExample: go-linear favorite create --issue=ENG-123 --output=json\n\nRelated: favorite_delete, issue_list, project_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1267,6 +1394,11 @@
             "project": {
               "type": "string",
               "description": "Project name or UUID"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1274,7 +1406,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_favorite_create",
+    "name": "go-linear_favorite_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1298,7 +1430,7 @@
     }
   },
   {
-    "description": "Remove an item from your favorites (unstar).\n\nThis operation is safe and can be reversed by favoriting the item again.\nThe underlying resource (issue, project, etc.) is not affected.\n\nParameters:\n  \u003cfavorite-id\u003e: Favorite UUID to delete (required)\n\nExamples:\n  # Unstar an item\n  linear favorite delete \u003cfavorite-uuid\u003e\n\nTIP: View favorites in Linear UI to find favorite IDs, or use API to list favorites\n\nRelated Commands:\n  - linear favorite create - Star an item\n  - linear issue list - Find issues\n  - linear project list - Find projects",
+    "description": "Unstar item. Safe operation.\n\nExample: go-linear favorite delete \u003cfavorite-uuid\u003e\n\nRelated: favorite_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1319,6 +1451,11 @@
             "api-key": {
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1326,7 +1463,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_favorite_delete",
+    "name": "go-linear_favorite_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1350,7 +1487,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific strategic initiative.\n\nRetrieve full initiative details including name, description, target dates, and progress.\nUse this to track high-level strategic goals and their status.\n\nParameters:\n  \u003cid\u003e: Initiative UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, targetDate, status\n\nExamples:\n  # Get initiative by UUID\n  linear initiative get \u003cinitiative-uuid\u003e\n\n  # Get with JSON output\n  linear initiative get \u003cinitiative-uuid\u003e --output=json\n\nTIP: Use 'linear initiative list' to discover initiative IDs\n\nRelated Commands:\n  - linear initiative list - List all initiatives\n  - linear project list - List projects within initiatives",
+    "description": "Get initiative by UUID. Returns 4 default fields.\n\nExample: go-linear initiative get \u003cuuid\u003e --output=json\n\nRelated: initiative_list, project_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1372,10 +1509,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1383,7 +1529,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_initiative_get",
+    "name": "go-linear_initiative_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1407,7 +1553,7 @@
     }
   },
   {
-    "description": "List strategic initiatives from Linear.\n\nUse this to:\n- Browse company-wide strategic initiatives\n- Track high-level goals and objectives\n- Discover initiatives for organizational planning\n\nInitiatives represent large strategic efforts that span multiple projects and teams.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of initiatives\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each initiative contains:\n  - id: Initiative UUID\n  - name: Initiative name\n  - description: Initiative description\n  - targetDate: Target completion date\n\nExamples:\n  # List all initiatives\n  linear initiative list\n\n  # List with limit\n  linear initiative list --limit=10\n\n  # JSON output for parsing\n  linear initiative list --output=json\n\nRelated Commands:\n  - linear initiative get - Get single initiative details\n  - linear project list - List projects (initiatives contain projects)",
+    "description": "List initiatives. Returns 4 default fields per initiative.\n\nExample: go-linear initiative list --output=json\n\nRelated: initiative_get, project_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1429,6 +1575,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number to return",
@@ -1438,6 +1588,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1445,7 +1600,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_initiative_list",
+    "name": "go-linear_initiative_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1469,7 +1624,7 @@
     }
   },
   {
-    "description": "Add a label to an existing issue.\n\nThis operation is safe and can be reversed with 'issue remove-label'.\nSimpler than using 'issue update --add-label' for single label operations.\n\nParameters:\n  \u003cissue-id\u003e: Issue identifier (e.g., ENG-123) or UUID (required)\n  \u003clabel\u003e: Label name or UUID to add (required)\n\nExamples:\n  # Add 'bug' label to issue\n  linear issue add-label ENG-123 bug\n\n  # Add label using UUID\n  linear issue add-label \u003cissue-uuid\u003e \u003clabel-uuid\u003e\n\n  # Add label with JSON output\n  linear issue add-label ENG-123 feature --output=json\n\nTIP: Use 'linear label list' to discover available labels\n\nRelated Commands:\n  - linear issue remove-label - Remove a label from an issue\n  - linear issue update --add-label - Alternative using update command\n  - linear label list - List all available labels",
+    "description": "Add label to issue. Safe operation.\n\nExample: go-linear issue add-label ENG-123 bug --output=json\n\nRelated: issue_remove-label, label_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1495,6 +1650,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1502,7 +1662,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_add-label",
+    "name": "go-linear_issue_add-label",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1526,7 +1686,7 @@
     }
   },
   {
-    "description": "Create a new issue in Linear.\n\nThis operation creates new data and is safe to execute.\n\nExamples:\n  linear issue create --team=Engineering --title=\"Fix bug\" --description=\"Details here\"\n  linear issue create --team=ENG --title=\"Add feature\" --assignee=alice@company.com --priority=1\n\nTIP: Use 'linear team list' to discover available teams",
+    "description": "Create issue. Safe operation.\n\nRequired: --team (name/key from team_list), --title\nOptional: --description, --assignee=me or email, --priority (0=none, 1=urgent, 2=high, 3=normal, 4=low), --state, --label (repeatable)\n\nExample: go-linear issue create --team=ENG --title=\"Fix bug\" --assignee=me --priority=1 --description=\"Details\" --output=json\n\nRelated: issue_get, issue_list, team_list, user_list, label_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1588,6 +1748,11 @@
             "title": {
               "type": "string",
               "description": "Issue title (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1595,7 +1760,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_create",
+    "name": "go-linear_issue_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1619,7 +1784,7 @@
     }
   },
   {
-    "description": "Delete an issue from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the issue, all its comments, attachments, and history.\nDeleted issues cannot be recovered.\n\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear issue delete ENG-123              # Will prompt for confirmation\n  linear issue delete \u003cuuid\u003e --yes         # Skip confirmation (use with extreme caution)\n\nRECOMMENDATION: Archive issues instead of deleting them when possible.",
+    "description": "⚠️ Delete issue. Cannot be undone. Prompts for confirmation unless --yes.\n\nExample: go-linear issue delete ENG-123\n\nRelated: issue_list, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1645,6 +1810,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             },
             "yes": {
               "type": "boolean",
@@ -1657,7 +1827,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_delete",
+    "name": "go-linear_issue_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1681,7 +1851,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific issue.\n\nRetrieve full issue details including description, state, assignee, labels, and timestamps.\n\nParameters:\n  \u003cid\u003e: Issue identifier (e.g., ENG-123) or UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, identifier, title, description, state, assignee, priority, labels, createdAt, updatedAt\n\nExamples:\n  # Get issue by identifier\n  linear issue get ENG-123\n\n  # Get issue with JSON output\n  linear issue get ENG-123 --output=json\n\nTIP: Use 'linear issue list' to discover issue identifiers\n\nRelated Commands:\n  - linear issue list - List and filter issues\n  - linear issue update - Modify issue fields",
+    "description": "Get issue by identifier (e.g., ENG-123) or UUID. Returns 10 default fields.\n\nExamples:\n  go-linear issue get ENG-123 --output=json\n  go-linear issue get ENG-123 --fields=defaults,estimate --output=json\n  go-linear issue get ENG-123 --fields=id,title,url --output=json\n\nRelated: linear issue list (discover IDs), linear issue update",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1703,10 +1873,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt,description,assignee.name) | none | defaults,extra | id,title,..."
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1714,7 +1893,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_get",
+    "name": "go-linear_issue_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1738,7 +1917,7 @@
     }
   },
   {
-    "description": "List issues from Linear with comprehensive filtering options.\n\nSupports filtering by team, assignee, state, priority, dates, and labels.\nAI agents can use parameter-rich flags for precise queries.\n\nParameters:\n  --team: Team name (e.g., \"Engineering\") or UUID - use 'linear team list' to discover names\n  --assignee: User email, name, or 'me' - use 'linear user list' to discover users\n  --state: State name (e.g., \"In Progress\") - use 'linear state list' for available states\n  --priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low\n  --completed-after/before: ISO8601 (2025-12-10), relative (yesterday, today), or duration (7d, 2w, 3m)\n  --label: Label names - use 'linear label list' to discover available labels\n\nOutput (--output=json):\n  Returns JSON with: nodes (array of issues), pageInfo (pagination info)\n  Each issue has: identifier, title, state, assignee, priority, team, dates\n\nExamples:\n  # List my urgent issues\n  linear issue list --assignee=me --priority=1\n\n  # Find completed issues from yesterday\n  linear issue list --team=Engineering --completed-after=yesterday --completed-before=today --output=json\n\n  # List issues in specific state\n  linear issue list --state=\"In Progress\" --team=Engineering\n\n  # Complex multi-filter query\n  linear issue list --team=Engineering --priority=1 --created-after=7d --label=bug --output=json\n\nCommon Errors:\n  - \"team not found\": Check spelling or use 'linear team list' to see available teams\n  - \"ambiguous match\": Use team key (e.g., \"ENG\") instead of full name",
+    "description": "List issues with filtering. Returns 8 default fields per issue. Use --count for totals (99% fewer tokens).\n\nFilters: --team (name/key), --assignee=me (current user) or email, --state (name), --priority (0-4), --label (name), --created-after=yesterday|7d|2w|2025-12-10\n\nPagination: --limit (default 50), --after (cursor from pageInfo.endCursor)\nCount: --count returns just {\"count\": N} instead of full results\n\nExample: go-linear issue list --team=ENG --assignee=me --priority=1 --output=json\n\nReturns: {nodes: [{8 issue fields}...], pageInfo: {hasNextPage, endCursor}} or {\"count\": N} with --count\nRelated: issue_get, issue_create, team_list, user_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1776,6 +1955,11 @@
               "type": "string",
               "description": "Completed before date"
             },
+            "count": {
+              "type": "boolean",
+              "description": "Return only count, not results (99% token reduction)",
+              "default": false
+            },
             "created-after": {
               "type": "string",
               "description": "Created after date (ISO8601, 'yesterday', '7d')"
@@ -1783,6 +1967,10 @@
             "created-before": {
               "type": "string",
               "description": "Created before date"
+            },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,..."
             },
             "label": {
               "type": "array",
@@ -1821,6 +2009,11 @@
             "updated-before": {
               "type": "string",
               "description": "Updated before date"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1828,7 +2021,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_list",
+    "name": "go-linear_issue_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1852,7 +2045,7 @@
     }
   },
   {
-    "description": "Create a relationship between two issues.\n\nThis operation creates new relationship data and is safe to execute.\n\nRelationship types:\n  - blocks: First issue blocks the second (shows as dependency)\n  - blocked-by: First issue is blocked by the second (inverse of blocks)\n  - duplicate: Issues are duplicates of each other\n  - related: Issues are related but not blocking\n\nExamples:\n  linear issue relate ENG-123 ENG-124 --type=blocks\n  linear issue relate ENG-123 ENG-125 --type=related --output=json\n\nTIP: Use blocking relationships for dependency tracking in project planning",
+    "description": "Relate two issues. Safe operation.\n\nTypes: blocks | blocked-by | duplicate | related (default)\n\nExample: go-linear issue relate ENG-123 ENG-124 --type=blocks --output=json\n\nRelated: issue_unrelate, issue_update-relation",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1883,6 +2076,11 @@
               "type": "string",
               "description": "Relation type: blocks|blocked-by|duplicate|related",
               "default": "related"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1890,7 +2088,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_relate",
+    "name": "go-linear_issue_relate",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1914,7 +2112,7 @@
     }
   },
   {
-    "description": "Remove a label from an existing issue.\n\nThis operation is safe and can be reversed with 'issue add-label'.\nSimpler than using 'issue update --remove-label' for single label operations.\n\nParameters:\n  \u003cissue-id\u003e: Issue identifier (e.g., ENG-123) or UUID (required)\n  \u003clabel\u003e: Label name or UUID to remove (required)\n\nExamples:\n  # Remove 'bug' label from issue\n  linear issue remove-label ENG-123 bug\n\n  # Remove label using UUID\n  linear issue remove-label \u003cissue-uuid\u003e \u003clabel-uuid\u003e\n\n  # Remove label with JSON output\n  linear issue remove-label ENG-123 feature --output=json\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see current labels\n\nRelated Commands:\n  - linear issue add-label - Add a label to an issue\n  - linear issue update --remove-label - Alternative using update command\n  - linear label list - List all available labels",
+    "description": "Remove label from issue. Safe operation.\n\nExample: go-linear issue remove-label ENG-123 bug --output=json\n\nRelated: issue_add-label, issue_get, label_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1940,6 +2138,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -1947,7 +2150,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_remove-label",
+    "name": "go-linear_issue_remove-label",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -1971,7 +2174,7 @@
     }
   },
   {
-    "description": "Search issues using full-text search.\n\nSearches across issue titles and descriptions.\n\nExamples:\n  linear issue search \"authentication bug\"\n  linear issue search \"performance\" --output=json\n  linear issue search \"login\" --limit=10",
+    "description": "Search issues by text. Returns 8 default fields per result. Searches titles and descriptions. Use --count for totals.\n\nExample: go-linear issue search \"authentication bug\" --limit=20 --output=json\n\nCount: --count returns {\"count\": N} (see issue_list for details)\nRelated: issue_list, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -1997,6 +2200,15 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "count": {
+              "type": "boolean",
+              "description": "Return only count, not results (99% token reduction)",
+              "default": false
+            },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra"
+            },
             "include-archived": {
               "type": "boolean",
               "description": "Include archived issues",
@@ -2011,6 +2223,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2018,7 +2235,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_search",
+    "name": "go-linear_issue_search",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2042,7 +2259,7 @@
     }
   },
   {
-    "description": "Delete a relationship between two issues.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the relationship between two issues.\nThe issues themselves are not deleted, only the relationship link.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID to delete (required)\n\nExamples:\n  # Delete relation with confirmation\n  linear issue unrelate \u003crelation-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear issue unrelate \u003crelation-uuid\u003e --yes\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see relations and their IDs\n\nCommon Errors:\n  - \"relation not found\": Relation ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue update-relation - Change relationship type\n  - linear issue get - View issue's current relationships",
+    "description": "⚠️ Delete issue relationship. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear issue unrelate \u003crelation-uuid\u003e\n\nRelated: issue_relate, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2069,6 +2286,11 @@
               "description": "Output format: json|table",
               "default": "table"
             },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
+            },
             "yes": {
               "type": "boolean",
               "description": "Skip confirmation prompt",
@@ -2080,7 +2302,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_unrelate",
+    "name": "go-linear_issue_unrelate",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2104,7 +2326,7 @@
     }
   },
   {
-    "description": "Update an existing issue in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\n\nExamples:\n  linear issue update ENG-123 --state=Done\n  linear issue update ENG-123 --assignee=alice@company.com --priority=1\n  linear issue update ENG-123 --title=\"New title\" --description=\"Updated description\"\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see current values before updating",
+    "description": "Update issue. Modifies existing data.\n\nFields: --title, --description, --assignee=me, --state, --priority (0-4, see issue_create), --add-label, --remove-label\n\nExample: go-linear issue update ENG-123 --assignee=me --priority=1 --state=Done --output=json\n\nRelated: issue_get, issue_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2165,6 +2387,11 @@
             "title": {
               "type": "string",
               "description": "New title"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2172,7 +2399,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_update",
+    "name": "go-linear_issue_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2196,7 +2423,7 @@
     }
   },
   {
-    "description": "Update the relationship type between two issues.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nChange the relationship type without deleting and recreating the relation.\nUseful when dependency structure changes during development.\n\nParameters:\n  \u003crelation-id\u003e: IssueRelation UUID (required)\n  --type: New relationship type (required)\n\nRelationship types:\n  - blocks: First issue blocks the second (shows as dependency)\n  - blocked-by: First issue is blocked by the second (inverse of blocks)\n  - duplicate: Issues are duplicates of each other\n  - related: Issues are related but not blocking\n\nExamples:\n  # Change relation from 'related' to 'blocks'\n  linear issue update-relation \u003crelation-uuid\u003e --type=blocks\n\n  # Change blocking relation to duplicate\n  linear issue update-relation \u003crelation-uuid\u003e --type=duplicate --output=json\n\nTIP: Use 'linear issue get ENG-123 --output=json' to see existing relations and their IDs\n\nRelated Commands:\n  - linear issue relate - Create a new relationship\n  - linear issue unrelate - Delete a relationship\n  - linear issue get - View issue's current relationships",
+    "description": "Update issue relationship type. Modifies existing data.\n\nRequired: --type (blocks|blocked-by|duplicate|related, see issue_relate)\n\nExample: go-linear issue update-relation \u003crelation-uuid\u003e --type=blocks --output=json\n\nRelated: issue_relate, issue_unrelate, issue_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2226,6 +2453,11 @@
             "type": {
               "type": "string",
               "description": "New relation type: blocks|blocked-by|duplicate|related (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2233,7 +2465,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_issue_update-relation",
+    "name": "go-linear_issue_update-relation",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2257,7 +2489,7 @@
     }
   },
   {
-    "description": "Create a new issue label in Linear.\n\nThis operation creates new label data and is safe to execute.\n\nExamples:\n  linear label create --name=bug --color=\"#ff0000\"\n  linear label create --name=feature --color=\"#00ff00\" --description=\"New features\"\n  linear label create --name=urgent --color=\"#ff6b6b\" --description=\"Needs immediate attention\"\n\nTIP: Use hex color codes (e.g., #ff0000 for red, #00ff00 for green)",
+    "description": "Create label. Safe operation.\n\nRequired: --name, --color (hex like #ff0000)\nOptional: --description\n\nExample: go-linear label create --name=bug --color=\"#ff0000\" --description=\"Bug reports\" --output=json\n\nRelated: label_list, label_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2299,6 +2531,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2306,7 +2543,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_label_create",
+    "name": "go-linear_label_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2330,7 +2567,7 @@
     }
   },
   {
-    "description": "Delete a label from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the label from all issues using it.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear label delete bug\n  linear label delete \u003cuuid\u003e --yes",
+    "description": "⚠️ Delete label. Removes from all issues. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear label delete bug\n\nRelated: label_list, label_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2357,6 +2594,11 @@
               "description": "Output format: json|table",
               "default": "table"
             },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
+            },
             "yes": {
               "type": "boolean",
               "description": "Skip confirmation",
@@ -2368,7 +2610,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_label_delete",
+    "name": "go-linear_label_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2392,7 +2634,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific issue label.\n\nRetrieve full label details including name, description, color, and creation metadata.\n\nParameters:\n  \u003clabel-id\u003e: Label UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, color, createdAt\n\nExamples:\n  # Get label by UUID\n  linear label get \u003clabel-uuid\u003e\n\n  # Get label with JSON output\n  linear label get \u003clabel-uuid\u003e --output=json\n\nTIP: Use 'linear label list' to discover label IDs and names",
+    "description": "Get label by UUID. Returns 5 default fields.\n\nExample: go-linear label get \u003clabel-uuid\u003e --output=json\n\nRelated: label_list, label_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2414,10 +2656,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,color,createdAt,description) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2425,7 +2676,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_label_get",
+    "name": "go-linear_label_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2449,7 +2700,7 @@
     }
   },
   {
-    "description": "List all issue labels in the Linear workspace.\n\nUse this to discover available labels for categorizing and filtering issues.\nLabels help organize issues by type (bug, feature), priority, or custom categories.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of labels\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each label contains:\n  - id: Label UUID\n  - name: Label name (e.g., \"bug\", \"feature\")\n  - description: Label description\n  - color: Label color hex code\n\nExamples:\n  # List all labels\n  linear label list\n\n  # JSON output for parameter discovery\n  linear label list --output=json\n\nTIP: Use label names (not UUIDs) when filtering or adding to issues (e.g., --label=bug)\n\nRelated Commands:\n  - linear label get - Get single label details\n  - linear label create - Create new label\n  - linear issue list --label=\u003cname\u003e - Filter issues by label\n  - linear issue add-label - Add label to issue",
+    "description": "List labels. Returns 4 default fields per label. Use for discovering label names.\n\nExample: go-linear label list --output=json\n\nRelated: label_get, label_create, issue_add-label",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2471,6 +2722,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,color,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number of labels to return",
@@ -2480,6 +2735,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2487,7 +2747,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_label_list",
+    "name": "go-linear_label_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2511,7 +2771,7 @@
     }
   },
   {
-    "description": "Update an existing issue label in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear label update bug --name=\"critical-bug\" --color=\"#ff0000\"\n  linear label update \u003cuuid\u003e --description=\"Updated description\"\n\nTIP: Use 'linear label list' to discover labels, hex color codes like #ff0000 for red",
+    "description": "Update label. Modifies existing data.\n\nFields: --name, --color (hex), --description\n\nExample: go-linear label update bug --color=\"#ff0000\" --description=\"Critical bugs\" --output=json\n\nRelated: label_get, label_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2549,6 +2809,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2556,7 +2821,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_label_update",
+    "name": "go-linear_label_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2580,7 +2845,7 @@
     }
   },
   {
-    "description": "Archive a notification to remove it from inbox.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nArchived notifications can be restored through the Linear UI if needed.\nUse this to clean up processed or irrelevant notifications.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID to archive (required)\n\nExamples:\n  # Archive notification\n  linear notification archive \u003cnotif-uuid\u003e\n\nTIP: Archived notifications are hidden but not deleted (can be restored in UI)\n\nRelated Commands:\n  - linear notification update - Mark as read or snooze instead\n  - linear notification subscribe - Subscribe to updates",
+    "description": "Archive notification. Hides from inbox. Can be restored in UI.\n\nExample: go-linear notification archive \u003cuuid\u003e\n\nRelated: notification_update",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2601,6 +2866,11 @@
             "api-key": {
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2608,7 +2878,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_notification_archive",
+    "name": "go-linear_notification_archive",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2632,7 +2902,7 @@
     }
   },
   {
-    "description": "Subscribe to receive notifications for updates to a project, cycle, team, or user.\n\nThis operation creates new subscription data and is safe to execute.\nGet notified when the resource is updated or has new activity.\n\nParameters (mutually exclusive - specify exactly one):\n  --project: Project name or UUID\n  --cycle: Cycle UUID\n  --team: Team name or UUID\n  --user: User name, email, or UUID\n\nExamples:\n  # Subscribe to project updates\n  linear notification subscribe --project=\"Platform Redesign\"\n\n  # Subscribe to team updates\n  linear notification subscribe --team=Engineering\n\n  # Subscribe to cycle updates\n  linear notification subscribe --cycle=\u003ccycle-uuid\u003e --output=json\n\nTIP: Subscriptions help track important resources without manual checking\n\nCommon Errors:\n  - \"must specify exactly one resource\": Provide one of the resource flags\n\nRelated Commands:\n  - linear notification unsubscribe - Remove subscription\n  - linear notification update - Manage notifications\n  - linear notification archive - Archive notifications",
+    "description": "Subscribe to updates. Safe operation. Must specify exactly one of: --project, --cycle, --team, --user.\n\nExample: go-linear notification subscribe --project=\u003cuuid\u003e --output=json\n\nRelated: notification_unsubscribe, notification_update",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2674,6 +2944,11 @@
             "user": {
               "type": "string",
               "description": "User name, email, or UUID"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2681,7 +2956,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_notification_subscribe",
+    "name": "go-linear_notification_subscribe",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2705,7 +2980,7 @@
     }
   },
   {
-    "description": "Remove a notification subscription to stop receiving updates.\n\nThis operation is safe and can be reversed by subscribing again.\nStop notifications for issues, projects, or cycles you no longer need to track.\n\nParameters:\n  \u003csubscription-id\u003e: NotificationSubscription UUID to delete (required)\n\nExamples:\n  # Unsubscribe from updates\n  linear notification unsubscribe \u003csubscription-uuid\u003e\n\nTIP: Find subscription IDs in Linear notification settings or via API\n\nRelated Commands:\n  - linear notification subscribe - Subscribe to updates\n  - linear notification update - Manage notification status\n  - linear notification archive - Archive notifications",
+    "description": "Unsubscribe from updates. Safe operation.\n\nExample: go-linear notification unsubscribe \u003csubscription-uuid\u003e\n\nRelated: notification_subscribe, notification_update",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2726,6 +3001,11 @@
             "api-key": {
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2733,7 +3013,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_notification_unsubscribe",
+    "name": "go-linear_notification_unsubscribe",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2757,7 +3037,7 @@
     }
   },
   {
-    "description": "Update notification status (mark as read or snooze).\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nUse this to manage notification inbox programmatically.\nMark notifications as read after processing or snooze for later review.\n\nParameters:\n  \u003cnotification-id\u003e: Notification UUID (required)\n  --read: Mark as read (sets readAt to current time)\n  --snooze-until: Snooze until date/time (ISO8601, relative like \"tomorrow\", \"3d\")\n\nExamples:\n  # Mark notification as read\n  linear notification update \u003cnotif-uuid\u003e --read\n\n  # Snooze until tomorrow\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=tomorrow\n\n  # Snooze for 3 days\n  linear notification update \u003cnotif-uuid\u003e --snooze-until=3d --output=json\n\nTIP: Use snoozed notifications to defer non-urgent items\n\nRelated Commands:\n  - linear notification archive - Archive notification (alternative)\n  - linear notification subscribe - Subscribe to issue/project updates",
+    "description": "Update notification. Modifies existing data.\n\nFlags: --read (mark as read) | --snooze-until=tomorrow|3d (date formats: see issue_list)\n\nExample: go-linear notification update \u003cuuid\u003e --snooze-until=tomorrow --output=json\n\nRelated: notification_archive, notification_subscribe",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2792,6 +3072,11 @@
             "snooze-until": {
               "type": "string",
               "description": "Snooze until date/time (ISO8601 or relative)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2799,7 +3084,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_notification_update",
+    "name": "go-linear_notification_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2823,7 +3108,7 @@
     }
   },
   {
-    "description": "Get information about the current Linear organization/workspace.\n\nExamples:\n  linear organization\n  linear org --output=json",
+    "description": "Get information about the current Linear organization/workspace.\n\nExamples:\n  go-linear organization\n  go-linear org --output=json",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2845,10 +3130,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,urlKey,createdAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2856,7 +3150,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_organization",
+    "name": "go-linear_organization",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2880,7 +3174,7 @@
     }
   },
   {
-    "description": "Create a new project in Linear.\n\nThis operation creates new project data and is safe to execute.\n\nExamples:\n  linear project create --name=\"Q1 Platform\" --description=\"Platform improvements\"\n  linear project create --name=\"Mobile App Redesign\" --description=\"Complete UI overhaul\"\n\nTIP: Projects help organize multiple related issues across teams",
+    "description": "Create project. Safe operation.\n\nRequired: --name\nOptional: --description\n\nExample: go-linear project create --name=\"Q1 Platform\" --description=\"Platform improvements\" --output=json\n\nRelated: project_list, project_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2917,6 +3211,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -2924,7 +3223,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_create",
+    "name": "go-linear_project_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -2948,7 +3247,7 @@
     }
   },
   {
-    "description": "Delete a project from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the project and its data.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear project delete \u003cuuid\u003e\n  linear project delete \u003cuuid\u003e --yes",
+    "description": "⚠️ Delete project. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear project delete \u003cuuid\u003e\n\nRelated: project_list, project_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -2974,6 +3273,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             },
             "yes": {
               "type": "boolean",
@@ -2986,7 +3290,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_delete",
+    "name": "go-linear_project_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3010,7 +3314,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific project.\n\nRetrieve full project details including description, state, progress, milestones, and team information.\n\nParameters:\n  \u003cid\u003e: Project UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, state, progress, lead, milestones, createdAt\n\nExamples:\n  # Get project by UUID\n  linear project get \u003cuuid\u003e\n\n  # Get with JSON output (includes milestones)\n  linear project get \u003cuuid\u003e --output=json\n\nTIP: Use 'linear project list' to discover project IDs\n\nRelated Commands:\n  - linear project list - List all projects\n  - linear project milestone-create - Add milestone to project",
+    "description": "Get project by UUID. Returns 6 default fields.\n\nExample: go-linear project get \u003cuuid\u003e --output=json\n\nRelated: project_list, project_milestone-create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3032,10 +3336,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt,color,state) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3043,7 +3356,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_get",
+    "name": "go-linear_project_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3067,7 +3380,7 @@
     }
   },
   {
-    "description": "List all projects in the Linear workspace.\n\nUse this to browse active projects, discover project names for milestones, or track project progress.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of projects\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each project contains:\n  - id: Project UUID\n  - name: Project name\n  - description: Project description\n  - state: Project state (planned, started, completed, etc.)\n  - progress: Completion percentage (0-100)\n  - lead: Project lead user reference\n\nExamples:\n  # List all projects\n  linear project list\n\n  # List with limit\n  linear project list --limit=20\n\n  # JSON output for parsing\n  linear project list --output=json\n\nTIP: Use project names when creating milestones\n\nRelated Commands:\n  - linear project get - Get single project details with milestones\n  - linear project create - Create new project\n  - linear project milestone-create - Add milestone to project",
+    "description": "List projects. Returns 4 default fields per project.\n\nExample: go-linear project list --output=json\n\nRelated: project_get, project_create, project_milestone-create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3089,6 +3402,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number of projects to return",
@@ -3098,6 +3415,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3105,7 +3427,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_list",
+    "name": "go-linear_project_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3129,7 +3451,7 @@
     }
   },
   {
-    "description": "Create a new milestone (phase/stage) within a project.\n\nThis operation creates new milestone data and is safe to execute.\nMilestones represent phases or stages within a project (e.g., \"Q1 2025\", \"Beta Launch\", \"v1.0 Release\").\n\nParameters:\n  --project: Project name or ID (required)\n  --name: Milestone name (required)\n  --description: Markdown description (optional)\n  --target-date: Target completion date (ISO8601, \"2025-03-01\", or relative like \"30d\")\n\nExamples:\n  # Create Q1 milestone\n  linear project milestone-create --project=\"Platform Redesign\" --name=\"Q1 2025\" --target-date=2025-03-31\n\n  # Create with description\n  linear project milestone-create --project=MyProject --name=\"Beta Launch\" \\\\\n    --description=\"Launch beta version to selected users\" --target-date=30d\n\n  # Create with JSON output\n  linear project milestone-create --project=MyProject --name=\"v1.0\" --output=json\n\nTIP: Use 'linear project list' to discover available projects\n\nRelated Commands:\n  - linear project milestone-update - Update milestone details\n  - linear project milestone-delete - Delete a milestone\n  - linear project get - View project's milestones",
+    "description": "Create project milestone. Safe operation.\n\nRequired: --project (UUID from project_list), --name\nOptional: --description, --target-date (date formats: see issue_list)\n\nExample: go-linear project milestone-create --project=\u003cuuid\u003e --name=\"Q1 2025\" --target-date=2025-03-31 --output=json\n\nRelated: project_milestone-update, project_milestone-delete, project_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3171,6 +3493,11 @@
             "target-date": {
               "type": "string",
               "description": "Target completion date (ISO8601 or relative)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3178,7 +3505,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_milestone-create",
+    "name": "go-linear_project_milestone-create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3202,7 +3529,7 @@
     }
   },
   {
-    "description": "Delete a project milestone permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the milestone from the project.\nIssues associated with the milestone are not deleted, only the milestone itself.\n\nConfirmation prompt appears unless --yes flag is used.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID to delete (required)\n\nExamples:\n  # Delete milestone with confirmation\n  linear project milestone-delete \u003cmilestone-uuid\u003e\n\n  # Delete without confirmation (use with caution)\n  linear project milestone-delete \u003cmilestone-uuid\u003e --yes\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nCommon Errors:\n  - \"milestone not found\": Milestone ID may be invalid or already deleted\n  - \"permission denied\": Check API key has write permissions\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-update - Update milestone details\n  - linear project get - View project's milestones",
+    "description": "⚠️ Delete project milestone. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear project milestone-delete \u003cuuid\u003e\n\nRelated: project_get, project_milestone-create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3224,6 +3551,11 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
+            },
             "yes": {
               "type": "boolean",
               "description": "Skip confirmation prompt",
@@ -3235,7 +3567,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_milestone-delete",
+    "name": "go-linear_project_milestone-delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3259,7 +3591,7 @@
     }
   },
   {
-    "description": "Update an existing project milestone.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nOnly specified fields are updated. Unspecified fields remain unchanged.\nUse this to adjust timeline, descriptions, or milestone names.\n\nParameters:\n  \u003cmilestone-id\u003e: Milestone UUID (required)\n  --name: New milestone name\n  --description: New description (markdown)\n  --target-date: New target completion date (ISO8601 or relative)\n\nExamples:\n  # Update target date\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=2025-06-30\n\n  # Update name and description\n  linear project milestone-update \u003cmilestone-uuid\u003e --name=\"Q2 2025\" \\\\\n    --description=\"Updated timeline for Q2 deliverables\"\n\n  # Move milestone out 2 weeks\n  linear project milestone-update \u003cmilestone-uuid\u003e --target-date=14d --output=json\n\nTIP: Use 'linear project get \u003cproject-id\u003e --output=json' to see milestones and their IDs\n\nRelated Commands:\n  - linear project milestone-create - Create a new milestone\n  - linear project milestone-delete - Delete a milestone\n  - linear project get - View project's milestones",
+    "description": "Update project milestone. Modifies existing data.\n\nFields: --name, --description, --target-date (date formats: see issue_list)\n\nExample: go-linear project milestone-update \u003cuuid\u003e --name=\"Q2 2025\" --target-date=14d --output=json\n\nRelated: project_milestone-create, project_milestone-delete, project_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3297,6 +3629,11 @@
             "target-date": {
               "type": "string",
               "description": "New target date (ISO8601 or relative)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3304,7 +3641,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_milestone-update",
+    "name": "go-linear_project_milestone-update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3328,7 +3665,7 @@
     }
   },
   {
-    "description": "Update an existing project in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear project update \u003cuuid\u003e --name=\"New Name\"\n  linear project update \u003cuuid\u003e --description=\"Updated description\"\n\nTIP: Use 'linear project get \u003cid\u003e --output=json' to see current state before updating",
+    "description": "Update project. Modifies existing data.\n\nFields: --name, --description\n\nExample: go-linear project update \u003cuuid\u003e --name=\"New Name\" --description=\"Updated\" --output=json\n\nRelated: project_get, project_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3362,6 +3699,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3369,7 +3711,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_project_update",
+    "name": "go-linear_project_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3393,7 +3735,7 @@
     }
   },
   {
-    "description": "Add an emoji reaction to an issue or comment.\n\nThis operation creates new reaction data and is safe to execute.\nReactions provide quick feedback without creating a full comment.\nPerfect for lightweight acknowledgment, approval, or sentiment.\n\nParameters:\n  --emoji: Single emoji character (required, e.g., 👍, ❤️, 🎉)\n  --issue: Issue identifier (e.g., ENG-123) or UUID\n  --comment: Comment UUID\n\nNote: Specify exactly one of --issue OR --comment (mutually exclusive)\n\nExamples:\n  # React to an issue with thumbs up\n  linear reaction create --issue=ENG-123 --emoji=👍\n\n  # React to a comment\n  linear reaction create --comment=\u003ccomment-uuid\u003e --emoji=🎉\n\n  # With JSON output\n  linear reaction create --issue=ENG-123 --emoji=❤️ --output=json\n\nTIP: Use emoji keyboard shortcuts or copy from web (macOS: Ctrl+Cmd+Space)\n\nCommon Errors:\n  - \"must specify exactly one resource\": Provide --issue OR --comment, not both\n  - \"invalid emoji\": Must be a single emoji character\n\nRelated Commands:\n  - linear reaction delete - Remove a reaction\n  - linear comment create - Create a full comment instead",
+    "description": "Add emoji reaction. Safe operation. Must specify exactly one of: --issue, --comment.\n\nRequired: --emoji (single emoji like 👍)\n\nExample: go-linear reaction create --issue=ENG-123 --emoji=👍 --output=json\n\nRelated: reaction_delete, comment_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3431,6 +3773,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3438,7 +3785,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_reaction_create",
+    "name": "go-linear_reaction_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3462,7 +3809,7 @@
     }
   },
   {
-    "description": "Remove an emoji reaction from an issue or comment.\n\nThis operation is safe and can be reversed by re-adding the reaction.\n\nParameters:\n  \u003creaction-id\u003e: Reaction UUID to delete (required)\n\nExamples:\n  # Remove a reaction\n  linear reaction delete \u003creaction-uuid\u003e\n\nTIP: View reactions in Linear UI or via API to find reaction IDs\n\nRelated Commands:\n  - linear reaction create - Add an emoji reaction",
+    "description": "Remove emoji reaction. Safe operation.\n\nExample: go-linear reaction delete \u003creaction-uuid\u003e\n\nRelated: reaction_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3483,6 +3830,11 @@
             "api-key": {
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3490,7 +3842,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_reaction_delete",
+    "name": "go-linear_reaction_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3514,7 +3866,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific roadmap.\n\nRetrieve full roadmap details including name, description, and timeline configuration.\n\nParameters:\n  \u003cid\u003e: Roadmap UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, createdAt\n\nExamples:\n  # Get roadmap by UUID\n  linear roadmap get \u003cuuid\u003e\n\n  # Get with JSON output\n  linear roadmap get \u003cuuid\u003e --output=json\n\nTIP: Use 'linear roadmap list' to discover roadmap IDs\n\nRelated Commands:\n  - linear roadmap list - List all roadmaps\n  - linear project list - List projects shown in roadmaps",
+    "description": "Get roadmap by UUID. Returns 4 default fields.\n\nExample: go-linear roadmap get \u003cuuid\u003e --output=json\n\nRelated: roadmap_list, project_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3536,10 +3888,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3547,7 +3908,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_roadmap_get",
+    "name": "go-linear_roadmap_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3571,7 +3932,7 @@
     }
   },
   {
-    "description": "List roadmaps from Linear.\n\nUse this to:\n- Browse product roadmaps and planning timelines\n- Track milestone planning across teams\n- Discover roadmaps for strategic planning\n\nRoadmaps provide visual timeline views of project progress and planned features.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of roadmaps\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each roadmap contains:\n  - id: Roadmap UUID\n  - name: Roadmap name\n  - description: Roadmap description\n  - createdAt: Creation timestamp\n\nExamples:\n  # List all roadmaps\n  linear roadmap list\n\n  # List with limit\n  linear roadmap list --limit=10\n\n  # JSON output for parsing\n  linear roadmap list --output=json\n\nRelated Commands:\n  - linear roadmap get - Get single roadmap details\n  - linear project list - List projects (roadmaps organize projects)",
+    "description": "List roadmaps. Returns 4 default fields per roadmap.\n\nExample: go-linear roadmap list --output=json\n\nRelated: roadmap_get, project_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3593,6 +3954,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number of roadmaps to return",
@@ -3602,6 +3967,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3609,7 +3979,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_roadmap_list",
+    "name": "go-linear_roadmap_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3633,7 +4003,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific workflow state.\n\nRetrieve full state details including name, type, position, color, and team information.\nWorkflow states represent stages in the issue lifecycle (e.g., \"Todo\", \"In Progress\", \"Done\").\n\nParameters:\n  \u003cstate-id\u003e: Workflow state UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, type, position, color, team\n\nExamples:\n  # Get state by UUID\n  linear state get \u003cstate-uuid\u003e\n\n  # Get state with JSON output\n  linear state get \u003cstate-uuid\u003e --output=json\n\nTIP: Use 'linear state list' to discover state IDs and names\n\nRelated Commands:\n  - linear state list - List all workflow states\n  - linear issue update --state=\u003cname\u003e - Set issue state",
+    "description": "Get workflow state by UUID. Returns 5 default fields.\n\nExample: go-linear state get \u003cstate-uuid\u003e --output=json\n\nRelated: state_list, issue_update",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3655,10 +4025,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,type,color,position) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3666,7 +4045,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_state_get",
+    "name": "go-linear_state_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3690,7 +4069,7 @@
     }
   },
   {
-    "description": "List all workflow states in the Linear workspace.\n\nUse this to discover available states for filtering or updating issues.\nWorkflow states define the issue lifecycle (Todo, In Progress, Done, Canceled, etc).\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of workflow states\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each state contains:\n  - id: State UUID\n  - name: State name (e.g., \"In Progress\", \"Done\")\n  - type: State type (started, completed, canceled, etc.)\n  - color: State color hex code\n  - position: Display order\n\nExamples:\n  # List all workflow states\n  linear state list\n\n  # JSON output for parameter discovery\n  linear state list --output=json\n\nTIP: Use state names (not UUIDs) when filtering or updating issues (e.g., --state=\"In Progress\")\n\nRelated Commands:\n  - linear state get - Get single state details\n  - linear issue update --state=\u003cname\u003e - Update issue state\n  - linear issue list --state=\u003cname\u003e - Filter issues by state",
+    "description": "List workflow states. Returns 5 default fields per state. Use for discovering state names.\n\nStates define issue lifecycle: triage, backlog, unstarted, started, completed, canceled.\n\nExample: go-linear state list --output=json\n\nRelated: state_get, issue_update, issue_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3712,6 +4091,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,type,color,position) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number of states to return",
@@ -3721,6 +4104,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3728,7 +4116,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_state_list",
+    "name": "go-linear_state_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3752,7 +4140,69 @@
     }
   },
   {
-    "description": "Create a new team in Linear.\n\nThis operation creates new team data and is safe to execute.\n\nExamples:\n  linear team create --name=Platform --key=PLT\n  linear team create --name=\"Mobile Team\" --key=MOB --description=\"iOS and Android\"\n\nTIP: Team keys are short identifiers (2-5 uppercase letters) used in issue IDs (e.g., PLT-123)",
+    "description": "Display current rate limit quotas and usage.\n\nMakes a lightweight API call (Viewer query) to fetch current rate limit headers.\n\nOutput shows:\n  - Request-based limits (remaining / total)\n  - Complexity-based limits (remaining / total)\n  - Reset times\n\nExamples:\n  # Show status in table format\n  go-linear status\n\n  # JSON format for scripting\n  go-linear status --output=json",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "flags"
+      ],
+      "properties": {
+        "args": {
+          "type": "array",
+          "description": "Positional command line arguments",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "description": "Command line flags",
+          "properties": {
+            "api-key": {
+              "type": "string",
+              "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "output": {
+              "type": "string",
+              "description": "Output format: json|table",
+              "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "go-linear_status",
+    "outputSchema": {
+      "type": "object",
+      "required": [
+        "exitCode"
+      ],
+      "properties": {
+        "exitCode": {
+          "type": "integer",
+          "description": "Exit code"
+        },
+        "stderr": {
+          "type": "string",
+          "description": "Standard error"
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Standard output"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "description": "Create team. Safe operation.\n\nRequired: --name, --key (2-5 uppercase letters, used in issue IDs like PLT-123)\nOptional: --description\n\nExample: go-linear team create --name=Platform --key=PLT --description=\"Platform team\" --output=json\n\nRelated: team_list, team_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3794,6 +4244,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3801,7 +4256,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_team_create",
+    "name": "go-linear_team_create",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3825,7 +4280,7 @@
     }
   },
   {
-    "description": "Delete a team from Linear permanently.\n\n⚠️ Warning: Destructive operation - cannot be undone\n\nThis permanently removes the team and may affect issues assigned to it.\nConfirmation prompt appears unless --yes flag is used.\n\nExamples:\n  linear team delete TestTeam\n  linear team delete \u003cuuid\u003e --yes\n\nRECOMMENDATION: Ensure team has no active issues before deleting.",
+    "description": "⚠️ Delete team. Cannot be undone. Prompts unless --yes.\n\nExample: go-linear team delete TestTeam\n\nRelated: team_list, team_get",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3851,6 +4306,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             },
             "yes": {
               "type": "boolean",
@@ -3863,7 +4323,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_team_delete",
+    "name": "go-linear_team_delete",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3887,7 +4347,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific team.\n\nAccepts team name, key, or UUID for flexible querying.\n\nParameters:\n  \u003cname|id\u003e: Team name, key (e.g., \"ENG\"), or UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, key, description, color, private\n\nExamples:\n  # Get team by name\n  linear team get Engineering\n\n  # Get team by key\n  linear team get ENG\n\n  # Get with JSON output\n  linear team get Engineering --output=json\n\nTIP: Use 'linear team list' to discover team names and keys\n\nRelated Commands:\n  - linear team list - List all teams\n  - linear team members - List team members",
+    "description": "Get team by name, key (e.g., ENG), or UUID. Returns 9 default fields (includes issueCount).\n\nExample: go-linear team get ENG --output=json\n\nRelated: team_list, team_members",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3909,10 +4369,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,key,description,icon,createdAt,color,private) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3920,7 +4389,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_team_get",
+    "name": "go-linear_team_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -3944,7 +4413,7 @@
     }
   },
   {
-    "description": "List all teams in the Linear workspace.\n\nUse this to discover team names and keys for filtering issues, creating projects, or assigning work.\nEssential for parameter discovery when creating or filtering issues.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of teams\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each team contains:\n  - id: Team UUID\n  - name: Team name (e.g., \"Engineering\")\n  - key: Team key (e.g., \"ENG\" - used in issue identifiers like ENG-123)\n  - description: Team description\n  - color: Team color hex code\n\nExamples:\n  # List all teams\n  linear team list\n\n  # JSON output for parameter discovery\n  linear team list --output=json\n\nTIP: Use team names or keys (not UUIDs) when creating or filtering issues\n\nRelated Commands:\n  - linear team get - Get single team details\n  - linear team members - List team members\n  - linear issue list --team=\u003cname\u003e - Filter issues by team",
+    "description": "List teams. Returns 7 default fields per team (includes issueCount). Use for discovering team names/keys.\n\nTeam keys appear in issue identifiers (e.g., ENG-123 where ENG is the team key).\n\nExample: go-linear team list --output=json\n\nReturns: {nodes: [{7 team fields}...], pageInfo: {hasNextPage, endCursor}}\nRelated: team_get, team_members, issue_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -3966,6 +4435,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,key,description,icon,createdAt) | none | defaults,extra | id,name,..."
+            },
             "limit": {
               "type": "integer",
               "description": "Number of teams to return",
@@ -3975,6 +4448,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -3982,7 +4460,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_team_list",
+    "name": "go-linear_team_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4006,7 +4484,7 @@
     }
   },
   {
-    "description": "List all members of a specific team.\n\nExamples:\n  linear team members --team=Engineering\n  linear team members --team=ENG --output=json",
+    "description": "List team members. Use --count for member count only.\n\nRequired: --team (from team_list)\n\nExample: go-linear team members --team=ENG --output=json\n\nCount: --count returns {\"count\": N}\nRelated: team_get, user_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4031,6 +4509,11 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "count": {
+              "type": "boolean",
+              "description": "Return only count, not member list",
+              "default": false
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
@@ -4039,6 +4522,11 @@
             "team": {
               "type": "string",
               "description": "Team name or ID (required)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4046,7 +4534,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_team_members",
+    "name": "go-linear_team_members",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4070,7 +4558,7 @@
     }
   },
   {
-    "description": "Update an existing team in Linear.\n\n⚠️ Caution: This modifies existing data. Changes are immediate.\n\nExamples:\n  linear team update Engineering --name=\"Platform Engineering\"\n  linear team update ENG --description=\"Platform and infrastructure\"\n\nTIP: Use 'linear team get \u003cname\u003e' to see current values before updating",
+    "description": "Update team. Modifies existing data.\n\nFields: --name, --description\n\nExample: go-linear team update ENG --name=\"Platform Engineering\" --description=\"Updated\" --output=json\n\nRelated: team_get, team_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4104,6 +4592,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4111,7 +4604,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_team_update",
+    "name": "go-linear_team_update",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4135,7 +4628,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific issue template.\n\nRetrieve full template details including pre-filled values and structure.\nUse this to understand template configuration or prepare for issue creation.\n\nParameters:\n  \u003cid\u003e: Template UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, description, templateData\n\nExamples:\n  # Get template by UUID\n  linear template get \u003ctemplate-uuid\u003e\n\n  # Get with JSON output\n  linear template get \u003ctemplate-uuid\u003e --output=json\n\nTIP: Use 'linear template list' to discover template IDs\n\nRelated Commands:\n  - linear template list - List all templates\n  - linear issue create - Create issue using template",
+    "description": "Get template by UUID. Returns 4 default fields.\n\nExample: go-linear template get \u003cuuid\u003e --output=json\n\nRelated: template_list, issue_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4157,10 +4650,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4168,7 +4670,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_template_get",
+    "name": "go-linear_template_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4192,7 +4694,7 @@
     }
   },
   {
-    "description": "List issue templates from Linear.\n\nUse this to:\n- Browse available issue templates for your workspace\n- Find templates for creating standardized issues\n- Discover template names for programmatic issue creation\n\nIssue templates provide pre-filled values for common issue types (bugs, features, etc).\n\nOutput (--output=json):\n  Returns array of templates (note: not paginated)\n\n  Each template contains:\n  - id: Template UUID\n  - name: Template name\n  - description: Template description\n  - templateData: Pre-filled issue fields\n\nExamples:\n  # List all templates\n  linear template list\n\n  # JSON output for parsing\n  linear template list --output=json\n\nTIP: Use templates when creating issues to ensure consistent formatting\n\nRelated Commands:\n  - linear template get - Get full template details\n  - linear issue create - Create issue (can reference templates)",
+    "description": "List templates. Returns 4 default fields per template.\n\nExample: go-linear template list --output=json\n\nRelated: template_get, issue_create",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4214,6 +4716,10 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,description,createdAt) | none | defaults,extra"
+            },
             "limit": {
               "type": "integer",
               "description": "Number to return",
@@ -4223,6 +4729,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4230,7 +4741,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_template_list",
+    "name": "go-linear_template_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4254,7 +4765,7 @@
     }
   },
   {
-    "description": "Get completed issues for users, optionally filtered by team.\n\n⭐ COMPLEX QUERY COMMAND - Optimized for AI agents to answer:\n\"Find all users from Engineering team who completed tasks yesterday\"\n\nThis single command replaces a 5-step workflow:\n1. ❌ List teams → find team ID\n2. ❌ List users → filter by team\n3. ❌ For each user → list their issues\n4. ❌ Filter by completion date\n5. ❌ Aggregate results\n→ ✅ ONE COMMAND with --team and --completed-after flags\n\nParameters:\n  --user: User email, name, 'me', or UUID (mutually exclusive with --team)\n  --team: Team name or UUID - queries ALL team members (mutually exclusive with --user)\n  --completed-after: Start date - supports ISO8601 (2025-12-10), relative (yesterday), duration (7d)\n  --completed-before: End date - defaults to 'today'\n\nOutput (--output=json):\n  Returns array of {user: {name, email}, count: number}\n  Use for metrics, reports, team velocity analysis\n\nExamples:\n  # Get completed work for a specific user\n  linear user completed --user=alice@company.com --completed-after=yesterday --completed-before=today\n\n  # Get all Engineering team members who completed work yesterday (COMMON USE CASE)\n  linear user completed --team=Engineering --completed-after=yesterday --completed-before=today --output=json\n\n  # Get my completed work from the last 7 days\n  linear user completed --user=me --completed-after=7d\n\nCommon Errors:\n  - Must specify EITHER --user OR --team (not both, not neither)\n  - Team/user not found: Use 'linear team list' or 'linear user list' to discover",
+    "description": "Get completed issues by user or team. Complex query - replaces 5-step workflow.\n\nFilters: --user=me or email (single user) | --team (all team members), --completed-after=yesterday|7d (see issue_list), --completed-before=today\nMust specify EITHER --user OR --team.\n\nExample: go-linear user completed --team=ENG --completed-after=yesterday --completed-before=today --output=json\n\nReturns: [{user: {name, email}, count: number}...]\nRelated: user_list, team_list, issue_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4303,6 +4814,11 @@
             "user": {
               "type": "string",
               "description": "User name, email, or ID (or 'me' for current user)"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4310,7 +4826,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_user_completed",
+    "name": "go-linear_user_completed",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4334,7 +4850,7 @@
     }
   },
   {
-    "description": "Get detailed information about a specific user.\n\nAccepts user name, email, UUID, or 'me' for the current authenticated user.\n\nParameters:\n  \u003cname|email|id\u003e: User name, email, 'me', or UUID (required)\n\nOutput (--output=json):\n  Returns JSON with: id, name, email, displayName, active, admin, avatarUrl\n\nExamples:\n  # Get current user\n  linear user get me\n\n  # Get user by email\n  linear user get alice@company.com\n\n  # Get with JSON output\n  linear user get me --output=json\n\nTIP: Use 'linear user list' to discover user names and emails\n\nRelated Commands:\n  - linear user list - List all users\n  - linear user completed - Get user's completed work",
+    "description": "Get user by name, email, 'me', or UUID. Returns 7 default fields.\n\nExample: go-linear user get me --output=json\n\nRelated: user_list, user_completed",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4356,10 +4872,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,displayName,email,active,avatarUrl,admin) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4367,7 +4892,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_user_get",
+    "name": "go-linear_user_get",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4391,7 +4916,7 @@
     }
   },
   {
-    "description": "List all users in the Linear workspace.\n\nUse this to discover user names and emails for assigning issues or filtering work.\nEssential for finding assignees when creating or updating issues.\n\nOutput (--output=json):\n  Returns JSON with:\n  - nodes: Array of users\n  - pageInfo: {hasNextPage: bool, endCursor: string}\n\n  Each user contains:\n  - id: User UUID\n  - name: Full name\n  - email: Email address (use for --assignee parameter)\n  - displayName: Display name\n  - active: Whether user is active in workspace\n\nExamples:\n  # List all users\n  linear user list\n\n  # JSON output for parameter discovery\n  linear user list --output=json\n\nTIP: Use email addresses or 'me' when assigning issues (e.g., --assignee=alice@company.com)\n\nRelated Commands:\n  - linear user get - Get single user details\n  - linear user completed - Get user's completed work\n  - linear issue list --assignee=\u003cemail\u003e - Filter issues by assignee",
+    "description": "List users. Returns 6 default fields per user. Use for discovering emails for --assignee.\n\nExample: go-linear user list --output=json\n\nReturns: {nodes: [{6 user fields}...], pageInfo: {hasNextPage, endCursor}}\nRelated: user_get, user_completed, issue_list",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4412,6 +4937,10 @@
             "api-key": {
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
+            },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,displayName,email,active,avatarUrl) | none | defaults,extra | id,email,..."
             },
             "limit": {
               "type": "integer",
@@ -4422,6 +4951,11 @@
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4429,7 +4963,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_user_list",
+    "name": "go-linear_user_list",
     "outputSchema": {
       "type": "object",
       "required": [
@@ -4453,7 +4987,7 @@
     }
   },
   {
-    "description": "Get information about the currently authenticated user.\n\nExamples:\n  linear viewer\n  linear viewer --output=json",
+    "description": "Get information about the currently authenticated user.\n\nExamples:\n  go-linear viewer\n  go-linear viewer --output=json",
     "inputSchema": {
       "type": "object",
       "required": [
@@ -4475,10 +5009,19 @@
               "type": "string",
               "description": "Linear API key (or set LINEAR_API_KEY env var)"
             },
+            "fields": {
+              "type": "string",
+              "description": "defaults (id,name,email,displayName,active) | none | defaults,extra"
+            },
             "output": {
               "type": "string",
               "description": "Output format: json|table",
               "default": "table"
+            },
+            "verbose": {
+              "type": "boolean",
+              "description": "Enable verbose debug logging",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -4486,7 +5029,7 @@
       },
       "additionalProperties": false
     },
-    "name": "linear_viewer",
+    "name": "go-linear_viewer",
     "outputSchema": {
       "type": "object",
       "required": [

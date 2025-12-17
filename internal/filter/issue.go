@@ -58,11 +58,16 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		b.filter.AddedToCycleAt.Lt = &tStr
 	}
 
-	// 3. addedToCyclePeriod - complex CyclePeriodComparator - skip for now
+	// 3. addedToCyclePeriod
+	if period, _ := cmd.Flags().GetString("added-to-cycle-period"); period != "" {
+		b.filter.AddedToCyclePeriod = &intgraphql.CyclePeriodComparator{
+			Eq: (*intgraphql.CyclePeriod)(&period),
+		}
+	}
 
 	// 4. ageTime - [Internal] - skip
 
-	// 5. and - compound filter - skip for now
+	// 5. and - compound filter [IssueFilter!] - skip (requires recursive filter building)
 
 	// 6. archivedAt
 	if after, _ := cmd.Flags().GetString("archived-after"); after != "" {
@@ -101,7 +106,7 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 8. attachments - complex AttachmentCollectionFilter - skip for now
+	// 8. attachments - AttachmentCollectionFilter - skip (nested collection filter)
 
 	// 9. autoArchivedAt
 	if after, _ := cmd.Flags().GetString("auto-archived-after"); after != "" {
@@ -175,9 +180,9 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		b.filter.CanceledAt.Lt = &tStr
 	}
 
-	// 12. children - complex IssueCollectionFilter - skip for now
+	// 12. children - IssueCollectionFilter - skip (nested collection filter)
 
-	// 13. comments - complex CommentCollectionFilter - skip for now
+	// 13. comments - CommentCollectionFilter - skip (nested collection filter)
 
 	// 14. completedAt (already implemented below)
 
@@ -353,11 +358,18 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 
 	// 36. labels (already implemented below)
 
-	// 37. lastAppliedTemplate - complex NullableTemplateFilter - skip for now
+	// 37. lastAppliedTemplate
+	if template, _ := cmd.Flags().GetString("last-applied-template"); template != "" {
+		b.filter.LastAppliedTemplate = &intgraphql.NullableTemplateFilter{
+			ID: &intgraphql.IDComparator{
+				Eq: &template,
+			},
+		}
+	}
 
 	// 38. leadTime - [Internal] - skip
 
-	// 39. needs - complex CustomerNeedCollectionFilter - skip for now
+	// 39. needs - CustomerNeedCollectionFilter - skip (nested collection filter)
 
 	// 40. number
 	if number, _ := cmd.Flags().GetInt("number"); number >= 0 {
@@ -367,7 +379,7 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 41. or - compound filter - skip for now
+	// 41. or - compound filter [IssueFilter!] - skip (requires recursive filter building)
 
 	// 42. parent
 	if parent, _ := cmd.Flags().GetString("parent"); parent != "" {
@@ -398,13 +410,13 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		}
 	}
 
-	// 46. reactions - complex ReactionCollectionFilter - skip for now
+	// 46. reactions - ReactionCollectionFilter - skip (nested collection filter)
 
-	// 47. recurringIssueTemplate - [ALPHA] - skip for now
+	// 47. recurringIssueTemplate - [ALPHA] - skip
 
 	// 48. searchableContent - [Internal] - skip
 
-	// 49. slaStatus - complex SlaStatusComparator - skip for now
+	// 49. slaStatus - SlaStatusComparator - skip (complex SLA logic)
 
 	// 50. snoozedBy
 	if snoozedBy, _ := cmd.Flags().GetString("snoozed-by"); snoozedBy != "" {
@@ -443,7 +455,7 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 		b.filter.SnoozedUntilAt.Lt = &tStr
 	}
 
-	// 52. sourceMetadata - complex SourceMetadataComparator - skip for now
+	// 52. sourceMetadata - SourceMetadataComparator - skip (complex integration metadata)
 
 	// 53. startedAt
 	if after, _ := cmd.Flags().GetString("started-after"); after != "" {
@@ -471,7 +483,7 @@ func (b *IssueFilterBuilder) FromFlags(ctx context.Context, cmd *cobra.Command) 
 
 	// 54. state (already implemented below)
 
-	// 55. subscribers - complex UserCollectionFilter - skip for now
+	// 55. subscribers - UserCollectionFilter - skip (nested collection filter)
 
 	// 56. suggestions - [Internal] - skip
 
