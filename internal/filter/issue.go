@@ -853,7 +853,8 @@ func (b *IssueFilterBuilder) Build() *intgraphql.IssueFilter {
 		b.filter.HasBlockedByRelations == nil &&
 		b.filter.HasBlockingRelations == nil &&
 		b.filter.HasDuplicateRelations == nil &&
-		b.filter.HasRelatedRelations == nil {
+		b.filter.HasRelatedRelations == nil &&
+		b.filter.SLAStatus == nil {
 		return nil
 	}
 
