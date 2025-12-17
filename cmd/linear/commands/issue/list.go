@@ -102,7 +102,7 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().String("parent", "", "Parent issue ID")
 	cmd.Flags().String("project", "", "Project UUID")
 	cmd.Flags().String("project-milestone", "", "Project milestone UUID")
-	cmd.Flags().String("sla-status", "", "SLA status: breached, highRisk, mediumRisk, onTrack")
+	cmd.Flags().String("sla-status", "", "SLA status: Breached, HighRisk, MediumRisk, OnTrack")
 	cmd.Flags().String("snoozed-by", "", "Who snoozed (name, email, or 'me')")
 	cmd.Flags().String("title", "", "Text in title")
 
