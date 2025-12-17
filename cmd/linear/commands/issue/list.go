@@ -21,15 +21,16 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List issues with filtering",
-		Long: `List issues with filtering. Returns 8 default fields per issue.
+		Long: `List issues with filtering. Returns 8 default fields per issue. Use --count for totals (99% fewer tokens).
 
 Filters: --team (name/key), --assignee=me (current user) or email, --state (name), --priority (0-4), --label (name), --created-after=yesterday|7d|2w|2025-12-10
 
 Pagination: --limit (default 50), --after (cursor from pageInfo.endCursor)
+Count: --count returns just {"count": N} instead of full results
 
-Example: go-linear issue list --team=ENG --assignee=me --priority=1 --completed-after=7d --output=json
+Example: go-linear issue list --team=ENG --assignee=me --priority=1 --output=json
 
-Returns: {nodes: [{8 issue fields}...], pageInfo: {hasNextPage, endCursor}}
+Returns: {nodes: [{8 issue fields}...], pageInfo: {hasNextPage, endCursor}} or {"count": N} with --count
 Related: issue_get, issue_create, team_list, user_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

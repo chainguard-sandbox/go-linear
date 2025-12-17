@@ -17,13 +17,13 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all teams",
-		Long: `List teams. Returns 6 default fields per team. Use for discovering team names/keys.
+		Long: `List teams. Returns 7 default fields per team (includes issueCount). Use for discovering team names/keys.
 
 Team keys appear in issue identifiers (e.g., ENG-123 where ENG is the team key).
 
 Example: go-linear team list --output=json
 
-Returns: {nodes: [{6 team fields}...], pageInfo: {hasNextPage, endCursor}}
+Returns: {nodes: [{7 team fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: team_get, team_members, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()

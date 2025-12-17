@@ -18,7 +18,7 @@ func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <name|id>",
 		Short: "Get a single team",
-		Long: `Get team by name, key (e.g., ENG), or UUID. Returns 8 default fields.
+		Long: `Get team by name, key (e.g., ENG), or UUID. Returns 9 default fields (includes issueCount).
 
 Example: go-linear team get ENG --output=json
 

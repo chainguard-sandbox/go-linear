@@ -17,10 +17,11 @@ func NewSearchCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "search <query>",
 		Short: "Search issues by text query",
-		Long: `Search issues by text. Returns 8 default fields per result. Searches titles and descriptions.
+		Long: `Search issues by text. Returns 8 default fields per result. Searches titles and descriptions. Use --count for totals.
 
 Example: go-linear issue search "authentication bug" --limit=20 --output=json
 
+Count: --count returns {"count": N} (see issue_list for details)
 Related: issue_list, issue_get`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

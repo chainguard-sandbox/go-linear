@@ -16,12 +16,13 @@ func NewMembersCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "members",
 		Short: "List members of a team",
-		Long: `List team members.
+		Long: `List team members. Use --count for member count only.
 
 Required: --team (from team_list)
 
 Example: go-linear team members --team=ENG --output=json
 
+Count: --count returns {"count": N}
 Related: team_get, user_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
