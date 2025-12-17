@@ -12,6 +12,7 @@ import (
 type LinearGraphQLClient interface {
 	GetAttachment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetAttachment, error)
 	ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error)
+	BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error)
 	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
@@ -250,6 +251,92 @@ func (t *ListAttachments_Attachments) GetPageInfo() *ListAttachments_Attachments
 		t = &ListAttachments_Attachments{}
 	}
 	return &t.PageInfo
+}
+
+type BatchUpdateIssues_IssueBatchUpdate_Issues_State struct {
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues_State) GetName() string {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues_State{}
+	}
+	return t.Name
+}
+
+type BatchUpdateIssues_IssueBatchUpdate_Issues_Assignee struct {
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues_Assignee) GetName() string {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues_Assignee{}
+	}
+	return t.Name
+}
+
+type BatchUpdateIssues_IssueBatchUpdate_Issues struct {
+	Assignee   *BatchUpdateIssues_IssueBatchUpdate_Issues_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	ID         string                                              "json:\"id\" graphql:\"id\""
+	Identifier string                                              "json:\"identifier\" graphql:\"identifier\""
+	State      BatchUpdateIssues_IssueBatchUpdate_Issues_State     "json:\"state\" graphql:\"state\""
+	Title      string                                              "json:\"title\" graphql:\"title\""
+}
+
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues) GetAssignee() *BatchUpdateIssues_IssueBatchUpdate_Issues_Assignee {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues{}
+	}
+	return t.Assignee
+}
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues) GetID() string {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues{}
+	}
+	return t.ID
+}
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues) GetIdentifier() string {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues{}
+	}
+	return t.Identifier
+}
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues) GetState() *BatchUpdateIssues_IssueBatchUpdate_Issues_State {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues{}
+	}
+	return &t.State
+}
+func (t *BatchUpdateIssues_IssueBatchUpdate_Issues) GetTitle() string {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate_Issues{}
+	}
+	return t.Title
+}
+
+type BatchUpdateIssues_IssueBatchUpdate struct {
+	Issues     []*BatchUpdateIssues_IssueBatchUpdate_Issues "json:\"issues\" graphql:\"issues\""
+	LastSyncID float64                                      "json:\"lastSyncId\" graphql:\"lastSyncId\""
+	Success    bool                                         "json:\"success\" graphql:\"success\""
+}
+
+func (t *BatchUpdateIssues_IssueBatchUpdate) GetIssues() []*BatchUpdateIssues_IssueBatchUpdate_Issues {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate{}
+	}
+	return t.Issues
+}
+func (t *BatchUpdateIssues_IssueBatchUpdate) GetLastSyncID() float64 {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate{}
+	}
+	return t.LastSyncID
+}
+func (t *BatchUpdateIssues_IssueBatchUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &BatchUpdateIssues_IssueBatchUpdate{}
+	}
+	return t.Success
 }
 
 type GetComment_Comment_User struct {
@@ -4770,6 +4857,17 @@ func (t *ListAttachments) GetAttachments() *ListAttachments_Attachments {
 	return &t.Attachments
 }
 
+type BatchUpdateIssues struct {
+	IssueBatchUpdate BatchUpdateIssues_IssueBatchUpdate "json:\"issueBatchUpdate\" graphql:\"issueBatchUpdate\""
+}
+
+func (t *BatchUpdateIssues) GetIssueBatchUpdate() *BatchUpdateIssues_IssueBatchUpdate {
+	if t == nil {
+		t = &BatchUpdateIssues{}
+	}
+	return &t.IssueBatchUpdate
+}
+
 type GetComment struct {
 	Comment GetComment_Comment "json:\"comment\" graphql:\"comment\""
 }
@@ -5567,6 +5665,43 @@ func (c *Client) ListAttachments(ctx context.Context, first *int64, after *strin
 
 	var res ListAttachments
 	if err := c.Client.Post(ctx, "ListAttachments", ListAttachmentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const BatchUpdateIssuesDocument = `mutation BatchUpdateIssues ($ids: [UUID!]!, $input: IssueUpdateInput!) {
+	issueBatchUpdate(ids: $ids, input: $input) {
+		success
+		lastSyncId
+		issues {
+			id
+			identifier
+			title
+			state {
+				name
+			}
+			assignee {
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error) {
+	vars := map[string]any{
+		"ids":   ids,
+		"input": input,
+	}
+
+	var res BatchUpdateIssues
+	if err := c.Client.Post(ctx, "BatchUpdateIssues", BatchUpdateIssuesDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -7787,6 +7922,7 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 var DocumentOperationNames = map[string]string{
 	GetAttachmentDocument:                  "GetAttachment",
 	ListAttachmentsDocument:                "ListAttachments",
+	BatchUpdateIssuesDocument:              "BatchUpdateIssues",
 	GetCommentDocument:                     "GetComment",
 	ListCommentsDocument:                   "ListComments",
 	GetCycleDocument:                       "GetCycle",

@@ -1,0 +1,17 @@
+mutation BatchUpdateIssues($ids: [UUID!]!, $input: IssueUpdateInput!) {
+  issueBatchUpdate(ids: $ids, input: $input) {
+    success
+    lastSyncId
+    issues {
+      id
+      identifier
+      title
+      state {
+        name
+      }
+      assignee {
+        name
+      }
+    }
+  }
+}

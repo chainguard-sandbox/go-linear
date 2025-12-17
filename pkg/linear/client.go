@@ -586,6 +586,33 @@ func (c *Client) IssueUpdate(ctx context.Context, id string, input intgraphql.Is
 	return resp.IssueUpdate.Issue, nil
 }
 
+// IssueBatchUpdate updates multiple issues at once (max 50).
+//
+// Parameters:
+//   - ids: Issue UUIDs to update (max 50)
+//   - input: Update to apply to all issues
+//
+// Returns:
+//   - IssueBatchPayload.Issues: Updated issues
+//   - IssueBatchPayload.Success: true if successful
+//   - error: Non-nil if mutation fails
+//
+// Permissions Required: Write
+//
+// Related: [IssueUpdate], [IssuesFiltered]
+func (c *Client) IssueBatchUpdate(ctx context.Context, ids []string, input intgraphql.IssueUpdateInput) (*intgraphql.BatchUpdateIssues_IssueBatchUpdate, error) {
+	resp, err := c.gqlClient.BatchUpdateIssues(ctx, ids, input)
+	if err != nil {
+		return nil, wrapGraphQLError("IssueBatchUpdate", err)
+	}
+
+	if !resp.IssueBatchUpdate.Success {
+		return nil, errMutationFailed("IssueBatchUpdate")
+	}
+
+	return &resp.IssueBatchUpdate, nil
+}
+
 // IssueDelete permanently deletes an issue.
 //
 // Parameters:
