@@ -21,17 +21,18 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List issues with filtering",
-		Long: `List issues. Returns 8 default fields. 64 filters available (see docs/FILTERS.md).
+		Long: `List issues with filtering. Returns 8 default fields per issue. Use --count for totals (99% fewer tokens).
 
-Core: --team, --assignee=me, --state, --priority (0-4), --creator, --created-after=7d
-AI: --has-suggested-teams, --has-suggested-assignees
-More: --cycle, --project, --comment-by, --has-blocking, --sla-status, etc.
+Filters: --team (name/key), --assignee=me (current user), --state, --priority (0-4), --label, --created-after=yesterday|7d
+Advanced: --creator, --cycle, --project, --comment-by, --has-suggested-teams (64 total, use --help)
 
-Count: --count returns {"count": N} (99% fewer tokens)
+Pagination: --limit (default 50), --after (cursor from pageInfo.endCursor)
+Count: --count returns {"count": N} instead of full results
 
-Example: go-linear issue list --team=ENG --creator=me --has-suggested-teams --count
+Example: go-linear issue list --team=ENG --assignee=me --priority=1 --output=json
 
-Related: issue_get, issue_create, team_list`,
+Returns: {nodes: [{8 issue fields}...], pageInfo} or {"count": N} with --count
+Related: issue_get, issue_create, team_list, user_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
