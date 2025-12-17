@@ -3,9 +3,9 @@
 ## Summary
 
 **Total filters in API:** 61
-**CLI flags available:** 61
-**Fully implemented:** 41
-**Skipped (cannot implement):** 20
+**CLI flags available:** 64
+**Fully implemented:** 44
+**Skipped (cannot implement):** 17
 
 ---
 
@@ -21,7 +21,7 @@
 7. team
 8. updatedAt
 
-### Session Added (33)
+### Session Added (36)
 9. addedToCycleAt
 10. addedToCyclePeriod
 11. archivedAt
@@ -59,12 +59,17 @@
 43. snoozedUntilAt
 44. startedAt
 45. subscribers
-46. title
-47. triagedAt
+46. slaStatus
+47. title
+48. triagedAt
+
+Also added sub-filters for collections:
+- comment-contains (text in comments)
+- attachment-source-type (attachment source)
 
 ---
 
-## Cannot Implement (20/61) ❌
+## Cannot Implement (17/61) ❌
 
 ### Internal Fields (9) - Should Not Expose
 1. accumulatedStateUpdatedAt
@@ -84,16 +89,19 @@
 ### Alpha/Experimental (1)
 12. recurringIssueTemplate
 
-### Complex Comparators (8) - Would Need Sub-Filter Syntax
-13. slaStatus (SlaStatusComparator - complex SLA logic)
-14. sourceMetadata (SourceMetadataComparator - integration-specific)
-15-20. Collection sub-filters (comment body, attachment source, etc. - partial support via user filters only)
+### Complex Comparators (5) - Would Need Advanced Syntax
+13. sourceMetadata (SourceMetadataComparator - integration-specific metadata)
+14-17. Collection filters requiring nested recursion:
+  - attachments.* (except creator and sourceType - those are implemented)
+  - children.* (except length - that's has-children)
+  - comments.* (except user and body - those are implemented)
+  - needs.*, reactions.*, subscribers.* (except basic checks)
 
 ---
 
-## Production Triage Use Case
+## Production Filtering
 
-With 41 implemented filters, production batch triage is now possible:
+With 44 implemented filters, comprehensive issue querying is now possible:
 
 ```bash
 # Find issues requiring triage approval
