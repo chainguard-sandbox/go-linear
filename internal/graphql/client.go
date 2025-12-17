@@ -4113,6 +4113,7 @@ type GetTeam_Team struct {
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
 	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
 	ID          string    "json:\"id\" graphql:\"id\""
+	IssueCount  int64     "json:\"issueCount\" graphql:\"issueCount\""
 	Key         string    "json:\"key\" graphql:\"key\""
 	Name        string    "json:\"name\" graphql:\"name\""
 	Private     bool      "json:\"private\" graphql:\"private\""
@@ -4149,6 +4150,12 @@ func (t *GetTeam_Team) GetID() string {
 		t = &GetTeam_Team{}
 	}
 	return t.ID
+}
+func (t *GetTeam_Team) GetIssueCount() int64 {
+	if t == nil {
+		t = &GetTeam_Team{}
+	}
+	return t.IssueCount
 }
 func (t *GetTeam_Team) GetKey() string {
 	if t == nil {
@@ -4187,6 +4194,7 @@ type ListTeams_Teams_Nodes struct {
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
 	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
 	ID          string    "json:\"id\" graphql:\"id\""
+	IssueCount  int64     "json:\"issueCount\" graphql:\"issueCount\""
 	Key         string    "json:\"key\" graphql:\"key\""
 	Name        string    "json:\"name\" graphql:\"name\""
 	Private     bool      "json:\"private\" graphql:\"private\""
@@ -4221,6 +4229,12 @@ func (t *ListTeams_Teams_Nodes) GetID() string {
 		t = &ListTeams_Teams_Nodes{}
 	}
 	return t.ID
+}
+func (t *ListTeams_Teams_Nodes) GetIssueCount() int64 {
+	if t == nil {
+		t = &ListTeams_Teams_Nodes{}
+	}
+	return t.IssueCount
 }
 func (t *ListTeams_Teams_Nodes) GetKey() string {
 	if t == nil {
@@ -7487,6 +7501,7 @@ const GetTeamDocument = `query GetTeam ($id: String!) {
 		timezone
 		icon
 		color
+		issueCount
 	}
 }
 `
@@ -7519,6 +7534,7 @@ const ListTeamsDocument = `query ListTeams ($first: Int, $after: String) {
 			private
 			icon
 			color
+			issueCount
 		}
 		pageInfo {
 			hasNextPage
