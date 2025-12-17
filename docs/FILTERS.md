@@ -100,6 +100,37 @@ Returns: Issues in Engineering team, in Triage state, created by me, with AI tea
 --comment-by=me,alice,bob   # Has comments by me OR alice OR bob
 ```
 
+## Batch Operations
+
+Use `go-linear issue batch-update` with filters to update multiple issues:
+
+```bash
+# Batch approve triage (dry run first)
+go-linear issue batch-update \
+  --state=Triage \
+  --has-suggested-teams \
+  --creator=colleague@company.com \
+  --created-after=7d \
+  --set-state=Backlog \
+  --dry-run
+
+# Actually apply (after reviewing dry run)
+go-linear issue batch-update \
+  --state=Triage \
+  --has-suggested-teams \
+  --set-state=Backlog \
+  --yes
+
+# Batch assign
+go-linear issue batch-update \
+  --team=Engineering \
+  --state=Todo \
+  --set-assignee=me \
+  --batch-limit=20
+```
+
+Max 50 issues per batch (API limit).
+
 ## Examples
 
 ### Find Triage Issues Needing Approval

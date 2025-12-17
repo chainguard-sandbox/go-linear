@@ -80,14 +80,15 @@ linear issue relate ENG-123 ENG-124 --type=blocks
 
 ## All Available Commands
 
-**Issues (7)**:
-- `linear issue list` - List with rich filtering
-- `linear issue get <id>` - Get single issue
-- `linear issue search <query>` - Full-text search
-- `linear issue create` - Create issue
-- `linear issue update <id>` - Update issue
-- `linear issue delete <id>` - Delete issue ⚠️
-- `linear issue relate <id1> <id2>` - Create relationship
+**Issues (8)**:
+- `go-linear issue list` - List with 64 filters, --count mode
+- `go-linear issue get <id>` - Get single issue
+- `go-linear issue search <query>` - Full-text search, --count mode
+- `go-linear issue create` - Create issue
+- `go-linear issue update <id>` - Update issue
+- `go-linear issue batch-update` - Update multiple (max 50) ⭐
+- `go-linear issue delete <id>` - Delete issue ⚠️
+- `go-linear issue relate <id1> <id2>` - Create relationship
 
 **Users (3)**:
 - `linear user list` - List all users
