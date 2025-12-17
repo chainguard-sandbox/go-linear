@@ -24,11 +24,11 @@ var BuiltinDefaults = map[string][]string{
 	// Team commands
 	"team.list": {
 		"id", "name", "key", "description",
-		"icon", "createdAt",
+		"icon", "createdAt", "issueCount",
 	},
 	"team.get": {
 		"id", "name", "key", "description",
-		"icon", "createdAt", "color", "private",
+		"icon", "createdAt", "color", "private", "issueCount",
 	},
 
 	// User commands

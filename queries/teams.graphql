@@ -10,6 +10,7 @@ query GetTeam($id: String!) {
     timezone
     icon
     color
+    issueCount
   }
 }
 
@@ -24,6 +25,7 @@ query ListTeams($first: Int, $after: String) {
       private
       icon
       color
+      issueCount
     }
     pageInfo {
       hasNextPage

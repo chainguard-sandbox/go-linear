@@ -37,6 +37,7 @@ Related: team_get, user_list`,
 	cmd.Flags().String("team", "", "Team name or ID (required)")
 	_ = cmd.MarkFlagRequired("team")
 
+	cmd.Flags().Bool("count", false, "Return only count, not member list")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
@@ -68,6 +69,25 @@ func runMembers(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to list users: %w", err)
 	}
 
+	// Check if count mode
+	countMode, _ := cmd.Flags().GetBool("count")
+	if countMode {
+		count := len(users.Nodes)
+		output, _ := cmd.Flags().GetString("output")
+		switch output {
+		case "json":
+			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+				"count": count,
+			}, true)
+		case "table":
+			fmt.Fprintf(cmd.OutOrStdout(), "%d\n", count)
+			return nil
+		default:
+			return fmt.Errorf("unsupported output format: %s", output)
+		}
+	}
+
+	// Normal mode - list members
 	output, _ := cmd.Flags().GetString("output")
 	switch output {
 	case "json":
