@@ -3,6 +3,7 @@ package config
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 
@@ -98,23 +99,21 @@ func merge(user, workspace *Config) *Config {
 		FieldDefaults: make(map[string]string),
 	}
 
-	// Copy user field defaults
-	for k, v := range user.FieldDefaults {
-		result.FieldDefaults[k] = v
+	// Copy field defaults: user first, then workspace overrides
+	if user.FieldDefaults != nil {
+		maps.Copy(result.FieldDefaults, user.FieldDefaults)
 	}
-
-	// Workspace field defaults override user
-	for k, v := range workspace.FieldDefaults {
-		result.FieldDefaults[k] = v
+	if workspace.FieldDefaults != nil {
+		maps.Copy(result.FieldDefaults, workspace.FieldDefaults)
 	}
 
 	// MCP field defaults
 	result.MCP.FieldDefaults = make(map[string]string)
-	for k, v := range user.MCP.FieldDefaults {
-		result.MCP.FieldDefaults[k] = v
+	if user.MCP.FieldDefaults != nil {
+		maps.Copy(result.MCP.FieldDefaults, user.MCP.FieldDefaults)
 	}
-	for k, v := range workspace.MCP.FieldDefaults {
-		result.MCP.FieldDefaults[k] = v
+	if workspace.MCP.FieldDefaults != nil {
+		maps.Copy(result.MCP.FieldDefaults, workspace.MCP.FieldDefaults)
 	}
 
 	// Defaults: workspace overrides user
