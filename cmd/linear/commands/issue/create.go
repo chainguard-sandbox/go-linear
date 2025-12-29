@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -17,12 +18,12 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new issue",
-		Long: `Create issue. Safe operation.
+		Long: `Create issue. Safe operation. Uses workspace/user config defaults.
 
-Required: --team (name/key from team_list), --title
-Optional: --description, --assignee=me or email, --priority (0=none, 1=urgent, 2=high, 3=normal, 4=low), --state, --label (repeatable)
+Required: --title
+Optional: --team (defaults from config), --description, --assignee=me, --priority (0-4), --state, --label (defaults from config)
 
-Example: go-linear issue create --team=ENG --title="Fix bug" --assignee=me --priority=1 --description="Details" --output=json
+Example: go-linear issue create --team=ENG --title="Fix bug" --assignee=me --priority=1 --output=json
 
 Related: issue_get, issue_list, team_list, user_list, label_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -37,11 +38,11 @@ Related: issue_get, issue_list, team_list, user_list, label_list`,
 	}
 
 	// Required
-	cmd.Flags().String("team", "", "Team name or ID (required)")
-	_ = cmd.MarkFlagRequired("team")
-
 	cmd.Flags().String("title", "", "Issue title (required)")
 	_ = cmd.MarkFlagRequired("title")
+
+	// Team is optional now (can come from config)
+	cmd.Flags().String("team", "", "Team name or ID (uses config default if not specified)")
 
 	// Optional
 	cmd.Flags().String("description", "", "Issue description (markdown)")
@@ -63,8 +64,21 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	ctx := context.Background()
 	res := resolver.New(client)
 
-	// Resolve team
+	// Load config for defaults
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Resolve team (from flag or config default)
 	teamName, _ := cmd.Flags().GetString("team")
+	if teamName == "" && cfg.Defaults.Team != "" {
+		teamName = cfg.Defaults.Team
+	}
+	if teamName == "" {
+		return fmt.Errorf("--team required (or set defaults.team in config)")
+	}
+
 	teamID, err := res.ResolveTeam(ctx, teamName)
 	if err != nil {
 		return fmt.Errorf("failed to resolve team: %w", err)
@@ -103,10 +117,14 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		input.Priority = &p
 	}
 
+	// Labels: merge config defaults with flag values
 	labels, _ := cmd.Flags().GetStringArray("label")
-	if len(labels) > 0 {
-		labelIDs := make([]string, 0, len(labels))
-		for _, label := range labels {
+	allLabels := append([]string{}, cfg.Defaults.Labels...)
+	allLabels = append(allLabels, labels...)
+
+	if len(allLabels) > 0 {
+		labelIDs := make([]string, 0, len(allLabels))
+		for _, label := range allLabels {
 			labelID, err := res.ResolveLabel(ctx, label)
 			if err != nil {
 				return fmt.Errorf("failed to resolve label %q: %w", label, err)

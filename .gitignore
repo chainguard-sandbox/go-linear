@@ -66,3 +66,4 @@ pkg/linear/schema.json
 mcp/tools.json
 FILTERS_TODO.md
 mcp-tools.json
+.linear-workspace.yaml

@@ -17,6 +17,9 @@ type Config struct {
 
 	// MCP contains MCP-specific configuration
 	MCP MCPConfig `yaml:"mcp"`
+
+	// Defaults contains default values for commands
+	Defaults DefaultsConfig `yaml:"defaults"`
 }
 
 // MCPConfig holds MCP-specific settings.
@@ -25,9 +28,34 @@ type MCPConfig struct {
 	FieldDefaults map[string]string `yaml:"field_defaults"`
 }
 
-// Load reads the user configuration file from the standard location.
-// Returns nil if the file doesn't exist (not an error - config is optional).
+// DefaultsConfig holds default values for command flags.
+type DefaultsConfig struct {
+	Team   string   `yaml:"team"`
+	Labels []string `yaml:"labels"`
+}
+
+// Load reads configuration from both user and workspace locations.
+// Workspace config (.linear-workspace.yaml) takes precedence over user config.
+// Returns nil if no config files exist (not an error - config is optional).
 func Load() (*Config, error) {
+	// Load user config first
+	userCfg, err := loadUserConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// Load workspace config (in current directory)
+	workspaceCfg, err := loadWorkspaceConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// Merge: workspace overrides user
+	return merge(userCfg, workspaceCfg), nil
+}
+
+// loadUserConfig reads the user configuration from standard locations.
+func loadUserConfig() (*Config, error) {
 	paths := []string{
 		filepath.Join(os.Getenv("XDG_CONFIG_HOME"), "linear", "config.yaml"),
 		filepath.Join(os.Getenv("HOME"), ".config", "linear", "config.yaml"),
@@ -52,6 +80,57 @@ func Load() (*Config, error) {
 
 	// No config file found - return empty config (not an error)
 	return &Config{}, nil
+}
+
+// loadWorkspaceConfig reads .linear-workspace.yaml from current directory.
+func loadWorkspaceConfig() (*Config, error) {
+	path := ".linear-workspace.yaml"
+	cfg, err := loadFromPath(path)
+	if os.IsNotExist(err) {
+		return &Config{}, nil // No workspace config is fine
+	}
+	return cfg, err
+}
+
+// merge combines workspace config (higher priority) with user config (lower priority).
+func merge(user, workspace *Config) *Config {
+	result := &Config{
+		FieldDefaults: make(map[string]string),
+	}
+
+	// Copy user field defaults
+	for k, v := range user.FieldDefaults {
+		result.FieldDefaults[k] = v
+	}
+
+	// Workspace field defaults override user
+	for k, v := range workspace.FieldDefaults {
+		result.FieldDefaults[k] = v
+	}
+
+	// MCP field defaults
+	result.MCP.FieldDefaults = make(map[string]string)
+	for k, v := range user.MCP.FieldDefaults {
+		result.MCP.FieldDefaults[k] = v
+	}
+	for k, v := range workspace.MCP.FieldDefaults {
+		result.MCP.FieldDefaults[k] = v
+	}
+
+	// Defaults: workspace overrides user
+	if workspace.Defaults.Team != "" {
+		result.Defaults.Team = workspace.Defaults.Team
+	} else {
+		result.Defaults.Team = user.Defaults.Team
+	}
+
+	if len(workspace.Defaults.Labels) > 0 {
+		result.Defaults.Labels = workspace.Defaults.Labels
+	} else {
+		result.Defaults.Labels = user.Defaults.Labels
+	}
+
+	return result
 }
 
 // loadFromPath loads configuration from a specific file path.
