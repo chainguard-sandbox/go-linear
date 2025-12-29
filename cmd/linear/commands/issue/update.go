@@ -19,9 +19,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee=me, --state, --priority (0-4, see issue_create), --add-label, --remove-label
+Fields: --title, --description, --assignee=me, --state, --priority (0-4), --add-label, --remove-label, --link-pr
 
-Example: go-linear issue update ENG-123 --assignee=me --priority=1 --state=Done --output=json
+Example: go-linear issue update ENG-123 --assignee=me --priority=1 --state=Done --link-pr=owner/repo#123 --output=json
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -44,6 +44,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
+	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -130,6 +131,21 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		return fmt.Errorf("failed to update issue: %w", err)
 	}
 
+	// Link GitHub PR if specified
+	if prURL, _ := cmd.Flags().GetString("link-pr"); prURL != "" {
+		// Convert short format (owner/repo#123) to full URL if needed
+		fullURL := prURL
+		if !contains(prURL, "://") {
+			// Assume GitHub format: owner/repo#123
+			fullURL = "https://github.com/" + prURL
+		}
+
+		_, err := client.AttachmentLinkGitHubPR(ctx, issueID, fullURL)
+		if err != nil {
+			return fmt.Errorf("failed to link GitHub PR: %w", err)
+		}
+	}
+
 	// Format output
 	output, _ := cmd.Flags().GetString("output")
 	switch output {
@@ -141,4 +157,18 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	default:
 		return fmt.Errorf("unsupported output format: %s", output)
 	}
+}
+
+// contains checks if a string contains a substring
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && findSubstring(s, substr)
+}
+
+func findSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
