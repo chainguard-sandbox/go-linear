@@ -128,10 +128,16 @@ linear issue get ENG-123 --fields=none --output=json
 
 ## User Configuration
 
-Override built-in defaults in `~/.config/linear/config.yaml`:
+Create `~/.config/linear/config.yaml` for personal defaults:
 
 ```yaml
-# CLI defaults
+# Command defaults (applies to issue create)
+defaults:
+  team: PSEC           # Default team
+  labels:              # Default labels
+    - triage
+
+# Field display defaults
 field_defaults:
   issue.list: "id,identifier,title,state.name,priority"
   issue.get: "id,title,description,state.name,assignee.name,estimate"
@@ -141,13 +147,18 @@ field_defaults:
 mcp:
   field_defaults:
     issue.list: "id,identifier,title,url,state.name"
-    # Different defaults for MCP tools
+```
+
+**Setup:**
+```bash
+mkdir -p ~/.config/linear
+# Edit ~/.config/linear/config.yaml with your defaults
 ```
 
 **Resolution order:**
-1. Explicit `--fields` flag (highest priority)
-2. MCP config (if running via MCP)
-3. CLI config
+1. Explicit flags (highest priority)
+2. Workspace config (`.linear-workspace.yaml`)
+3. User config (`~/.config/linear/config.yaml`)
 4. Built-in defaults (fallback)
 
 ## Available Fields
