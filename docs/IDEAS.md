@@ -6,7 +6,7 @@ Ideas and proposals for enhancing go-linear CLI and MCP.
 
 ## Aggregation Extensions
 
-**Implemented:** --count flag (99% token reduction)
+**Implemented:** --count flag
 
 **Future ideas:**
 
@@ -34,13 +34,34 @@ go-linear issue list --group-by=created-date --interval=day
 # Returns: issues per day
 ```
 
+**Status:** Not blocked - requires client-side aggregation code
 **Value:** Further token reduction, dashboard queries
 
 ---
 
 ## Triage Automation
 
-**Implemented:** 44 filters including AI suggestions, batch-update
+**Implemented:**
+- 44 filters including AI suggestions, batch-update
+- Conditional auto-actions (via batch-update with filters)
+- SLA-based actions (via --sla-status filter)
+
+**Examples:**
+```bash
+# Batch approve with conditions
+go-linear issue batch-update \
+  --state=Triage \
+  --label=bug \
+  --priority=1 \
+  --set-state=Backlog \
+  --dry-run
+
+# Auto-escalate SLA breaches
+go-linear issue batch-update \
+  --sla-status=Breached \
+  --set-priority=1 \
+  --add-label=urgent
+```
 
 **Future ideas:**
 
@@ -52,28 +73,7 @@ go-linear issue batch-update \
   --dry-run
 ```
 
-Requires: Access to Issue.suggestions API
-
-### Conditional Auto-actions
-```bash
-# Auto-accept with conditions
-go-linear issue batch-update \
-  --label=bug \
-  --priority=1 \
-  --set-state=Backlog \
-  --set-assignee=oncall
-```
-
-### SLA-based Actions
-```bash
-# Auto-escalate SLA breaches
-go-linear issue batch-update \
-  --sla-status=Breached \
-  --set-priority=1 \
-  --add-label=urgent
-```
-
-**Value:** Reduce manual triage work
+**Blocked:** Issue.suggestions API is marked [Internal] in schema - Linear doesn't expose what AI suggested, only that suggestions exist
 
 ---
 
@@ -92,6 +92,8 @@ go-linear issue batch-create \
   --team=Engineering
 ```
 
+**Status:** Not blocked - `issueBatchCreate` mutation exists in schema
+
 ### Batch Delete
 ```bash
 # Clean up test issues
@@ -100,6 +102,8 @@ go-linear issue batch-delete \
   --created-after=today \
   --dry-run
 ```
+
+**Status:** Unknown if Linear API supports batch delete (not found in schema)
 
 ### Cross-entity Batch
 ```bash
@@ -110,13 +114,13 @@ go-linear batch-update \
   --set-team=New
 ```
 
-**Value:** More bulk operations
+**Status:** Not blocked - just needs implementation for other entities
 
 ---
 
 ## Context Optimization
 
-**Implemented:** Field defaults (80% reduction), --count (99% reduction)
+**Implemented:** Field defaults, --count
 
 **Future ideas:**
 
@@ -139,6 +143,7 @@ go-linear team mine
 # Returns default team from config
 ```
 
+**Status:** Not blocked - just CLI sugar
 **Value:** Reduce "my issues" from 2 calls to 1
 
 ---
@@ -154,6 +159,8 @@ go-linear team mine
 go-linear issue list --filter='(team=X AND priority=1) OR (team=Y AND priority=2)'
 ```
 
+**Status:** Not blocked - IssueFilter has `and: [IssueFilter!]` and `or: [IssueFilter!]` fields in schema. Needs CLI flag parsing and recursive filter building.
+
 ### Nested Collection Filters
 ```bash
 # Issues with comments containing specific text by specific user
@@ -163,8 +170,9 @@ go-linear issue list \
   --comment-after=7d
 ```
 
+**Status:** Partially blocked - comment collection filter doesn't have date fields in schema. Would need client-side filtering.
+
 Currently: comment-by AND comment-contains work together
-Future: Add comment-after date filtering
 
 ### Query Builder
 ```bash
@@ -177,7 +185,7 @@ go-linear query save urgent-bugs \
 go-linear query run urgent-bugs
 ```
 
-**Value:** Reusable complex queries
+**Status:** Not blocked - just CLI config feature
 
 ---
 
@@ -198,6 +206,8 @@ filters:
   active_issues: --state=In Progress --assignee=me
 ```
 
+**Status:** Not blocked - just config file extension
+
 ### AI-learned Defaults
 ```bash
 # CLI learns from usage patterns
@@ -205,7 +215,7 @@ go-linear learn --from-history
 # Adjusts defaults based on most-used filters
 ```
 
-**Value:** Smarter defaults over time
+**Status:** Not blocked - analyze shell history or config usage
 
 ---
 
@@ -218,11 +228,15 @@ go-linear issue create \
   --auto-populate
 ```
 
+**Status:** Not blocked - fetch from Sentry API, populate issue fields
+
 ### GitHub PR Linking
 ```bash
 go-linear issue update ENG-123 \
   --link-pr=owner/repo#123
 ```
+
+**Status:** Not blocked - use attachmentLinkGitHubPR mutation (already in SDK)
 
 ### Slack Integration
 ```bash
@@ -231,7 +245,7 @@ go-linear issue create \
   --title-from-first-message
 ```
 
-**Value:** Streamlined integrations
+**Status:** Not blocked - fetch from Slack API, populate issue fields
 
 ---
 
@@ -255,7 +269,8 @@ go-linear sla dashboard --output=json
 # Returns: breaches, at-risk, by team
 ```
 
-**Value:** 95% token reduction vs manual aggregation
+**Status:** Not blocked - client-side aggregation over filtered issue lists
+**Value:** Significant token reduction vs manual aggregation
 
 ---
 

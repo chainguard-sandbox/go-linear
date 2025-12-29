@@ -1,6 +1,6 @@
 # go-linear
 
-Type-safe Go client for the Linear GraphQL API with production reliability features and Model Context Protocol (MCP) server for AI agent integration.
+Type-safe Go client for the Linear GraphQL API with CLI for humans and MCP server for AI agents.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-sandbox/go-linear.svg)](https://pkg.go.dev/github.com/chainguard-sandbox/go-linear)
 [![Go Report Card](https://goreportcard.com/badge/github.com/chainguard-sandbox/go-linear)](https://goreportcard.com/report/github.com/chainguard-sandbox/go-linear)
@@ -12,25 +12,23 @@ go get github.com/chainguard-sandbox/go-linear
 
 ---
 
-## Components
+## What's Inside
 
-**Core Library (`pkg/linear`)**
-- GraphQL client generated from Linear's schema via gqlgenc (~7400 LOC)
-- Complete API coverage: Issues, Teams, Projects, Comments, Labels, Workflows, etc.
-- Automatic pagination with thread-safe iterators
-- Retry logic with exponential backoff, circuit breakers, bounded retry windows
-- TLS 1.2+ enforcement, optional certificate pinning
-- Structured logging (slog), per-operation Prometheus metrics
-- Rate limit detection with automatic backoff
-- Multi-tenant metrics isolation
+**Go SDK (`pkg/linear`)** - Use Linear from your Go applications
+- Type-safe GraphQL client (~7400 LOC)
+- Complete API: Issues, Teams, Projects, Comments, Labels, Workflows
+- Production features: retry, circuit breaker, rate limiting, metrics
 
-**MCP Server (`cmd/linear`)**
-- CLI-based MCP server with ~70 tools auto-generated via [ophis](https://github.com/njayp/ophis)
-- Exposes full CLI functionality to AI agents
-- JSON-RPC 2.0 over stdio
-- Agents work with CLI commands, not raw GraphQL (less context overhead)
-- CLI layer minimizes output, reducing noise for agents
-- Production-ready: retry, circuit breaker, TLS 1.2+, configurable via env vars
+**CLI (`go-linear`)** - Command-line tool for humans
+- Interactive commands: `go-linear issue list --team=ENG --priority=1`
+- Smart defaults, filtering, batch operations
+- Works standalone or in scripts
+
+**MCP Server (`go-linear mcp start`)** - API for AI agents
+- Same binary, different mode - powered by [ophis](https://github.com/njayp/ophis)
+- Ophis automatically converts all CLI commands into 72 MCP tools
+- AI agents call commands via JSON-RPC instead of using the CLI directly
+- Optimized output for token efficiency
 
 ### Design
 
@@ -138,80 +136,93 @@ client, err := linear.NewClient(os.Getenv("LINEAR_API_KEY"),
 
 ---
 
-## MCP Server
+## CLI for Humans
 
-The `go-linear-mcp` server exposes the full Linear CLI to AI agents via JSON-RPC 2.0 over stdio. Built using [ophis](https://github.com/njayp/ophis), which auto-generates ~70 MCP tools from CLI commands.
+Quick start:
 
-**Why CLI-based:**
-- Agents work with high-level commands (`linear issue list --priority=urgent`)
-- Minimal context overhead - agents don't need GraphQL schema knowledge
-- CLI layer minimizes output, reducing noise for agents
-- Battle-tested UX from existing CLI
+```bash
+# Build
+make build-cli
 
-### Architecture
+# Set API key
+export LINEAR_API_KEY=lin_api_xxx
 
+# Use it
+go-linear issue list --assignee=me --priority=1
+go-linear issue create --team=Engineering --title="Fix bug"
+go-linear team list
 ```
-AI Agent (Claude) ─stdio─► go-linear-mcp ─CLI─► pkg/linear ─GraphQL─► Linear API
-                           (JSON-RPC 2.0)      (ophis)    (client)
+
+Features:
+- Smart field defaults (returns 8 fields instead of 50+)
+- 44 filters for precise queries
+- Batch operations (update up to 50 issues)
+- Count mode (`--count` returns just totals)
+- Relative dates (`yesterday`, `7d`, `2w`)
+- Name resolution (`--team=Engineering` not UUIDs)
+
+See [CLI Quick Start](docs/CLI-QUICK-START.md) for more.
+
+---
+
+## MCP Server for AI Agents
+
+The **same binary** works as an MCP server for AI agents like Claude.
+
+**How it works:** [Ophis](https://github.com/njayp/ophis) automatically converts your CLI into an MCP server by:
+1. Walking the Cobra command tree
+2. Generating JSON schemas from flags
+3. Creating 72 MCP tool definitions
+4. Executing tools by spawning CLI subprocesses
+
+**Architecture:**
+```
+AI Agent (Claude) ─stdio─► go-linear mcp start ─spawns─► go-linear issue list ─► Linear API
+                           (JSON-RPC 2.0)               (regular CLI)
 ```
 
-The CLI layer minimizes output before returning to the agent, reducing noise in the signal.
+**Why this approach:**
+- Agents work with high-level commands, not raw GraphQL
+- CLI optimizations (defaults, filtering) reduce token usage
+- Same battle-tested logic for humans and AI
+- No separate codepaths to maintain
 
 ### Security Model
 
-The MCP server exposes ~70 tools from the CLI. Tool categories:
+The MCP server exposes 72 tools from the CLI. Tool categories:
 
 | Category | Examples | User Confirmation |
 |----------|----------|-------------------|
 | Read-Only | `list`, `get` operations | No |
-| Mutable | `create`, `update` operations | Via Claude Desktop |
-| Destructive | `delete` operations | Via Claude Desktop |
+| Mutable | `create`, `update` operations | Yes |
+| Destructive | `delete` operations | Yes |
 
-Mutable operations require user confirmation in Claude Desktop. Destructive operations cannot be undone.
+Mutable operations require user confirmation. Destructive operations cannot be undone.
 
-### Setup
+### Quick Setup
 
-**Build:**
-
+**1. Build:**
 ```bash
-make build-mcp
-# Creates: bin/go-linear-mcp
+make build-cli
 ```
 
-**Claude Desktop Configuration** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "linear": {
-      "command": "/absolute/path/to/go-linear/bin/go-linear-mcp",
-      "args": ["mcp", "start"],
-      "env": {
-        "LINEAR_API_KEY": "lin_api_xxx"
-      }
-    }
-  }
-}
+**2. Add to Claude Code:**
+```bash
+claude mcp add --transport stdio go-linear \
+  --env LINEAR_API_KEY=lin_api_xxx \
+  -- /absolute/path/to/bin/go-linear mcp start
 ```
 
-**With observability enabled:**
-```json
-{
-  "mcpServers": {
-    "linear": {
-      "command": "/absolute/path/to/go-linear/bin/go-linear-mcp",
-      "args": ["mcp", "start"],
-      "env": {
-        "LINEAR_API_KEY": "lin_api_xxx",
-        "LINEAR_LOG_LEVEL": "info",
-        "LINEAR_METRICS_ENABLED": "true"
-      }
-    }
-  }
-}
+**3. Verify:**
+```bash
+claude mcp list
 ```
 
-Logs written to: `~/Library/Logs/Claude/mcp-server-linear.log`
+**Need help?** See [Claude Code Setup Guide](docs/CLAUDE-SETUP.md) for:
+- Step-by-step instructions
+- Getting your Linear API key
+- Configuration scopes
+- Troubleshooting
 
 ### Environment Variables
 
@@ -233,7 +244,7 @@ Logs written to: `~/Library/Logs/Claude/mcp-server-linear.log`
 
 ### Available Commands
 
-The MCP server exposes ~70 tools auto-generated from CLI commands. Major command groups:
+The MCP server exposes 72 tools auto-generated from CLI commands. Major command groups:
 
 | Command Group | Examples | Description |
 |---------------|----------|-------------|
@@ -255,83 +266,74 @@ The MCP server exposes ~70 tools auto-generated from CLI commands. Major command
 | `reaction` | `create`, `delete` | Emoji reactions |
 | `notification` | `list`, `subscribe`, `unsubscribe` | Notifications |
 
-**View all commands:**
+### Testing
+
 ```bash
-./bin/go-linear-mcp --help
+# View all CLI commands (becomes MCP tools)
+./bin/go-linear --help
+
+# Test MCP server with inspector
+npx @modelcontextprotocol/inspector ./bin/go-linear -- mcp start
 ```
 
-**List MCP tools:**
+Opens web UI at http://localhost:5173 to test tools interactively.
+
+### Logging & Metrics
+
+Add environment variables when configuring:
+
 ```bash
-./bin/go-linear-mcp mcp list-tools
+claude mcp add --transport stdio go-linear \
+  --env LINEAR_API_KEY=lin_api_xxx \
+  --env LINEAR_LOG_LEVEL=info \
+  --env LINEAR_METRICS_ENABLED=true \
+  -- /path/to/go-linear mcp start
 ```
 
-**Testing:**
+See [Environment Variables](#environment-variables) for all options.
+
+### Why AI Agents Love This CLI
+
+These CLI features reduce token usage for AI agents:
+
+**1. Field defaults** - Returns 10 fields instead of 50+
 ```bash
-npx @modelcontextprotocol/inspector bin/go-linear-mcp -- mcp start
+go-linear issue get ENG-123 --output=json
+# Returns: id, title, state, team, priority, assignee, url, createdAt
+
+# Custom fields
+go-linear issue get ENG-123 --fields=id,title,priority --output=json
+
+# Add to defaults
+go-linear issue get ENG-123 --fields=defaults,estimate,labels --output=json
 ```
 
-### Observability
-
-**Enable structured logging:**
+**2. Count mode** - Get totals without full data
 ```bash
-# Info level (requests, errors)
-LINEAR_LOG_LEVEL=info LINEAR_API_KEY=xxx ./bin/go-linear-mcp mcp start 2>mcp.log
-
-# Debug level (includes request/response details)
-LINEAR_API_KEY=xxx ./bin/go-linear-mcp --verbose mcp start 2>debug.log
-
-# Log output (JSON to stderr):
-# {"time":"2025-12-11T18:00:00Z","level":"INFO","msg":"request_completed","operation":"ListIssues","status":200,"duration_ms":234}
+# Instead of returning 50 full issues...
+go-linear issue list --team=Engineering --priority=1 --count
+# Returns: {"count": 5}
 ```
 
-**Enable Prometheus metrics:**
+**3. Smart filtering** - 44 filters for precise queries
 ```bash
-# Metrics collected internally (for future export)
-LINEAR_METRICS_ENABLED=true LINEAR_API_KEY=xxx ./bin/go-linear-mcp mcp start
+# Complex query in one call
+go-linear issue list \
+  --state=Triage \
+  --has-suggested-teams \
+  --created-after=7d \
+  --comment-by=me,manager@company.com \
+  --output=json
 
-# Metrics tracked:
-# - linear_requests_total{operation="ListIssues"}
-# - linear_request_duration_seconds{operation="ListIssues"}
-# - linear_errors_total{operation="ListIssues",error_type="RateLimited"}
-# - linear_rate_limit_remaining{limit_type="requests"}
+# Batch operations
+go-linear issue batch-update \
+  --state=Triage \
+  --has-suggested-teams \
+  --set-state=Backlog \
+  --dry-run
 ```
 
-**Production setup:**
-```json
-{
-  "mcpServers": {
-    "linear": {
-      "command": "/absolute/path/to/go-linear/bin/go-linear-mcp",
-      "args": ["mcp", "start"],
-      "env": {
-        "LINEAR_API_KEY": "lin_api_xxx",
-        "LINEAR_LOG_LEVEL": "info",
-        "LINEAR_METRICS_ENABLED": "true",
-        "LINEAR_CIRCUIT_BREAKER_FAILURES": "3",
-        "LINEAR_TIMEOUT": "45s"
-      }
-    }
-  }
-}
-```
-
-### AI Agent Optimizations
-
-**Sparse field selection** (reduce token usage):
-```bash
-# Full response: ~2.8KB
-linear issue get ENG-123 --output=json
-
-# Sparse response: ~85 bytes (97% reduction)
-linear issue get ENG-123 --fields=id,title,priority --output=json
-
-# Nested field selection
-linear issue get ENG-123 --fields=id,title,assignee.name,state.name --output=json
-# Returns: {"id":"...","title":"...","assignee":{"name":"..."},"state":{"name":"..."}}
-
-# List with filtering
-linear issue list --team=Engineering --fields=identifier,title,priority --output=json
-```
+See [FILTERS.md](docs/FILTERS.md) for all 44 filters.
 
 **Rate limit monitoring**:
 ```bash
@@ -371,7 +373,7 @@ go-linear/
 ├── internal/graphql/       # Generated code (gqlgenc)
 │   ├── client.go
 │   └── models.go          # ~30k lines
-├── cmd/go-linear-mcp/      # MCP server
+├── cmd/linear/             # MCP server & CLI
 │   └── main.go
 ├── queries/                # GraphQL definitions
 └── examples/               # 25+ examples
@@ -828,7 +830,11 @@ A: Yes. Use `WithMetricsRegistry()` for isolated metrics per workspace.
 - ✅ Error chain preservation
 - ✅ Thread-safe pagination iterators
 - ✅ TLS 1.2+ enforcement
-- ✅ MCP server (13 tools)
+- ✅ MCP server (72 tools)
+- ✅ Field defaults (minimizes output verbosity)
+- ✅ Advanced filtering (44 filters)
+- ✅ Batch operations (up to 50 issues)
+- ✅ Count aggregation (efficient "how many?" queries)
 - ✅ 60%+ test coverage
 
 **Experimental:**

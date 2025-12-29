@@ -246,6 +246,7 @@ Environment Variables:
   LINEAR_TLS_MIN_VERSION             Minimum TLS version: 1.2 or 1.3 (default: 1.2)
   LINEAR_LOG_LEVEL                   Logging level: debug|info|warn|error (default: disabled)
   LINEAR_METRICS_ENABLED             Enable Prometheus metrics: true|false (default: false)`,
+		SilenceUsage: true, // Don't print usage on errors (reduces context bloat for AI agents)
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Initialize Linear client for all subcommands
 			if apiKey == "" {

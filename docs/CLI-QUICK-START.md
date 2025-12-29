@@ -1,15 +1,17 @@
-# Linear CLI Quick Start
+# CLI Quick Start (For Humans)
 
-The Linear CLI provides 26 commands for interacting with Linear's API, optimized for both humans and AI agents.
+Command-line tool for managing Linear issues, projects, and teams.
+
+**Note:** AI agents should use MCP mode (`go-linear mcp start`) - see main README.
 
 ## Installation
 
 ```bash
-# Build the CLI
+# Build
 make build-cli
 
-# The binary is created at:
-bin/linear
+# Creates one binary:
+bin/go-linear
 ```
 
 ## Authentication
@@ -21,7 +23,7 @@ export LINEAR_API_KEY=lin_api_xxx
 
 Or pass it as a flag:
 ```bash
-linear --api-key=lin_api_xxx issue list
+go-linear --api-key=lin_api_xxx issue list
 ```
 
 ## Quick Examples
@@ -29,53 +31,53 @@ linear --api-key=lin_api_xxx issue list
 ### List Issues
 ```bash
 # My urgent issues
-linear issue list --assignee=me --priority=1
+go-linear issue list --assignee=me --priority=1
 
 # Engineering team's completed work from yesterday
-linear issue list --team=Engineering --completed-after=yesterday --completed-before=today
+go-linear issue list --team=Engineering --completed-after=yesterday --completed-before=today
 
 # Issues in specific state
-linear issue list --state="In Progress" --output=json
+go-linear issue list --state="In Progress" --output=json
 ```
 
 ### Complex Query (AI-Optimized)
 ```bash
 # Who from Engineering completed work yesterday?
-linear user completed --team=Engineering --completed-after=yesterday --completed-before=today
+go-linear user completed --team=Engineering --completed-after=yesterday --completed-before=today
 
 # My completed work from last 7 days
-linear user completed --user=me --completed-after=7d
+go-linear user completed --user=me --completed-after=7d
 ```
 
 ### Create & Update
 ```bash
 # Create issue
-linear issue create --team=Engineering --title="Fix bug" --description="Details" --priority=1
+go-linear issue create --team=Engineering --title="Fix bug" --description="Details" --priority=1
 
 # Update issue
-linear issue update ENG-123 --state=Done --add-label=fixed
+go-linear issue update ENG-123 --state=Done --add-label=fixed
 
 # Create project
-linear project create --name="Q1 Platform" --description="Platform improvements"
+go-linear project create --name="Q1 Platform" --description="Platform improvements"
 ```
 
 ### Teams & Users
 ```bash
 # List teams
-linear team list
+go-linear team list
 
 # List team members
-linear team members --team=Engineering
+go-linear team members --team=Engineering
 
 # Get user info
-linear user get alice@company.com
-linear user get me
+go-linear user get alice@company.com
+go-linear user get me
 ```
 
 ### Relationships
 ```bash
 # Create issue relation
-linear issue relate ENG-123 ENG-124 --type=blocks
+go-linear issue relate ENG-123 ENG-124 --type=blocks
 ```
 
 ## All Available Commands
@@ -91,37 +93,37 @@ linear issue relate ENG-123 ENG-124 --type=blocks
 - `go-linear issue relate <id1> <id2>` - Create relationship
 
 **Users (3)**:
-- `linear user list` - List all users
-- `linear user get <name|email>` - Get user details
-- `linear user completed` - Get completed work ⭐
+- `go-linear user list` - List all users
+- `go-linear user get <name|email>` - Get user details
+- `go-linear user completed` - Get completed work ⭐
 
 **Teams (2)**:
-- `linear team list` - List teams
-- `linear team members --team=X` - List members
+- `go-linear team list` - List teams
+- `go-linear team members --team=X` - List members
 
 **Projects (4)**:
-- `linear project list` - List projects
-- `linear project get <id>` - Get project
-- `linear project create` - Create project
-- `linear project update <id>` - Update project
+- `go-linear project list` - List projects
+- `go-linear project get <id>` - Get project
+- `go-linear project create` - Create project
+- `go-linear project update <id>` - Update project
 
 **Cycles (2)**:
-- `linear cycle list` - List cycles/sprints
-- `linear cycle get <id>` - Get cycle
+- `go-linear cycle list` - List cycles/sprints
+- `go-linear cycle get <id>` - Get cycle
 
 **Comments (4)**:
-- `linear comment list` - List comments
-- `linear comment create` - Add comment
-- `linear comment update <id>` - Update comment
-- `linear comment delete <id>` - Delete comment ⚠️
+- `go-linear comment list` - List comments
+- `go-linear comment create` - Add comment
+- `go-linear comment update <id>` - Update comment
+- `go-linear comment delete <id>` - Delete comment ⚠️
 
 **Labels (2)**:
-- `linear label list` - List labels
-- `linear label create` - Create label
+- `go-linear label list` - List labels
+- `go-linear label create` - Create label
 
 **States & Info (2)**:
-- `linear state list` - List workflow states
-- `linear viewer` - Get current user
+- `go-linear state list` - List workflow states
+- `go-linear viewer` - Get current user
 
 ## Output Formats
 
@@ -150,7 +152,7 @@ All commands support multiple output formats:
 
 ### 3. Rich Filtering
 ```bash
-linear issue list \
+go-linear issue list \
   --team=Engineering \
   --priority=1 \
   --state="In Progress" \
@@ -160,20 +162,19 @@ linear issue list \
   --output=json
 ```
 
-## MCP Server Mode
+## MCP Mode (For AI Agents)
 
-Start as MCP server for Claude Desktop:
+The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into 72 MCP tools.
+
+**Setup for Claude Code:**
 
 ```bash
-./bin/linear mcp start
+claude mcp add --transport stdio go-linear \
+  --env LINEAR_API_KEY=lin_api_xxx \
+  -- /path/to/go-linear/bin/go-linear mcp start
 ```
 
-Configure in Claude Desktop:
-```bash
-./bin/linear mcp claude setup
-```
-
-All 26 commands automatically become MCP tools via ophis!
+See [CLAUDE-SETUP.md](CLAUDE-SETUP.md) for full instructions.
 
 ## Tips for AI Agents
 
@@ -186,8 +187,8 @@ All 26 commands automatically become MCP tools via ophis!
 ## Getting Help
 
 ```bash
-linear --help                    # Show all commands
-linear issue --help              # Show issue subcommands
-linear issue list --help         # Show all flags for issue list
-linear mcp --help                # Show MCP integration options
+go-linear --help                    # Show all commands
+go-linear issue --help              # Show issue subcommands
+go-linear issue list --help         # Show all flags for issue list
+go-linear mcp --help                # Show MCP integration options
 ```

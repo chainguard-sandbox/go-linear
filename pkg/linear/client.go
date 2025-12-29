@@ -185,7 +185,7 @@ func (c *Client) Viewer(ctx context.Context) (*intgraphql.Viewer_Viewer, error) 
 
 	resp, err := c.gqlClient.Viewer(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("viewer query failed: %w", err)
+		return nil, wrapGraphQLError("viewer query", err)
 	}
 	return &resp.Viewer, nil
 }
@@ -213,7 +213,7 @@ func (c *Client) Viewer(ctx context.Context) (*intgraphql.Viewer_Viewer, error) 
 func (c *Client) Issue(ctx context.Context, id string) (*intgraphql.GetIssue_Issue, error) {
 	resp, err := c.gqlClient.GetIssue(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("issue query failed: %w", err)
+		return nil, wrapGraphQLError("issue query", err)
 	}
 	return &resp.Issue, nil
 }
@@ -265,7 +265,7 @@ func (c *Client) Issue(ctx context.Context, id string) (*intgraphql.GetIssue_Iss
 func (c *Client) Issues(ctx context.Context, first *int64, after *string) (*intgraphql.ListIssues_Issues, error) {
 	resp, err := c.gqlClient.ListIssues(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("issues query failed: %w", err)
+		return nil, wrapGraphQLError("issues query", err)
 	}
 	return &resp.Issues, nil
 }
@@ -289,7 +289,7 @@ func (c *Client) Issues(ctx context.Context, first *int64, after *string) (*intg
 func (c *Client) IssuesFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.IssueFilter) (*intgraphql.ListIssuesFiltered_Issues, error) {
 	resp, err := c.gqlClient.ListIssuesFiltered(ctx, first, after, filter)
 	if err != nil {
-		return nil, fmt.Errorf("issues filtered query failed: %w", err)
+		return nil, wrapGraphQLError("issues filtered query", err)
 	}
 	return &resp.Issues, nil
 }
@@ -315,7 +315,7 @@ func (c *Client) IssuesFiltered(ctx context.Context, first *int64, after *string
 func (c *Client) Team(ctx context.Context, id string) (*intgraphql.GetTeam_Team, error) {
 	resp, err := c.gqlClient.GetTeam(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("team query failed: %w", err)
+		return nil, wrapGraphQLError("team query", err)
 	}
 	return &resp.Team, nil
 }
@@ -338,7 +338,7 @@ func (c *Client) Team(ctx context.Context, id string) (*intgraphql.GetTeam_Team,
 func (c *Client) Teams(ctx context.Context, first *int64, after *string) (*intgraphql.ListTeams_Teams, error) {
 	resp, err := c.gqlClient.ListTeams(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("teams query failed: %w", err)
+		return nil, wrapGraphQLError("teams query", err)
 	}
 	return &resp.Teams, nil
 }
@@ -366,7 +366,7 @@ func (c *Client) Teams(ctx context.Context, first *int64, after *string) (*intgr
 func (c *Client) Project(ctx context.Context, id string) (*intgraphql.GetProject_Project, error) {
 	resp, err := c.gqlClient.GetProject(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("project query failed: %w", err)
+		return nil, wrapGraphQLError("project query", err)
 	}
 	return &resp.Project, nil
 }
@@ -389,7 +389,7 @@ func (c *Client) Project(ctx context.Context, id string) (*intgraphql.GetProject
 func (c *Client) Projects(ctx context.Context, first *int64, after *string) (*intgraphql.ListProjects_Projects, error) {
 	resp, err := c.gqlClient.ListProjects(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("projects query failed: %w", err)
+		return nil, wrapGraphQLError("projects query", err)
 	}
 	return &resp.Projects, nil
 }
@@ -414,7 +414,7 @@ func (c *Client) Projects(ctx context.Context, first *int64, after *string) (*in
 func (c *Client) User(ctx context.Context, id string) (*intgraphql.GetUser_User, error) {
 	resp, err := c.gqlClient.GetUser(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("user query failed: %w", err)
+		return nil, wrapGraphQLError("user query", err)
 	}
 	return &resp.User, nil
 }
@@ -437,7 +437,7 @@ func (c *Client) User(ctx context.Context, id string) (*intgraphql.GetUser_User,
 func (c *Client) Users(ctx context.Context, first *int64, after *string) (*intgraphql.ListUsers_Users, error) {
 	resp, err := c.gqlClient.ListUsers(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("users query failed: %w", err)
+		return nil, wrapGraphQLError("users query", err)
 	}
 	return &resp.Users, nil
 }
@@ -460,7 +460,7 @@ func (c *Client) Users(ctx context.Context, first *int64, after *string) (*intgr
 func (c *Client) Comment(ctx context.Context, id string) (*intgraphql.GetComment_Comment, error) {
 	resp, err := c.gqlClient.GetComment(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("comment query failed: %w", err)
+		return nil, wrapGraphQLError("comment query", err)
 	}
 	return &resp.Comment, nil
 }
@@ -483,7 +483,7 @@ func (c *Client) Comment(ctx context.Context, id string) (*intgraphql.GetComment
 func (c *Client) Comments(ctx context.Context, first *int64, after *string) (*intgraphql.ListComments_Comments, error) {
 	resp, err := c.gqlClient.ListComments(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("comments query failed: %w", err)
+		return nil, wrapGraphQLError("comments query", err)
 	}
 	return &resp.Comments, nil
 }
@@ -665,7 +665,7 @@ func (c *Client) IssueDelete(ctx context.Context, id string) error {
 func (c *Client) Organization(ctx context.Context) (*intgraphql.GetOrganization_Organization, error) {
 	resp, err := c.gqlClient.GetOrganization(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("organization query failed: %w", err)
+		return nil, wrapGraphQLError("organization query", err)
 	}
 	return &resp.Organization, nil
 }
@@ -687,7 +687,7 @@ func (c *Client) Organization(ctx context.Context) (*intgraphql.GetOrganization_
 func (c *Client) IssueLabel(ctx context.Context, id string) (*intgraphql.GetLabel_IssueLabel, error) {
 	resp, err := c.gqlClient.GetLabel(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("label query failed: %w", err)
+		return nil, wrapGraphQLError("label query", err)
 	}
 	return &resp.IssueLabel, nil
 }
@@ -710,7 +710,7 @@ func (c *Client) IssueLabel(ctx context.Context, id string) (*intgraphql.GetLabe
 func (c *Client) IssueLabels(ctx context.Context, first *int64, after *string) (*intgraphql.ListLabels_IssueLabels, error) {
 	resp, err := c.gqlClient.ListLabels(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("labels query failed: %w", err)
+		return nil, wrapGraphQLError("labels query", err)
 	}
 	return &resp.IssueLabels, nil
 }
@@ -734,7 +734,7 @@ func (c *Client) IssueLabels(ctx context.Context, first *int64, after *string) (
 func (c *Client) WorkflowState(ctx context.Context, id string) (*intgraphql.GetWorkflowState_WorkflowState, error) {
 	resp, err := c.gqlClient.GetWorkflowState(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("workflow state query failed: %w", err)
+		return nil, wrapGraphQLError("workflow state query", err)
 	}
 	return &resp.WorkflowState, nil
 }
@@ -757,7 +757,7 @@ func (c *Client) WorkflowState(ctx context.Context, id string) (*intgraphql.GetW
 func (c *Client) WorkflowStates(ctx context.Context, first *int64, after *string) (*intgraphql.ListWorkflowStates_WorkflowStates, error) {
 	resp, err := c.gqlClient.ListWorkflowStates(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("workflow states query failed: %w", err)
+		return nil, wrapGraphQLError("workflow states query", err)
 	}
 	return &resp.WorkflowStates, nil
 }
@@ -784,7 +784,7 @@ func (c *Client) WorkflowStates(ctx context.Context, first *int64, after *string
 func (c *Client) Cycle(ctx context.Context, id string) (*intgraphql.GetCycle_Cycle, error) {
 	resp, err := c.gqlClient.GetCycle(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("cycle query failed: %w", err)
+		return nil, wrapGraphQLError("cycle query", err)
 	}
 	return &resp.Cycle, nil
 }
@@ -807,7 +807,7 @@ func (c *Client) Cycle(ctx context.Context, id string) (*intgraphql.GetCycle_Cyc
 func (c *Client) Cycles(ctx context.Context, first *int64, after *string) (*intgraphql.ListCycles_Cycles, error) {
 	resp, err := c.gqlClient.ListCycles(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("cycles query failed: %w", err)
+		return nil, wrapGraphQLError("cycles query", err)
 	}
 	return &resp.Cycles, nil
 }
@@ -945,7 +945,7 @@ func (c *Client) CycleArchive(ctx context.Context, id string) error {
 func (c *Client) Roadmap(ctx context.Context, id string) (*intgraphql.GetRoadmap_Roadmap, error) {
 	resp, err := c.gqlClient.GetRoadmap(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("roadmap query failed: %w", err)
+		return nil, wrapGraphQLError("roadmap query", err)
 	}
 	return &resp.Roadmap, nil
 }
@@ -968,7 +968,7 @@ func (c *Client) Roadmap(ctx context.Context, id string) (*intgraphql.GetRoadmap
 func (c *Client) Roadmaps(ctx context.Context, first *int64, after *string) (*intgraphql.ListRoadmaps_Roadmaps, error) {
 	resp, err := c.gqlClient.ListRoadmaps(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("roadmaps query failed: %w", err)
+		return nil, wrapGraphQLError("roadmaps query", err)
 	}
 	return &resp.Roadmaps, nil
 }
@@ -993,7 +993,7 @@ func (c *Client) Roadmaps(ctx context.Context, first *int64, after *string) (*in
 func (c *Client) Attachment(ctx context.Context, id string) (*intgraphql.GetAttachment_Attachment, error) {
 	resp, err := c.gqlClient.GetAttachment(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("attachment query failed: %w", err)
+		return nil, wrapGraphQLError("attachment query", err)
 	}
 	return &resp.Attachment, nil
 }
@@ -1016,7 +1016,7 @@ func (c *Client) Attachment(ctx context.Context, id string) (*intgraphql.GetAtta
 func (c *Client) Attachments(ctx context.Context, first *int64, after *string) (*intgraphql.ListAttachments_Attachments, error) {
 	resp, err := c.gqlClient.ListAttachments(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("attachments query failed: %w", err)
+		return nil, wrapGraphQLError("attachments query", err)
 	}
 	return &resp.Attachments, nil
 }
@@ -1223,7 +1223,7 @@ func (c *Client) AttachmentDelete(ctx context.Context, id string) error {
 func (c *Client) Initiative(ctx context.Context, id string) (*intgraphql.GetInitiative_Initiative, error) {
 	resp, err := c.gqlClient.GetInitiative(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("initiative query failed: %w", err)
+		return nil, wrapGraphQLError("initiative query", err)
 	}
 	return &resp.Initiative, nil
 }
@@ -1246,7 +1246,7 @@ func (c *Client) Initiative(ctx context.Context, id string) (*intgraphql.GetInit
 func (c *Client) Initiatives(ctx context.Context, first *int64, after *string) (*intgraphql.ListInitiatives_Initiatives, error) {
 	resp, err := c.gqlClient.ListInitiatives(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("initiatives query failed: %w", err)
+		return nil, wrapGraphQLError("initiatives query", err)
 	}
 	return &resp.Initiatives, nil
 }
@@ -1385,7 +1385,7 @@ func (c *Client) SearchIssues(ctx context.Context, term string, first *int64, af
 func (c *Client) Document(ctx context.Context, id string) (*intgraphql.GetDocument_Document, error) {
 	resp, err := c.gqlClient.GetDocument(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("document query failed: %w", err)
+		return nil, wrapGraphQLError("document query", err)
 	}
 	return &resp.Document, nil
 }
@@ -1408,7 +1408,7 @@ func (c *Client) Document(ctx context.Context, id string) (*intgraphql.GetDocume
 func (c *Client) Documents(ctx context.Context, first *int64, after *string) (*intgraphql.ListDocuments_Documents, error) {
 	resp, err := c.gqlClient.ListDocuments(ctx, first, after)
 	if err != nil {
-		return nil, fmt.Errorf("documents query failed: %w", err)
+		return nil, wrapGraphQLError("documents query", err)
 	}
 	return &resp.Documents, nil
 }
@@ -1430,7 +1430,7 @@ func (c *Client) Documents(ctx context.Context, first *int64, after *string) (*i
 func (c *Client) Template(ctx context.Context, id string) (*intgraphql.GetTemplate_Template, error) {
 	resp, err := c.gqlClient.GetTemplate(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("template query failed: %w", err)
+		return nil, wrapGraphQLError("template query", err)
 	}
 	return &resp.Template, nil
 }
@@ -1439,7 +1439,7 @@ func (c *Client) Template(ctx context.Context, id string) (*intgraphql.GetTempla
 func (c *Client) Templates(ctx context.Context) ([]*intgraphql.ListTemplates_Templates, error) {
 	resp, err := c.gqlClient.ListTemplates(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("templates query failed: %w", err)
+		return nil, wrapGraphQLError("templates query", err)
 	}
 	return resp.Templates, nil
 }

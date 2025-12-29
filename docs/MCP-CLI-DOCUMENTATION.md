@@ -2,9 +2,15 @@
 
 ## Core Insight
 
-MCP servers load ALL tool descriptions once per session and keep them in the AI agent's context permanently. With 71 tools, verbose documentation consumes thousands of tokens that could be used for actual conversation.
+MCP servers load ALL tool descriptions once per session and keep them in the AI agent's context permanently. With 72 tools, verbose documentation consumes thousands of tokens that could be used for actual conversation.
 
-**Our approach:** System-wide coherence - tools complement each other, not repeat information.
+**Our approach:** System-wide coherence and minimal error output.
+
+### Optimizations for AI Agents
+
+1. **Concise tool descriptions** - Tools complement each other, not repeat information
+2. **Silent usage on errors** - No help text dumped on every error (Cobra `SilenceUsage: true`)
+3. **Clean error messages** - Extract user-friendly messages from verbose API responses
 
 ---
 
@@ -269,8 +275,66 @@ When adding a new command:
    - Medium: ~300 chars
    - Complex: ~500 chars
 4. **Test final size:** Ensure no bloat
-5. **Verify MCP export:** `make build && ./bin/go-linear-mcp mcp tools`
+5. **Verify MCP export:** `make build && ./bin/go-linear mcp tools`
 6. **Measure:** Check total description size stays reasonable
+
+---
+
+## Error Handling for AI Agents
+
+### Problem: Verbose Errors Bloat Context
+
+**Before optimization:**
+```
+Error: LINEAR_API_KEY environment variable or --api-key flag required
+Usage:
+  go-linear issue list [flags]
+
+Flags:
+      --added-to-cycle-after string ...
+      --added-to-cycle-before string ...
+      [80+ lines of help text]
+```
+
+**After optimization:**
+```
+Error: LINEAR_API_KEY environment variable or --api-key flag required
+```
+
+### Implementation
+
+**1. Silence usage on errors** (`cmd/linear/commands/root.go`):
+```go
+rootCmd := &cobra.Command{
+    Use: "go-linear",
+    SilenceUsage: true, // Don't print usage on errors
+    // ...
+}
+```
+
+**2. Clean API error messages** (`pkg/linear/errors.go`):
+```go
+// Before: {"networkErrors":{"code":401,"message":"Response body {...}"},...}
+// After: linear: AuthenticationError: invalid or expired API key
+
+func wrapGraphQLError(operation string, err error) error {
+    errStr := err.Error()
+    if strings.Contains(errStr, `"code":401`) {
+        return &AuthenticationError{
+            LinearError: &LinearError{
+                Message: "invalid or expired API key",
+                // ...
+            },
+        }
+    }
+    // ...
+}
+```
+
+**Result:**
+- Missing API key: 2 lines (was 80+ lines)
+- Invalid API key: 1 line (was 500+ characters of JSON)
+- Other errors: Operation context only, no verbose JSON
 
 ---
 

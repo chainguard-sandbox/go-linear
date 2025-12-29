@@ -4,7 +4,7 @@
 # Usage: make <target>
 # Run 'make' or 'make help' to see available commands
 
-.PHONY: help
+.PHONY: help build build-cli build-mcp
 
 # Project configuration
 BINARY_NAME := go-linear
@@ -48,36 +48,30 @@ help:  ## Show this help message
 # Build targets
 #
 
-build: build-mcp build-cli  ## Build both MCP server and CLI
+build: build-cli  ## Build the CLI (includes MCP server)
 
 #
-# MCP Server targets
+# CLI targets (includes MCP via 'mcp' subcommand)
 #
 
-build-mcp: $(BINDIR)/go-linear-mcp  ## Build the Linear MCP server (CLI-based, ~70 tools)
-
-$(BINDIR)/go-linear-mcp: $(GOFILES)
-	@echo "Building Linear MCP server..."
+build-cli:  ## Build go-linear (CLI + MCP server in one binary)
+	@echo "Building go-linear..."
 	@mkdir -p $(BINDIR)
-	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ ./cmd/linear
-	@echo "✓ Built: $@"
+	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINDIR)/go-linear ./cmd/linear
+	@echo "✓ Built: $(BINDIR)/go-linear"
+	@echo "  CLI mode: ./bin/go-linear issue list"
+	@echo "  MCP mode: ./bin/go-linear mcp start"
 
-build-cli: $(BINDIR)/go-linear  ## Build the Linear CLI (symlink to MCP server)
+build-mcp: build-cli  ## Alias for build-cli (same binary, different mode)
 
-$(BINDIR)/go-linear: $(BINDIR)/go-linear-mcp
-	@echo "Creating CLI symlink..."
-	@ln -sf go-linear-mcp $@
-	@echo "✓ Created: $@"
-
-install: build  ## Install MCP server and CLI to $GOPATH/bin
-	@echo "Installing binaries..."
-	@cp $(BINDIR)/go-linear-mcp $(GOPATH)/bin/go-linear-mcp
-	@ln -sf go-linear-mcp $(GOPATH)/bin/go-linear
-	@echo "✓ Installed go-linear-mcp and go-linear to $(GOPATH)/bin/"
+install: build-cli  ## Install go-linear to $GOPATH/bin
+	@echo "Installing go-linear..."
+	@cp $(BINDIR)/go-linear $(GOPATH)/bin/go-linear
+	@echo "✓ Installed go-linear to $(GOPATH)/bin/"
 
 clean-mcp:  ## Remove binaries
 	@echo "Cleaning binaries..."
-	@rm -f $(BINDIR)/go-linear-mcp $(BINDIR)/go-linear $(BINDIR)/go-linear-cli $(BINDIR)/linear
+	@rm -f $(BINDIR)/go-linear
 	@echo "✓ Cleaned"
 
 #
