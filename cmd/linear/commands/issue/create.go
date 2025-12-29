@@ -18,14 +18,14 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new issue",
-		Long: `Create issue. Safe operation. Uses workspace/user config defaults.
+		Long: `Create issue. Safe operation. Uses config defaults for team/labels.
 
 Required: --title
-Optional: --team (defaults from config), --description, --assignee=me, --priority (0-4), --state, --label (defaults from config)
+Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label (from config)
 
-Example: go-linear issue create --team=ENG --title="Fix bug" --assignee=me --priority=1 --output=json
+Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --output=json
 
-Related: issue_get, issue_list, team_list, user_list, label_list`,
+Related: issue_get, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
