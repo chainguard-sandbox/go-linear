@@ -18,11 +18,32 @@ pwd
 # Example output: /Users/yourname/code/go-linear
 # Binary is at: /Users/yourname/code/go-linear/bin/go-linear
 
-# 2. Add to Claude Code
-claude mcp add --transport stdio go-linear \
+# 2. Add to Claude Code (choose scope below)
+```
+
+### Choose Installation Scope
+
+**Option A: User-wide (Recommended)** - Available in all projects
+```bash
+claude mcp add --scope user --transport stdio go-linear \
   --env LINEAR_API_KEY=lin_api_YOUR_KEY_HERE \
   -- /absolute/path/to/go-linear/bin/go-linear mcp start
 ```
+
+**Option B: Local** - Only available in current folder
+```bash
+claude mcp add --scope local --transport stdio go-linear \
+  --env LINEAR_API_KEY=lin_api_YOUR_KEY_HERE \
+  -- /absolute/path/to/go-linear/bin/go-linear mcp start
+```
+
+**Option C: Project** - Shared via `.mcp.json` (team collaboration)
+```bash
+claude mcp add --scope project --transport stdio go-linear \
+  --env LINEAR_API_KEY=lin_api_YOUR_KEY_HERE \
+  -- /absolute/path/to/go-linear/bin/go-linear mcp start
+```
+*Note: Don't commit `.mcp.json` with API keys*
 
 **Important:**
 - Replace `lin_api_YOUR_KEY_HERE` with your actual Linear API key
