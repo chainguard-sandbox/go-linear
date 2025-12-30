@@ -50,6 +50,8 @@ claude mcp add --scope project --transport stdio go-linear \
 - Replace `/absolute/path/to/...` with your actual binary path from step 1
 - The `--` separator distinguishes Claude's flags from the server command
 
+> nb: to avoid printing key to history, manually edit `~/.claude.json`
+
 ## Get Your Linear API Key
 
 1. Go to [linear.app/settings/api](https://linear.app/settings/api)

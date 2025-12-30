@@ -78,8 +78,8 @@ Related: issue_list, issue_update`,
 	cmd.Flags().String("set-assignee", "", "New assignee (name, email, or 'me')")
 	cmd.Flags().Int("set-priority", -1, "New priority (0-4)")
 	cmd.Flags().String("set-team", "", "New team name or ID")
-	cmd.Flags().String("set-cycle", "", "New cycle UUID")
-	cmd.Flags().String("set-project", "", "New project UUID")
+	cmd.Flags().String("set-cycle", "", "New cycle UUID (use 'none' to remove)")
+	cmd.Flags().String("set-project", "", "New project UUID (use 'none' to remove)")
 	cmd.Flags().StringArray("add-label", []string{}, "Labels to add (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Labels to remove (repeatable)")
 	cmd.Flags().String("set-description", "", "New description")
@@ -196,13 +196,25 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 		updateCount++
 	}
 
-	if setCycle, _ := cmd.Flags().GetString("set-cycle"); setCycle != "" {
-		input.CycleID = &setCycle
+	if cmd.Flags().Changed("set-cycle") {
+		setCycle, _ := cmd.Flags().GetString("set-cycle")
+		if setCycle == "none" {
+			empty := ""
+			input.CycleID = &empty // Empty string removes cycle
+		} else {
+			input.CycleID = &setCycle
+		}
 		updateCount++
 	}
 
-	if setProject, _ := cmd.Flags().GetString("set-project"); setProject != "" {
-		input.ProjectID = &setProject
+	if cmd.Flags().Changed("set-project") {
+		setProject, _ := cmd.Flags().GetString("set-project")
+		if setProject == "none" {
+			empty := ""
+			input.ProjectID = &empty // Empty string removes project
+		} else {
+			input.ProjectID = &setProject
+		}
 		updateCount++
 	}
 

@@ -19,9 +19,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee=me, --state, --priority (0-4), --add-label, --remove-label, --link-pr (owner/repo#123)
+Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --add-label, --remove-label, --link-pr (owner/repo#123)
 
-Example: go-linear issue update ENG-123 --assignee=me --state=Done --link-pr=org/repo#123 --output=json
+Example: go-linear issue update ENG-123 --state=Done --cycle=none --link-pr=org/repo#123 --output=json
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -42,6 +42,8 @@ Related: issue_get, issue_create`,
 	cmd.Flags().String("assignee", "", "New assignee name, email, or ID")
 	cmd.Flags().String("state", "", "New state name or ID")
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
+	cmd.Flags().String("cycle", "", "Cycle UUID (use 'none' to remove)")
+	cmd.Flags().String("project", "", "Project UUID (use 'none' to remove)")
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
@@ -118,6 +120,30 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			labelIDs = append(labelIDs, labelID)
 		}
 		input.RemovedLabelIds = labelIDs
+		updated = true
+	}
+
+	// Cycle assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("cycle") {
+		cycle, _ := cmd.Flags().GetString("cycle")
+		if cycle == "none" {
+			empty := ""
+			input.CycleID = &empty // Set to empty string to remove cycle
+		} else {
+			input.CycleID = &cycle
+		}
+		updated = true
+	}
+
+	// Project assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("project") {
+		project, _ := cmd.Flags().GetString("project")
+		if project == "none" {
+			empty := ""
+			input.ProjectID = &empty // Set to empty string to remove project
+		} else {
+			input.ProjectID = &project
+		}
 		updated = true
 	}
 
