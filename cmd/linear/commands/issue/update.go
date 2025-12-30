@@ -58,7 +58,29 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	ctx := context.Background()
 	res := resolver.New(client)
 
-	// Build input
+	// Check if we need nullable support (for removing parent/cycle/project with 'none')
+	needsNullable := false
+	if cmd.Flags().Changed("parent") {
+		if parent, _ := cmd.Flags().GetString("parent"); parent == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("cycle") {
+		if cycle, _ := cmd.Flags().GetString("cycle"); cycle == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("project") {
+		if project, _ := cmd.Flags().GetString("project"); project == "none" {
+			needsNullable = true
+		}
+	}
+
+	if needsNullable {
+		return runUpdateWithNullable(cmd, client, issueID, res)
+	}
+
+	// Build standard input
 	input := intgraphql.IssueUpdateInput{}
 	updated := false
 
@@ -215,4 +237,117 @@ func findSubstring(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// runUpdateWithNullable handles updates that require explicit null (e.g., removing parent).
+func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID string, res *resolver.Resolver) error {
+	ctx := context.Background()
+
+	// Build nullable input
+	input := linear.IssueUpdateNullableInput{}
+
+	if title, _ := cmd.Flags().GetString("title"); title != "" {
+		input.Title = &title
+	}
+
+	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
+		input.Description = &desc
+	}
+
+	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" {
+		userID, err := res.ResolveUser(ctx, assignee)
+		if err != nil {
+			return fmt.Errorf("failed to resolve assignee: %w", err)
+		}
+		input.AssigneeID = &userID
+	}
+
+	if state, _ := cmd.Flags().GetString("state"); state != "" {
+		stateID, err := res.ResolveState(ctx, state)
+		if err != nil {
+			return fmt.Errorf("failed to resolve state: %w", err)
+		}
+		input.StateID = &stateID
+	}
+
+	if priority, _ := cmd.Flags().GetInt("priority"); priority >= 0 {
+		p := int64(priority)
+		input.Priority = &p
+	}
+
+	addLabels, _ := cmd.Flags().GetStringArray("add-label")
+	if len(addLabels) > 0 {
+		labelIDs := make([]string, 0, len(addLabels))
+		for _, label := range addLabels {
+			labelID, err := res.ResolveLabel(ctx, label)
+			if err != nil {
+				return fmt.Errorf("failed to resolve label %q: %w", label, err)
+			}
+			labelIDs = append(labelIDs, labelID)
+		}
+		input.AddedLabelIds = labelIDs
+	}
+
+	removeLabels, _ := cmd.Flags().GetStringArray("remove-label")
+	if len(removeLabels) > 0 {
+		labelIDs := make([]string, 0, len(removeLabels))
+		for _, label := range removeLabels {
+			labelID, err := res.ResolveLabel(ctx, label)
+			if err != nil {
+				return fmt.Errorf("failed to resolve label %q: %w", label, err)
+			}
+			labelIDs = append(labelIDs, labelID)
+		}
+		input.RemovedLabelIds = labelIDs
+	}
+
+	// Nullable fields - support 'none' for removal
+	if cmd.Flags().Changed("cycle") {
+		cycle, _ := cmd.Flags().GetString("cycle")
+		if cycle == "none" {
+			input.CycleID = linear.NewNull[string]()
+		} else {
+			input.CycleID = linear.NewValue(cycle)
+		}
+	}
+
+	if cmd.Flags().Changed("project") {
+		project, _ := cmd.Flags().GetString("project")
+		if project == "none" {
+			input.ProjectID = linear.NewNull[string]()
+		} else {
+			input.ProjectID = linear.NewValue(project)
+		}
+	}
+
+	if cmd.Flags().Changed("parent") {
+		parent, _ := cmd.Flags().GetString("parent")
+		if parent == "none" {
+			input.ParentID = linear.NewNull[string]()
+		} else {
+			parentID, err := res.ResolveIssue(ctx, parent)
+			if err != nil {
+				return fmt.Errorf("failed to resolve parent issue: %w", err)
+			}
+			input.ParentID = linear.NewValue(parentID)
+		}
+	}
+
+	// Use nullable update method
+	result, err := client.IssueUpdateNullable(ctx, issueID, input)
+	if err != nil {
+		return fmt.Errorf("failed to update issue: %w", err)
+	}
+
+	// Format output
+	output, _ := cmd.Flags().GetString("output")
+	switch output {
+	case "json":
+		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
+	case "table":
+		fmt.Fprintf(cmd.OutOrStdout(), "Updated issue: %s\n", result.Identifier)
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", output)
+	}
 }
