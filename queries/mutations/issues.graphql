@@ -10,6 +10,10 @@ mutation CreateIssue($input: IssueCreateInput!) {
       createdAt
       number
       url
+      parent {
+        id
+        identifier
+      }
       state {
         id
         name

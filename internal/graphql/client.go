@@ -1051,6 +1051,24 @@ func (t *ListInitiatives_Initiatives) GetPageInfo() *ListInitiatives_Initiatives
 	return &t.PageInfo
 }
 
+type GetIssue_Issue_Parent struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+}
+
+func (t *GetIssue_Issue_Parent) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue_Parent{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_Parent) GetIdentifier() string {
+	if t == nil {
+		t = &GetIssue_Issue_Parent{}
+	}
+	return t.Identifier
+}
+
 type GetIssue_Issue_State struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -1132,7 +1150,9 @@ type GetIssue_Issue struct {
 	Description *string                  "json:\"description,omitempty\" graphql:\"description\""
 	Estimate    *float64                 "json:\"estimate,omitempty\" graphql:\"estimate\""
 	ID          string                   "json:\"id\" graphql:\"id\""
+	Identifier  string                   "json:\"identifier\" graphql:\"identifier\""
 	Number      float64                  "json:\"number\" graphql:\"number\""
+	Parent      *GetIssue_Issue_Parent   "json:\"parent,omitempty\" graphql:\"parent\""
 	Priority    float64                  "json:\"priority\" graphql:\"priority\""
 	State       GetIssue_Issue_State     "json:\"state\" graphql:\"state\""
 	Team        GetIssue_Issue_Team      "json:\"team\" graphql:\"team\""
@@ -1171,11 +1191,23 @@ func (t *GetIssue_Issue) GetID() string {
 	}
 	return t.ID
 }
+func (t *GetIssue_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Identifier
+}
 func (t *GetIssue_Issue) GetNumber() float64 {
 	if t == nil {
 		t = &GetIssue_Issue{}
 	}
 	return t.Number
+}
+func (t *GetIssue_Issue) GetParent() *GetIssue_Issue_Parent {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Parent
 }
 func (t *GetIssue_Issue) GetPriority() float64 {
 	if t == nil {
@@ -2750,6 +2782,24 @@ func (t *IssueRelationDelete_IssueRelationDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type CreateIssue_IssueCreate_Issue_Parent struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+}
+
+func (t *CreateIssue_IssueCreate_Issue_Parent) GetID() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_Parent{}
+	}
+	return t.ID
+}
+func (t *CreateIssue_IssueCreate_Issue_Parent) GetIdentifier() string {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue_Parent{}
+	}
+	return t.Identifier
+}
+
 type CreateIssue_IssueCreate_Issue_State struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -2794,16 +2844,17 @@ func (t *CreateIssue_IssueCreate_Issue_Team) GetName() string {
 }
 
 type CreateIssue_IssueCreate_Issue struct {
-	CreatedAt   time.Time                           "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string                             "json:\"description,omitempty\" graphql:\"description\""
-	ID          string                              "json:\"id\" graphql:\"id\""
-	Identifier  string                              "json:\"identifier\" graphql:\"identifier\""
-	Number      float64                             "json:\"number\" graphql:\"number\""
-	Priority    float64                             "json:\"priority\" graphql:\"priority\""
-	State       CreateIssue_IssueCreate_Issue_State "json:\"state\" graphql:\"state\""
-	Team        CreateIssue_IssueCreate_Issue_Team  "json:\"team\" graphql:\"team\""
-	Title       string                              "json:\"title\" graphql:\"title\""
-	URL         string                              "json:\"url\" graphql:\"url\""
+	CreatedAt   time.Time                             "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                               "json:\"description,omitempty\" graphql:\"description\""
+	ID          string                                "json:\"id\" graphql:\"id\""
+	Identifier  string                                "json:\"identifier\" graphql:\"identifier\""
+	Number      float64                               "json:\"number\" graphql:\"number\""
+	Parent      *CreateIssue_IssueCreate_Issue_Parent "json:\"parent,omitempty\" graphql:\"parent\""
+	Priority    float64                               "json:\"priority\" graphql:\"priority\""
+	State       CreateIssue_IssueCreate_Issue_State   "json:\"state\" graphql:\"state\""
+	Team        CreateIssue_IssueCreate_Issue_Team    "json:\"team\" graphql:\"team\""
+	Title       string                                "json:\"title\" graphql:\"title\""
+	URL         string                                "json:\"url\" graphql:\"url\""
 }
 
 func (t *CreateIssue_IssueCreate_Issue) GetCreatedAt() *time.Time {
@@ -2835,6 +2886,12 @@ func (t *CreateIssue_IssueCreate_Issue) GetNumber() float64 {
 		t = &CreateIssue_IssueCreate_Issue{}
 	}
 	return t.Number
+}
+func (t *CreateIssue_IssueCreate_Issue) GetParent() *CreateIssue_IssueCreate_Issue_Parent {
+	if t == nil {
+		t = &CreateIssue_IssueCreate_Issue{}
+	}
+	return t.Parent
 }
 func (t *CreateIssue_IssueCreate_Issue) GetPriority() float64 {
 	if t == nil {
@@ -6129,6 +6186,7 @@ func (c *Client) ListInitiatives(ctx context.Context, first *int64, after *strin
 const GetIssueDocument = `query GetIssue ($id: String!) {
 	issue(id: $id) {
 		id
+		identifier
 		title
 		description
 		priority
@@ -6137,6 +6195,10 @@ const GetIssueDocument = `query GetIssue ($id: String!) {
 		updatedAt
 		number
 		url
+		parent {
+			id
+			identifier
+		}
 		state {
 			id
 			name
@@ -6973,6 +7035,10 @@ const CreateIssueDocument = `mutation CreateIssue ($input: IssueCreateInput!) {
 			createdAt
 			number
 			url
+			parent {
+				id
+				identifier
+			}
 			state {
 				id
 				name

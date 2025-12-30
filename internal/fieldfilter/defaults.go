@@ -18,7 +18,7 @@ var BuiltinDefaults = map[string][]string{
 	"issue.get": {
 		"id", "identifier", "title", "url",
 		"state.name", "team.key", "priority", "createdAt",
-		"description", "assignee.name",
+		"description", "assignee.name", "parent.identifier",
 	},
 
 	// Team commands
