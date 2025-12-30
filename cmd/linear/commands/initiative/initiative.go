@@ -18,6 +18,8 @@ func NewInitiativeCommand(clientFactory ClientFactory) *cobra.Command {
 
 	cmd.AddCommand(NewListCommand(clientFactory))
 	cmd.AddCommand(NewGetCommand(clientFactory))
+	cmd.AddCommand(NewCreateCommand(clientFactory))
+	cmd.AddCommand(NewUpdateCommand(clientFactory))
 
 	return cmd
 }

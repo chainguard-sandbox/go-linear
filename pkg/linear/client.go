@@ -762,6 +762,30 @@ func (c *Client) WorkflowStates(ctx context.Context, first *int64, after *string
 	return &resp.WorkflowStates, nil
 }
 
+// InitiativeCreate creates a new initiative.
+func (c *Client) InitiativeCreate(ctx context.Context, input intgraphql.InitiativeCreateInput) (*intgraphql.CreateInitiative_InitiativeCreate_Initiative, error) {
+	resp, err := c.gqlClient.CreateInitiative(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("InitiativeCreate", err)
+	}
+	if !resp.InitiativeCreate.Success {
+		return nil, errMutationFailed("InitiativeCreate")
+	}
+	return &resp.InitiativeCreate.Initiative, nil
+}
+
+// InitiativeUpdate updates an existing initiative.
+func (c *Client) InitiativeUpdate(ctx context.Context, id string, input intgraphql.InitiativeUpdateInput) (*intgraphql.UpdateInitiative_InitiativeUpdate_Initiative, error) {
+	resp, err := c.gqlClient.UpdateInitiative(ctx, id, input)
+	if err != nil {
+		return nil, wrapGraphQLError("InitiativeUpdate", err)
+	}
+	if !resp.InitiativeUpdate.Success {
+		return nil, errMutationFailed("InitiativeUpdate")
+	}
+	return &resp.InitiativeUpdate.Initiative, nil
+}
+
 // Cycle retrieves a single development cycle (sprint) by ID.
 //
 // Returns:

@@ -39,6 +39,8 @@ type LinearGraphQLClient interface {
 	ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error)
 	FavoriteCreate(ctx context.Context, input FavoriteCreateInput, interceptors ...clientv2.RequestInterceptor) (*FavoriteCreate, error)
 	FavoriteDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*FavoriteDelete, error)
+	CreateInitiative(ctx context.Context, input InitiativeCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiative, error)
+	UpdateInitiative(ctx context.Context, id string, input InitiativeUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateInitiative, error)
 	IssueAddLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueAddLabel, error)
 	IssueRemoveLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueRemoveLabel, error)
 	IssueRelationCreate(ctx context.Context, input IssueRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationCreate, error)
@@ -2303,6 +2305,106 @@ type FavoriteDelete_FavoriteDelete struct {
 func (t *FavoriteDelete_FavoriteDelete) GetSuccess() bool {
 	if t == nil {
 		t = &FavoriteDelete_FavoriteDelete{}
+	}
+	return t.Success
+}
+
+type CreateInitiative_InitiativeCreate_Initiative struct {
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateInitiative_InitiativeCreate_Initiative) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateInitiative_InitiativeCreate_Initiative{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateInitiative_InitiativeCreate_Initiative) GetDescription() *string {
+	if t == nil {
+		t = &CreateInitiative_InitiativeCreate_Initiative{}
+	}
+	return t.Description
+}
+func (t *CreateInitiative_InitiativeCreate_Initiative) GetID() string {
+	if t == nil {
+		t = &CreateInitiative_InitiativeCreate_Initiative{}
+	}
+	return t.ID
+}
+func (t *CreateInitiative_InitiativeCreate_Initiative) GetName() string {
+	if t == nil {
+		t = &CreateInitiative_InitiativeCreate_Initiative{}
+	}
+	return t.Name
+}
+
+type CreateInitiative_InitiativeCreate struct {
+	Initiative CreateInitiative_InitiativeCreate_Initiative "json:\"initiative\" graphql:\"initiative\""
+	Success    bool                                         "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateInitiative_InitiativeCreate) GetInitiative() *CreateInitiative_InitiativeCreate_Initiative {
+	if t == nil {
+		t = &CreateInitiative_InitiativeCreate{}
+	}
+	return &t.Initiative
+}
+func (t *CreateInitiative_InitiativeCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateInitiative_InitiativeCreate{}
+	}
+	return t.Success
+}
+
+type UpdateInitiative_InitiativeUpdate_Initiative struct {
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateInitiative_InitiativeUpdate_Initiative) GetDescription() *string {
+	if t == nil {
+		t = &UpdateInitiative_InitiativeUpdate_Initiative{}
+	}
+	return t.Description
+}
+func (t *UpdateInitiative_InitiativeUpdate_Initiative) GetID() string {
+	if t == nil {
+		t = &UpdateInitiative_InitiativeUpdate_Initiative{}
+	}
+	return t.ID
+}
+func (t *UpdateInitiative_InitiativeUpdate_Initiative) GetName() string {
+	if t == nil {
+		t = &UpdateInitiative_InitiativeUpdate_Initiative{}
+	}
+	return t.Name
+}
+func (t *UpdateInitiative_InitiativeUpdate_Initiative) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateInitiative_InitiativeUpdate_Initiative{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateInitiative_InitiativeUpdate struct {
+	Initiative UpdateInitiative_InitiativeUpdate_Initiative "json:\"initiative\" graphql:\"initiative\""
+	Success    bool                                         "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateInitiative_InitiativeUpdate) GetInitiative() *UpdateInitiative_InitiativeUpdate_Initiative {
+	if t == nil {
+		t = &UpdateInitiative_InitiativeUpdate{}
+	}
+	return &t.Initiative
+}
+func (t *UpdateInitiative_InitiativeUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateInitiative_InitiativeUpdate{}
 	}
 	return t.Success
 }
@@ -5154,6 +5256,28 @@ func (t *FavoriteDelete) GetFavoriteDelete() *FavoriteDelete_FavoriteDelete {
 	return &t.FavoriteDelete
 }
 
+type CreateInitiative struct {
+	InitiativeCreate CreateInitiative_InitiativeCreate "json:\"initiativeCreate\" graphql:\"initiativeCreate\""
+}
+
+func (t *CreateInitiative) GetInitiativeCreate() *CreateInitiative_InitiativeCreate {
+	if t == nil {
+		t = &CreateInitiative{}
+	}
+	return &t.InitiativeCreate
+}
+
+type UpdateInitiative struct {
+	InitiativeUpdate UpdateInitiative_InitiativeUpdate "json:\"initiativeUpdate\" graphql:\"initiativeUpdate\""
+}
+
+func (t *UpdateInitiative) GetInitiativeUpdate() *UpdateInitiative_InitiativeUpdate {
+	if t == nil {
+		t = &UpdateInitiative{}
+	}
+	return &t.InitiativeUpdate
+}
+
 type IssueAddLabel struct {
 	IssueAddLabel IssueAddLabel_IssueAddLabel "json:\"issueAddLabel\" graphql:\"issueAddLabel\""
 }
@@ -6607,6 +6731,67 @@ func (c *Client) FavoriteDelete(ctx context.Context, id string, interceptors ...
 	return &res, nil
 }
 
+const CreateInitiativeDocument = `mutation CreateInitiative ($input: InitiativeCreateInput!) {
+	initiativeCreate(input: $input) {
+		success
+		initiative {
+			id
+			name
+			description
+			createdAt
+		}
+	}
+}
+`
+
+func (c *Client) CreateInitiative(ctx context.Context, input InitiativeCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiative, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateInitiative
+	if err := c.Client.Post(ctx, "CreateInitiative", CreateInitiativeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateInitiativeDocument = `mutation UpdateInitiative ($id: String!, $input: InitiativeUpdateInput!) {
+	initiativeUpdate(id: $id, input: $input) {
+		success
+		initiative {
+			id
+			name
+			description
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateInitiative(ctx context.Context, id string, input InitiativeUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateInitiative, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateInitiative
+	if err := c.Client.Post(ctx, "UpdateInitiative", UpdateInitiativeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const IssueAddLabelDocument = `mutation IssueAddLabel ($id: String!, $labelId: String!) {
 	issueAddLabel(id: $id, labelId: $labelId) {
 		success
@@ -7949,6 +8134,8 @@ var DocumentOperationNames = map[string]string{
 	ArchiveCycleDocument:                   "ArchiveCycle",
 	FavoriteCreateDocument:                 "FavoriteCreate",
 	FavoriteDeleteDocument:                 "FavoriteDelete",
+	CreateInitiativeDocument:               "CreateInitiative",
+	UpdateInitiativeDocument:               "UpdateInitiative",
 	IssueAddLabelDocument:                  "IssueAddLabel",
 	IssueRemoveLabelDocument:               "IssueRemoveLabel",
 	IssueRelationCreateDocument:            "IssueRelationCreate",

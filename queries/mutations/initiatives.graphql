@@ -1,0 +1,23 @@
+mutation CreateInitiative($input: InitiativeCreateInput!) {
+  initiativeCreate(input: $input) {
+    success
+    initiative {
+      id
+      name
+      description
+      createdAt
+    }
+  }
+}
+
+mutation UpdateInitiative($id: String!, $input: InitiativeUpdateInput!) {
+  initiativeUpdate(id: $id, input: $input) {
+    success
+    initiative {
+      id
+      name
+      description
+      updatedAt
+    }
+  }
+}
