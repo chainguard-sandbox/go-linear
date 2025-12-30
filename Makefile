@@ -168,8 +168,13 @@ trivy:  ## Scan with trivy (if available)
 	@echo "Scanning with trivy..."
 	@trivy fs --severity HIGH,CRITICAL .
 
-check: checkfmt vet lint test  ## Run all checks (fmt, vet, lint, test) - use before commit
+check: checkfmt vet lint test check-tidy  ## Run all checks (fmt, vet, lint, test, tidy) - use before commit
 	@echo "✓ All checks passed!"
+
+check-tidy:  ## Verify go.mod is tidy
+	@echo "Verifying go.mod is tidy..."
+	@go mod tidy
+	@git diff --exit-code go.mod go.sum || (echo "ERROR: go.mod is not tidy. Run 'go mod tidy'" && exit 1)
 
 check-full: check vulncheck  ## Run all checks including vulncheck (slower)
 	@echo "✓ All checks including vulncheck passed!"
