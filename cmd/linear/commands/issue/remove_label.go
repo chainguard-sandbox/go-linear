@@ -42,6 +42,12 @@ func runRemoveLabel(cmd *cobra.Command, client *linear.Client, issueID, labelNam
 	ctx := context.Background()
 	res := resolver.New(client)
 
+	// Resolve issue ID
+	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve issue: %w", err)
+	}
+
 	// Resolve label name to UUID
 	labelID, err := res.ResolveLabel(ctx, labelName)
 	if err != nil {
@@ -49,7 +55,7 @@ func runRemoveLabel(cmd *cobra.Command, client *linear.Client, issueID, labelNam
 	}
 
 	// Remove label from issue
-	issue, err := client.IssueRemoveLabel(ctx, issueID, labelID)
+	issue, err := client.IssueRemoveLabel(ctx, resolvedIssueID, labelID)
 	if err != nil {
 		return fmt.Errorf("failed to remove label: %w", err)
 	}

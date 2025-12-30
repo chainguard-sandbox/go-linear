@@ -277,6 +277,40 @@ func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, e
 	return matches[0].ID, nil
 }
 
+// ResolveIssue resolves an issue identifier or ID to its UUID.
+// Accepts: issue identifier (e.g., "ENG-123"), issue number, or UUID.
+func (r *Resolver) ResolveIssue(ctx context.Context, identifierOrID string) (string, error) {
+	if identifierOrID == "" {
+		return "", fmt.Errorf("issue identifier/ID cannot be empty")
+	}
+
+	// Check if already a UUID
+	if uuidRegex.MatchString(identifierOrID) {
+		return identifierOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "issue:" + strings.ToLower(identifierOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Search by identifier (ENG-123) or number
+	first := int64(1)
+	result, err := r.client.SearchIssues(ctx, identifierOrID, &first, nil, nil, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to search for issue %q: %w", identifierOrID, err)
+	}
+
+	if len(result.Nodes) == 0 {
+		return "", fmt.Errorf("issue not found: %s", identifierOrID)
+	}
+
+	// Cache and return
+	r.cache.Set(cacheKey, result.Nodes[0].ID)
+	return result.Nodes[0].ID, nil
+}
+
 // ResolveProject resolves a project name to its ID.
 // Accepts: project name or UUID.
 func (r *Resolver) ResolveProject(ctx context.Context, nameOrID string) (string, error) {

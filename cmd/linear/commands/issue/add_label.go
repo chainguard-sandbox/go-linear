@@ -42,6 +42,12 @@ func runAddLabel(cmd *cobra.Command, client *linear.Client, issueID, labelName s
 	ctx := context.Background()
 	res := resolver.New(client)
 
+	// Resolve issue ID
+	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve issue: %w", err)
+	}
+
 	// Resolve label name to UUID
 	labelID, err := res.ResolveLabel(ctx, labelName)
 	if err != nil {
@@ -49,7 +55,7 @@ func runAddLabel(cmd *cobra.Command, client *linear.Client, issueID, labelName s
 	}
 
 	// Add label to issue
-	issue, err := client.IssueAddLabel(ctx, issueID, labelID)
+	issue, err := client.IssueAddLabel(ctx, resolvedIssueID, labelID)
 	if err != nil {
 		return fmt.Errorf("failed to add label: %w", err)
 	}

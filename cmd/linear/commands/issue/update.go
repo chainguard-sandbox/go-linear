@@ -19,9 +19,9 @@ func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --add-label, --remove-label, --link-pr (owner/repo#123)
+Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --parent, --add-label, --remove-label, --link-pr (owner/repo#123)
 
-Example: go-linear issue update ENG-123 --state=Done --cycle=none --link-pr=org/repo#123 --output=json
+Example: go-linear issue update ENG-123 --state=Done --parent=ENG-100 --link-pr=org/repo#123 --output=json
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -44,6 +44,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
 	cmd.Flags().String("cycle", "", "Cycle UUID (use 'none' to remove)")
 	cmd.Flags().String("project", "", "Project UUID (use 'none' to remove)")
+	cmd.Flags().String("parent", "", "Parent issue ID/identifier (use 'none' to remove)")
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
@@ -143,6 +144,23 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			input.ProjectID = &empty // Set to empty string to remove project
 		} else {
 			input.ProjectID = &project
+		}
+		updated = true
+	}
+
+	// Parent assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("parent") {
+		parent, _ := cmd.Flags().GetString("parent")
+		if parent == "none" {
+			empty := ""
+			input.ParentID = &empty // Set to empty string to remove parent
+		} else {
+			// Resolve parent issue identifier to UUID
+			parentID, err := res.ResolveIssue(ctx, parent)
+			if err != nil {
+				return fmt.Errorf("failed to resolve parent issue: %w", err)
+			}
+			input.ParentID = &parentID
 		}
 		updated = true
 	}

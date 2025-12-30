@@ -8,6 +8,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -43,6 +44,18 @@ Related: issue_unrelate, issue_update-relation`,
 
 func runRelate(cmd *cobra.Command, client *linear.Client, issueID, relatedIssueID string) error {
 	ctx := context.Background()
+	res := resolver.New(client)
+
+	// Resolve both issue IDs
+	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve issue: %w", err)
+	}
+
+	resolvedRelatedID, err := res.ResolveIssue(ctx, relatedIssueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve related issue: %w", err)
+	}
 
 	relationType, _ := cmd.Flags().GetString("type")
 
@@ -62,8 +75,8 @@ func runRelate(cmd *cobra.Command, client *linear.Client, issueID, relatedIssueI
 	}
 
 	input := intgraphql.IssueRelationCreateInput{
-		IssueID:        issueID,
-		RelatedIssueID: relatedIssueID,
+		IssueID:        resolvedIssueID,
+		RelatedIssueID: resolvedRelatedID,
 		Type:           relationTypeEnum,
 	}
 
