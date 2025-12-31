@@ -1,0 +1,20 @@
+package filter
+
+import (
+	"context"
+
+	"github.com/spf13/cobra"
+
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+)
+
+// ApplyTitle handles --title flag.
+func ApplyTitle(ctx context.Context, cmd *cobra.Command, b *IssueFilterBuilder) error {
+	title, _ := cmd.Flags().GetString("title")
+	if title == "" {
+		return nil
+	}
+
+	b.Filter().Title = &intgraphql.StringComparator{Contains: &title}
+	return nil
+}
