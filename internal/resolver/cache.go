@@ -1,65 +1,109 @@
 package resolver
 
 import (
-	"sync"
+	"context"
+	"os"
+	"path/filepath"
 	"time"
+
+	"github.com/codeGROOVE-dev/multicache"
+	"github.com/codeGROOVE-dev/multicache/pkg/store/localfs"
 )
 
-// cacheEntry represents a cached value with expiration.
-type cacheEntry struct {
-	value      string
-	expiration time.Time
-}
-
-// Cache provides a simple TTL-based cache for name→ID resolution.
+// Cache provides a file-backed TTL cache for name→ID resolution.
+// Uses multicache with local filesystem persistence to survive across
+// MCP subprocess calls (ophis spawns new process per tool invocation).
 type Cache struct {
-	mu      sync.RWMutex
-	entries map[string]cacheEntry
-	ttl     time.Duration
+	tiered   *multicache.TieredCache[string, string]
+	inmemory *multicache.Cache[string, string]
+	ttl      time.Duration
 }
 
 // NewCache creates a new cache with the specified TTL.
+// Uses multicache with local filesystem persistence.
 func NewCache(ttl time.Duration) *Cache {
-	return &Cache{
-		entries: make(map[string]cacheEntry),
-		ttl:     ttl,
+	c := &Cache{ttl: ttl}
+
+	// Determine cache directory
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		cacheDir = os.TempDir()
 	}
+	cacheDir = filepath.Join(cacheDir, "go-linear")
+
+	// Create filesystem store for persistence
+	store, err := localfs.New[string, string]("resolver", cacheDir)
+	if err != nil {
+		// Fall back to in-memory only if filesystem fails
+		c.inmemory = multicache.New[string, string](
+			multicache.Size(1000),
+			multicache.TTL(ttl),
+		)
+		return c
+	}
+
+	// Create tiered cache: memory + filesystem
+	c.tiered, err = multicache.NewTiered(store,
+		multicache.Size(1000),
+		multicache.TTL(ttl),
+	)
+	if err != nil {
+		// Fall back to in-memory only
+		c.inmemory = multicache.New[string, string](
+			multicache.Size(1000),
+			multicache.TTL(ttl),
+		)
+	}
+
+	return c
 }
 
 // Get retrieves a value from the cache.
 // Returns empty string if not found or expired.
 func (c *Cache) Get(key string) (string, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	ctx := context.Background()
 
-	entry, ok := c.entries[key]
-	if !ok {
-		return "", false
+	if c.tiered != nil {
+		val, ok, err := c.tiered.Get(ctx, key)
+		if err != nil || !ok {
+			return "", false
+		}
+		return val, true
 	}
 
-	// Check if expired
-	if time.Now().After(entry.expiration) {
-		return "", false
+	if c.inmemory != nil {
+		return c.inmemory.Get(key)
 	}
 
-	return entry.value, true
+	return "", false
 }
 
 // Set stores a value in the cache with TTL.
+// Uses async write for better performance.
 func (c *Cache) Set(key, value string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	ctx := context.Background()
 
-	c.entries[key] = cacheEntry{
-		value:      value,
-		expiration: time.Now().Add(c.ttl),
+	if c.tiered != nil {
+		_ = c.tiered.SetAsync(ctx, key, value)
+		return
+	}
+
+	if c.inmemory != nil {
+		c.inmemory.Set(key, value)
 	}
 }
 
 // Clear removes all entries from the cache.
 func (c *Cache) Clear() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	ctx := context.Background()
 
-	c.entries = make(map[string]cacheEntry)
+	if c.tiered != nil {
+		// TieredCache.Flush syncs to disk; use Store.Flush to clear disk storage
+		_, _ = c.tiered.Store.Flush(ctx)
+		return
+	}
+
+	if c.inmemory != nil {
+		c.inmemory.Flush()
+	}
 }
