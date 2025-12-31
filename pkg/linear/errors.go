@@ -2,6 +2,7 @@ package linear
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 )
@@ -167,6 +168,20 @@ type ForbiddenError struct {
 	*LinearError
 }
 
+// Error pattern groups for HTTP status detection.
+var (
+	authErrorPatterns      = []string{`"code":401`, "AUTHENTICATION_ERROR"}
+	forbiddenErrorPatterns = []string{`"code":403`, "FORBIDDEN"}
+	rateLimitErrorPatterns = []string{`"code":429`, "RATELIMITED"}
+)
+
+// containsAny checks if value contains any of the patterns.
+func containsAny(value string, patterns []string) bool {
+	return slices.ContainsFunc(patterns, func(pattern string) bool {
+		return strings.Contains(value, pattern)
+	})
+}
+
 // wrapGraphQLError wraps a gqlgenc error in a LinearError with operation context.
 // Extracts user-friendly error messages from verbose gqlgenc responses.
 func wrapGraphQLError(operation string, err error) error {
@@ -181,7 +196,7 @@ func wrapGraphQLError(operation string, err error) error {
 	// We want to extract the actual GraphQL error message for better UX
 
 	// Check for authentication errors (401)
-	if strings.Contains(errStr, `"code":401`) || strings.Contains(errStr, "AUTHENTICATION_ERROR") {
+	if containsAny(errStr, authErrorPatterns) {
 		return &AuthenticationError{
 			LinearError: &LinearError{
 				Type:       ErrorTypeAuthenticationError,
@@ -193,7 +208,7 @@ func wrapGraphQLError(operation string, err error) error {
 	}
 
 	// Check for forbidden errors (403)
-	if strings.Contains(errStr, `"code":403`) || strings.Contains(errStr, "FORBIDDEN") {
+	if containsAny(errStr, forbiddenErrorPatterns) {
 		return &ForbiddenError{
 			LinearError: &LinearError{
 				Type:       ErrorTypeForbidden,
@@ -205,7 +220,7 @@ func wrapGraphQLError(operation string, err error) error {
 	}
 
 	// Check for rate limit errors (429)
-	if strings.Contains(errStr, `"code":429`) || strings.Contains(errStr, "RATELIMITED") {
+	if containsAny(errStr, rateLimitErrorPatterns) {
 		return &LinearError{
 			Type:       ErrorTypeRateLimited,
 			Message:    "rate limit exceeded",
