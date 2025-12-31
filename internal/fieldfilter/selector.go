@@ -178,6 +178,9 @@ func (fs *FieldSelector) Filter(data []byte) ([]byte, error) {
 
 // filterValue recursively filters map[string]any structures
 func (fs *FieldSelector) filterValue(val any) any {
+	if fs == nil {
+		return val // No filtering if selector is nil
+	}
 	switch v := val.(type) {
 	case map[string]any:
 		return fs.filterObject(v)
