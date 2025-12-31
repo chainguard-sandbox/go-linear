@@ -8,6 +8,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // TestIssueIterator_Concurrent verifies iterator is safe for concurrent use
@@ -42,19 +44,18 @@ func TestIssueIterator_Concurrent(t *testing.T) {
 
 	// Share ONE iterator across 5 concurrent goroutines
 	iter := NewIssueIterator(client, 5)
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(context.Background())
 
 	for i := range 5 {
 		workerID := i
-		wg.Go(func() {
+		g.Go(func() error {
 			for {
-				issue, err := iter.Next(context.Background())
+				issue, err := iter.Next(ctx)
 				if errors.Is(err, io.EOF) {
-					return
+					return nil
 				}
 				if err != nil {
-					t.Errorf("Worker %d: unexpected error: %v", workerID, err)
-					return
+					return err
 				}
 
 				// Track which issues we've seen (should be unique)
@@ -65,7 +66,9 @@ func TestIssueIterator_Concurrent(t *testing.T) {
 		})
 	}
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		t.Fatalf("Worker error: %v", err)
+	}
 
 	// Verify all 10 issues were seen exactly once
 	count := 0
@@ -89,22 +92,25 @@ func TestIterator_Concurrency(t *testing.T) {
 	})
 
 	iter := NewIssueIterator(client, 10)
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(context.Background())
 
 	// Multiple goroutines calling Next() concurrently
 	// With mutex: no panic. Without mutex: data race/panic.
 	for range 5 {
-		wg.Go(func() {
+		g.Go(func() error {
 			for range 3 {
-				_, err := iter.Next(context.Background())
-				if err != nil {
-					return
+				// EOF is expected when iterator is exhausted
+				if _, err := iter.Next(ctx); errors.Is(err, io.EOF) {
+					return nil
 				}
 			}
+			return nil
 		})
 	}
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 	// If we get here without panic, mutex is working
 }
 
@@ -116,15 +122,18 @@ func TestTeamIterator_Concurrent(t *testing.T) {
 	})
 
 	iter := NewTeamIterator(client, 10)
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(context.Background())
 
 	for range 3 {
-		wg.Go(func() {
-			_, _ = iter.Next(context.Background())
+		g.Go(func() error {
+			_, _ = iter.Next(ctx)
+			return nil
 		})
 	}
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 }
 
 // TestProjectIterator_Concurrent verifies ProjectIterator mutex protection
@@ -135,15 +144,18 @@ func TestProjectIterator_Concurrent(t *testing.T) {
 	})
 
 	iter := NewProjectIterator(client, 10)
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(context.Background())
 
 	for range 3 {
-		wg.Go(func() {
-			_, _ = iter.Next(context.Background())
+		g.Go(func() error {
+			_, _ = iter.Next(ctx)
+			return nil
 		})
 	}
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 }
 
 // TestCommentIterator_Concurrent verifies CommentIterator mutex protection
@@ -154,13 +166,16 @@ func TestCommentIterator_Concurrent(t *testing.T) {
 	})
 
 	iter := NewCommentIterator(client, 10)
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(context.Background())
 
 	for range 3 {
-		wg.Go(func() {
-			_, _ = iter.Next(context.Background())
+		g.Go(func() error {
+			_, _ = iter.Next(ctx)
+			return nil
 		})
 	}
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 }
