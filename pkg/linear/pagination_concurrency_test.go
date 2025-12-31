@@ -45,10 +45,8 @@ func TestIssueIterator_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := range 5 {
-		wg.Add(1)
-		go func(workerID int) {
-			defer wg.Done()
-
+		workerID := i
+		wg.Go(func() {
 			for {
 				issue, err := iter.Next(context.Background())
 				if errors.Is(err, io.EOF) {
@@ -64,7 +62,7 @@ func TestIssueIterator_Concurrent(t *testing.T) {
 					t.Errorf("Worker %d: duplicate issue %s", workerID, issue.ID)
 				}
 			}
-		}(i)
+		})
 	}
 
 	wg.Wait()
