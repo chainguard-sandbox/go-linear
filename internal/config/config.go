@@ -95,6 +95,14 @@ func loadWorkspaceConfig() (*Config, error) {
 
 // merge combines workspace config (higher priority) with user config (lower priority).
 func merge(user, workspace *Config) *Config {
+	// Handle nil inputs
+	if user == nil {
+		user = &Config{}
+	}
+	if workspace == nil {
+		workspace = &Config{}
+	}
+
 	result := &Config{
 		FieldDefaults: make(map[string]string),
 	}
