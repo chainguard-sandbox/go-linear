@@ -97,16 +97,3 @@ func (p *Parser) MustParse(input string) time.Time {
 	}
 	return t
 }
-
-// ParseOrNil parses a date string and returns nil on error.
-// Useful when the date is optional.
-func (p *Parser) ParseOrNil(input string) *time.Time {
-	if input == "" {
-		return nil
-	}
-	t, err := p.Parse(input)
-	if err != nil {
-		return nil
-	}
-	return &t
-}

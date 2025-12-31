@@ -159,26 +159,3 @@ func TestMustParse(t *testing.T) {
 	}()
 	p.MustParse("invalid")
 }
-
-func TestParseOrNil(t *testing.T) {
-	p := New()
-
-	// Empty string returns nil
-	if result := p.ParseOrNil(""); result != nil {
-		t.Errorf("ParseOrNil('') = %v, want nil", result)
-	}
-
-	// Valid date returns pointer
-	result := p.ParseOrNil("2025-12-10")
-	if result == nil {
-		t.Fatal("ParseOrNil() = nil, want non-nil")
-	}
-	if result.Year() != 2025 {
-		t.Errorf("ParseOrNil() year = %d, want 2025", result.Year())
-	}
-
-	// Invalid date returns nil
-	if result := p.ParseOrNil("invalid"); result != nil {
-		t.Errorf("ParseOrNil('invalid') = %v, want nil", result)
-	}
-}
