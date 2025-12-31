@@ -468,7 +468,11 @@ type AgentSession implements Node {
   """
   The URL of an external agent-hosted page associated with this session.
   """
-  externalLink: String
+  externalLink: String @deprecated(reason: "Use externalUrls instead.")
+  """
+  URLs of external resources associated with this session.
+  """
+  externalUrls: JSON!
   """
   The unique identifier of the entity.
   """
@@ -481,6 +485,39 @@ type AgentSession implements Node {
   A dynamically updated list of the agent's execution strategy.
   """
   plan: JSON
+  """
+  [Internal] A formatted prompt string containing relevant context for the agent session, including issue details, comments, and guidance.
+  """
+  promptContext: String
+  """
+  [Internal] Pull requests associated with this agent session.
+  """
+  pullRequests(
+    """
+    A cursor to be used with first for forward pagination
+    """
+    after: String
+    """
+    A cursor to be used with last for backward pagination.
+    """
+    before: String
+    """
+    The number of items to forward paginate (used with after). Defaults to 50.
+    """
+    first: Int
+    """
+    Should archived resources be included (default: false)
+    """
+    includeArchived: Boolean
+    """
+    The number of items to backward paginate (used with before). Defaults to 50.
+    """
+    last: Int
+    """
+    By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
+    """
+    orderBy: PaginationOrderBy
+  ): AgentSessionToPullRequestConnection!
   """
   The comment that this agent session was spawned from, if from a different thread.
   """
@@ -530,7 +567,7 @@ input AgentSessionCreateInput {
   """
   The issue that this session will be associated with.
   """
-  issueId: String!
+  issueId: String
 }
 
 input AgentSessionCreateOnComment {
@@ -542,6 +579,10 @@ input AgentSessionCreateOnComment {
   The URL of an external agent-hosted page associated with this session.
   """
   externalLink: String
+  """
+  URLs of external resources associated with this session.
+  """
+  externalUrls: [AgentSessionExternalUrlInput!]
 }
 
 input AgentSessionCreateOnIssue {
@@ -549,6 +590,10 @@ input AgentSessionCreateOnIssue {
   The URL of an external agent-hosted page associated with this session.
   """
   externalLink: String
+  """
+  URLs of external resources associated with this session.
+  """
+  externalUrls: [AgentSessionExternalUrlInput!]
   """
   The issue that this session will be associated with.
   """
@@ -604,9 +649,35 @@ type AgentSessionEventWebhookPayload {
   """
   previousComments: [CommentChildWebhookPayload!]
   """
+  A formatted prompt string containing the relevant context for the agent session, including issue details, comments, and guidance. Present only for `created` events.
+  """
+  promptContext: String
+  """
   The type of resource.
   """
   type: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
+}
+
+"""
+Input for an external URL associated with an agent session.
+"""
+input AgentSessionExternalUrlInput {
+  """
+  Optional label for the URL.
+  """
+  label: String
+  """
+  The URL of the external resource.
+  """
+  url: String!
 }
 
 type AgentSessionPayload {
@@ -637,6 +708,51 @@ enum AgentSessionStatus {
 }
 
 """
+Join table between agent sessions and pull requests.
+"""
+type AgentSessionToPullRequest implements Node {
+  """
+  The agent session that the pull request is associated with.
+  """
+  agentSession: AgentSession!
+  """
+  The time at which the entity was archived. Null if the entity has not been archived.
+  """
+  archivedAt: DateTime
+  """
+  The time at which the entity was created.
+  """
+  createdAt: DateTime!
+  """
+  The unique identifier of the entity.
+  """
+  id: ID!
+  """
+  The pull request that the agent session is associated with.
+  """
+  pullRequest: PullRequest!
+  """
+  The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+      been updated after creation.
+  """
+  updatedAt: DateTime!
+}
+
+type AgentSessionToPullRequestConnection {
+  edges: [AgentSessionToPullRequestEdge!]!
+  nodes: [AgentSessionToPullRequest!]!
+  pageInfo: PageInfo!
+}
+
+type AgentSessionToPullRequestEdge {
+  """
+  Used in `before` and `after` args
+  """
+  cursor: String!
+  node: AgentSessionToPullRequest!
+}
+
+"""
 The type of an agent session.
 """
 enum AgentSessionType {
@@ -645,12 +761,28 @@ enum AgentSessionType {
 
 input AgentSessionUpdateExternalUrlInput {
   """
+  URLs of external resources to be added to this session.
+  """
+  addedExternalUrls: [AgentSessionExternalUrlInput!]
+  """
   The URL of an external agent-hosted page associated with this session.
   """
   externalLink: String
+  """
+  URLs of external resources associated with this session. Replaces existing URLs.
+  """
+  externalUrls: [AgentSessionExternalUrlInput!]
+  """
+  URLs to be removed from this session.
+  """
+  removedExternalUrls: [String!]
 }
 
 input AgentSessionUpdateInput {
+  """
+  URLs of external resources to be added to this session. Only updatable by the OAuth application that owns the session.
+  """
+  addedExternalUrls: [AgentSessionExternalUrlInput!]
   """
   [Internal] The time the agent session was dismissed. Only updatable by internal clients.
   """
@@ -660,9 +792,17 @@ input AgentSessionUpdateInput {
   """
   externalLink: String
   """
+  URLs of external resources associated with this session. Replaces existing URLs. Only updatable by the OAuth application that owns the session. If supplied, addedExternalUrls and removedExternalUrls are ignored.
+  """
+  externalUrls: [AgentSessionExternalUrlInput!]
+  """
   A dynamically updated list of the agent's execution strategy. Only updatable by the OAuth application that owns the session.
   """
   plan: JSONObject
+  """
+  URLs to be removed from this session. Only updatable by the OAuth application that owns the session.
+  """
+  removedExternalUrls: [String!]
 }
 
 """
@@ -813,6 +953,14 @@ type AppUserNotificationWebhookPayload {
   The type of resource.
   """
   type: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -855,6 +1003,14 @@ type AppUserTeamAccessChangedWebhookPayload {
   The type of resource.
   """
   type: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -962,6 +1118,17 @@ type AsksChannelConnectPayload {
   Whether the operation was successful.
   """
   success: Boolean!
+}
+
+type AsksWebFormsAuthResponse {
+  """
+  User email.
+  """
+  email: String!
+  """
+  User display name.
+  """
+  name: String!
 }
 
 """
@@ -1799,6 +1966,14 @@ type BaseWebhookPayload {
   ID of the organization for which the webhook belongs to.
   """
   organizationId: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -2640,6 +2815,14 @@ type CustomResourceWebhookPayload {
   The type of resource.
   """
   type: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -4761,13 +4944,13 @@ input CustomerTierFilter {
   """
   description: StringComparator
   """
+  Comparator for the customer tier display name.
+  """
+  displayName: StringComparator
+  """
   Comparator for the identifier.
   """
   id: IDComparator
-  """
-  Comparator for the customer tier name.
-  """
-  name: StringComparator
   """
   Compound filters, one of which needs to be matched by the customer tier.
   """
@@ -7374,6 +7557,14 @@ type EntityWebhookPayload {
   URL for the entity.
   """
   url: String
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -7822,6 +8013,14 @@ type Favorite implements Node {
   """
   pullRequest: PullRequest
   """
+  [ALPHA] The favorited release.
+  """
+  release: Release
+  """
+  [ALPHA] The favorited release pipeline.
+  """
+  releasePipeline: ReleasePipeline
+  """
   The order of the item in the favorites list.
   """
   sortOrder: Float!
@@ -7931,6 +8130,14 @@ input FavoriteCreateInput {
   The identifier of the pull request to favorite.
   """
   pullRequestId: String
+  """
+  [ALPHA] The identifier of the release to favorite.
+  """
+  releaseId: String
+  """
+  [ALPHA] The identifier of the release pipeline to favorite.
+  """
+  releasePipelineId: String
   """
   The position of the item in the favorites list.
   """
@@ -8758,6 +8965,10 @@ type IdentityProvider implements Node {
   [INTERNAL] SCIM admins group push settings.
   """
   adminsGroupPush: JSONObject
+  """
+  Whether users are allowed to change their name and display name even if SCIM is enabled.
+  """
+  allowNameChange: Boolean!
   """
   The time at which the entity was archived. Null if the entity has not been archived.
   """
@@ -11813,10 +12024,6 @@ type Issue implements Node {
     orderBy: PaginationOrderBy
   ): IssueRelationConnection!
   """
-  [Internal] Id of the releases associated with this issue.
-  """
-  releaseIds: [String!]!
-  """
   The time at which the issue's SLA will breach.
   """
   slaBreachesAt: DateTime
@@ -12262,7 +12469,7 @@ input IssueCollectionFilter {
   """
   Comparator for the identifier.
   """
-  id: IDComparator
+  id: IssueIDComparator
   """
   Filters that issue labels must satisfy.
   """
@@ -13015,7 +13222,7 @@ input IssueFilter {
   """
   Comparator for the identifier.
   """
-  id: IDComparator
+  id: IssueIDComparator
   """
   Filters that issue labels must satisfy.
   """
@@ -13158,6 +13365,14 @@ type IssueHistory implements Node {
   """
   addedLabels: [IssueLabel!]
   """
+  [ALPHA] ID's of releases that the issue was added to.
+  """
+  addedToReleaseIds: [String!]
+  """
+  The releases that the issue was added to.
+  """
+  addedToReleases: [Release!]
+  """
   Whether the issue is archived at the time of this history entry.
   """
   archived: Boolean
@@ -13286,6 +13501,14 @@ type IssueHistory implements Node {
   """
   relationChanges: [IssueRelationHistoryPayload!]
   """
+  [ALPHA] ID's of releases that the issue was removed from.
+  """
+  removedFromReleaseIds: [String!]
+  """
+  The releases that the issue was removed from.
+  """
+  removedFromReleases: [Release!]
+  """
   ID's of labels that were removed.
   """
   removedLabelIds: [String!]
@@ -13404,6 +13627,28 @@ type IssueHistoryEdge {
   """
   cursor: String!
   node: IssueHistory!
+}
+
+"""
+Comparator for issue identifiers.
+"""
+input IssueIDComparator {
+  """
+  Equals constraint.
+  """
+  eq: ID
+  """
+  In-array constraint.
+  """
+  in: [ID!]
+  """
+  Not-equals constraint.
+  """
+  neq: ID
+  """
+  Not-in-array constraint.
+  """
+  nin: [ID!]
 }
 
 """
@@ -14956,10 +15201,6 @@ type IssueSearchResult implements Node {
     orderBy: PaginationOrderBy
   ): IssueRelationConnection!
   """
-  [Internal] Id of the releases associated with this issue.
-  """
-  releaseIds: [String!]!
-  """
   The time at which the issue's SLA will breach.
   """
   slaBreachesAt: DateTime
@@ -15169,6 +15410,14 @@ type IssueSlaWebhookPayload {
   URL for the issue.
   """
   url: String
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -15572,6 +15821,87 @@ type IssueTitleSuggestionFromCustomerRequestPayload {
   The suggested issue title.
   """
   title: String!
+}
+
+"""
+[Internal] Join table between issues and releases.
+"""
+type IssueToRelease implements Node {
+  """
+  The time at which the entity was archived. Null if the entity has not been archived.
+  """
+  archivedAt: DateTime
+  """
+  The time at which the entity was created.
+  """
+  createdAt: DateTime!
+  """
+  The unique identifier of the entity.
+  """
+  id: ID!
+  """
+  The issue associated with the release.
+  """
+  issue: Issue!
+  """
+  The release associated with the issue.
+  """
+  release: Release!
+  """
+  The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+      been updated after creation.
+  """
+  updatedAt: DateTime!
+}
+
+type IssueToReleaseConnection {
+  edges: [IssueToReleaseEdge!]!
+  nodes: [IssueToRelease!]!
+  pageInfo: PageInfo!
+}
+
+"""
+[ALPHA] The properties of the issueToRelease to create.
+"""
+input IssueToReleaseCreateInput {
+  """
+  The identifier in UUID v4 format. If none is provided, the backend will generate one.
+  """
+  id: String
+  """
+  The identifier of the issue
+  """
+  issueId: String!
+  """
+  The identifier of the release
+  """
+  releaseId: String!
+}
+
+type IssueToReleaseEdge {
+  """
+  Used in `before` and `after` args
+  """
+  cursor: String!
+  node: IssueToRelease!
+}
+
+"""
+[ALPHA] The result of an issueToRelease mutation.
+"""
+type IssueToReleasePayload {
+  """
+  The issueToRelease that was created or updated.
+  """
+  issueToRelease: IssueToRelease!
+  """
+  The identifier of the last sync operation.
+  """
+  lastSyncId: Float!
+  """
+  Whether the operation was successful.
+  """
+  success: Boolean!
 }
 
 """
@@ -16435,6 +16765,15 @@ type Mutation {
     """
     input: AirbyteConfigurationInput!
   ): IntegrationPayload!
+  """
+  Authenticate a user to the Asks web forms app.
+  """
+  asksWebFormsAuth(
+    """
+    The magic login code.
+    """
+    token: String!
+  ): AsksWebFormsAuthResponse!
   """
   Creates a new attachment, or updates existing if the same `url` and `issueId` is used.
   """
@@ -18796,6 +19135,37 @@ type Mutation {
     userId: String
   ): IssuePayload!
   """
+  [ALPHA] Creates a new issueToRelease join, adding an issue to a release.
+  """
+  issueToReleaseCreate(
+    """
+    The properties of the issueToRelease to create.
+    """
+    input: IssueToReleaseCreateInput!
+  ): IssueToReleasePayload!
+  """
+  [ALPHA] Deletes an issueToRelease by its identifier, removing an issue from a release.
+  """
+  issueToReleaseDelete(
+    """
+    The identifier of the issueToRelease to delete
+    """
+    id: String!
+  ): DeletePayload!
+  """
+  [ALPHA] Deletes an issueToRelease by issue and release identifiers
+  """
+  issueToReleaseDeleteByIssueAndRelease(
+    """
+    The identifier of the issue
+    """
+    issueId: String!
+    """
+    The identifier of the release
+    """
+    releaseId: String!
+  ): DeletePayload!
+  """
   Unarchives an issue.
   """
   issueUnarchive(
@@ -19223,6 +19593,19 @@ type Mutation {
     """
     id: String!
   ): ProjectArchivePayload!
+  """
+  Disables external sync on a project.
+  """
+  projectExternalSyncDisable(
+    """
+    The ID of the project to disable external sync for.
+    """
+    projectId: String!
+    """
+    The source of the external sync to disable.
+    """
+    syncSource: ExternalSyncService!
+  ): ProjectPayload!
   """
   Creates a new project label.
   """
@@ -21522,7 +21905,7 @@ input NullableIssueFilter {
   """
   Comparator for the identifier.
   """
-  id: IDComparator
+  id: IssueIDComparator
   """
   Filters that issue labels must satisfy.
   """
@@ -22281,6 +22664,14 @@ type OAuthAppWebhookPayload {
   The type of resource.
   """
   type: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -22323,6 +22714,14 @@ type OAuthAuthorizationWebhookPayload {
   ID of the user that the authorization belongs to.
   """
   userId: String!
+  """
+  The ID of the webhook that sent this event.
+  """
+  webhookId: String!
+  """
+  Unix timestamp in milliseconds when the webhook was sent.
+  """
+  webhookTimestamp: Float!
 }
 
 """
@@ -22936,6 +23335,10 @@ type Organization implements Node {
   """
   trialEndsAt: DateTime
   """
+  The time at which the trial started.
+  """
+  trialStartsAt: DateTime
+  """
   The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
       been updated after creation.
   """
@@ -23542,6 +23945,10 @@ input OrganizationUpdateInput {
   Whether the Git integration linkback messages should be sent for public repositories.
   """
   gitPublicLinkbackMessagesEnabled: Boolean
+  """
+  Whether HIPAA compliance is enabled for organization.
+  """
+  hipaaComplianceEnabled: Boolean
   """
   [ALPHA] The n-weekly frequency at which to prompt for initiative updates.
   """
@@ -30126,6 +30533,39 @@ type Query {
   """
   issueTitleSuggestionFromCustomerRequest(request: String!): IssueTitleSuggestionFromCustomerRequestPayload!
   """
+  [ALPHA] One specific issueToRelease.
+  """
+  issueToRelease(id: String!): IssueToRelease!
+  """
+  [ALPHA] Returns a list of issue to release entities.
+  """
+  issueToReleases(
+    """
+    A cursor to be used with first for forward pagination
+    """
+    after: String
+    """
+    A cursor to be used with last for backward pagination.
+    """
+    before: String
+    """
+    The number of items to forward paginate (used with after). Defaults to 50.
+    """
+    first: Int
+    """
+    Should archived resources be included (default: false)
+    """
+    includeArchived: Boolean
+    """
+    The number of items to backward paginate (used with before). Defaults to 50.
+    """
+    last: Int
+    """
+    By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
+    """
+    orderBy: PaginationOrderBy
+  ): IssueToReleaseConnection!
+  """
   Find issue based on the VCS branch name.
   """
   issueVcsBranchSearch(
@@ -31518,9 +31958,17 @@ type Release implements Node {
   """
   archivedAt: DateTime
   """
+  The time at which the release was canceled.
+  """
+  canceledAt: DateTime
+  """
   The commit SHA associated with this release.
   """
   commitSha: String
+  """
+  The time at which the release was completed.
+  """
+  completedAt: DateTime
   """
   The time at which the entity was created.
   """
@@ -31538,9 +31986,25 @@ type Release implements Node {
   """
   pipeline: ReleasePipeline!
   """
+  The release's unique URL slug.
+  """
+  slugId: String!
+  """
   The current stage of the release.
   """
   stage: ReleaseStage!
+  """
+  The estimated start date of the release.
+  """
+  startDate: TimelessDate
+  """
+  The time at which the release was started.
+  """
+  startedAt: DateTime
+  """
+  The estimated completion date of the release.
+  """
+  targetDate: TimelessDate
   """
   The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
       been updated after creation.
@@ -31618,9 +32082,17 @@ input ReleaseCreateInput {
   """
   pullRequestReferences: [PullRequestReferenceInput!]
   """
-  The current stage of the release. Defaults to the first 'planned' stage.
+  The current stage of the release. Defaults to the first 'completed' stage.
   """
   stageId: String
+  """
+  The estimated start date of the release.
+  """
+  startDate: TimelessDate
+  """
+  The estimated completion date of the release.
+  """
+  targetDate: TimelessDate
   """
   The version of the release.
   """
@@ -31751,6 +32223,10 @@ type ReleasePipeline implements Node {
     orderBy: PaginationOrderBy
   ): ReleaseStageConnection!
   """
+  The type of the pipeline.
+  """
+  type: ReleasePipelineType!
+  """
   The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
       been updated after creation.
   """
@@ -31794,6 +32270,10 @@ input ReleasePipelineCreateInput {
   The pipeline's unique slug identifier. If not provided, it will be auto-generated.
   """
   slugId: String
+  """
+  The type of the pipeline.
+  """
+  type: ReleasePipelineType
 }
 
 type ReleasePipelineEdge {
@@ -31819,6 +32299,14 @@ type ReleasePipelinePayload {
   success: Boolean!
 }
 
+"""
+A type of release pipeline.
+"""
+enum ReleasePipelineType {
+  continuous
+  scheduled
+}
+
 input ReleasePipelineUpdateInput {
   """
   The name of the pipeline.
@@ -31828,6 +32316,10 @@ input ReleasePipelineUpdateInput {
   The pipeline's unique slug identifier.
   """
   slugId: String
+  """
+  The type of the pipeline.
+  """
+  type: ReleasePipelineType
 }
 
 """
@@ -32022,6 +32514,14 @@ input ReleaseUpdateInput {
   The current stage of the release.
   """
   stageId: String
+  """
+  The estimated start date of the release.
+  """
+  startDate: TimelessDate
+  """
+  The estimated completion date of the release.
+  """
+  targetDate: TimelessDate
   """
   The version of the release.
   """
@@ -33632,9 +34132,9 @@ type Team implements Node {
   """
   integrationsSettings: IntegrationsSettings
   """
-  Unique hash for the team to be used in invite URLs.
+  [DEPRECATED] Unique hash for the team to be used in invite URLs.
   """
-  inviteHash: String!
+  inviteHash: String! @deprecated(reason: "Not used anymore, simply returning an empty string.")
   """
   Number of issues in the team.
   """
@@ -34749,6 +35249,10 @@ input TeamUpdateInput {
   Whether an issue needs to have a priority set before leaving triage.
   """
   requirePriorityToLeaveTriage: Boolean
+  """
+  [Internal] When the team was retired.
+  """
+  retiredAt: DateTime
   """
   Whether the team is managed by SCIM integration. Mutation restricted to workspace admins or owners and only unsetting is allowed!
   """
@@ -36733,6 +37237,10 @@ type ViewPreferencesValues {
   """
   issueGrouping: String
   """
+  The issue sub grouping.
+  """
+  issueSubGrouping: String
+  """
   Whether to show completed issues.
   """
   showCompletedIssues: String
@@ -36787,6 +37295,7 @@ enum ViewType {
   projectsBacklog
   projectsClosed
   quickView
+  release
   reviews
   roadmap
   roadmapAll

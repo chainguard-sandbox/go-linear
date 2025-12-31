@@ -584,7 +584,7 @@ func (b *IssueFilterBuilder) applyHasSuggestedTeams(_ context.Context, cmd *cobr
 // applyID handles --id flag.
 func (b *IssueFilterBuilder) applyID(_ context.Context, cmd *cobra.Command) error {
 	if id, _ := cmd.Flags().GetString("id"); id != "" {
-		b.filter.ID = &intgraphql.IDComparator{Eq: &id}
+		b.filter.ID = &intgraphql.IssueIDComparator{Eq: &id}
 	}
 	return nil
 }
@@ -653,7 +653,7 @@ func (b *IssueFilterBuilder) applyNumber(_ context.Context, cmd *cobra.Command) 
 func (b *IssueFilterBuilder) applyParent(_ context.Context, cmd *cobra.Command) error {
 	if parent, _ := cmd.Flags().GetString("parent"); parent != "" {
 		b.filter.Parent = &intgraphql.NullableIssueFilter{
-			ID: &intgraphql.IDComparator{Eq: &parent},
+			ID: &intgraphql.IssueIDComparator{Eq: &parent},
 		}
 	}
 	return nil
