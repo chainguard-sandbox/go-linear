@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chainguard-dev/clog"
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands/attachment"
@@ -48,7 +49,7 @@ type clientConfig struct {
 	tlsMinVersion          uint16
 
 	// Observability
-	logger         *slog.Logger // nil = disabled
+	logger         *clog.Logger // nil = disabled
 	metricsEnabled bool
 }
 
@@ -145,7 +146,7 @@ func loadClientConfig() *clientConfig {
 		handler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 			Level: level,
 		})
-		cfg.logger = slog.New(handler)
+		cfg.logger = clog.New(handler)
 	}
 
 	// Metrics configuration
@@ -284,7 +285,7 @@ Environment Variables:
 			})
 			// Clone config to avoid mutation
 			cfgCopy := *cfg
-			cfgCopy.logger = slog.New(handler)
+			cfgCopy.logger = clog.New(handler)
 			cfgToUse = &cfgCopy
 		}
 

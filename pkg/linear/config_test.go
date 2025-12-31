@@ -1,7 +1,6 @@
 package linear
 
 import (
-	"log/slog"
 	"net/http"
 	"testing"
 	"time"
@@ -86,7 +85,7 @@ func TestNeedsTransportWrapping(t *testing.T) {
 		{
 			name: "wrapping needed - logger set",
 			config: &ClientConfig{
-				Logger:    slog.Default(),
+				Logger:    NewLogger(),
 				Transport: &TransportConfig{},
 			},
 			expected: true,
@@ -193,7 +192,7 @@ func TestBuildTransport(t *testing.T) {
 			HTTPClient: &http.Client{
 				Transport: http.DefaultTransport,
 			},
-			Logger:      slog.Default(),
+			Logger:      NewLogger(),
 			OnRateLimit: callback,
 			Transport: &TransportConfig{
 				MaxRetries:       3,

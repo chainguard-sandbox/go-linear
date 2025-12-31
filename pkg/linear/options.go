@@ -4,8 +4,10 @@ import (
 	"crypto/tls"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/chainguard-dev/clog"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -65,7 +67,7 @@ func WithTimeout(timeout time.Duration) Option {
 //
 //	transport := &linear.Transport{
 //	    Base: http.DefaultTransport,
-//	    Logger: slog.Default(),
+//	    Logger: linear.NewLogger(),
 //	    MaxRetries: 3,
 //	}
 //	client, _ := linear.NewClient(apiKey, linear.WithTransport(transport))
@@ -92,19 +94,31 @@ func WithTLSConfig(config *tls.Config) Option {
 	}
 }
 
-// WithLogger enables structured logging using slog.
+// WithLogger enables structured logging using clog.
 // Logs include request/response details, rate limiting info, and retry attempts.
 //
 // Example:
 //
-//	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+//	logger := clog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 //	    Level: slog.LevelInfo,
 //	}))
 //	client, _ := linear.NewClient(apiKey, linear.WithLogger(logger))
-func WithLogger(logger *slog.Logger) Option {
+func WithLogger(logger *clog.Logger) Option {
 	return func(c *Client) {
 		c.config.Logger = logger
 	}
+}
+
+// NewLogger creates a clog.Logger with JSON output to stderr.
+// This is a convenience function for common logging setup.
+//
+// Example:
+//
+//	client, _ := linear.NewClient(apiKey, linear.WithLogger(linear.NewLogger()))
+func NewLogger() *clog.Logger {
+	return clog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
 }
 
 // WithRetry configures retry behavior for transient failures.

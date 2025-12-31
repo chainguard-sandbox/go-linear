@@ -4,6 +4,7 @@ go 1.25.5
 
 require (
 	github.com/Yamashou/gqlgenc v0.33.0
+	github.com/chainguard-dev/clog v1.8.0
 	github.com/codeGROOVE-dev/multicache v1.7.0
 	github.com/codeGROOVE-dev/multicache/pkg/store/localfs v1.7.0
 	github.com/njayp/ophis v1.1.0

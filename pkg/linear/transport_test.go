@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/chainguard-dev/clog"
 )
 
 // mockRoundTripper allows testing Transport behavior
@@ -234,7 +236,7 @@ func TestTransport_RateLimitHeaders(t *testing.T) {
 
 func TestTransport_Logging(t *testing.T) {
 	var logBuf strings.Builder
-	logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
+	logger := clog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 
@@ -295,7 +297,7 @@ func TestTransport_RequestIDLogging(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var logBuf strings.Builder
-			logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
+			logger := clog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
 				Level: slog.LevelInfo,
 			}))
 

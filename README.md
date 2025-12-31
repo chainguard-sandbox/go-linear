@@ -26,7 +26,7 @@ go get github.com/chainguard-sandbox/go-linear
 
 **MCP Server (`go-linear mcp start`)** - API for AI agents
 - Same binary, different mode - powered by [ophis](https://github.com/njayp/ophis)
-- Ophis automatically converts all CLI commands into 72 MCP tools
+- Ophis automatically converts all CLI commands into 74 MCP tools
 - AI agents call commands via JSON-RPC instead of using the CLI directly
 - Optimized output for token efficiency
 
@@ -89,17 +89,17 @@ func main() {
 
 ```go
 import (
+    "context"
     "crypto/tls"
-    "log/slog"
     "os"
     "time"
 
     "github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-    Level: slog.LevelInfo,
-}))
+// Use the convenience logger or create your own with clog.New()
+logger := linear.NewLogger()
+ctx := context.Background()
 
 client, err := linear.NewClient(os.Getenv("LINEAR_API_KEY"),
     // Retry configuration
@@ -121,7 +121,7 @@ client, err := linear.NewClient(os.Getenv("LINEAR_API_KEY"),
     linear.WithLogger(logger),
     linear.WithMetrics(),
     linear.WithRateLimitCallback(func(info *linear.RateLimitInfo) {
-        logger.Info("rate_limit",
+        logger.InfoContext(ctx, "rate_limit",
             "requests_remaining", info.RequestsRemaining,
             "requests_limit", info.RequestsLimit,
         )
@@ -172,7 +172,7 @@ The **same binary** works as an MCP server for AI agents like Claude.
 **How it works:** [Ophis](https://github.com/njayp/ophis) automatically converts your CLI into an MCP server by:
 1. Walking the Cobra command tree
 2. Generating JSON schemas from flags
-3. Creating 72 MCP tool definitions
+3. Creating 74 MCP tool definitions
 4. Executing tools by spawning CLI subprocesses
 
 **Architecture:**
@@ -189,7 +189,7 @@ AI Agent (Claude) ─stdio─► go-linear mcp start ─spawns─► go-linear i
 
 ### Security Model
 
-The MCP server exposes 72 tools from the CLI. Tool categories:
+The MCP server exposes 74 tools from the CLI. Tool categories:
 
 | Category | Examples | User Confirmation |
 |----------|----------|-------------------|
@@ -244,7 +244,7 @@ claude mcp list
 
 ### Available Commands
 
-The MCP server exposes 72 tools auto-generated from CLI commands. Major command groups:
+The MCP server exposes 74 tools auto-generated from CLI commands. Major command groups:
 
 | Command Group | Examples | Description |
 |---------------|----------|-------------|
@@ -667,7 +667,7 @@ histogram_quantile(0.95,
 | `WithRetry(max, initial, maxBackoff)` | 3, 1s, 30s | Exponential backoff |
 | `WithMaxRetryDuration(d)` | 90s | Total retry limit |
 | `WithCircuitBreaker(config)` | nil | Fail-fast config |
-| `WithLogger(logger)` | nil | slog logger |
+| `WithLogger(logger)` | nil | clog logger |
 | `WithMetrics()` | disabled | Prometheus metrics |
 | `WithMetricsRegistry(reg, ns)` | global, "linear" | Multi-tenant metrics |
 | `WithRateLimitCallback(f)` | nil | Rate limit monitoring |
@@ -815,48 +815,25 @@ A: Yes. Use `WithMetricsRegistry()` for isolated metrics per workspace.
 
 ## Status
 
-### v1.0.0 (Stable)
+### v1.2.0 (Current)
 
-**Features:**
-- ✅ Type-safe GraphQL operations (7400 LOC)
-- ✅ Complete API coverage (45 methods)
-- ✅ Automatic retry, exponential backoff
-- ✅ Rate limit detection and handling
-- ✅ Circuit breakers
-- ✅ Bounded retry time
-- ✅ Structured logging (slog)
-- ✅ Per-operation Prometheus metrics
-- ✅ Multi-tenancy support
-- ✅ Error chain preservation
-- ✅ Thread-safe pagination iterators
-- ✅ TLS 1.2+ enforcement
-- ✅ MCP server (72 tools)
-- ✅ Field defaults (minimizes output verbosity)
-- ✅ Advanced filtering (44 filters)
-- ✅ Batch operations (up to 50 issues)
-- ✅ Count aggregation (efficient "how many?" queries)
-- ✅ 60%+ test coverage
+**SDK:**
+- Type-safe GraphQL operations via gqlgenc
+- Production features: retry, circuit breaker, rate limiting, metrics
+- Thread-safe pagination iterators
+- 60%+ test coverage
+
+**CLI & MCP:**
+- 74 commands for humans and AI agents
+- Smart field defaults, 44 filters, batch operations
+- MCP server via ophis for AI agent integration
 
 **Experimental:**
 - ⚠️ Credential rotation (not production-tested)
 
 **Stability:**
-- Semantic versioning
-- No breaking changes in v1.x
-- Schema changes require minor bump
-
-### Roadmap
-
-**v1.1.0:**
-- [ ] OpenTelemetry tracing
-- [ ] Query complexity estimation
-- [ ] Webhook validation helpers
-- [ ] Credential rotation testing
-
-**v1.2.0:**
-- [ ] Batch mutations
-- [ ] GraphQL subscriptions
-- [ ] Performance benchmarks
+- Semantic versioning (no breaking changes in v1.x)
+- Schema synced from Linear TypeScript SDK
 
 ---
 
@@ -869,8 +846,10 @@ Apache 2.0 - See [LICENSE](LICENSE)
 ---
 
 **Built with:**
-- [gqlgenc](https://github.com/Yamashou/gqlgenc) - GraphQL generation
-- [Prometheus client_golang](https://github.com/prometheus/client_golang)
-- [slog](https://pkg.go.dev/log/slog)
+- [gqlgenc](https://github.com/Yamashou/gqlgenc) - GraphQL code generation
+- [ophis](https://github.com/njayp/ophis) - CLI to MCP server conversion
+- [multicache](https://github.com/codeGROOVE-dev/multicache) - Tiered caching
+- [Prometheus client_golang](https://github.com/prometheus/client_golang) - Metrics
+- [clog](https://github.com/chainguard-dev/clog) - Structured logging
 
 Chainguard, Inc. | [chainguard.dev](https://chainguard.dev)

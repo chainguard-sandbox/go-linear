@@ -9,11 +9,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/chainguard-dev/clog"
 )
 
 // Transport wraps an http.RoundTripper to add production features like
@@ -25,7 +26,7 @@ type Transport struct {
 
 	// Logger for structured logging.
 	// If nil, logging is disabled.
-	Logger *slog.Logger
+	Logger *clog.Logger
 
 	// MaxRetries is the maximum number of retry attempts for transient errors.
 	// Default: 3
@@ -149,12 +150,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			}
 
 			if t.Logger != nil {
-				t.Logger.LogAttrs(req.Context(), slog.LevelWarn,
-					"retrying request",
-					slog.Int("attempt", attempt),
-					slog.Int("max_retries", maxRetries),
-					slog.Duration("backoff", backoff),
-					slog.String("error", lastErr.Error()),
+				t.Logger.WarnContext(req.Context(), "retrying request",
+					"attempt", attempt,
+					"max_retries", maxRetries,
+					"backoff", backoff,
+					"error", lastErr.Error(),
 				)
 			}
 
@@ -183,12 +183,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			}
 
 			if t.Logger != nil {
-				t.Logger.LogAttrs(req.Context(), slog.LevelError,
-					"request failed",
-					slog.String("method", req.Method),
-					slog.String("url", req.URL.String()),
-					slog.Duration("duration", duration),
-					slog.String("error", err.Error()),
+				t.Logger.ErrorContext(req.Context(), "request failed",
+					"method", req.Method,
+					"url", req.URL.String(),
+					"duration", duration,
+					"error", err.Error(),
 				)
 			}
 			if t.MetricsEnabled {
@@ -219,12 +218,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			}
 
 			if t.Logger != nil {
-				t.Logger.LogAttrs(req.Context(), slog.LevelDebug,
-					"rate limit info",
-					slog.Int("requests_remaining", rateLimitInfo.RequestsRemaining),
-					slog.Int("requests_limit", rateLimitInfo.RequestsLimit),
-					slog.Int("complexity_remaining", rateLimitInfo.ComplexityRemaining),
-					slog.Int("complexity_limit", rateLimitInfo.ComplexityLimit),
+				t.Logger.DebugContext(req.Context(), "rate limit info",
+					"requests_remaining", rateLimitInfo.RequestsRemaining,
+					"requests_limit", rateLimitInfo.RequestsLimit,
+					"complexity_remaining", rateLimitInfo.ComplexityRemaining,
+					"complexity_limit", rateLimitInfo.ComplexityLimit,
 				)
 			}
 		}
@@ -241,30 +239,42 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 		// Log successful request
 		if t.Logger != nil {
-			level := slog.LevelInfo
-			if resp.StatusCode >= 400 {
-				level = slog.LevelWarn
-			}
-
-			// Build attributes with request ID if available
+			ctx := req.Context()
 			requestID := resp.Header.Get("X-Request-ID")
-			if requestID != "" {
-				t.Logger.LogAttrs(req.Context(), level,
-					"request completed",
-					slog.String("method", req.Method),
-					slog.String("url", req.URL.String()),
-					slog.Int("status", resp.StatusCode),
-					slog.Duration("duration", duration),
-					slog.String("request_id", requestID),
-				)
+			if resp.StatusCode >= 400 {
+				if requestID != "" {
+					t.Logger.WarnContext(ctx, "request completed",
+						"method", req.Method,
+						"url", req.URL.String(),
+						"status", resp.StatusCode,
+						"duration", duration,
+						"request_id", requestID,
+					)
+				} else {
+					t.Logger.WarnContext(ctx, "request completed",
+						"method", req.Method,
+						"url", req.URL.String(),
+						"status", resp.StatusCode,
+						"duration", duration,
+					)
+				}
 			} else {
-				t.Logger.LogAttrs(req.Context(), level,
-					"request completed",
-					slog.String("method", req.Method),
-					slog.String("url", req.URL.String()),
-					slog.Int("status", resp.StatusCode),
-					slog.Duration("duration", duration),
-				)
+				if requestID != "" {
+					t.Logger.InfoContext(ctx, "request completed",
+						"method", req.Method,
+						"url", req.URL.String(),
+						"status", resp.StatusCode,
+						"duration", duration,
+						"request_id", requestID,
+					)
+				} else {
+					t.Logger.InfoContext(ctx, "request completed",
+						"method", req.Method,
+						"url", req.URL.String(),
+						"status", resp.StatusCode,
+						"duration", duration,
+					)
+				}
 			}
 		}
 
@@ -280,9 +290,8 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 				// Use Retry-After header if present
 				if retryAfter := parseRetryAfter(resp); retryAfter > 0 {
 					if t.Logger != nil {
-						t.Logger.LogAttrs(req.Context(), slog.LevelWarn,
-							"rate limited, waiting",
-							slog.Duration("retry_after", retryAfter),
+						t.Logger.WarnContext(req.Context(), "rate limited, waiting",
+							"retry_after", retryAfter,
 						)
 					}
 
