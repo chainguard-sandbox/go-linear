@@ -144,7 +144,11 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if parent, _ := cmd.Flags().GetString("parent"); parent != "" {
-		input.ParentID = &parent
+		parentID, err := res.ResolveIssue(ctx, parent)
+		if err != nil {
+			return fmt.Errorf("failed to resolve parent issue: %w", err)
+		}
+		input.ParentID = &parentID
 	}
 
 	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
