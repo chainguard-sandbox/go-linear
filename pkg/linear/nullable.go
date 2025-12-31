@@ -11,10 +11,11 @@ import "encoding/json"
 //   - Value: Field included with value (IsSet=true, Value=&T)
 //
 // Usage in structs:
-//   Use *Nullable[T] with omitempty:
-//   - nil pointer = unset (omitted)
-//   - &NewNull() = explicit null
-//   - &NewValue(x) = value
+//
+//	Use *Nullable[T] with omitempty:
+//	- nil pointer = unset (omitted)
+//	- &NewNull() = explicit null
+//	- &NewValue(x) = value
 type Nullable[T any] struct {
 	value *T
 	isSet bool

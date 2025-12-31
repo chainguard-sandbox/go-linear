@@ -70,6 +70,9 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	if err != nil {
 		return nil, err
 	}
+	if resp == nil {
+		return nil, fmt.Errorf("nil response from HTTP client")
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
