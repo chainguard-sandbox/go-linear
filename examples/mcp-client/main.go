@@ -85,8 +85,12 @@ func NewMCPClient(serverPath string) (*MCPClient, error) {
 
 // Close shuts down the MCP server
 func (c *MCPClient) Close() error {
-	c.stdin.Close()
-	return c.cmd.Wait()
+	closeErr := c.stdin.Close()
+	waitErr := c.cmd.Wait()
+	if closeErr != nil {
+		return closeErr
+	}
+	return waitErr
 }
 
 // Call sends a JSON-RPC request and returns the response

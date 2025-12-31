@@ -1,0 +1,15 @@
+{
+  "global": {
+    "audit": false,
+    "show-ignored": false,
+    "track-suppressions": true
+  },
+  "severity": "medium",
+  "confidence": "medium",
+  "exclude-dirs": [
+    "vendor",
+    "testdata",
+    "examples"
+  ],
+  "tests": true
+}
