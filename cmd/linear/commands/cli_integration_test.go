@@ -412,3 +412,217 @@ func TestCLI_Status(t *testing.T) {
 	t.Logf("Rate limit: %v/%v requests remaining",
 		result["requestsRemaining"], result["requestsLimit"])
 }
+
+func TestCLI_DocumentList(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("document", "list", "--output=json", "--limit=10")
+	if err != nil {
+		t.Fatalf("document list failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	nodes, ok := result["nodes"].([]any)
+	if !ok {
+		t.Fatal("Expected nodes array in response")
+	}
+
+	t.Logf("Retrieved %d documents", len(nodes))
+}
+
+func TestCLI_RoadmapList(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("roadmap", "list", "--output=json", "--limit=10")
+	if err != nil {
+		t.Fatalf("roadmap list failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	nodes, ok := result["nodes"].([]any)
+	if !ok {
+		t.Fatal("Expected nodes array in response")
+	}
+
+	t.Logf("Retrieved %d roadmaps", len(nodes))
+}
+
+func TestCLI_TemplateList(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("template", "list", "--output=json", "--limit=10")
+	if err != nil {
+		t.Fatalf("template list failed: %v\nstderr: %s", err, stderr)
+	}
+
+	// Template list returns an array directly, not {nodes: [...]}
+	var templates []any
+	if err := json.Unmarshal([]byte(stdout), &templates); err != nil {
+		// Try parsing as object with nodes
+		var result map[string]any
+		if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+			t.Fatalf("Failed to parse JSON: %v", err)
+		}
+		nodes, ok := result["nodes"].([]any)
+		if !ok {
+			t.Fatal("Expected nodes array or array in response")
+		}
+		t.Logf("Retrieved %d templates", len(nodes))
+		return
+	}
+
+	t.Logf("Retrieved %d templates", len(templates))
+}
+
+func TestCLI_InitiativeList(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("initiative", "list", "--output=json", "--limit=10")
+	if err != nil {
+		t.Fatalf("initiative list failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	nodes, ok := result["nodes"].([]any)
+	if !ok {
+		t.Fatal("Expected nodes array in response")
+	}
+
+	t.Logf("Retrieved %d initiatives", len(nodes))
+}
+
+func TestCLI_AttachmentList(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("attachment", "list", "--output=json", "--limit=10")
+	if err != nil {
+		t.Fatalf("attachment list failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	nodes, ok := result["nodes"].([]any)
+	if !ok {
+		t.Fatal("Expected nodes array in response")
+	}
+
+	t.Logf("Retrieved %d attachments", len(nodes))
+}
+
+func TestCLI_CommentList(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("comment", "list", "--output=json", "--limit=10")
+	if err != nil {
+		t.Fatalf("comment list failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	nodes, ok := result["nodes"].([]any)
+	if !ok {
+		t.Fatal("Expected nodes array in response")
+	}
+
+	t.Logf("Retrieved %d comments", len(nodes))
+}
+
+func TestCLI_UserGet(t *testing.T) {
+	r := newCLIRunner(t)
+
+	// Get current user with 'me'
+	result, err := r.runJSON("user", "get", "me")
+	if err != nil {
+		t.Fatalf("user get me failed: %v", err)
+	}
+
+	if result["id"] == nil || result["id"] == "" {
+		t.Error("user.id is missing")
+	}
+	if result["email"] == nil || result["email"] == "" {
+		t.Error("user.email is missing")
+	}
+
+	t.Logf("Retrieved user: %s (%s)", result["name"], result["email"])
+}
+
+func TestCLI_IssueCount(t *testing.T) {
+	r := newCLIRunner(t)
+
+	stdout, stderr, err := r.run("issue", "list", "--count", "--output=json")
+	if err != nil {
+		t.Fatalf("issue list --count failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	if result["count"] == nil {
+		t.Error("count is missing from response")
+	}
+
+	t.Logf("Issue count: %v", result["count"])
+}
+
+func TestCLI_TeamMembers(t *testing.T) {
+	r := newCLIRunner(t)
+
+	// First get a team
+	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	if err != nil {
+		t.Skip("No teams available")
+	}
+
+	var listResult map[string]any
+	json.Unmarshal([]byte(stdout), &listResult)
+	nodes := listResult["nodes"].([]any)
+	if len(nodes) == 0 {
+		t.Skip("No teams available")
+	}
+
+	team := nodes[0].(map[string]any)
+	teamKey := team["key"].(string)
+
+	// Get team members
+	stdout, stderr, err := r.run("team", "members", "--team="+teamKey, "--output=json")
+	if err != nil {
+		t.Fatalf("team members failed: %v\nstderr: %s", err, stderr)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+
+	// Team members returns {team: {...}, users: [...]}
+	members, ok := result["users"].([]any)
+	if !ok {
+		// Try nodes as fallback
+		members, ok = result["nodes"].([]any)
+		if !ok {
+			t.Fatal("Expected users or nodes array in response")
+		}
+	}
+
+	t.Logf("Team %s has %d members", teamKey, len(members))
+}
