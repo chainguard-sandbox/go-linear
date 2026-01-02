@@ -35,7 +35,7 @@ func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 
 		// Try to match by operation name first (case insensitive)
 		for key, response := range handlers {
-			if strings.ToLower(key) == opName {
+			if strings.EqualFold(key, opName) {
 				_, _ = w.Write([]byte(response))
 				return
 			}

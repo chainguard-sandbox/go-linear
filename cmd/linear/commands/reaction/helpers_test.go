@@ -24,7 +24,7 @@ func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 		}
 		opName := strings.ToLower(reqBody.OperationName)
 		for key, response := range handlers {
-			if strings.ToLower(key) == opName {
+			if strings.EqualFold(key, opName) {
 				_, _ = w.Write([]byte(response))
 				return
 			}
