@@ -553,6 +553,9 @@ func TestLive_ResolveCycle(t *testing.T) {
 	}
 
 	firstCycle := cycles.Nodes[0]
+	if firstCycle.Name == nil {
+		t.Skip("First cycle has no name")
+	}
 
 	tests := []struct {
 		name    string
@@ -562,7 +565,7 @@ func TestLive_ResolveCycle(t *testing.T) {
 	}{
 		{
 			name:    "resolve by cycle name",
-			input:   firstCycle.Name,
+			input:   *firstCycle.Name,
 			wantID:  firstCycle.ID,
 			wantErr: false,
 		},
