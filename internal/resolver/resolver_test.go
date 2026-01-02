@@ -614,6 +614,80 @@ func TestLive_ResolveCycle(t *testing.T) {
 	}
 }
 
+func TestLive_ResolveInitiative(t *testing.T) {
+	client, r, cleanup := testSetup(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	// Get initiatives for dynamic testing
+	first := int64(10)
+	initiatives, err := client.Initiatives(ctx, &first, nil)
+	if err != nil || len(initiatives.Nodes) == 0 {
+		t.Skip("No initiatives available for testing")
+	}
+
+	firstInitiative := initiatives.Nodes[0]
+
+	tests := []struct {
+		name    string
+		input   string
+		wantID  string
+		wantErr bool
+	}{
+		{
+			name:    "resolve by initiative name",
+			input:   firstInitiative.Name,
+			wantID:  firstInitiative.ID,
+			wantErr: false,
+		},
+		{
+			name:    "uuid passthrough",
+			input:   "12345678-1234-1234-1234-123456789abc",
+			wantID:  "12345678-1234-1234-1234-123456789abc",
+			wantErr: false,
+		},
+		{
+			name:    "empty initiative",
+			input:   "",
+			wantErr: true,
+		},
+		{
+			name:    "nonexistent initiative",
+			input:   "NonexistentInitiative99999XYZ",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id, err := r.ResolveInitiative(ctx, tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResolveInitiative() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if id == "" {
+					t.Error("ResolveInitiative() returned empty ID")
+				}
+				if tt.wantID != "" && id != tt.wantID {
+					t.Errorf("ResolveInitiative() = %s, want %s", id, tt.wantID)
+				}
+			}
+
+			// Test cache hit
+			if !tt.wantErr && !uuidRegex.MatchString(tt.input) {
+				id2, err2 := r.ResolveInitiative(ctx, tt.input)
+				if err2 != nil {
+					t.Errorf("ResolveInitiative() cached call error = %v", err2)
+				}
+				if id2 != id {
+					t.Errorf("ResolveInitiative() cached = %s, want %s", id2, id)
+				}
+			}
+		})
+	}
+}
+
 // TestResolver_CacheIntegration tests that resolver properly uses cache across methods.
 func TestResolver_CacheIntegration(t *testing.T) {
 	_, r, cleanup := testSetup(t)
@@ -657,6 +731,11 @@ func TestResolver_CacheIntegration(t *testing.T) {
 	if err != nil || id != uuid {
 		t.Errorf("ResolveCycle(uuid) = %s, %v; want %s, nil", id, err, uuid)
 	}
+
+	id, err = r.ResolveInitiative(ctx, uuid)
+	if err != nil || id != uuid {
+		t.Errorf("ResolveInitiative(uuid) = %s, %v; want %s, nil", id, err, uuid)
+	}
 }
 
 // TestResolver_EmptyInputs tests all methods with empty inputs.
@@ -676,6 +755,7 @@ func TestResolver_EmptyInputs(t *testing.T) {
 		{"ResolveIssue", r.ResolveIssue},
 		{"ResolveProject", r.ResolveProject},
 		{"ResolveCycle", r.ResolveCycle},
+		{"ResolveInitiative", r.ResolveInitiative},
 	}
 
 	for _, tt := range tests {

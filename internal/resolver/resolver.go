@@ -425,3 +425,60 @@ func (r *Resolver) ResolveCycle(ctx context.Context, nameOrID string) (string, e
 	r.cache.Set(cacheKey, matches[0].ID)
 	return matches[0].ID, nil
 }
+
+// ResolveInitiative resolves an initiative name to its ID.
+// Accepts: initiative name or UUID.
+func (r *Resolver) ResolveInitiative(ctx context.Context, nameOrID string) (string, error) {
+	if nameOrID == "" {
+		return "", fmt.Errorf("initiative name/ID cannot be empty")
+	}
+
+	// Check if already a UUID
+	if uuidRegex.MatchString(nameOrID) {
+		return nameOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "initiative:" + strings.ToLower(nameOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Query API
+	first := int64(100)
+	initiatives, err := r.client.Initiatives(ctx, &first, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch initiatives: %w", err)
+	}
+
+	// Find by name (case-insensitive)
+	var matches []*struct {
+		ID   string
+		Name string
+	}
+
+	for _, initiative := range initiatives.Nodes {
+		if strings.EqualFold(initiative.Name, nameOrID) {
+			matches = append(matches, &struct {
+				ID   string
+				Name string
+			}{ID: initiative.ID, Name: initiative.Name})
+		}
+	}
+
+	if len(matches) == 0 {
+		return "", fmt.Errorf("initiative not found: %s", nameOrID)
+	}
+
+	if len(matches) > 1 {
+		names := make([]string, len(matches))
+		for i, m := range matches {
+			names[i] = m.Name
+		}
+		return "", fmt.Errorf("ambiguous initiative name %q, matches: %s", nameOrID, strings.Join(names, ", "))
+	}
+
+	// Cache and return
+	r.cache.Set(cacheKey, matches[0].ID)
+	return matches[0].ID, nil
+}
