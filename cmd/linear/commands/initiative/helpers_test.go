@@ -41,17 +41,17 @@ func testFactory(t *testing.T, serverURL string) ClientFactory {
 }
 
 const (
-	mockInitiativesResponse    = `{"data": {"initiatives": {"nodes": [{"id": "init-123", "name": "Security Initiative", "description": "Improve security", "createdAt": "2024-01-01T00:00:00.000Z"}], "pageInfo": {"hasNextPage": false}}}}`
-	mockInitiativeResponse     = `{"data": {"initiative": {"id": "init-123", "name": "Security Initiative", "description": "Improve security", "createdAt": "2024-01-01T00:00:00.000Z"}}}`
+	mockInitiativesResponse      = `{"data": {"initiatives": {"nodes": [{"id": "init-123", "name": "Security Initiative", "description": "Improve security", "createdAt": "2024-01-01T00:00:00.000Z"}], "pageInfo": {"hasNextPage": false}}}}`
+	mockInitiativeResponse       = `{"data": {"initiative": {"id": "init-123", "name": "Security Initiative", "description": "Improve security", "createdAt": "2024-01-01T00:00:00.000Z"}}}`
 	mockInitiativeCreateResponse = `{"data": {"initiativeCreate": {"success": true, "initiative": {"id": "init-new", "name": "New Initiative"}}}}`
 	mockInitiativeUpdateResponse = `{"data": {"initiativeUpdate": {"success": true, "initiative": {"id": "init-123", "name": "Updated Initiative"}}}}`
 )
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"ListInitiatives":   mockInitiativesResponse,
-		"GetInitiative":     mockInitiativeResponse,
-		"CreateInitiative":  mockInitiativeCreateResponse,
-		"UpdateInitiative":  mockInitiativeUpdateResponse,
+		"ListInitiatives":  mockInitiativesResponse,
+		"GetInitiative":    mockInitiativeResponse,
+		"CreateInitiative": mockInitiativeCreateResponse,
+		"UpdateInitiative": mockInitiativeUpdateResponse,
 	}
 }

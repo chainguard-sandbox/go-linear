@@ -2,7 +2,6 @@ package status
 
 import (
 	"bytes"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -132,16 +131,8 @@ func TestDisplayTableZeroResetTimes(t *testing.T) {
 }
 
 func TestRunStatusMissingAPIKey(t *testing.T) {
-	// Save and clear the API key
-	origKey := os.Getenv("LINEAR_API_KEY")
-	os.Setenv("LINEAR_API_KEY", "")
-	defer func() {
-		if origKey != "" {
-			os.Setenv("LINEAR_API_KEY", origKey)
-		} else {
-			os.Unsetenv("LINEAR_API_KEY")
-		}
-	}()
+	// Set the API key to empty (t.Setenv automatically restores after test)
+	t.Setenv("LINEAR_API_KEY", "")
 
 	cmd := NewStatusCommand()
 	var buf bytes.Buffer
@@ -162,7 +153,7 @@ func TestRateLimitCaptureConcurrency(t *testing.T) {
 	done := make(chan bool)
 
 	// Concurrent updates
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		go func(val int) {
 			testInfo := &linear.RateLimitInfo{
 				RequestsLimit:     1000,
@@ -174,7 +165,7 @@ func TestRateLimitCaptureConcurrency(t *testing.T) {
 	}
 
 	// Concurrent reads
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
 			_, _ = capture.get()
 			done <- true
@@ -182,7 +173,7 @@ func TestRateLimitCaptureConcurrency(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		<-done
 	}
 

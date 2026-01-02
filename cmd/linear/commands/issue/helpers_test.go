@@ -307,13 +307,13 @@ func defaultHandlers() map[string]string {
 		"searchissues":   mockSearchResponse,
 
 		// Mutations - match by operation name (gqlgenc uses these)
-		"CreateIssue":          mockIssueCreateResponse,
-		"UpdateIssue":          mockIssueUpdateResponse,
-		"DeleteIssue":          mockIssueDeleteResponse,
-		"IssueAddLabel":        mockIssueLabelResponse,
-		"IssueRemoveLabel":     mockIssueRemoveLabelResponse,
-		"IssueRelationCreate":  mockIssueRelationCreateResponse,
-		"IssueRelationDelete":  mockIssueRelationDeleteResponse,
-		"IssueRelationUpdate":  mockIssueRelationUpdateResponse,
+		"CreateIssue":         mockIssueCreateResponse,
+		"UpdateIssue":         mockIssueUpdateResponse,
+		"DeleteIssue":         mockIssueDeleteResponse,
+		"IssueAddLabel":       mockIssueLabelResponse,
+		"IssueRemoveLabel":    mockIssueRemoveLabelResponse,
+		"IssueRelationCreate": mockIssueRelationCreateResponse,
+		"IssueRelationDelete": mockIssueRelationDeleteResponse,
+		"IssueRelationUpdate": mockIssueRelationUpdateResponse,
 	}
 }

@@ -160,14 +160,14 @@ const (
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"ListProjects":             mockProjectsResponse,
-		"GetProject":               mockProjectResponse,
-		"ListTeams":                mockTeamsResponse,
-		"CreateProject":            mockProjectCreateResponse,
-		"UpdateProject":            mockProjectUpdateResponse,
-		"DeleteProject":            mockProjectDeleteResponse,
-		"ProjectMilestoneCreate":   mockMilestoneCreateResponse,
-		"ProjectMilestoneUpdate":   mockMilestoneUpdateResponse,
-		"ProjectMilestoneDelete":   mockMilestoneDeleteResponse,
+		"ListProjects":           mockProjectsResponse,
+		"GetProject":             mockProjectResponse,
+		"ListTeams":              mockTeamsResponse,
+		"CreateProject":          mockProjectCreateResponse,
+		"UpdateProject":          mockProjectUpdateResponse,
+		"DeleteProject":          mockProjectDeleteResponse,
+		"ProjectMilestoneCreate": mockMilestoneCreateResponse,
+		"ProjectMilestoneUpdate": mockMilestoneUpdateResponse,
+		"ProjectMilestoneDelete": mockMilestoneDeleteResponse,
 	}
 }

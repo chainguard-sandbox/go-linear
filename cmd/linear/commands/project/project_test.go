@@ -136,7 +136,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--name=New Project", "--output=json"})
+		cmd.SetArgs([]string{"--name=New Project", "--team=ENG", "--output=json"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

@@ -110,10 +110,10 @@ const (
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"ListUsers":    mockUsersResponse,
-		"GetUser":      mockUserResponse,
-		"GetViewer":    mockViewerResponse,
-		"ListTeams":    mockTeamsResponse,
-		"ListIssues":   mockIssuesResponse,
+		"ListUsers":  mockUsersResponse,
+		"GetUser":    mockUserResponse,
+		"GetViewer":  mockViewerResponse,
+		"ListTeams":  mockTeamsResponse,
+		"ListIssues": mockIssuesResponse,
 	}
 }

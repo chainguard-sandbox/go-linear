@@ -50,10 +50,10 @@ const (
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"NotificationArchive":             mockNotificationArchiveResponse,
-		"NotificationUpdate":              mockNotificationUpdateResponse,
-		"NotificationSubscriptionCreate":  mockSubscribeResponse,
-		"NotificationSubscriptionDelete":  mockUnsubscribeResponse,
-		"ListProjects":                    mockProjectsResponse,
+		"NotificationArchive":            mockNotificationArchiveResponse,
+		"NotificationUpdate":             mockNotificationUpdateResponse,
+		"NotificationSubscriptionCreate": mockSubscribeResponse,
+		"NotificationSubscriptionDelete": mockUnsubscribeResponse,
+		"ListProjects":                   mockProjectsResponse,
 	}
 }

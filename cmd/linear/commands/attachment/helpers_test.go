@@ -147,13 +147,13 @@ const (
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"ListAttachments":       mockAttachmentsResponse,
-		"GetAttachment":         mockAttachmentResponse,
-		"AttachmentCreate":      mockAttachmentCreateResponse,
-		"AttachmentLinkURL":     mockAttachmentLinkURLResponse,
+		"ListAttachments":        mockAttachmentsResponse,
+		"GetAttachment":          mockAttachmentResponse,
+		"AttachmentCreate":       mockAttachmentCreateResponse,
+		"AttachmentLinkURL":      mockAttachmentLinkURLResponse,
 		"AttachmentLinkGitHubPR": mockAttachmentLinkGitHubResponse,
-		"AttachmentLinkSlack":   mockAttachmentLinkSlackResponse,
-		"AttachmentDelete":      mockAttachmentDeleteResponse,
-		"issue":                 mockIssueResponse,
+		"AttachmentLinkSlack":    mockAttachmentLinkSlackResponse,
+		"AttachmentDelete":       mockAttachmentDeleteResponse,
+		"issue":                  mockIssueResponse,
 	}
 }
