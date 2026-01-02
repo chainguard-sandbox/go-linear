@@ -441,3 +441,44 @@ go-linear attachment list \
 ```
 
 Returns Slack-linked attachments with "design" in the title.
+
+---
+
+## Label Filters
+
+`go-linear label list` supports 9 filter flags across 7 filter types for querying issue labels.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (3)
+- `--id` - Label UUID
+- `--creator` - Creator name, email, or 'me'
+- `--team` - Team name, key, or UUID
+
+#### Text Filters (1)
+- `--name` - Name contains (case-insensitive)
+
+#### Boolean Filters (1)
+- `--is-group` - Filter by group labels
+
+### Example
+
+```bash
+go-linear label list --name=bug --team=ENG --output=json
+```
+
+Returns labels with "bug" in name for the Engineering team.
+
+### Combining Filters
+
+```bash
+go-linear label list \
+  --created-after=30d \
+  --is-group=true
+```
+
+Returns group labels created in the last 30 days.

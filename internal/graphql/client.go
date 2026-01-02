@@ -31,6 +31,7 @@ type LinearGraphQLClient interface {
 	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
 	ListLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListLabels, error)
+	ListLabelsFiltered(ctx context.Context, first *int64, after *string, filter *IssueLabelFilter, interceptors ...clientv2.RequestInterceptor) (*ListLabelsFiltered, error)
 	AttachmentCreate(ctx context.Context, input AttachmentCreateInput, interceptors ...clientv2.RequestInterceptor) (*AttachmentCreate, error)
 	AttachmentLinkURL(ctx context.Context, issueID string, url string, title *string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkURL, error)
 	AttachmentLinkGitHubPr(ctx context.Context, issueID string, url string, interceptors ...clientv2.RequestInterceptor) (*AttachmentLinkGitHubPr, error)
@@ -2304,6 +2305,81 @@ func (t *ListLabels_IssueLabels) GetNodes() []*ListLabels_IssueLabels_Nodes {
 func (t *ListLabels_IssueLabels) GetPageInfo() *ListLabels_IssueLabels_PageInfo {
 	if t == nil {
 		t = &ListLabels_IssueLabels{}
+	}
+	return &t.PageInfo
+}
+
+type ListLabelsFiltered_IssueLabels_Nodes struct {
+	Color       string    "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListLabelsFiltered_IssueLabels_Nodes) GetColor() string {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListLabelsFiltered_IssueLabels_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListLabelsFiltered_IssueLabels_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListLabelsFiltered_IssueLabels_Nodes) GetID() string {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListLabelsFiltered_IssueLabels_Nodes) GetName() string {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_Nodes{}
+	}
+	return t.Name
+}
+
+type ListLabelsFiltered_IssueLabels_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListLabelsFiltered_IssueLabels_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListLabelsFiltered_IssueLabels_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListLabelsFiltered_IssueLabels struct {
+	Nodes    []*ListLabelsFiltered_IssueLabels_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListLabelsFiltered_IssueLabels_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListLabelsFiltered_IssueLabels) GetNodes() []*ListLabelsFiltered_IssueLabels_Nodes {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels{}
+	}
+	return t.Nodes
+}
+func (t *ListLabelsFiltered_IssueLabels) GetPageInfo() *ListLabelsFiltered_IssueLabels_PageInfo {
+	if t == nil {
+		t = &ListLabelsFiltered_IssueLabels{}
 	}
 	return &t.PageInfo
 }
@@ -5885,6 +5961,17 @@ func (t *ListLabels) GetIssueLabels() *ListLabels_IssueLabels {
 	return &t.IssueLabels
 }
 
+type ListLabelsFiltered struct {
+	IssueLabels ListLabelsFiltered_IssueLabels "json:\"issueLabels\" graphql:\"issueLabels\""
+}
+
+func (t *ListLabelsFiltered) GetIssueLabels() *ListLabelsFiltered_IssueLabels {
+	if t == nil {
+		t = &ListLabelsFiltered{}
+	}
+	return &t.IssueLabels
+}
+
 type AttachmentCreate struct {
 	AttachmentCreate AttachmentCreate_AttachmentCreate "json:\"attachmentCreate\" graphql:\"attachmentCreate\""
 }
@@ -7328,6 +7415,42 @@ func (c *Client) ListLabels(ctx context.Context, first *int64, after *string, in
 
 	var res ListLabels
 	if err := c.Client.Post(ctx, "ListLabels", ListLabelsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListLabelsFilteredDocument = `query ListLabelsFiltered ($first: Int, $after: String, $filter: IssueLabelFilter) {
+	issueLabels(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			name
+			description
+			color
+			createdAt
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListLabelsFiltered(ctx context.Context, first *int64, after *string, filter *IssueLabelFilter, interceptors ...clientv2.RequestInterceptor) (*ListLabelsFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListLabelsFiltered
+	if err := c.Client.Post(ctx, "ListLabelsFiltered", ListLabelsFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -9164,6 +9287,7 @@ var DocumentOperationNames = map[string]string{
 	ListIssuesFilteredDocument:             "ListIssuesFiltered",
 	GetLabelDocument:                       "GetLabel",
 	ListLabelsDocument:                     "ListLabels",
+	ListLabelsFilteredDocument:             "ListLabelsFiltered",
 	AttachmentCreateDocument:               "AttachmentCreate",
 	AttachmentLinkURLDocument:              "AttachmentLinkURL",
 	AttachmentLinkGitHubPrDocument:         "AttachmentLinkGitHubPR",

@@ -733,6 +733,14 @@ func (c *Client) IssueLabels(ctx context.Context, first *int64, after *string) (
 	return &resp.IssueLabels, nil
 }
 
+func (c *Client) IssueLabelsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.IssueLabelFilter) (*intgraphql.ListLabelsFiltered_IssueLabels, error) {
+	resp, err := c.gqlClient.ListLabelsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("labels filtered query", err)
+	}
+	return &resp.IssueLabels, nil
+}
+
 // WorkflowState retrieves a single workflow state by ID.
 //
 // Returns:

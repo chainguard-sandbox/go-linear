@@ -24,3 +24,19 @@ query ListLabels($first: Int, $after: String) {
     }
   }
 }
+
+query ListLabelsFiltered($first: Int, $after: String, $filter: IssueLabelFilter) {
+  issueLabels(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      name
+      description
+      color
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
