@@ -320,3 +320,31 @@ go-linear initiative list --status=Active --health=onTrack --output=json
 ```
 
 Returns active initiatives that are on track.
+
+---
+
+## Comment Filters
+
+`go-linear comment list` supports 8 filter flags for querying issue comments.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (3)
+- `--id` - Comment UUID
+- `--creator` - Creator name, email, or 'me'
+- `--issue` - Issue identifier or UUID
+
+#### Text Filters (1)
+- `--body` - Body contains (case-insensitive)
+
+### Example
+
+```bash
+go-linear comment list --created-after=7d --issue=ENG-123 --output=json
+```
+
+Returns comments on issue ENG-123 created in the last 7 days.

@@ -488,6 +488,15 @@ func (c *Client) Comments(ctx context.Context, first *int64, after *string) (*in
 	return &resp.Comments, nil
 }
 
+// CommentsFiltered returns comments matching the specified filter.
+func (c *Client) CommentsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.CommentFilter) (*intgraphql.ListCommentsFiltered_Comments, error) {
+	resp, err := c.gqlClient.ListCommentsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("comments filtered query", err)
+	}
+	return &resp.Comments, nil
+}
+
 // IssueCreate creates a new issue in Linear.
 //
 // Required Input Fields:

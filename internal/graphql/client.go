@@ -15,6 +15,7 @@ type LinearGraphQLClient interface {
 	BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error)
 	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
+	ListCommentsFiltered(ctx context.Context, first *int64, after *string, filter *CommentFilter, interceptors ...clientv2.RequestInterceptor) (*ListCommentsFiltered, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
 	ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error)
 	ListCyclesFiltered(ctx context.Context, first *int64, after *string, filter *CycleFilter, interceptors ...clientv2.RequestInterceptor) (*ListCyclesFiltered, error)
@@ -536,6 +537,113 @@ func (t *ListComments_Comments) GetNodes() []*ListComments_Comments_Nodes {
 func (t *ListComments_Comments) GetPageInfo() *ListComments_Comments_PageInfo {
 	if t == nil {
 		t = &ListComments_Comments{}
+	}
+	return &t.PageInfo
+}
+
+type ListCommentsFiltered_Comments_Nodes_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListCommentsFiltered_Comments_Nodes_User) GetEmail() string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes_User{}
+	}
+	return t.Email
+}
+func (t *ListCommentsFiltered_Comments_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListCommentsFiltered_Comments_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes_User{}
+	}
+	return t.Name
+}
+
+type ListCommentsFiltered_Comments_Nodes struct {
+	Body      string                                    "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                                    "json:\"id\" graphql:\"id\""
+	UpdatedAt time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string                                    "json:\"url\" graphql:\"url\""
+	User      *ListCommentsFiltered_Comments_Nodes_User "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *ListCommentsFiltered_Comments_Nodes) GetBody() string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes{}
+	}
+	return t.Body
+}
+func (t *ListCommentsFiltered_Comments_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListCommentsFiltered_Comments_Nodes) GetID() string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListCommentsFiltered_Comments_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListCommentsFiltered_Comments_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes{}
+	}
+	return t.URL
+}
+func (t *ListCommentsFiltered_Comments_Nodes) GetUser() *ListCommentsFiltered_Comments_Nodes_User {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_Nodes{}
+	}
+	return t.User
+}
+
+type ListCommentsFiltered_Comments_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListCommentsFiltered_Comments_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListCommentsFiltered_Comments_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListCommentsFiltered_Comments struct {
+	Nodes    []*ListCommentsFiltered_Comments_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListCommentsFiltered_Comments_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListCommentsFiltered_Comments) GetNodes() []*ListCommentsFiltered_Comments_Nodes {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments{}
+	}
+	return t.Nodes
+}
+func (t *ListCommentsFiltered_Comments) GetPageInfo() *ListCommentsFiltered_Comments_PageInfo {
+	if t == nil {
+		t = &ListCommentsFiltered_Comments{}
 	}
 	return &t.PageInfo
 }
@@ -5386,6 +5494,17 @@ func (t *ListComments) GetComments() *ListComments_Comments {
 	return &t.Comments
 }
 
+type ListCommentsFiltered struct {
+	Comments ListCommentsFiltered_Comments "json:\"comments\" graphql:\"comments\""
+}
+
+func (t *ListCommentsFiltered) GetComments() *ListCommentsFiltered_Comments {
+	if t == nil {
+		t = &ListCommentsFiltered{}
+	}
+	return &t.Comments
+}
+
 type GetCycle struct {
 	Cycle GetCycle_Cycle "json:\"cycle\" graphql:\"cycle\""
 }
@@ -6329,6 +6448,47 @@ func (c *Client) ListComments(ctx context.Context, first *int64, after *string, 
 
 	var res ListComments
 	if err := c.Client.Post(ctx, "ListComments", ListCommentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListCommentsFilteredDocument = `query ListCommentsFiltered ($first: Int, $after: String, $filter: CommentFilter) {
+	comments(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			body
+			createdAt
+			updatedAt
+			url
+			user {
+				id
+				name
+				email
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListCommentsFiltered(ctx context.Context, first *int64, after *string, filter *CommentFilter, interceptors ...clientv2.RequestInterceptor) (*ListCommentsFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListCommentsFiltered
+	if err := c.Client.Post(ctx, "ListCommentsFiltered", ListCommentsFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8670,6 +8830,7 @@ var DocumentOperationNames = map[string]string{
 	BatchUpdateIssuesDocument:              "BatchUpdateIssues",
 	GetCommentDocument:                     "GetComment",
 	ListCommentsDocument:                   "ListComments",
+	ListCommentsFilteredDocument:           "ListCommentsFiltered",
 	GetCycleDocument:                       "GetCycle",
 	ListCyclesDocument:                     "ListCycles",
 	ListCyclesFilteredDocument:             "ListCyclesFiltered",
