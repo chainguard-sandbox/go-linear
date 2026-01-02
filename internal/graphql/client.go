@@ -20,6 +20,7 @@ type LinearGraphQLClient interface {
 	ListCyclesFiltered(ctx context.Context, first *int64, after *string, filter *CycleFilter, interceptors ...clientv2.RequestInterceptor) (*ListCyclesFiltered, error)
 	GetDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetDocument, error)
 	ListDocuments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListDocuments, error)
+	ListDocumentsFiltered(ctx context.Context, first *int64, after *string, filter *DocumentFilter, interceptors ...clientv2.RequestInterceptor) (*ListDocumentsFiltered, error)
 	GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error)
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
@@ -1027,6 +1028,102 @@ func (t *ListDocuments_Documents) GetNodes() []*ListDocuments_Documents_Nodes {
 func (t *ListDocuments_Documents) GetPageInfo() *ListDocuments_Documents_PageInfo {
 	if t == nil {
 		t = &ListDocuments_Documents{}
+	}
+	return &t.PageInfo
+}
+
+type ListDocumentsFiltered_Documents_Nodes struct {
+	Color     *string   "json:\"color,omitempty\" graphql:\"color\""
+	Content   *string   "json:\"content,omitempty\" graphql:\"content\""
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Icon      *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	SlugID    string    "json:\"slugId\" graphql:\"slugId\""
+	Title     string    "json:\"title\" graphql:\"title\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *ListDocumentsFiltered_Documents_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetContent() *string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return t.Content
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetID() string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetSlugID() string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return t.SlugID
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetTitle() string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return t.Title
+}
+func (t *ListDocumentsFiltered_Documents_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListDocumentsFiltered_Documents_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListDocumentsFiltered_Documents_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListDocumentsFiltered_Documents_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListDocumentsFiltered_Documents struct {
+	Nodes    []*ListDocumentsFiltered_Documents_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListDocumentsFiltered_Documents_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListDocumentsFiltered_Documents) GetNodes() []*ListDocumentsFiltered_Documents_Nodes {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents{}
+	}
+	return t.Nodes
+}
+func (t *ListDocumentsFiltered_Documents) GetPageInfo() *ListDocumentsFiltered_Documents_PageInfo {
+	if t == nil {
+		t = &ListDocumentsFiltered_Documents{}
 	}
 	return &t.PageInfo
 }
@@ -5247,6 +5344,17 @@ func (t *ListDocuments) GetDocuments() *ListDocuments_Documents {
 	return &t.Documents
 }
 
+type ListDocumentsFiltered struct {
+	Documents ListDocumentsFiltered_Documents "json:\"documents\" graphql:\"documents\""
+}
+
+func (t *ListDocumentsFiltered) GetDocuments() *ListDocumentsFiltered_Documents {
+	if t == nil {
+		t = &ListDocumentsFiltered{}
+	}
+	return &t.Documents
+}
+
 type GetInitiative struct {
 	Initiative GetInitiative_Initiative "json:\"initiative\" graphql:\"initiative\""
 }
@@ -6303,6 +6411,45 @@ func (c *Client) ListDocuments(ctx context.Context, first *int64, after *string,
 
 	var res ListDocuments
 	if err := c.Client.Post(ctx, "ListDocuments", ListDocumentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListDocumentsFilteredDocument = `query ListDocumentsFiltered ($first: Int, $after: String, $filter: DocumentFilter) {
+	documents(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			title
+			content
+			createdAt
+			updatedAt
+			slugId
+			color
+			icon
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListDocumentsFiltered(ctx context.Context, first *int64, after *string, filter *DocumentFilter, interceptors ...clientv2.RequestInterceptor) (*ListDocumentsFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListDocumentsFiltered
+	if err := c.Client.Post(ctx, "ListDocumentsFiltered", ListDocumentsFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8381,6 +8528,7 @@ var DocumentOperationNames = map[string]string{
 	ListCyclesFilteredDocument:             "ListCyclesFiltered",
 	GetDocumentDocument:                    "GetDocument",
 	ListDocumentsDocument:                  "ListDocuments",
+	ListDocumentsFilteredDocument:          "ListDocumentsFiltered",
 	GetInitiativeDocument:                  "GetInitiative",
 	ListInitiativesDocument:                "ListInitiatives",
 	GetIssueDocument:                       "GetIssue",

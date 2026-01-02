@@ -1469,6 +1469,26 @@ func (c *Client) Documents(ctx context.Context, first *int64, after *string) (*i
 	return &resp.Documents, nil
 }
 
+// DocumentsFiltered retrieves documents with optional filtering.
+//
+// Filters:
+//   - CreatedAt, UpdatedAt: Date range filters
+//   - Creator: Filter by document creator
+//   - ID: Filter by document UUID
+//   - Initiative, Project, Issue: Filter by associated entities
+//   - Title, SlugID: Filter by text fields
+//
+// Permissions Required: Read
+//
+// Related: [Documents], [Document]
+func (c *Client) DocumentsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.DocumentFilter) (*intgraphql.ListDocumentsFiltered_Documents, error) {
+	resp, err := c.gqlClient.ListDocumentsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("documents filtered query", err)
+	}
+	return &resp.Documents, nil
+}
+
 // Template retrieves a single issue template by ID.
 //
 // Returns:

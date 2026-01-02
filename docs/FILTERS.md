@@ -256,3 +256,34 @@ go-linear cycle list --past --created-after=30d --team=Platform
 ```
 
 Returns past cycles from Platform team created in the last 30 days.
+
+---
+
+## Document Filters
+
+`go-linear document list` supports 9 filter flags for querying knowledge base documents.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (5)
+- `--id` - Document UUID
+- `--creator` - Creator name, email, or 'me'
+- `--initiative` - Initiative name or UUID
+- `--project` - Project name or UUID
+- `--issue` - Issue identifier or UUID
+
+#### Text Filters (2)
+- `--title` - Title contains (case-insensitive)
+- `--slug-id` - Document slug ID (exact match)
+
+### Example
+
+```bash
+go-linear document list --created-after=30d --output=json
+```
+
+Returns documents created in the last 30 days.
