@@ -8,6 +8,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -74,6 +75,23 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 	if resourceCount > 1 {
 		return fmt.Errorf("must specify exactly one resource type, not multiple")
+	}
+
+	// Resolve identifiers to UUIDs
+	res := resolver.New(client)
+	if issueID != "" {
+		resolvedID, err := res.ResolveIssue(ctx, issueID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve issue: %w", err)
+		}
+		issueID = resolvedID
+	}
+	if projectID != "" {
+		resolvedID, err := res.ResolveProject(ctx, projectID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve project: %w", err)
+		}
+		projectID = resolvedID
 	}
 
 	// Build input

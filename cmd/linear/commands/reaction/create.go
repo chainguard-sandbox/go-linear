@@ -9,6 +9,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -62,6 +63,16 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	// Validate emoji is a single character
 	if utf8.RuneCountInString(emoji) != 1 {
 		return fmt.Errorf("emoji must be a single character, got: %s", emoji)
+	}
+
+	// Resolve issue identifier to UUID if needed
+	res := resolver.New(client)
+	if issueID != "" {
+		resolvedID, err := res.ResolveIssue(ctx, issueID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve issue: %w", err)
+		}
+		issueID = resolvedID
 	}
 
 	// Build input
