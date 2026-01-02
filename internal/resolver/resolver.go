@@ -368,3 +368,60 @@ func (r *Resolver) ResolveProject(ctx context.Context, nameOrID string) (string,
 	r.cache.Set(cacheKey, matches[0].ID)
 	return matches[0].ID, nil
 }
+
+// ResolveCycle resolves a cycle name to its ID.
+// Accepts: cycle name or UUID.
+func (r *Resolver) ResolveCycle(ctx context.Context, nameOrID string) (string, error) {
+	if nameOrID == "" {
+		return "", fmt.Errorf("cycle name/ID cannot be empty")
+	}
+
+	// Check if already a UUID
+	if uuidRegex.MatchString(nameOrID) {
+		return nameOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "cycle:" + strings.ToLower(nameOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Query API
+	first := int64(100)
+	cycles, err := r.client.Cycles(ctx, &first, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch cycles: %w", err)
+	}
+
+	// Find by name (case-insensitive)
+	var matches []*struct {
+		ID   string
+		Name string
+	}
+
+	for _, cycle := range cycles.Nodes {
+		if cycle.Name != nil && strings.EqualFold(*cycle.Name, nameOrID) {
+			matches = append(matches, &struct {
+				ID   string
+				Name string
+			}{ID: cycle.ID, Name: *cycle.Name})
+		}
+	}
+
+	if len(matches) == 0 {
+		return "", fmt.Errorf("cycle not found: %s", nameOrID)
+	}
+
+	if len(matches) > 1 {
+		names := make([]string, len(matches))
+		for i, m := range matches {
+			names[i] = m.Name
+		}
+		return "", fmt.Errorf("ambiguous cycle name %q, matches: %s", nameOrID, strings.Join(names, ", "))
+	}
+
+	// Cache and return
+	r.cache.Set(cacheKey, matches[0].ID)
+	return matches[0].ID, nil
+}

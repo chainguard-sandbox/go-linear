@@ -56,6 +56,7 @@ func TestResolver_UUIDPassthrough(t *testing.T) {
 		{"ResolveLabel", r.ResolveLabel},
 		{"ResolveIssue", r.ResolveIssue},
 		{"ResolveProject", r.ResolveProject},
+		{"ResolveCycle", r.ResolveCycle},
 	}
 
 	for _, tt := range tests {
@@ -88,6 +89,7 @@ func TestResolver_EmptyInputValidation(t *testing.T) {
 		{"ResolveLabel", r.ResolveLabel},
 		{"ResolveIssue", r.ResolveIssue},
 		{"ResolveProject", r.ResolveProject},
+		{"ResolveCycle", r.ResolveCycle},
 	}
 
 	for _, tt := range tests {
@@ -115,6 +117,7 @@ func TestResolver_CacheHitSkipsAPI(t *testing.T) {
 	cache.Set("state:in progress", "state-uuid-789")
 	cache.Set("label:bug", "label-uuid-abc")
 	cache.Set("project:platform", "project-uuid-def")
+	cache.Set("cycle:sprint 42", "cycle-uuid-ghi")
 
 	// Give async writes time to complete
 	time.Sleep(50 * time.Millisecond)
@@ -130,6 +133,7 @@ func TestResolver_CacheHitSkipsAPI(t *testing.T) {
 		{"ResolveState", r.ResolveState, "In Progress", "state-uuid-789"},
 		{"ResolveLabel", r.ResolveLabel, "bug", "label-uuid-abc"},
 		{"ResolveProject", r.ResolveProject, "Platform", "project-uuid-def"},
+		{"ResolveCycle", r.ResolveCycle, "Sprint 42", "cycle-uuid-ghi"},
 	}
 
 	for _, tt := range tests {

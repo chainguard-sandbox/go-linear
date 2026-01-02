@@ -540,6 +540,80 @@ func TestLive_ResolveProject(t *testing.T) {
 	}
 }
 
+func TestLive_ResolveCycle(t *testing.T) {
+	client, r, cleanup := testSetup(t)
+	defer cleanup()
+	ctx := context.Background()
+
+	// Get cycles for dynamic testing
+	first := int64(10)
+	cycles, err := client.Cycles(ctx, &first, nil)
+	if err != nil || len(cycles.Nodes) == 0 {
+		t.Skip("No cycles available for testing")
+	}
+
+	firstCycle := cycles.Nodes[0]
+
+	tests := []struct {
+		name    string
+		input   string
+		wantID  string
+		wantErr bool
+	}{
+		{
+			name:    "resolve by cycle name",
+			input:   firstCycle.Name,
+			wantID:  firstCycle.ID,
+			wantErr: false,
+		},
+		{
+			name:    "uuid passthrough",
+			input:   "12345678-1234-1234-1234-123456789abc",
+			wantID:  "12345678-1234-1234-1234-123456789abc",
+			wantErr: false,
+		},
+		{
+			name:    "empty cycle",
+			input:   "",
+			wantErr: true,
+		},
+		{
+			name:    "nonexistent cycle",
+			input:   "NonexistentCycle99999XYZ",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id, err := r.ResolveCycle(ctx, tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResolveCycle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if id == "" {
+					t.Error("ResolveCycle() returned empty ID")
+				}
+				if tt.wantID != "" && id != tt.wantID {
+					t.Errorf("ResolveCycle() = %s, want %s", id, tt.wantID)
+				}
+			}
+
+			// Test cache hit
+			if !tt.wantErr && !uuidRegex.MatchString(tt.input) {
+				id2, err2 := r.ResolveCycle(ctx, tt.input)
+				if err2 != nil {
+					t.Errorf("ResolveCycle() cached call error = %v", err2)
+				}
+				if id2 != id {
+					t.Errorf("ResolveCycle() cached = %s, want %s", id2, id)
+				}
+			}
+		})
+	}
+}
+
 // TestResolver_CacheIntegration tests that resolver properly uses cache across methods.
 func TestResolver_CacheIntegration(t *testing.T) {
 	_, r, cleanup := testSetup(t)
@@ -578,6 +652,11 @@ func TestResolver_CacheIntegration(t *testing.T) {
 	if err != nil || id != uuid {
 		t.Errorf("ResolveProject(uuid) = %s, %v; want %s, nil", id, err, uuid)
 	}
+
+	id, err = r.ResolveCycle(ctx, uuid)
+	if err != nil || id != uuid {
+		t.Errorf("ResolveCycle(uuid) = %s, %v; want %s, nil", id, err, uuid)
+	}
 }
 
 // TestResolver_EmptyInputs tests all methods with empty inputs.
@@ -596,6 +675,7 @@ func TestResolver_EmptyInputs(t *testing.T) {
 		{"ResolveLabel", r.ResolveLabel},
 		{"ResolveIssue", r.ResolveIssue},
 		{"ResolveProject", r.ResolveProject},
+		{"ResolveCycle", r.ResolveCycle},
 	}
 
 	for _, tt := range tests {
