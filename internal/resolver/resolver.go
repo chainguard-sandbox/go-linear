@@ -62,9 +62,9 @@ func (r *Resolver) ResolveTeam(ctx context.Context, nameOrID string) (string, er
 		Key  string
 	}
 
-	lower := strings.ToLower(nameOrID)
+	// Case-insensitive comparison via EqualFold
 	for _, team := range teams.Nodes {
-		if strings.EqualFold(team.Name, lower) || strings.EqualFold(team.Key, lower) {
+		if strings.EqualFold(team.Name, nameOrID) || strings.EqualFold(team.Key, nameOrID) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string
@@ -131,11 +131,11 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 		Email string
 	}
 
-	lower := strings.ToLower(nameOrEmailOrID)
+	// Case-insensitive comparison via EqualFold
 	for _, user := range users.Nodes {
-		if strings.EqualFold(user.Name, lower) ||
-			strings.EqualFold(user.Email, lower) ||
-			(user.DisplayName != "" && strings.EqualFold(user.DisplayName, lower)) {
+		if strings.EqualFold(user.Name, nameOrEmailOrID) ||
+			strings.EqualFold(user.Email, nameOrEmailOrID) ||
+			(user.DisplayName != "" && strings.EqualFold(user.DisplayName, nameOrEmailOrID)) {
 			matches = append(matches, &struct {
 				ID    string
 				Name  string
@@ -192,9 +192,9 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 		Name string
 	}
 
-	lower := strings.ToLower(nameOrID)
+	// Case-insensitive comparison via EqualFold
 	for _, state := range states.Nodes {
-		if strings.EqualFold(state.Name, lower) {
+		if strings.EqualFold(state.Name, nameOrID) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string
@@ -250,9 +250,9 @@ func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, e
 		Name string
 	}
 
-	lower := strings.ToLower(nameOrID)
+	// Case-insensitive comparison via EqualFold
 	for _, label := range labels.Nodes {
-		if strings.EqualFold(label.Name, lower) {
+		if strings.EqualFold(label.Name, nameOrID) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string
@@ -342,9 +342,9 @@ func (r *Resolver) ResolveProject(ctx context.Context, nameOrID string) (string,
 		Name string
 	}
 
-	lower := strings.ToLower(nameOrID)
+	// Case-insensitive comparison via EqualFold
 	for _, project := range projects.Nodes {
-		if strings.EqualFold(project.Name, lower) {
+		if strings.EqualFold(project.Name, nameOrID) {
 			matches = append(matches, &struct {
 				ID   string
 				Name string

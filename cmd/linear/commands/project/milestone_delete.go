@@ -50,9 +50,9 @@ func runMilestoneDelete(cmd *cobra.Command, client *linear.Client, milestoneID s
 
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
-		response = strings.TrimSpace(strings.ToLower(response))
+		response = strings.TrimSpace(response)
 
-		if response != "yes" {
+		if !strings.EqualFold(response, "yes") {
 			fmt.Fprintln(cmd.OutOrStderr(), "Canceled")
 			return nil
 		}

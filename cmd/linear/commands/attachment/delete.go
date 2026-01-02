@@ -38,7 +38,7 @@ Related: attachment_get, issue_get`,
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
 				response, _ := reader.ReadString('\n')
-				if strings.TrimSpace(strings.ToLower(response)) != "yes" {
+				if !strings.EqualFold(strings.TrimSpace(response), "yes") {
 					fmt.Fprintln(cmd.OutOrStderr(), "Canceled.")
 					return nil
 				}
