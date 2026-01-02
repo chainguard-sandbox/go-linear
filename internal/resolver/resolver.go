@@ -482,3 +482,60 @@ func (r *Resolver) ResolveInitiative(ctx context.Context, nameOrID string) (stri
 	r.cache.Set(cacheKey, matches[0].ID)
 	return matches[0].ID, nil
 }
+
+// ResolveDocument resolves a document title to its ID.
+// Accepts: document title or UUID.
+func (r *Resolver) ResolveDocument(ctx context.Context, titleOrID string) (string, error) {
+	if titleOrID == "" {
+		return "", fmt.Errorf("document title/ID cannot be empty")
+	}
+
+	// Check if already a UUID
+	if uuidRegex.MatchString(titleOrID) {
+		return titleOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "document:" + strings.ToLower(titleOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Query API
+	first := int64(100)
+	documents, err := r.client.Documents(ctx, &first, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch documents: %w", err)
+	}
+
+	// Find by title (case-insensitive)
+	var matches []*struct {
+		ID    string
+		Title string
+	}
+
+	for _, doc := range documents.Nodes {
+		if strings.EqualFold(doc.Title, titleOrID) {
+			matches = append(matches, &struct {
+				ID    string
+				Title string
+			}{ID: doc.ID, Title: doc.Title})
+		}
+	}
+
+	if len(matches) == 0 {
+		return "", fmt.Errorf("document not found: %s", titleOrID)
+	}
+
+	if len(matches) > 1 {
+		titles := make([]string, len(matches))
+		for i, m := range matches {
+			titles[i] = m.Title
+		}
+		return "", fmt.Errorf("ambiguous document title %q, matches: %s", titleOrID, strings.Join(titles, ", "))
+	}
+
+	// Cache and return
+	r.cache.Set(cacheKey, matches[0].ID)
+	return matches[0].ID, nil
+}
