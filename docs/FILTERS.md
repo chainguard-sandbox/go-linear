@@ -348,3 +348,56 @@ go-linear comment list --created-after=7d --issue=ENG-123 --output=json
 ```
 
 Returns comments on issue ENG-123 created in the last 7 days.
+
+---
+
+## Project Filters
+
+`go-linear project list` supports 23 filter flags across 16 filter types for querying projects.
+
+### Filter Categories
+
+#### Date Filters (12 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+- `--completed-after`, `--completed-before` - Completion date
+- `--canceled-after`, `--canceled-before` - Cancellation date
+- `--started-after`, `--started-before` - Start date
+- `--target-after`, `--target-before` - Target completion date
+
+#### Entity Filters (3)
+- `--id` - Project UUID
+- `--creator` - Creator name, email, or 'me'
+- `--lead` - Project lead name, email, or 'me'
+
+#### Text Filters (2)
+- `--name` - Name contains (case-insensitive)
+- `--slug-id` - Project slug ID (exact match)
+
+#### State Filters (2)
+- `--health` - Health status: onTrack, atRisk, offTrack
+- `--priority` - 0=none, 1=urgent, 2=high, 3=normal, 4=low
+
+#### Relation Filters (3)
+- `--has-blocked-by` - Has blocked-by relations
+- `--has-blocking` - Has blocking relations
+- `--has-related` - Has related relations
+
+### Example
+
+```bash
+go-linear project list --health=onTrack --priority=2 --output=json
+```
+
+Returns on-track high-priority projects.
+
+### Combining Filters
+
+```bash
+go-linear project list \
+  --created-after=30d \
+  --health=atRisk \
+  --lead=me
+```
+
+Returns at-risk projects created in the last 30 days where I'm the lead.

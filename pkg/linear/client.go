@@ -394,6 +394,15 @@ func (c *Client) Projects(ctx context.Context, first *int64, after *string) (*in
 	return &resp.Projects, nil
 }
 
+// ProjectsFiltered returns projects matching the specified filter.
+func (c *Client) ProjectsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.ProjectFilter) (*intgraphql.ListProjectsFiltered_Projects, error) {
+	resp, err := c.gqlClient.ListProjectsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("projects filtered query", err)
+	}
+	return &resp.Projects, nil
+}
+
 // User retrieves a single user by ID.
 //
 // Returns:

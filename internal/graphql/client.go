@@ -74,6 +74,7 @@ type LinearGraphQLClient interface {
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
+	ListProjectsFiltered(ctx context.Context, first *int64, after *string, filter *ProjectFilter, interceptors ...clientv2.RequestInterceptor) (*ListProjectsFiltered, error)
 	GetRoadmap(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetRoadmap, error)
 	ListRoadmaps(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListRoadmaps, error)
 	SearchIssues(ctx context.Context, term string, first *int64, after *string, filter *IssueFilter, includeArchived *bool, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
@@ -4464,6 +4465,123 @@ func (t *ListProjects_Projects) GetPageInfo() *ListProjects_Projects_PageInfo {
 	return &t.PageInfo
 }
 
+type ListProjectsFiltered_Projects_Nodes struct {
+	Color       string    "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description string    "json:\"description\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Progress    float64   "json:\"progress\" graphql:\"progress\""
+	State       string    "json:\"state\" graphql:\"state\""
+	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListProjectsFiltered_Projects_Nodes) GetColor() string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetDescription() string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetID() string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetName() string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetProgress() float64 {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.Progress
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetState() string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.State
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.TargetDate
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.URL
+}
+
+type ListProjectsFiltered_Projects_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListProjectsFiltered_Projects_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListProjectsFiltered_Projects_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListProjectsFiltered_Projects struct {
+	Nodes    []*ListProjectsFiltered_Projects_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListProjectsFiltered_Projects_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListProjectsFiltered_Projects) GetNodes() []*ListProjectsFiltered_Projects_Nodes {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects{}
+	}
+	return t.Nodes
+}
+func (t *ListProjectsFiltered_Projects) GetPageInfo() *ListProjectsFiltered_Projects_PageInfo {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects{}
+	}
+	return &t.PageInfo
+}
+
 type GetRoadmap_Roadmap struct {
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
@@ -6139,6 +6257,17 @@ type ListProjects struct {
 func (t *ListProjects) GetProjects() *ListProjects_Projects {
 	if t == nil {
 		t = &ListProjects{}
+	}
+	return &t.Projects
+}
+
+type ListProjectsFiltered struct {
+	Projects ListProjectsFiltered_Projects "json:\"projects\" graphql:\"projects\""
+}
+
+func (t *ListProjectsFiltered) GetProjects() *ListProjectsFiltered_Projects {
+	if t == nil {
+		t = &ListProjectsFiltered{}
 	}
 	return &t.Projects
 }
@@ -8406,6 +8535,48 @@ func (c *Client) ListProjects(ctx context.Context, first *int64, after *string, 
 	return &res, nil
 }
 
+const ListProjectsFilteredDocument = `query ListProjectsFiltered ($first: Int, $after: String, $filter: ProjectFilter) {
+	projects(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			name
+			description
+			state
+			createdAt
+			updatedAt
+			targetDate
+			progress
+			url
+			icon
+			color
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListProjectsFiltered(ctx context.Context, first *int64, after *string, filter *ProjectFilter, interceptors ...clientv2.RequestInterceptor) (*ListProjectsFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListProjectsFiltered
+	if err := c.Client.Post(ctx, "ListProjectsFiltered", ListProjectsFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetRoadmapDocument = `query GetRoadmap ($id: String!) {
 	roadmap(id: $id) {
 		id
@@ -8889,6 +9060,7 @@ var DocumentOperationNames = map[string]string{
 	GetOrganizationDocument:                "GetOrganization",
 	GetProjectDocument:                     "GetProject",
 	ListProjectsDocument:                   "ListProjects",
+	ListProjectsFilteredDocument:           "ListProjectsFiltered",
 	GetRoadmapDocument:                     "GetRoadmap",
 	ListRoadmapsDocument:                   "ListRoadmaps",
 	SearchIssuesDocument:                   "SearchIssues",

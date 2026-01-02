@@ -41,3 +41,25 @@ query ListProjects($first: Int, $after: String) {
     }
   }
 }
+
+query ListProjectsFiltered($first: Int, $after: String, $filter: ProjectFilter) {
+  projects(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      name
+      description
+      state
+      createdAt
+      updatedAt
+      targetDate
+      progress
+      url
+      icon
+      color
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
