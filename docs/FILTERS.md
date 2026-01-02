@@ -287,3 +287,36 @@ go-linear document list --created-after=30d --output=json
 ```
 
 Returns documents created in the last 30 days.
+
+---
+
+## Initiative Filters
+
+`go-linear initiative list` supports 11 filter flags for querying strategic initiatives.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--target-after`, `--target-before` - Target completion date
+
+#### Entity Filters (3)
+- `--id` - Initiative UUID
+- `--creator` - Creator name, email, or 'me'
+- `--owner` - Owner name, email, or 'me'
+
+#### Text Filters (2)
+- `--name` - Name contains (case-insensitive)
+- `--slug-id` - Initiative slug ID (exact match)
+
+#### State Filters (2)
+- `--health` - Health status: onTrack, atRisk, offTrack
+- `--status` - Initiative status: Planned, Active, Completed
+
+### Example
+
+```bash
+go-linear initiative list --status=Active --health=onTrack --output=json
+```
+
+Returns active initiatives that are on track.

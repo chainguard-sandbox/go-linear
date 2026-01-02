@@ -23,6 +23,7 @@ type LinearGraphQLClient interface {
 	ListDocumentsFiltered(ctx context.Context, first *int64, after *string, filter *DocumentFilter, interceptors ...clientv2.RequestInterceptor) (*ListDocumentsFiltered, error)
 	GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error)
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
+	ListInitiativesFiltered(ctx context.Context, first *int64, after *string, filter *InitiativeFilter, interceptors ...clientv2.RequestInterceptor) (*ListInitiativesFiltered, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
@@ -1287,6 +1288,102 @@ func (t *ListInitiatives_Initiatives) GetNodes() []*ListInitiatives_Initiatives_
 func (t *ListInitiatives_Initiatives) GetPageInfo() *ListInitiatives_Initiatives_PageInfo {
 	if t == nil {
 		t = &ListInitiatives_Initiatives{}
+	}
+	return &t.PageInfo
+}
+
+type ListInitiativesFiltered_Initiatives_Nodes struct {
+	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	SortOrder   float64   "json:\"sortOrder\" graphql:\"sortOrder\""
+	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+}
+
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetID() string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetName() string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetSortOrder() float64 {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.SortOrder
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.TargetDate
+}
+
+type ListInitiativesFiltered_Initiatives_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListInitiativesFiltered_Initiatives_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListInitiativesFiltered_Initiatives_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListInitiativesFiltered_Initiatives struct {
+	Nodes    []*ListInitiativesFiltered_Initiatives_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListInitiativesFiltered_Initiatives_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListInitiativesFiltered_Initiatives) GetNodes() []*ListInitiativesFiltered_Initiatives_Nodes {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives{}
+	}
+	return t.Nodes
+}
+func (t *ListInitiativesFiltered_Initiatives) GetPageInfo() *ListInitiativesFiltered_Initiatives_PageInfo {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives{}
 	}
 	return &t.PageInfo
 }
@@ -5377,6 +5474,17 @@ func (t *ListInitiatives) GetInitiatives() *ListInitiatives_Initiatives {
 	return &t.Initiatives
 }
 
+type ListInitiativesFiltered struct {
+	Initiatives ListInitiativesFiltered_Initiatives "json:\"initiatives\" graphql:\"initiatives\""
+}
+
+func (t *ListInitiativesFiltered) GetInitiatives() *ListInitiativesFiltered_Initiatives {
+	if t == nil {
+		t = &ListInitiativesFiltered{}
+	}
+	return &t.Initiatives
+}
+
 type GetIssue struct {
 	Issue GetIssue_Issue "json:\"issue\" graphql:\"issue\""
 }
@@ -6520,6 +6628,45 @@ func (c *Client) ListInitiatives(ctx context.Context, first *int64, after *strin
 
 	var res ListInitiatives
 	if err := c.Client.Post(ctx, "ListInitiatives", ListInitiativesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListInitiativesFilteredDocument = `query ListInitiativesFiltered ($first: Int, $after: String, $filter: InitiativeFilter) {
+	initiatives(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			name
+			description
+			createdAt
+			targetDate
+			sortOrder
+			color
+			icon
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListInitiativesFiltered(ctx context.Context, first *int64, after *string, filter *InitiativeFilter, interceptors ...clientv2.RequestInterceptor) (*ListInitiativesFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListInitiativesFiltered
+	if err := c.Client.Post(ctx, "ListInitiativesFiltered", ListInitiativesFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8531,6 +8678,7 @@ var DocumentOperationNames = map[string]string{
 	ListDocumentsFilteredDocument:          "ListDocumentsFiltered",
 	GetInitiativeDocument:                  "GetInitiative",
 	ListInitiativesDocument:                "ListInitiatives",
+	ListInitiativesFilteredDocument:        "ListInitiativesFiltered",
 	GetIssueDocument:                       "GetIssue",
 	ListIssuesDocument:                     "ListIssues",
 	ListIssuesFilteredDocument:             "ListIssuesFiltered",

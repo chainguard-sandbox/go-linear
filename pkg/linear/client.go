@@ -1307,6 +1307,25 @@ func (c *Client) Initiatives(ctx context.Context, first *int64, after *string) (
 	return &resp.Initiatives, nil
 }
 
+// InitiativesFiltered retrieves initiatives with optional filtering.
+//
+// Filters:
+//   - CreatedAt, TargetDate: Date range filters
+//   - Creator, Owner: Filter by users
+//   - ID, Name, SlugID: Identity and text filters
+//   - Health, Status: State filters (onTrack/atRisk/offTrack, Planned/Active/Completed)
+//
+// Permissions Required: Read
+//
+// Related: [Initiatives], [Initiative]
+func (c *Client) InitiativesFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.InitiativeFilter) (*intgraphql.ListInitiativesFiltered_Initiatives, error) {
+	resp, err := c.gqlClient.ListInitiativesFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("initiatives filtered query", err)
+	}
+	return &resp.Initiatives, nil
+}
+
 // CommentCreate creates a new comment on an issue.
 //
 // Required Input Fields:
