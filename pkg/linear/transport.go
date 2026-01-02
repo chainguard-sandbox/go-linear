@@ -362,6 +362,18 @@ func isRetryable(err error) bool {
 	return true
 }
 
+// parseTimestamp converts a timestamp to time.Time, handling both seconds and milliseconds.
+// Linear API returns timestamps in milliseconds, so we detect and convert appropriately.
+func parseTimestamp(ts int64) time.Time {
+	// If timestamp is > 10^12 (year ~33658 in seconds), assume it's milliseconds
+	// A millisecond timestamp from 2020-2030 is roughly 1.5e12 to 1.9e12
+	const millisecondsThreshold = int64(1e12)
+	if ts > millisecondsThreshold {
+		return time.UnixMilli(ts)
+	}
+	return time.Unix(ts, 0)
+}
+
 // parseRateLimitHeaders extracts rate limit information from response headers.
 func parseRateLimitHeaders(resp *http.Response) *RateLimitInfo {
 	h := resp.Header
@@ -383,7 +395,7 @@ func parseRateLimitHeaders(resp *http.Response) *RateLimitInfo {
 	}
 	if v := h.Get("X-RateLimit-Requests-Reset"); v != "" {
 		if ts, err := strconv.ParseInt(v, 10, 64); err == nil {
-			info.RequestsReset = time.Unix(ts, 0)
+			info.RequestsReset = parseTimestamp(ts)
 		}
 	}
 
@@ -396,7 +408,7 @@ func parseRateLimitHeaders(resp *http.Response) *RateLimitInfo {
 	}
 	if v := h.Get("X-RateLimit-Complexity-Reset"); v != "" {
 		if ts, err := strconv.ParseInt(v, 10, 64); err == nil {
-			info.ComplexityReset = time.Unix(ts, 0)
+			info.ComplexityReset = parseTimestamp(ts)
 		}
 	}
 
