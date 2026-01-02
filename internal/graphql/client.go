@@ -17,6 +17,7 @@ type LinearGraphQLClient interface {
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
 	ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error)
+	ListCyclesFiltered(ctx context.Context, first *int64, after *string, filter *CycleFilter, interceptors ...clientv2.RequestInterceptor) (*ListCyclesFiltered, error)
 	GetDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetDocument, error)
 	ListDocuments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListDocuments, error)
 	GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error)
@@ -728,6 +729,148 @@ func (t *ListCycles_Cycles) GetNodes() []*ListCycles_Cycles_Nodes {
 func (t *ListCycles_Cycles) GetPageInfo() *ListCycles_Cycles_PageInfo {
 	if t == nil {
 		t = &ListCycles_Cycles{}
+	}
+	return &t.PageInfo
+}
+
+type ListCyclesFiltered_Cycles_Nodes_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListCyclesFiltered_Cycles_Nodes_Team) GetID() string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes_Team{}
+	}
+	return t.ID
+}
+func (t *ListCyclesFiltered_Cycles_Nodes_Team) GetKey() string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes_Team{}
+	}
+	return t.Key
+}
+func (t *ListCyclesFiltered_Cycles_Nodes_Team) GetName() string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes_Team{}
+	}
+	return t.Name
+}
+
+type ListCyclesFiltered_Cycles_Nodes struct {
+	CompletedAt *time.Time                           "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CreatedAt   time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                              "json:\"description,omitempty\" graphql:\"description\""
+	EndsAt      time.Time                            "json:\"endsAt\" graphql:\"endsAt\""
+	ID          string                               "json:\"id\" graphql:\"id\""
+	Name        *string                              "json:\"name,omitempty\" graphql:\"name\""
+	Number      float64                              "json:\"number\" graphql:\"number\""
+	Progress    float64                              "json:\"progress\" graphql:\"progress\""
+	StartsAt    time.Time                            "json:\"startsAt\" graphql:\"startsAt\""
+	Team        ListCyclesFiltered_Cycles_Nodes_Team "json:\"team\" graphql:\"team\""
+	UpdatedAt   time.Time                            "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *ListCyclesFiltered_Cycles_Nodes) GetCompletedAt() *time.Time {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.CompletedAt
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetEndsAt() *time.Time {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return &t.EndsAt
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetID() string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetName() *string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetNumber() float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.Number
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetProgress() float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.Progress
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetStartsAt() *time.Time {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return &t.StartsAt
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetTeam() *ListCyclesFiltered_Cycles_Nodes_Team {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return &t.Team
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListCyclesFiltered_Cycles_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListCyclesFiltered_Cycles_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListCyclesFiltered_Cycles_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListCyclesFiltered_Cycles struct {
+	Nodes    []*ListCyclesFiltered_Cycles_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListCyclesFiltered_Cycles_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListCyclesFiltered_Cycles) GetNodes() []*ListCyclesFiltered_Cycles_Nodes {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles{}
+	}
+	return t.Nodes
+}
+func (t *ListCyclesFiltered_Cycles) GetPageInfo() *ListCyclesFiltered_Cycles_PageInfo {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles{}
 	}
 	return &t.PageInfo
 }
@@ -5071,6 +5214,17 @@ func (t *ListCycles) GetCycles() *ListCycles_Cycles {
 	return &t.Cycles
 }
 
+type ListCyclesFiltered struct {
+	Cycles ListCyclesFiltered_Cycles "json:\"cycles\" graphql:\"cycles\""
+}
+
+func (t *ListCyclesFiltered) GetCycles() *ListCyclesFiltered_Cycles {
+	if t == nil {
+		t = &ListCyclesFiltered{}
+	}
+	return &t.Cycles
+}
+
 type GetDocument struct {
 	Document GetDocument_Document "json:\"document\" graphql:\"document\""
 }
@@ -6034,6 +6188,52 @@ func (c *Client) ListCycles(ctx context.Context, first *int64, after *string, in
 
 	var res ListCycles
 	if err := c.Client.Post(ctx, "ListCycles", ListCyclesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListCyclesFilteredDocument = `query ListCyclesFiltered ($first: Int, $after: String, $filter: CycleFilter) {
+	cycles(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			number
+			name
+			description
+			startsAt
+			endsAt
+			completedAt
+			createdAt
+			updatedAt
+			progress
+			team {
+				id
+				name
+				key
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListCyclesFiltered(ctx context.Context, first *int64, after *string, filter *CycleFilter, interceptors ...clientv2.RequestInterceptor) (*ListCyclesFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListCyclesFiltered
+	if err := c.Client.Post(ctx, "ListCyclesFiltered", ListCyclesFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8178,6 +8378,7 @@ var DocumentOperationNames = map[string]string{
 	ListCommentsDocument:                   "ListComments",
 	GetCycleDocument:                       "GetCycle",
 	ListCyclesDocument:                     "ListCycles",
+	ListCyclesFilteredDocument:             "ListCyclesFiltered",
 	GetDocumentDocument:                    "GetDocument",
 	ListDocumentsDocument:                  "ListDocuments",
 	GetInitiativeDocument:                  "GetInitiative",

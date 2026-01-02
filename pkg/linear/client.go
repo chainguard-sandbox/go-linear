@@ -836,6 +836,38 @@ func (c *Client) Cycles(ctx context.Context, first *int64, after *string) (*intg
 	return &resp.Cycles, nil
 }
 
+// CyclesFiltered retrieves cycles matching the specified filter criteria.
+//
+// Parameters:
+//   - first: Maximum number of cycles to return (nil = default 50)
+//   - after: Cursor for pagination (nil = first page)
+//   - filter: Filter criteria (nil = no filtering)
+//
+// Filter Options:
+//   - CreatedAt, UpdatedAt, CompletedAt: Date range comparators
+//   - StartsAt, EndsAt: Cycle date range comparators
+//   - IsActive, IsFuture, IsPast: Boolean state filters
+//   - IsNext, IsPrevious, IsInCooldown: Relative cycle filters
+//   - Name: String comparator for cycle name
+//   - Number: Number comparator for cycle number
+//   - Team: Filter by team
+//
+// Returns:
+//   - Cycles with ID, number, name, description, dates, progress, and team
+//   - PageInfo for pagination (HasNextPage, EndCursor)
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [Cycles], [Cycle]
+func (c *Client) CyclesFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.CycleFilter) (*intgraphql.ListCyclesFiltered_Cycles, error) {
+	resp, err := c.gqlClient.ListCyclesFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("cycles filtered query", err)
+	}
+	return &resp.Cycles, nil
+}
+
 // CycleCreate creates a new development cycle (sprint).
 //
 // Parameters:
