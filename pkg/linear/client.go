@@ -1095,6 +1095,14 @@ func (c *Client) Attachments(ctx context.Context, first *int64, after *string) (
 	return &resp.Attachments, nil
 }
 
+func (c *Client) AttachmentsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.AttachmentFilter) (*intgraphql.ListAttachmentsFiltered_Attachments, error) {
+	resp, err := c.gqlClient.ListAttachmentsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("attachments filtered query", err)
+	}
+	return &resp.Attachments, nil
+}
+
 // AttachmentLinkURL attaches an external URL to an issue.
 //
 // Parameters:

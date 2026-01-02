@@ -30,3 +30,22 @@ query ListAttachments($first: Int, $after: String) {
     }
   }
 }
+
+query ListAttachmentsFiltered($first: Int, $after: String, $filter: AttachmentFilter) {
+  attachments(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      title
+      subtitle
+      url
+      createdAt
+      updatedAt
+      source
+      sourceType
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

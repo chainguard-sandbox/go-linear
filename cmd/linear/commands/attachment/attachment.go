@@ -7,7 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/config"
+	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
+	attachmentfilter "github.com/chainguard-sandbox/go-linear/internal/filter/attachment"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -35,9 +39,12 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all attachments",
-		Long: `List attachments. Returns 5 default fields per attachment.
+		Long: `List attachments with filtering. Returns 5 default fields per attachment.
 
-Example: go-linear attachment list --limit=30 --output=json
+Filters: --title, --url, --source-type, --creator
+Date filters: --created-after, --created-before, --updated-after, --updated-before
+
+Example: go-linear attachment list --source-type=github --limit=30 --output=json
 
 Related: attachment_get, attachment_create, attachment_link-url`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,30 +54,118 @@ Related: attachment_get, attachment_create, attachment_link-url`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
-			limit, _ := cmd.Flags().GetInt("limit")
-			first := int64(limit)
+			return runList(cmd, client)
+		},
+	}
 
-			attachments, err := client.Attachments(ctx, &first, nil)
-			if err != nil {
-				return fmt.Errorf("failed to list attachments: %w", err)
+	// Pagination
+	cmd.Flags().IntP("limit", "l", 50, "Number to return")
+
+	// Date filters
+	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
+	cmd.Flags().String("created-before", "", "Created before date")
+	cmd.Flags().String("updated-after", "", "Updated after date")
+	cmd.Flags().String("updated-before", "", "Updated before date")
+
+	// Entity filters
+	cmd.Flags().String("id", "", "Attachment UUID")
+	cmd.Flags().String("creator", "", "Creator name, email, or 'me'")
+	cmd.Flags().String("source-type", "", "Source type: uploaded, url, github, slack")
+
+	// Text filters
+	cmd.Flags().String("title", "", "Title contains (case-insensitive)")
+	cmd.Flags().String("subtitle", "", "Subtitle contains (case-insensitive)")
+	cmd.Flags().String("url", "", "URL contains (case-insensitive)")
+
+	// Output
+	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("fields", "", "defaults (id,title,url,source,createdAt) | none | defaults,extra")
+
+	return cmd
+}
+
+func runList(cmd *cobra.Command, client *linear.Client) error {
+	ctx := context.Background()
+	res := resolver.New(client)
+
+	// Build filter from flags
+	filterBuilder := attachmentfilter.NewFilterBuilder(res)
+	if err := filterBuilder.FromFlags(ctx, cmd); err != nil {
+		return err
+	}
+	attFilter := filterBuilder.Build()
+
+	limit, _ := cmd.Flags().GetInt("limit")
+	first := int64(limit)
+
+	output, _ := cmd.Flags().GetString("output")
+	fieldsSpec, _ := cmd.Flags().GetString("fields")
+
+	// Use filtered or unfiltered query based on whether filters were set
+	if attFilter != nil {
+		attachments, err := client.AttachmentsFiltered(ctx, &first, nil, attFilter)
+		if err != nil {
+			return fmt.Errorf("failed to list attachments: %w", err)
+		}
+
+		switch output {
+		case "json":
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
 			}
-
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), attachments, true)
+			defaults := fieldfilter.GetDefaults("attachment.list", configOverrides)
+			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachments, true, fieldSelector)
+		case "table":
+			if len(attachments.Nodes) == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "No attachments found")
+				return nil
 			}
 			for _, att := range attachments.Nodes {
 				fmt.Fprintf(cmd.OutOrStdout(), "%s: %s\n", att.Title, att.URL)
 			}
 			return nil
-		},
+		default:
+			return fmt.Errorf("unsupported output format: %s", output)
+		}
 	}
 
-	cmd.Flags().IntP("limit", "l", 50, "Number to return")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,title,url,source,createdAt) | none | defaults,extra")
-	return cmd
+	// No filters: use regular query
+	attachments, err := client.Attachments(ctx, &first, nil)
+	if err != nil {
+		return fmt.Errorf("failed to list attachments: %w", err)
+	}
+
+	switch output {
+	case "json":
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
+		}
+		defaults := fieldfilter.GetDefaults("attachment.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachments, true, fieldSelector)
+	case "table":
+		if len(attachments.Nodes) == 0 {
+			fmt.Fprintln(cmd.OutOrStdout(), "No attachments found")
+			return nil
+		}
+		for _, att := range attachments.Nodes {
+			fmt.Fprintf(cmd.OutOrStdout(), "%s: %s\n", att.Title, att.URL)
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", output)
+	}
 }
 
 func NewLinkURLCommand(clientFactory ClientFactory) *cobra.Command {

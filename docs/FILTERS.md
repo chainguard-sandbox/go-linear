@@ -401,3 +401,43 @@ go-linear project list \
 ```
 
 Returns at-risk projects created in the last 30 days where I'm the lead.
+
+---
+
+## Attachment Filters
+
+`go-linear attachment list` supports 10 filter flags across 8 filter types for querying attachments.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (3)
+- `--id` - Attachment UUID
+- `--creator` - Creator name, email, or 'me'
+- `--source-type` - Source type: uploaded, url, github, slack
+
+#### Text Filters (3)
+- `--title` - Title contains (case-insensitive)
+- `--subtitle` - Subtitle contains (case-insensitive)
+- `--url` - URL contains (case-insensitive)
+
+### Example
+
+```bash
+go-linear attachment list --source-type=github --created-after=30d --output=json
+```
+
+Returns GitHub-linked attachments created in the last 30 days.
+
+### Combining Filters
+
+```bash
+go-linear attachment list \
+  --source-type=slack \
+  --title=design
+```
+
+Returns Slack-linked attachments with "design" in the title.

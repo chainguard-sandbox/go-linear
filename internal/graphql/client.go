@@ -12,6 +12,7 @@ import (
 type LinearGraphQLClient interface {
 	GetAttachment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetAttachment, error)
 	ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error)
+	ListAttachmentsFiltered(ctx context.Context, first *int64, after *string, filter *AttachmentFilter, interceptors ...clientv2.RequestInterceptor) (*ListAttachmentsFiltered, error)
 	BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error)
 	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
@@ -256,6 +257,102 @@ func (t *ListAttachments_Attachments) GetNodes() []*ListAttachments_Attachments_
 func (t *ListAttachments_Attachments) GetPageInfo() *ListAttachments_Attachments_PageInfo {
 	if t == nil {
 		t = &ListAttachments_Attachments{}
+	}
+	return &t.PageInfo
+}
+
+type ListAttachmentsFiltered_Attachments_Nodes struct {
+	CreatedAt  time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string    "json:\"id\" graphql:\"id\""
+	Source     *string   "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string   "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string   "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string    "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetID() string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetSource() *string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return t.Source
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetSourceType() *string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return t.SourceType
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetSubtitle() *string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return t.Subtitle
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetTitle() string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return t.Title
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_Nodes{}
+	}
+	return t.URL
+}
+
+type ListAttachmentsFiltered_Attachments_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListAttachmentsFiltered_Attachments_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListAttachmentsFiltered_Attachments_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListAttachmentsFiltered_Attachments struct {
+	Nodes    []*ListAttachmentsFiltered_Attachments_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListAttachmentsFiltered_Attachments_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListAttachmentsFiltered_Attachments) GetNodes() []*ListAttachmentsFiltered_Attachments_Nodes {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments{}
+	}
+	return t.Nodes
+}
+func (t *ListAttachmentsFiltered_Attachments) GetPageInfo() *ListAttachmentsFiltered_Attachments_PageInfo {
+	if t == nil {
+		t = &ListAttachmentsFiltered_Attachments{}
 	}
 	return &t.PageInfo
 }
@@ -5579,6 +5676,17 @@ func (t *ListAttachments) GetAttachments() *ListAttachments_Attachments {
 	return &t.Attachments
 }
 
+type ListAttachmentsFiltered struct {
+	Attachments ListAttachmentsFiltered_Attachments "json:\"attachments\" graphql:\"attachments\""
+}
+
+func (t *ListAttachmentsFiltered) GetAttachments() *ListAttachmentsFiltered_Attachments {
+	if t == nil {
+		t = &ListAttachmentsFiltered{}
+	}
+	return &t.Attachments
+}
+
 type BatchUpdateIssues struct {
 	IssueBatchUpdate BatchUpdateIssues_IssueBatchUpdate "json:\"issueBatchUpdate\" graphql:\"issueBatchUpdate\""
 }
@@ -6464,6 +6572,45 @@ func (c *Client) ListAttachments(ctx context.Context, first *int64, after *strin
 
 	var res ListAttachments
 	if err := c.Client.Post(ctx, "ListAttachments", ListAttachmentsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListAttachmentsFilteredDocument = `query ListAttachmentsFiltered ($first: Int, $after: String, $filter: AttachmentFilter) {
+	attachments(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			title
+			subtitle
+			url
+			createdAt
+			updatedAt
+			source
+			sourceType
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListAttachmentsFiltered(ctx context.Context, first *int64, after *string, filter *AttachmentFilter, interceptors ...clientv2.RequestInterceptor) (*ListAttachmentsFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListAttachmentsFiltered
+	if err := c.Client.Post(ctx, "ListAttachmentsFiltered", ListAttachmentsFilteredDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8998,6 +9145,7 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 var DocumentOperationNames = map[string]string{
 	GetAttachmentDocument:                  "GetAttachment",
 	ListAttachmentsDocument:                "ListAttachments",
+	ListAttachmentsFilteredDocument:        "ListAttachmentsFiltered",
 	BatchUpdateIssuesDocument:              "BatchUpdateIssues",
 	GetCommentDocument:                     "GetComment",
 	ListCommentsDocument:                   "ListComments",
