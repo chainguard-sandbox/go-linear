@@ -8,6 +8,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -18,12 +19,12 @@ func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
 		Short: "Create a new project",
 		Long: `Create project. Safe operation.
 
-Required: --name
+Required: --name, --team (from team_list)
 Optional: --description
 
-Example: go-linear project create --name="Q1 Platform" --description="Platform improvements" --output=json
+Example: go-linear project create --name="Q1 Platform" --team=ENG --description="Platform improvements" --output=json
 
-Related: project_list, project_get`,
+Related: project_list, project_get, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -38,6 +39,9 @@ Related: project_list, project_get`,
 	cmd.Flags().String("name", "", "Project name (required)")
 	_ = cmd.MarkFlagRequired("name")
 
+	cmd.Flags().String("team", "", "Team name or ID (required)")
+	_ = cmd.MarkFlagRequired("team")
+
 	cmd.Flags().String("description", "", "Project description")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -47,9 +51,18 @@ Related: project_list, project_get`,
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	ctx := context.Background()
 
+	// Resolve team to UUID
+	res := resolver.New(client)
+	team, _ := cmd.Flags().GetString("team")
+	teamID, err := res.ResolveTeam(ctx, team)
+	if err != nil {
+		return fmt.Errorf("failed to resolve team: %w", err)
+	}
+
 	name, _ := cmd.Flags().GetString("name")
 	input := intgraphql.ProjectCreateInput{
-		Name: name,
+		Name:    name,
+		TeamIds: []string{teamID},
 	}
 
 	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
