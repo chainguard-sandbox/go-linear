@@ -100,3 +100,208 @@ func TestNullable_Get(t *testing.T) {
 		t.Error("Get() for unset should return false")
 	}
 }
+
+func TestNullable_UnmarshalJSON(t *testing.T) {
+	// Unmarshal value
+	t.Run("unmarshal value", func(t *testing.T) {
+		var n Nullable[string]
+		if err := json.Unmarshal([]byte(`"test"`), &n); err != nil {
+			t.Fatalf("Unmarshal error: %v", err)
+		}
+		if !n.IsSet() {
+			t.Error("Expected IsSet() to be true after unmarshal")
+		}
+		val, ok := n.Get()
+		if !ok || val == nil || *val != "test" {
+			t.Error("Get() should return test value")
+		}
+	})
+
+	// Unmarshal null
+	t.Run("unmarshal null", func(t *testing.T) {
+		var n Nullable[string]
+		if err := json.Unmarshal([]byte(`null`), &n); err != nil {
+			t.Fatalf("Unmarshal error: %v", err)
+		}
+		if !n.IsSet() {
+			t.Error("Expected IsSet() to be true after unmarshal null")
+		}
+		val, ok := n.Get()
+		if !ok {
+			t.Error("Get() should return ok=true for null")
+		}
+		if val != nil {
+			t.Error("Get() should return nil value for null")
+		}
+	})
+
+	// Unmarshal int
+	t.Run("unmarshal int", func(t *testing.T) {
+		var n Nullable[int]
+		if err := json.Unmarshal([]byte(`42`), &n); err != nil {
+			t.Fatalf("Unmarshal error: %v", err)
+		}
+		val, ok := n.Get()
+		if !ok || val == nil || *val != 42 {
+			t.Error("Get() should return 42")
+		}
+	})
+}
+
+func TestNullable_IsZero(t *testing.T) {
+	// Unset should be zero
+	t.Run("unset is zero", func(t *testing.T) {
+		n := NewUnset[string]()
+		if !n.IsZero() {
+			t.Error("Unset should be zero")
+		}
+	})
+
+	// Value should not be zero
+	t.Run("value is not zero", func(t *testing.T) {
+		n := NewValue("test")
+		if n.IsZero() {
+			t.Error("Value should not be zero")
+		}
+	})
+
+	// Null should not be zero (it's explicitly set)
+	t.Run("null is not zero", func(t *testing.T) {
+		n := NewNull[string]()
+		if n.IsZero() {
+			t.Error("Null should not be zero (it's explicitly set)")
+		}
+	})
+}
+
+func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
+	// Empty input
+	t.Run("empty input", func(t *testing.T) {
+		input := IssueUpdateNullableInput{}
+		m := input.ToMap()
+		if len(m) != 0 {
+			t.Errorf("Empty input should produce empty map, got %v", m)
+		}
+	})
+
+	// With title
+	t.Run("with title", func(t *testing.T) {
+		title := "Test Title"
+		input := IssueUpdateNullableInput{Title: &title}
+		m := input.ToMap()
+		if m["title"] != title {
+			t.Errorf("Expected title=%s, got %v", title, m["title"])
+		}
+	})
+
+	// With null parent (explicit removal)
+	t.Run("with null parent", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			ParentID: NewNull[string](),
+		}
+		m := input.ToMap()
+		if _, exists := m["parentId"]; !exists {
+			t.Error("Expected parentId to be in map")
+		}
+		if m["parentId"] != nil {
+			t.Errorf("Expected parentId=nil, got %v", m["parentId"])
+		}
+	})
+
+	// With value parent
+	t.Run("with value parent", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			ParentID: NewValue("parent-123"),
+		}
+		m := input.ToMap()
+		if m["parentId"] != "parent-123" {
+			t.Errorf("Expected parentId=parent-123, got %v", m["parentId"])
+		}
+	})
+
+	// With unset parent (should not be in map)
+	t.Run("with unset parent", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			ParentID: NewUnset[string](),
+		}
+		m := input.ToMap()
+		if _, exists := m["parentId"]; exists {
+			t.Error("Expected parentId to NOT be in map for unset")
+		}
+	})
+
+	// With null cycle
+	t.Run("with null cycle", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			CycleID: NewNull[string](),
+		}
+		m := input.ToMap()
+		if _, exists := m["cycleId"]; !exists {
+			t.Error("Expected cycleId to be in map")
+		}
+		if m["cycleId"] != nil {
+			t.Errorf("Expected cycleId=nil, got %v", m["cycleId"])
+		}
+	})
+
+	// With null project
+	t.Run("with null project", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			ProjectID: NewNull[string](),
+		}
+		m := input.ToMap()
+		if _, exists := m["projectId"]; !exists {
+			t.Error("Expected projectId to be in map")
+		}
+		if m["projectId"] != nil {
+			t.Errorf("Expected projectId=nil, got %v", m["projectId"])
+		}
+	})
+
+	// All fields
+	t.Run("all fields", func(t *testing.T) {
+		title := "Title"
+		desc := "Desc"
+		assignee := "assignee-id"
+		state := "state-id"
+		priority := int64(1)
+		input := IssueUpdateNullableInput{
+			Title:           &title,
+			Description:     &desc,
+			AssigneeID:      &assignee,
+			StateID:         &state,
+			Priority:        &priority,
+			AddedLabelIds:   []string{"label-1"},
+			RemovedLabelIds: []string{"label-2"},
+			CycleID:         NewValue("cycle-id"),
+			ParentID:        NewNull[string](),
+			ProjectID:       NewUnset[string](),
+		}
+		m := input.ToMap()
+
+		if m["title"] != title {
+			t.Errorf("Expected title=%s", title)
+		}
+		if m["description"] != desc {
+			t.Errorf("Expected description=%s", desc)
+		}
+		if m["assigneeId"] != assignee {
+			t.Errorf("Expected assigneeId=%s", assignee)
+		}
+		if m["stateId"] != state {
+			t.Errorf("Expected stateId=%s", state)
+		}
+		if m["priority"] != priority {
+			t.Errorf("Expected priority=%d", priority)
+		}
+		if m["cycleId"] != "cycle-id" {
+			t.Errorf("Expected cycleId=cycle-id")
+		}
+		if m["parentId"] != nil {
+			t.Errorf("Expected parentId=nil (explicit null)")
+		}
+		if _, exists := m["projectId"]; exists {
+			t.Error("projectId should not be in map (unset)")
+		}
+	})
+}

@@ -454,6 +454,39 @@ func TestIsRetryable(t *testing.T) {
 	}
 }
 
+func TestParseTimestamp(t *testing.T) {
+	tests := []struct {
+		name     string
+		ts       int64
+		wantYear int
+	}{
+		{
+			name:     "unix seconds",
+			ts:       1704153600, // 2024-01-02 00:00:00 UTC
+			wantYear: 2024,
+		},
+		{
+			name:     "unix milliseconds",
+			ts:       1704153600000, // 2024-01-02 00:00:00 UTC in millis
+			wantYear: 2024,
+		},
+		{
+			name:     "linear api timestamp",
+			ts:       1735776000000, // 2025-01-02 00:00:00 UTC
+			wantYear: 2025,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseTimestamp(tt.ts)
+			if got.Year() != tt.wantYear {
+				t.Errorf("parseTimestamp(%d) year = %d, want %d", tt.ts, got.Year(), tt.wantYear)
+			}
+		})
+	}
+}
+
 func TestParseRetryAfter(t *testing.T) {
 	tests := []struct {
 		name  string

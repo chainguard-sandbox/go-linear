@@ -2,6 +2,7 @@ package linear
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -107,5 +108,169 @@ func TestClient_Close(t *testing.T) {
 	// Should be safe to call even after close
 	if err := client.Close(); err != nil {
 		t.Errorf("Close() third call error = %v, want nil", err)
+	}
+}
+
+func TestClientOptions(t *testing.T) {
+	// Test WithHTTPClient
+	t.Run("WithHTTPClient", func(t *testing.T) {
+		customClient := &http.Client{Timeout: 5 * time.Second}
+		client, err := NewClient("lin_api_test", WithHTTPClient(customClient))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithUserAgent
+	t.Run("WithUserAgent", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ua := r.Header.Get("User-Agent")
+			if ua != "custom-agent/1.0" {
+				t.Errorf("User-Agent = %q, want %q", ua, "custom-agent/1.0")
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"data":{"viewer":{"id":"u1","name":"Test","email":"test@example.com","displayName":"test","createdAt":"2024-01-01T00:00:00.000Z","admin":false,"active":true,"avatarUrl":""}}}`))
+		}))
+		defer server.Close()
+
+		client, err := NewClient("lin_api_test",
+			WithBaseURL(server.URL),
+			WithUserAgent("custom-agent/1.0"),
+		)
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+
+		_, err = client.Viewer(context.Background())
+		if err != nil {
+			t.Errorf("Viewer() error = %v", err)
+		}
+	})
+
+	// Test WithLogger
+	t.Run("WithLogger", func(t *testing.T) {
+		logger := NewLogger()
+		client, err := NewClient("lin_api_test", WithLogger(logger))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithRetry
+	t.Run("WithRetry", func(t *testing.T) {
+		client, err := NewClient("lin_api_test", WithRetry(5, 100*time.Millisecond, 1*time.Second))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithRateLimitCallback
+	t.Run("WithRateLimitCallback", func(t *testing.T) {
+		callback := func(info *RateLimitInfo) {}
+		client, err := NewClient("lin_api_test", WithRateLimitCallback(callback))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithMaxRetryDuration
+	t.Run("WithMaxRetryDuration", func(t *testing.T) {
+		client, err := NewClient("lin_api_test", WithMaxRetryDuration(5*time.Minute))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithCircuitBreaker
+	t.Run("WithCircuitBreaker", func(t *testing.T) {
+		cb := &CircuitBreaker{
+			MaxFailures:  5,
+			ResetTimeout: 30 * time.Second,
+		}
+		client, err := NewClient("lin_api_test", WithCircuitBreaker(cb))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithTransport
+	t.Run("WithTransport", func(t *testing.T) {
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		client, err := NewClient("lin_api_test", WithTransport(transport))
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithMetrics
+	t.Run("WithMetrics", func(t *testing.T) {
+		client, err := NewClient("lin_api_test", WithMetrics())
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+
+	// Test WithTracing
+	t.Run("WithTracing", func(t *testing.T) {
+		client, err := NewClient("lin_api_test", WithTracing())
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+	})
+}
+
+func TestContains(t *testing.T) {
+	tests := []struct {
+		name     string
+		str      string
+		substr   string
+		expected bool
+	}{
+		{"contains substring", "hello world", "world", true},
+		{"does not contain", "hello world", "foo", false},
+		{"empty substring", "hello", "", true},
+		{"case sensitive", "Hello", "hello", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := contains(tt.str, tt.substr)
+			if result != tt.expected {
+				t.Errorf("contains(%q, %q) = %v, want %v", tt.str, tt.substr, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestIsAuthError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{"401 error", errors.New("HTTP 401 Unauthorized"), true},
+		{"authentication error", errors.New("authentication failed"), true},
+		{"unauthorized error", errors.New("unauthorized access"), true},
+		{"random error", errors.New("Something went wrong"), false},
+		{"nil error", nil, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isAuthError(tt.err)
+			if result != tt.expected {
+				t.Errorf("isAuthError(%v) = %v, want %v", tt.err, result, tt.expected)
+			}
+		})
 	}
 }
