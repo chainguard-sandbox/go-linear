@@ -174,3 +174,98 @@ func TestFormatIssuesTable(t *testing.T) {
 		}
 	})
 }
+
+func TestFormatTeamsTable(t *testing.T) {
+	var buf bytes.Buffer
+
+	t.Run("empty teams", func(t *testing.T) {
+		buf.Reset()
+		err := FormatTeamsTable(&buf, nil)
+		if err != nil {
+			t.Fatalf("FormatTeamsTable() error = %v", err)
+		}
+		if !strings.Contains(buf.String(), "No teams found") {
+			t.Errorf("FormatTeamsTable() should show 'No teams found'")
+		}
+	})
+
+	t.Run("with teams", func(t *testing.T) {
+		buf.Reset()
+		desc := "Engineering team description"
+		teams := []*intgraphql.ListTeams_Teams_Nodes{
+			{
+				Key:         "ENG",
+				Name:        "Engineering",
+				Description: &desc,
+			},
+			{
+				Key:         "DES",
+				Name:        "Design",
+				Description: nil,
+			},
+		}
+
+		err := FormatTeamsTable(&buf, teams)
+		if err != nil {
+			t.Fatalf("FormatTeamsTable() error = %v", err)
+		}
+
+		output := buf.String()
+		if !strings.Contains(output, "ENG") {
+			t.Errorf("FormatTeamsTable() should contain team key")
+		}
+		if !strings.Contains(output, "Engineering") {
+			t.Errorf("FormatTeamsTable() should contain team name")
+		}
+		if !strings.Contains(output, "Design") {
+			t.Errorf("FormatTeamsTable() should contain second team")
+		}
+	})
+}
+
+func TestFormatUsersTable(t *testing.T) {
+	var buf bytes.Buffer
+
+	t.Run("empty users", func(t *testing.T) {
+		buf.Reset()
+		err := FormatUsersTable(&buf, nil)
+		if err != nil {
+			t.Fatalf("FormatUsersTable() error = %v", err)
+		}
+		if !strings.Contains(buf.String(), "No users found") {
+			t.Errorf("FormatUsersTable() should show 'No users found'")
+		}
+	})
+
+	t.Run("with users", func(t *testing.T) {
+		buf.Reset()
+		users := []*intgraphql.ListUsers_Users_Nodes{
+			{
+				Name:   "Alice Smith",
+				Email:  "alice@example.com",
+				Active: true,
+			},
+			{
+				Name:   "Bob Jones",
+				Email:  "bob@example.com",
+				Active: false,
+			},
+		}
+
+		err := FormatUsersTable(&buf, users)
+		if err != nil {
+			t.Fatalf("FormatUsersTable() error = %v", err)
+		}
+
+		output := buf.String()
+		if !strings.Contains(output, "Alice Smith") {
+			t.Errorf("FormatUsersTable() should contain user name")
+		}
+		if !strings.Contains(output, "alice@example.com") {
+			t.Errorf("FormatUsersTable() should contain user email")
+		}
+		if !strings.Contains(output, "Bob Jones") {
+			t.Errorf("FormatUsersTable() should contain second user")
+		}
+	})
+}

@@ -21,7 +21,7 @@ func TestUUIDRegex(t *testing.T) {
 		{"not-a-uuid", false},
 		{"12345678123412341234123456789abc", false}, // no dashes
 		{"", false},
-		{"12345678-1234-1234-1234-123456789ab", false},  // too short
+		{"12345678-1234-1234-1234-123456789ab", false},   // too short
 		{"12345678-1234-1234-1234-123456789abcd", false}, // too long
 	}
 

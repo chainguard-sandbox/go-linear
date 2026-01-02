@@ -114,3 +114,80 @@ func TestFormatJSONFiltered(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatJSONWithFields(t *testing.T) {
+	data := map[string]any{
+		"id":       "123",
+		"title":    "Test",
+		"priority": 1,
+		"status":   "open",
+	}
+
+	defaults := []string{"id", "title"}
+
+	tests := []struct {
+		name       string
+		fieldSpec  string
+		defaults   []string
+		wantFields []string
+	}{
+		{
+			name:       "use defaults",
+			fieldSpec:  "defaults",
+			defaults:   defaults,
+			wantFields: []string{"id", "title"},
+		},
+		{
+			name:       "defaults with extra",
+			fieldSpec:  "defaults,status",
+			defaults:   defaults,
+			wantFields: []string{"id", "title", "status"},
+		},
+		{
+			name:       "none - all fields",
+			fieldSpec:  "none",
+			defaults:   defaults,
+			wantFields: []string{"id", "title", "priority", "status"},
+		},
+		{
+			name:       "empty - uses defaults when provided",
+			fieldSpec:  "",
+			defaults:   defaults,
+			wantFields: []string{"id", "title"},
+		},
+		{
+			name:       "specific fields only",
+			fieldSpec:  "id,priority",
+			defaults:   defaults,
+			wantFields: []string{"id", "priority"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			err := FormatJSONWithFields(&buf, data, false, tt.fieldSpec, tt.defaults)
+			if err != nil {
+				t.Fatalf("FormatJSONWithFields() error = %v", err)
+			}
+
+			// Parse result
+			var result map[string]any
+			if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+				t.Errorf("FormatJSONWithFields() produced invalid JSON: %v", err)
+			}
+
+			// Check field count
+			if len(result) != len(tt.wantFields) {
+				t.Errorf("FormatJSONWithFields() field count = %d, want %d", len(result), len(tt.wantFields))
+			}
+
+			// Check expected fields present
+			for _, field := range tt.wantFields {
+				if _, ok := result[field]; !ok {
+					t.Errorf("FormatJSONWithFields() missing field %s", field)
+				}
+			}
+		})
+	}
+}
