@@ -14,25 +14,25 @@ import (
 type Config struct {
 	// FieldDefaults maps command names to default field lists
 	// Example: "issue.list": "id,identifier,title,state.name"
-	FieldDefaults map[string]string `yaml:"field_defaults"`
+	FieldDefaults map[string]string `yaml:"field_defaults,omitempty"`
 
 	// MCP contains MCP-specific configuration
-	MCP MCPConfig `yaml:"mcp"`
+	MCP MCPConfig `yaml:"mcp,omitempty"`
 
 	// Defaults contains default values for commands
-	Defaults DefaultsConfig `yaml:"defaults"`
+	Defaults DefaultsConfig `yaml:"defaults,omitempty"`
 }
 
 // MCPConfig holds MCP-specific settings.
 type MCPConfig struct {
 	// FieldDefaults for MCP tools (overrides top-level FieldDefaults)
-	FieldDefaults map[string]string `yaml:"field_defaults"`
+	FieldDefaults map[string]string `yaml:"field_defaults,omitempty"`
 }
 
 // DefaultsConfig holds default values for command flags.
 type DefaultsConfig struct {
-	Team   string   `yaml:"team"`
-	Labels []string `yaml:"labels"`
+	Team   string   `yaml:"team,omitempty"`
+	Labels []string `yaml:"labels,omitempty"`
 }
 
 // Load reads configuration from both user and workspace locations.
