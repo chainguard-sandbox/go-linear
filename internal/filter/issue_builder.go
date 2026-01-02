@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"reflect"
+
 	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -83,57 +85,70 @@ func (b *IssueFilterBuilder) ArchivedAtComparator() *intgraphql.NullableDateComp
 // Build returns the constructed filter.
 // Returns nil if no filters were set.
 func (b *IssueFilterBuilder) Build() *intgraphql.IssueFilter {
-	// Check if any filters were actually set
-	if b.filter.Team == nil &&
-		b.filter.Assignee == nil &&
-		b.filter.State == nil &&
-		b.filter.Priority == nil &&
-		b.filter.CreatedAt == nil &&
-		b.filter.CompletedAt == nil &&
-		b.filter.UpdatedAt == nil &&
-		b.filter.Labels == nil &&
-		b.filter.Creator == nil &&
-		b.filter.Cycle == nil &&
-		b.filter.Project == nil &&
-		b.filter.Parent == nil &&
-		b.filter.ArchivedAt == nil &&
-		b.filter.CanceledAt == nil &&
-		b.filter.StartedAt == nil &&
-		b.filter.TriagedAt == nil &&
-		b.filter.HasSuggestedTeams == nil &&
-		b.filter.HasSuggestedAssignees == nil &&
-		b.filter.HasSuggestedProjects == nil &&
-		b.filter.HasSuggestedLabels == nil &&
-		b.filter.Comments == nil &&
-		b.filter.Attachments == nil &&
-		b.filter.Subscribers == nil &&
-		b.filter.Children == nil &&
-		b.filter.Needs == nil &&
-		b.filter.Reactions == nil &&
-		b.filter.DueDate == nil &&
-		b.filter.Estimate == nil &&
-		b.filter.Title == nil &&
-		b.filter.Description == nil &&
-		b.filter.Number == nil &&
-		b.filter.ID == nil &&
-		b.filter.Delegate == nil &&
-		b.filter.SnoozedBy == nil &&
-		b.filter.SnoozedUntilAt == nil &&
-		b.filter.AutoArchivedAt == nil &&
-		b.filter.AutoClosedAt == nil &&
-		b.filter.AddedToCycleAt == nil &&
-		b.filter.AddedToCyclePeriod == nil &&
-		b.filter.ProjectMilestone == nil &&
-		b.filter.LastAppliedTemplate == nil &&
-		b.filter.CustomerCount == nil &&
-		b.filter.CustomerImportantCount == nil &&
-		b.filter.HasBlockedByRelations == nil &&
-		b.filter.HasBlockingRelations == nil &&
-		b.filter.HasDuplicateRelations == nil &&
-		b.filter.HasRelatedRelations == nil &&
-		b.filter.SLAStatus == nil {
+	// Check if any filters were actually set using helper
+	if !hasAnyFilter(
+		b.filter.Team,
+		b.filter.Assignee,
+		b.filter.State,
+		b.filter.Priority,
+		b.filter.CreatedAt,
+		b.filter.CompletedAt,
+		b.filter.UpdatedAt,
+		b.filter.Labels,
+		b.filter.Creator,
+		b.filter.Cycle,
+		b.filter.Project,
+		b.filter.Parent,
+		b.filter.ArchivedAt,
+		b.filter.CanceledAt,
+		b.filter.StartedAt,
+		b.filter.TriagedAt,
+		b.filter.HasSuggestedTeams,
+		b.filter.HasSuggestedAssignees,
+		b.filter.HasSuggestedProjects,
+		b.filter.HasSuggestedLabels,
+		b.filter.Comments,
+		b.filter.Attachments,
+		b.filter.Subscribers,
+		b.filter.Children,
+		b.filter.Needs,
+		b.filter.Reactions,
+		b.filter.DueDate,
+		b.filter.Estimate,
+		b.filter.Title,
+		b.filter.Description,
+		b.filter.Number,
+		b.filter.ID,
+		b.filter.Delegate,
+		b.filter.SnoozedBy,
+		b.filter.SnoozedUntilAt,
+		b.filter.AutoArchivedAt,
+		b.filter.AutoClosedAt,
+		b.filter.AddedToCycleAt,
+		b.filter.AddedToCyclePeriod,
+		b.filter.ProjectMilestone,
+		b.filter.LastAppliedTemplate,
+		b.filter.CustomerCount,
+		b.filter.CustomerImportantCount,
+		b.filter.HasBlockedByRelations,
+		b.filter.HasBlockingRelations,
+		b.filter.HasDuplicateRelations,
+		b.filter.HasRelatedRelations,
+		b.filter.SLAStatus,
+	) {
 		return nil
 	}
 
 	return b.filter
+}
+
+// hasAnyFilter returns true if any of the provided pointer values is non-nil.
+// Uses reflection to correctly handle nil interface values.
+func hasAnyFilter(filters ...any) bool {
+	for _, f := range filters {
+		if f != nil && !reflect.ValueOf(f).IsNil() {
+			return true
+		}
+	}
+	return false
 }
