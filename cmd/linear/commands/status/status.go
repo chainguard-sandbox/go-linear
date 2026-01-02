@@ -14,6 +14,41 @@ import (
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
+// statusOutput is a JSON-safe representation of rate limit info.
+// It uses string pointers for time values to handle zero times gracefully.
+type statusOutput struct {
+	RequestsLimit       int     `json:"requestsLimit"`
+	RequestsRemaining   int     `json:"requestsRemaining"`
+	RequestsReset       *string `json:"requestsReset,omitempty"`
+	ComplexityLimit     int     `json:"complexityLimit"`
+	ComplexityRemaining int     `json:"complexityRemaining"`
+	ComplexityReset     *string `json:"complexityReset,omitempty"`
+	RetryAfterSeconds   float64 `json:"retryAfterSeconds,omitempty"`
+}
+
+// toStatusOutput converts RateLimitInfo to a JSON-safe struct.
+func toStatusOutput(info *linear.RateLimitInfo) *statusOutput {
+	out := &statusOutput{
+		RequestsLimit:       info.RequestsLimit,
+		RequestsRemaining:   info.RequestsRemaining,
+		ComplexityLimit:     info.ComplexityLimit,
+		ComplexityRemaining: info.ComplexityRemaining,
+		RetryAfterSeconds:   info.RetryAfter.Seconds(),
+	}
+
+	if !info.RequestsReset.IsZero() {
+		s := info.RequestsReset.Format(time.RFC3339)
+		out.RequestsReset = &s
+	}
+
+	if !info.ComplexityReset.IsZero() {
+		s := info.ComplexityReset.Format(time.RFC3339)
+		out.ComplexityReset = &s
+	}
+
+	return out
+}
+
 // ClientFactory is a function that creates a Linear client.
 type ClientFactory func() (*linear.Client, error)
 
@@ -104,7 +139,8 @@ func runStatus(cmd *cobra.Command) error {
 	output, _ := cmd.Flags().GetString("output")
 	switch output {
 	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), info, true)
+		// Use JSON-safe struct to handle zero time values
+		return formatter.FormatJSON(cmd.OutOrStdout(), toStatusOutput(info), true)
 	case "table":
 		displayTable(cmd, info, timestamp)
 		return nil
