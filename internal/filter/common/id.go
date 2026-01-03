@@ -1,4 +1,4 @@
-package comment
+package common
 
 import (
 	"context"
@@ -9,12 +9,13 @@ import (
 )
 
 // ApplyID handles --id flag.
-func ApplyID(ctx context.Context, cmd *cobra.Command, b *FilterBuilder) error {
+// Works with any filter builder that implements IDFilterable.
+func ApplyID[T IDFilterable](ctx context.Context, cmd *cobra.Command, b T) error {
 	id, _ := cmd.Flags().GetString("id")
 	if id == "" {
 		return nil
 	}
 
-	b.Filter().ID = &intgraphql.IDComparator{Eq: &id}
+	b.SetID(&intgraphql.IDComparator{Eq: &id})
 	return nil
 }

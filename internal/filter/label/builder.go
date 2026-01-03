@@ -58,6 +58,11 @@ func (b *FilterBuilder) UpdatedAtComparator() *intgraphql.DateComparator {
 	return b.filter.UpdatedAt
 }
 
+// SetID sets the ID comparator. Implements common.IDFilterable.
+func (b *FilterBuilder) SetID(comp *intgraphql.IDComparator) {
+	b.filter.ID = comp
+}
+
 // Build returns the filter if any fields are set, nil otherwise.
 func (b *FilterBuilder) Build() *intgraphql.IssueLabelFilter {
 	if !hasAnyFilter(

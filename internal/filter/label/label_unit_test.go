@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/filter/common"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 )
 
@@ -72,7 +73,7 @@ func TestApplyCreatedAt(t *testing.T) {
 			cmd.Flags().String("created-before", tt.before, "")
 
 			b := NewFilterBuilder(nil)
-			err := ApplyCreatedAt(context.Background(), cmd, b)
+			err := common.ApplyCreatedAt(context.Background(), cmd, b)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ApplyCreatedAt() error = %v, wantErr %v", err, tt.wantErr)
@@ -124,7 +125,7 @@ func TestApplyUpdatedAt(t *testing.T) {
 			cmd.Flags().String("updated-before", tt.before, "")
 
 			b := NewFilterBuilder(nil)
-			err := ApplyUpdatedAt(context.Background(), cmd, b)
+			err := common.ApplyUpdatedAt(context.Background(), cmd, b)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ApplyUpdatedAt() error = %v, wantErr %v", err, tt.wantErr)
@@ -163,7 +164,7 @@ func TestApplyID(t *testing.T) {
 			cmd.Flags().String("id", tt.id, "")
 
 			b := NewFilterBuilder(nil)
-			err := ApplyID(context.Background(), cmd, b)
+			err := common.ApplyID(context.Background(), cmd, b)
 
 			if err != nil {
 				t.Fatalf("ApplyID() error = %v", err)

@@ -1,4 +1,4 @@
-package comment
+package common
 
 import (
 	"context"
@@ -8,7 +8,8 @@ import (
 )
 
 // ApplyCreatedAt handles --created-after and --created-before flags.
-func ApplyCreatedAt(ctx context.Context, cmd *cobra.Command, b *FilterBuilder) error {
+// Works with any filter builder that implements DateFilterable.
+func ApplyCreatedAt[T DateFilterable](ctx context.Context, cmd *cobra.Command, b T) error {
 	after, _ := cmd.Flags().GetString("created-after")
 	before, _ := cmd.Flags().GetString("created-before")
 

@@ -1,4 +1,4 @@
-package label
+package common
 
 import (
 	"context"
@@ -8,7 +8,8 @@ import (
 )
 
 // ApplyUpdatedAt handles --updated-after and --updated-before flags.
-func ApplyUpdatedAt(ctx context.Context, cmd *cobra.Command, b *FilterBuilder) error {
+// Works with any filter builder that implements UpdateDateFilterable.
+func ApplyUpdatedAt[T UpdateDateFilterable](ctx context.Context, cmd *cobra.Command, b T) error {
 	after, _ := cmd.Flags().GetString("updated-after")
 	before, _ := cmd.Flags().GetString("updated-before")
 

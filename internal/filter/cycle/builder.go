@@ -9,6 +9,13 @@ import (
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 )
 
+// Ensure FilterBuilder implements common interfaces.
+var (
+	_ interface {
+		SetID(*intgraphql.IDComparator)
+	} = (*FilterBuilder)(nil)
+)
+
 // FilterBuilder builds a CycleFilter from Cobra command flags.
 type FilterBuilder struct {
 	filter   *intgraphql.CycleFilter
@@ -78,6 +85,11 @@ func (b *FilterBuilder) EndsAtComparator() *intgraphql.DateComparator {
 		b.filter.EndsAt = &intgraphql.DateComparator{}
 	}
 	return b.filter.EndsAt
+}
+
+// SetID sets the ID comparator. Implements common.IDFilterable.
+func (b *FilterBuilder) SetID(comp *intgraphql.IDComparator) {
+	b.filter.ID = comp
 }
 
 // Build returns the constructed filter.

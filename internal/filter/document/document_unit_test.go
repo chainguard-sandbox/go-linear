@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
+	"github.com/chainguard-sandbox/go-linear/internal/filter/common"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 )
 
@@ -132,7 +133,7 @@ func TestApplyCreatedAt(t *testing.T) {
 				"created-before": tt.before,
 			})
 
-			err := ApplyCreatedAt(context.Background(), cmd, b)
+			err := common.ApplyCreatedAt(context.Background(), cmd, b)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ApplyCreatedAt() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -157,7 +158,7 @@ func TestApplyUpdatedAt(t *testing.T) {
 		"updated-before": "2025-12-31",
 	})
 
-	err := ApplyUpdatedAt(context.Background(), cmd, b)
+	err := common.ApplyUpdatedAt(context.Background(), cmd, b)
 	if err != nil {
 		t.Fatalf("ApplyUpdatedAt() error = %v", err)
 	}
@@ -186,7 +187,7 @@ func TestApplyID(t *testing.T) {
 			b := testBuilder()
 			cmd := testCommand(map[string]any{"id": tt.id})
 
-			err := ApplyID(context.Background(), cmd, b)
+			err := common.ApplyID(context.Background(), cmd, b)
 			if err != nil {
 				t.Fatalf("ApplyID() error = %v", err)
 			}
@@ -342,7 +343,7 @@ func TestApplyUpdatedAt_Empty(t *testing.T) {
 		"updated-before": "",
 	})
 
-	err := ApplyUpdatedAt(context.Background(), cmd, b)
+	err := common.ApplyUpdatedAt(context.Background(), cmd, b)
 	if err != nil {
 		t.Fatalf("ApplyUpdatedAt() error = %v", err)
 	}
