@@ -482,3 +482,126 @@ go-linear label list \
 ```
 
 Returns group labels created in the last 30 days.
+
+---
+
+## State Filters
+
+`go-linear state list` supports 7 filter flags for querying workflow states.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (2)
+- `--id` - Workflow state UUID
+- `--team` - Team name, key, or UUID
+
+#### Text Filters (3)
+- `--name` - Name contains (case-insensitive)
+- `--description` - Description contains (case-insensitive)
+- `--type` - State type: triage, backlog, unstarted, started, completed, canceled
+
+### Example
+
+```bash
+go-linear state list --type=started --output=json
+```
+
+Returns all workflow states of type "started".
+
+### Combining Filters
+
+```bash
+go-linear state list \
+  --team=ENG \
+  --type=completed
+```
+
+Returns completed workflow states for the Engineering team.
+
+---
+
+## Team Filters
+
+`go-linear team list` supports 8 filter flags for querying teams.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (1)
+- `--id` - Team UUID
+
+#### Text Filters (3)
+- `--name` - Name contains (case-insensitive)
+- `--key` - Team key (exact match, case-insensitive)
+- `--description` - Description contains (case-insensitive)
+
+#### Boolean Filters (1)
+- `--private` - Filter by private status
+
+### Example
+
+```bash
+go-linear team list --private=true --output=json
+```
+
+Returns all private teams.
+
+### Combining Filters
+
+```bash
+go-linear team list \
+  --created-after=30d \
+  --name=Platform
+```
+
+Returns teams with "Platform" in the name created in the last 30 days.
+
+---
+
+## User Filters
+
+`go-linear user list` supports 10 filter flags for querying users.
+
+### Filter Categories
+
+#### Date Filters (4 flags)
+- `--created-after`, `--created-before` - Creation date
+- `--updated-after`, `--updated-before` - Last update date
+
+#### Entity Filters (1)
+- `--id` - User UUID
+
+#### Text Filters (3)
+- `--name` - Name contains (case-insensitive)
+- `--email` - Email contains (case-insensitive)
+- `--display-name` - Display name contains (case-insensitive)
+
+#### Boolean Filters (3)
+- `--active` - Filter by active status
+- `--admin` - Filter by admin status
+- `--is-me` - Filter for current user
+
+### Example
+
+```bash
+go-linear user list --admin --active --output=json
+```
+
+Returns all active admin users.
+
+### Combining Filters
+
+```bash
+go-linear user list \
+  --active=true \
+  --email=@company.com
+```
+
+Returns active users with company.com email addresses.
