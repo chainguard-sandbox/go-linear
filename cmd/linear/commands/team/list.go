@@ -8,6 +8,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
+	teamfilter "github.com/chainguard-sandbox/go-linear/internal/filter/team"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
@@ -17,11 +18,14 @@ func NewListCommand(clientFactory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all teams",
-		Long: `List teams. Returns 7 default fields per team (includes issueCount). Use for discovering team names/keys.
+		Long: `List teams with filtering. Returns 7 default fields per team (includes issueCount). Use for discovering team names/keys.
 
 Team keys appear in issue identifiers (e.g., ENG-123 where ENG is the team key).
 
-Example: go-linear team list --output=json
+Filters: --name, --key, --description, --private
+Date filters: --created-after, --created-before, --updated-after, --updated-before
+
+Example: go-linear team list --private=true --output=json
 
 Returns: {nodes: [{7 team fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: team_get, team_members, issue_list`,
@@ -36,7 +40,27 @@ Related: team_get, team_members, issue_list`,
 		},
 	}
 
+	// Pagination
 	cmd.Flags().IntP("limit", "l", 100, "Number of teams to return")
+
+	// Date filters
+	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
+	cmd.Flags().String("created-before", "", "Created before date")
+	cmd.Flags().String("updated-after", "", "Updated after date")
+	cmd.Flags().String("updated-before", "", "Updated before date")
+
+	// Entity filters
+	cmd.Flags().String("id", "", "Team UUID")
+
+	// Text filters
+	cmd.Flags().String("name", "", "Name contains (case-insensitive)")
+	cmd.Flags().String("key", "", "Team key (exact match, case-insensitive)")
+	cmd.Flags().String("description", "", "Description contains (case-insensitive)")
+
+	// Boolean filters
+	cmd.Flags().Bool("private", false, "Filter by private status")
+
+	// Output
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,name,key,description,icon,createdAt) | none | defaults,extra | id,name,...")
 
@@ -46,16 +70,51 @@ Related: team_get, team_members, issue_list`,
 func runList(cmd *cobra.Command, client *linear.Client) error {
 	ctx := context.Background()
 
+	// Build filter from flags
+	filterBuilder := teamfilter.NewFilterBuilder(nil)
+	if err := filterBuilder.FromFlags(ctx, cmd); err != nil {
+		return err
+	}
+	tmFilter := filterBuilder.Build()
+
 	limit, _ := cmd.Flags().GetInt("limit")
 	first := int64(limit)
 
+	output, _ := cmd.Flags().GetString("output")
+	fieldsSpec, _ := cmd.Flags().GetString("fields")
+
+	// Use filtered or unfiltered query based on whether filters were set
+	if tmFilter != nil {
+		teams, err := client.TeamsFiltered(ctx, &first, nil, tmFilter)
+		if err != nil {
+			return fmt.Errorf("failed to list teams: %w", err)
+		}
+
+		switch output {
+		case "json":
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
+			}
+			defaults := fieldfilter.GetDefaults("team.list", configOverrides)
+			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), teams, true, fieldSelector)
+		case "table":
+			return formatter.FormatTeamsTableFiltered(cmd.OutOrStdout(), teams.Nodes)
+		default:
+			return fmt.Errorf("unsupported output format: %s", output)
+		}
+	}
+
+	// No filters: use regular query
 	teams, err := client.Teams(ctx, &first, nil)
 	if err != nil {
 		return fmt.Errorf("failed to list teams: %w", err)
 	}
-
-	output, _ := cmd.Flags().GetString("output")
-	fieldsSpec, _ := cmd.Flags().GetString("fields")
 
 	switch output {
 	case "json":
