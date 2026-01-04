@@ -164,6 +164,11 @@ vulncheck:  ## Check for known vulnerabilities
 	@govulncheck ./...
 	@echo "✓ No vulnerabilities found"
 
+gosec:  ## Run gosec security scanner
+	@echo "Running gosec..."
+	@gosec ./...
+	@echo "✓ Gosec passed"
+
 trivy:  ## Scan with trivy (if available)
 	@echo "Scanning with trivy..."
 	@trivy fs --severity HIGH,CRITICAL .
