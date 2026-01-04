@@ -77,6 +77,48 @@ func FormatUsersTable(w io.Writer, users []*intgraphql.ListUsers_Users_Nodes) er
 	return table.Render()
 }
 
+// FormatTeamsTableFiltered writes filtered teams as a formatted table to the writer.
+func FormatTeamsTableFiltered(w io.Writer, teams []*intgraphql.ListTeamsFiltered_Teams_Nodes) error {
+	if len(teams) == 0 {
+		fmt.Fprintln(w, "No teams found")
+		return nil
+	}
+
+	table := tablewriter.NewWriter(w)
+	table.Header("Key", "Name", "Description")
+
+	for _, team := range teams {
+		desc := ""
+		if team.Description != nil {
+			desc = truncate(*team.Description, 60)
+		}
+		_ = table.Append(team.Key, team.Name, desc)
+	}
+
+	return table.Render()
+}
+
+// FormatUsersTableFiltered writes filtered users as a formatted table to the writer.
+func FormatUsersTableFiltered(w io.Writer, users []*intgraphql.ListUsersFiltered_Users_Nodes) error {
+	if len(users) == 0 {
+		fmt.Fprintln(w, "No users found")
+		return nil
+	}
+
+	table := tablewriter.NewWriter(w)
+	table.Header("Name", "Email", "Active")
+
+	for _, user := range users {
+		active := "Yes"
+		if !user.Active {
+			active = "No"
+		}
+		_ = table.Append(user.Name, user.Email, active)
+	}
+
+	return table.Render()
+}
+
 // Helper functions
 
 func truncate(s string, maxLen int) string {

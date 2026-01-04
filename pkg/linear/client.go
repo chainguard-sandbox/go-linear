@@ -343,6 +343,15 @@ func (c *Client) Teams(ctx context.Context, first *int64, after *string) (*intgr
 	return &resp.Teams, nil
 }
 
+// TeamsFiltered returns teams matching the specified filter.
+func (c *Client) TeamsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.TeamFilter) (*intgraphql.ListTeamsFiltered_Teams, error) {
+	resp, err := c.gqlClient.ListTeamsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("teams filtered query", err)
+	}
+	return &resp.Teams, nil
+}
+
 // Project retrieves a single project by ID.
 //
 // Returns:
@@ -447,6 +456,15 @@ func (c *Client) Users(ctx context.Context, first *int64, after *string) (*intgr
 	resp, err := c.gqlClient.ListUsers(ctx, first, after)
 	if err != nil {
 		return nil, wrapGraphQLError("users query", err)
+	}
+	return &resp.Users, nil
+}
+
+// UsersFiltered returns users matching the specified filter.
+func (c *Client) UsersFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.UserFilter) (*intgraphql.ListUsersFiltered_Users, error) {
+	resp, err := c.gqlClient.ListUsersFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("users filtered query", err)
 	}
 	return &resp.Users, nil
 }
@@ -784,6 +802,15 @@ func (c *Client) WorkflowStates(ctx context.Context, first *int64, after *string
 	resp, err := c.gqlClient.ListWorkflowStates(ctx, first, after)
 	if err != nil {
 		return nil, wrapGraphQLError("workflow states query", err)
+	}
+	return &resp.WorkflowStates, nil
+}
+
+// WorkflowStatesFiltered returns workflow states matching the specified filter.
+func (c *Client) WorkflowStatesFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.WorkflowStateFilter) (*intgraphql.ListWorkflowStatesFiltered_WorkflowStates, error) {
+	resp, err := c.gqlClient.ListWorkflowStatesFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("workflow states filtered query", err)
 	}
 	return &resp.WorkflowStates, nil
 }

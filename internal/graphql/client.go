@@ -82,13 +82,16 @@ type LinearGraphQLClient interface {
 	SearchIssues(ctx context.Context, term string, first *int64, after *string, filter *IssueFilter, includeArchived *bool, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
+	ListTeamsFiltered(ctx context.Context, first *int64, after *string, filter *TeamFilter, interceptors ...clientv2.RequestInterceptor) (*ListTeamsFiltered, error)
 	GetTemplate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTemplate, error)
 	ListTemplates(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListTemplates, error)
 	GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error)
 	ListUsers(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListUsers, error)
+	ListUsersFiltered(ctx context.Context, first *int64, after *string, filter *UserFilter, interceptors ...clientv2.RequestInterceptor) (*ListUsersFiltered, error)
 	Viewer(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*Viewer, error)
 	GetWorkflowState(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetWorkflowState, error)
 	ListWorkflowStates(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListWorkflowStates, error)
+	ListWorkflowStatesFiltered(ctx context.Context, first *int64, after *string, filter *WorkflowStateFilter, interceptors ...clientv2.RequestInterceptor) (*ListWorkflowStatesFiltered, error)
 }
 
 type Client struct {
@@ -5273,6 +5276,109 @@ func (t *ListTeams_Teams) GetPageInfo() *ListTeams_Teams_PageInfo {
 	return &t.PageInfo
 }
 
+type ListTeamsFiltered_Teams_Nodes struct {
+	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	IssueCount  int64     "json:\"issueCount\" graphql:\"issueCount\""
+	Key         string    "json:\"key\" graphql:\"key\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Private     bool      "json:\"private\" graphql:\"private\""
+}
+
+func (t *ListTeamsFiltered_Teams_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetID() string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetIssueCount() int64 {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.IssueCount
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetKey() string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.Key
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetName() string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListTeamsFiltered_Teams_Nodes) GetPrivate() bool {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_Nodes{}
+	}
+	return t.Private
+}
+
+type ListTeamsFiltered_Teams_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListTeamsFiltered_Teams_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListTeamsFiltered_Teams_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListTeamsFiltered_Teams struct {
+	Nodes    []*ListTeamsFiltered_Teams_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListTeamsFiltered_Teams_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListTeamsFiltered_Teams) GetNodes() []*ListTeamsFiltered_Teams_Nodes {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams{}
+	}
+	return t.Nodes
+}
+func (t *ListTeamsFiltered_Teams) GetPageInfo() *ListTeamsFiltered_Teams_PageInfo {
+	if t == nil {
+		t = &ListTeamsFiltered_Teams{}
+	}
+	return &t.PageInfo
+}
+
 type GetTemplate_Template struct {
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
@@ -5521,6 +5627,102 @@ func (t *ListUsers_Users) GetPageInfo() *ListUsers_Users_PageInfo {
 	return &t.PageInfo
 }
 
+type ListUsersFiltered_Users_Nodes struct {
+	Active      bool      "json:\"active\" graphql:\"active\""
+	Admin       bool      "json:\"admin\" graphql:\"admin\""
+	AvatarURL   *string   "json:\"avatarUrl,omitempty\" graphql:\"avatarUrl\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	DisplayName string    "json:\"displayName\" graphql:\"displayName\""
+	Email       string    "json:\"email\" graphql:\"email\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListUsersFiltered_Users_Nodes) GetActive() bool {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.Active
+}
+func (t *ListUsersFiltered_Users_Nodes) GetAdmin() bool {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.Admin
+}
+func (t *ListUsersFiltered_Users_Nodes) GetAvatarURL() *string {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.AvatarURL
+}
+func (t *ListUsersFiltered_Users_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListUsersFiltered_Users_Nodes) GetDisplayName() string {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.DisplayName
+}
+func (t *ListUsersFiltered_Users_Nodes) GetEmail() string {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.Email
+}
+func (t *ListUsersFiltered_Users_Nodes) GetID() string {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListUsersFiltered_Users_Nodes) GetName() string {
+	if t == nil {
+		t = &ListUsersFiltered_Users_Nodes{}
+	}
+	return t.Name
+}
+
+type ListUsersFiltered_Users_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListUsersFiltered_Users_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListUsersFiltered_Users_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListUsersFiltered_Users_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListUsersFiltered_Users_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListUsersFiltered_Users struct {
+	Nodes    []*ListUsersFiltered_Users_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListUsersFiltered_Users_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListUsersFiltered_Users) GetNodes() []*ListUsersFiltered_Users_Nodes {
+	if t == nil {
+		t = &ListUsersFiltered_Users{}
+	}
+	return t.Nodes
+}
+func (t *ListUsersFiltered_Users) GetPageInfo() *ListUsersFiltered_Users_PageInfo {
+	if t == nil {
+		t = &ListUsersFiltered_Users{}
+	}
+	return &t.PageInfo
+}
+
 type Viewer_Viewer struct {
 	Active      bool      "json:\"active\" graphql:\"active\""
 	Admin       bool      "json:\"admin\" graphql:\"admin\""
@@ -5726,6 +5928,95 @@ func (t *ListWorkflowStates_WorkflowStates) GetNodes() []*ListWorkflowStates_Wor
 func (t *ListWorkflowStates_WorkflowStates) GetPageInfo() *ListWorkflowStates_WorkflowStates_PageInfo {
 	if t == nil {
 		t = &ListWorkflowStates_WorkflowStates{}
+	}
+	return &t.PageInfo
+}
+
+type ListWorkflowStatesFiltered_WorkflowStates_Nodes struct {
+	Color       string    "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID          string    "json:\"id\" graphql:\"id\""
+	Name        string    "json:\"name\" graphql:\"name\""
+	Position    float64   "json:\"position\" graphql:\"position\""
+	Type        string    "json:\"type\" graphql:\"type\""
+}
+
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetColor() string {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetID() string {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetName() string {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetPosition() float64 {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return t.Position
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_Nodes) GetType() string {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_Nodes{}
+	}
+	return t.Type
+}
+
+type ListWorkflowStatesFiltered_WorkflowStates_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListWorkflowStatesFiltered_WorkflowStates_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListWorkflowStatesFiltered_WorkflowStates struct {
+	Nodes    []*ListWorkflowStatesFiltered_WorkflowStates_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListWorkflowStatesFiltered_WorkflowStates_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListWorkflowStatesFiltered_WorkflowStates) GetNodes() []*ListWorkflowStatesFiltered_WorkflowStates_Nodes {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates{}
+	}
+	return t.Nodes
+}
+func (t *ListWorkflowStatesFiltered_WorkflowStates) GetPageInfo() *ListWorkflowStatesFiltered_WorkflowStates_PageInfo {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered_WorkflowStates{}
 	}
 	return &t.PageInfo
 }
@@ -6522,6 +6813,17 @@ func (t *ListTeams) GetTeams() *ListTeams_Teams {
 	return &t.Teams
 }
 
+type ListTeamsFiltered struct {
+	Teams ListTeamsFiltered_Teams "json:\"teams\" graphql:\"teams\""
+}
+
+func (t *ListTeamsFiltered) GetTeams() *ListTeamsFiltered_Teams {
+	if t == nil {
+		t = &ListTeamsFiltered{}
+	}
+	return &t.Teams
+}
+
 type GetTemplate struct {
 	Template GetTemplate_Template "json:\"template\" graphql:\"template\""
 }
@@ -6566,6 +6868,17 @@ func (t *ListUsers) GetUsers() *ListUsers_Users {
 	return &t.Users
 }
 
+type ListUsersFiltered struct {
+	Users ListUsersFiltered_Users "json:\"users\" graphql:\"users\""
+}
+
+func (t *ListUsersFiltered) GetUsers() *ListUsersFiltered_Users {
+	if t == nil {
+		t = &ListUsersFiltered{}
+	}
+	return &t.Users
+}
+
 type Viewer struct {
 	Viewer Viewer_Viewer "json:\"viewer\" graphql:\"viewer\""
 }
@@ -6595,6 +6908,17 @@ type ListWorkflowStates struct {
 func (t *ListWorkflowStates) GetWorkflowStates() *ListWorkflowStates_WorkflowStates {
 	if t == nil {
 		t = &ListWorkflowStates{}
+	}
+	return &t.WorkflowStates
+}
+
+type ListWorkflowStatesFiltered struct {
+	WorkflowStates ListWorkflowStatesFiltered_WorkflowStates "json:\"workflowStates\" graphql:\"workflowStates\""
+}
+
+func (t *ListWorkflowStatesFiltered) GetWorkflowStates() *ListWorkflowStatesFiltered_WorkflowStates {
+	if t == nil {
+		t = &ListWorkflowStatesFiltered{}
 	}
 	return &t.WorkflowStates
 }
@@ -9043,6 +9367,46 @@ func (c *Client) ListTeams(ctx context.Context, first *int64, after *string, int
 	return &res, nil
 }
 
+const ListTeamsFilteredDocument = `query ListTeamsFiltered ($first: Int, $after: String, $filter: TeamFilter) {
+	teams(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			name
+			key
+			description
+			createdAt
+			private
+			icon
+			color
+			issueCount
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListTeamsFiltered(ctx context.Context, first *int64, after *string, filter *TeamFilter, interceptors ...clientv2.RequestInterceptor) (*ListTeamsFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListTeamsFiltered
+	if err := c.Client.Post(ctx, "ListTeamsFiltered", ListTeamsFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetTemplateDocument = `query GetTemplate ($id: String!) {
 	template(id: $id) {
 		id
@@ -9168,6 +9532,45 @@ func (c *Client) ListUsers(ctx context.Context, first *int64, after *string, int
 	return &res, nil
 }
 
+const ListUsersFilteredDocument = `query ListUsersFiltered ($first: Int, $after: String, $filter: UserFilter) {
+	users(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			name
+			email
+			displayName
+			createdAt
+			admin
+			active
+			avatarUrl
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListUsersFiltered(ctx context.Context, first *int64, after *string, filter *UserFilter, interceptors ...clientv2.RequestInterceptor) (*ListUsersFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListUsersFiltered
+	if err := c.Client.Post(ctx, "ListUsersFiltered", ListUsersFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ViewerDocument = `query Viewer {
 	viewer {
 		id
@@ -9265,6 +9668,44 @@ func (c *Client) ListWorkflowStates(ctx context.Context, first *int64, after *st
 	return &res, nil
 }
 
+const ListWorkflowStatesFilteredDocument = `query ListWorkflowStatesFiltered ($first: Int, $after: String, $filter: WorkflowStateFilter) {
+	workflowStates(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			name
+			description
+			type
+			color
+			position
+			createdAt
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListWorkflowStatesFiltered(ctx context.Context, first *int64, after *string, filter *WorkflowStateFilter, interceptors ...clientv2.RequestInterceptor) (*ListWorkflowStatesFiltered, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListWorkflowStatesFiltered
+	if err := c.Client.Post(ctx, "ListWorkflowStatesFiltered", ListWorkflowStatesFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 var DocumentOperationNames = map[string]string{
 	GetAttachmentDocument:                  "GetAttachment",
 	ListAttachmentsDocument:                "ListAttachments",
@@ -9338,11 +9779,14 @@ var DocumentOperationNames = map[string]string{
 	SearchIssuesDocument:                   "SearchIssues",
 	GetTeamDocument:                        "GetTeam",
 	ListTeamsDocument:                      "ListTeams",
+	ListTeamsFilteredDocument:              "ListTeamsFiltered",
 	GetTemplateDocument:                    "GetTemplate",
 	ListTemplatesDocument:                  "ListTemplates",
 	GetUserDocument:                        "GetUser",
 	ListUsersDocument:                      "ListUsers",
+	ListUsersFilteredDocument:              "ListUsersFiltered",
 	ViewerDocument:                         "Viewer",
 	GetWorkflowStateDocument:               "GetWorkflowState",
 	ListWorkflowStatesDocument:             "ListWorkflowStates",
+	ListWorkflowStatesFilteredDocument:     "ListWorkflowStatesFiltered",
 }
