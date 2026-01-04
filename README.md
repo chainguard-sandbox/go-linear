@@ -136,20 +136,6 @@ client, err := linear.NewClient(os.Getenv("LINEAR_API_KEY"),
 
 ---
 
-## Common Tasks
-
-| I want to... | CLI | MCP Tool |
-|--------------|-----|----------|
-| List my issues | `go-linear issue list --assignee=me` | `issue_list` |
-| Create an issue | `go-linear issue create --title="..." --team=ENG` | `issue_create` |
-| Search issues | `go-linear issue search "auth bug"` | `issue_search` |
-| Update issue state | `go-linear issue update ENG-123 --state=Done` | `issue_update` |
-| Batch update issues | `go-linear issue batch-update --state=Triage --set-state=Backlog` | `issue_batch-update` |
-| List team members | `go-linear team members --team=ENG` | `team_members` |
-| Check rate limits | `go-linear status` | `status` |
-
----
-
 ## CLI for Humans
 
 Quick start:
