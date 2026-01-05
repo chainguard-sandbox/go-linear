@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -43,7 +42,7 @@ Related: issue_unrelate, issue_update-relation`,
 }
 
 func runRelate(cmd *cobra.Command, client *linear.Client, issueID, relatedIssueID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Resolve both issue IDs

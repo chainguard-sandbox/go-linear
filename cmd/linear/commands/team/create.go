@@ -1,7 +1,6 @@
 package team
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -48,7 +47,7 @@ Related: team_list, team_get`,
 }
 
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	name, _ := cmd.Flags().GetString("name")
 	key, _ := cmd.Flags().GetString("key")

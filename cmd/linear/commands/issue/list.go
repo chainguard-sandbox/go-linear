@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -135,7 +134,7 @@ Related: issue_get, issue_create, team_list, user_list`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Build filter from flags

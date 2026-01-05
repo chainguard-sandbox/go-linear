@@ -1,7 +1,6 @@
 package team
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -30,7 +29,7 @@ Related: team_get, team_list`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			res := resolver.New(client)
 
 			teamID, err := res.ResolveTeam(ctx, args[0])

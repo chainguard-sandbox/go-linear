@@ -1,7 +1,6 @@
 package user
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ Related: user_list, user_completed`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, nameOrEmailOrID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Resolve to user ID

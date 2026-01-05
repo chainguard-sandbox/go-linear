@@ -1,7 +1,6 @@
 package initiative
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -28,7 +27,7 @@ Related: initiative_list, project_list`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			initiative, err := client.Initiative(ctx, args[0])
 			if err != nil {
 				return fmt.Errorf("failed to get initiative: %w", err)

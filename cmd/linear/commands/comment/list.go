@@ -1,7 +1,6 @@
 package comment
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -64,7 +63,7 @@ Related: comment_get, comment_create, issue_list`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Build filter from flags

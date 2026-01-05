@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -46,7 +45,7 @@ Related: issue_list, issue_get`,
 }
 
 func runSearch(cmd *cobra.Command, client *linear.Client, query string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	limit, _ := cmd.Flags().GetInt("limit")
 	first := int64(limit)

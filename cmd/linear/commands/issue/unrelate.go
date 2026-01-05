@@ -2,7 +2,6 @@ package issue
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -41,7 +40,7 @@ Related: issue_relate, issue_get`,
 }
 
 func runUnrelate(cmd *cobra.Command, client *linear.Client, relationID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Confirmation prompt
 	yes, _ := cmd.Flags().GetBool("yes")

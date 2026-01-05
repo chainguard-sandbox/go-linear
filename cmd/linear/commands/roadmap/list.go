@@ -1,7 +1,6 @@
 package roadmap
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: roadmap_get, project_list`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	limit, _ := cmd.Flags().GetInt("limit")
 	first := int64(limit)

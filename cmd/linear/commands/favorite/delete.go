@@ -1,7 +1,6 @@
 package favorite
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -35,7 +34,7 @@ Related: favorite_create`,
 }
 
 func runDelete(cmd *cobra.Command, client *linear.Client, favoriteID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	err := client.FavoriteDelete(ctx, favoriteID)
 	if err != nil {

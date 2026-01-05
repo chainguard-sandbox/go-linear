@@ -1,7 +1,6 @@
 package comment
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ Related: comment_get, comment_create`,
 }
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, commentID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	body, _ := cmd.Flags().GetString("body")
 

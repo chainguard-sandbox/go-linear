@@ -1,7 +1,6 @@
 package team
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ Related: team_list, team_members`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, nameOrID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Resolve to team ID

@@ -2,7 +2,6 @@
 package document
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -82,7 +81,7 @@ Related: document_get, issue_list`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Build filter from flags
@@ -182,7 +181,7 @@ Related: document_list`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			document, err := client.Document(ctx, args[0])
 			if err != nil {
 				return fmt.Errorf("failed to get document: %w", err)

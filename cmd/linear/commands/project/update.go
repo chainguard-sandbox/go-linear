@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -43,7 +42,7 @@ Related: project_get, project_list`,
 }
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, projectID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	input := intgraphql.ProjectUpdateInput{}
 	updated := false

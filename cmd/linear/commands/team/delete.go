@@ -2,7 +2,6 @@ package team
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -30,7 +29,7 @@ Related: team_list, team_get`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			res := resolver.New(client)
 
 			teamID, err := res.ResolveTeam(ctx, args[0])

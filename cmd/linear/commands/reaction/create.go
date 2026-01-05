@@ -1,7 +1,6 @@
 package reaction
 
 import (
-	"context"
 	"fmt"
 	"unicode/utf8"
 
@@ -46,7 +45,7 @@ Related: reaction_delete, comment_create`,
 }
 
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	emoji, _ := cmd.Flags().GetString("emoji")
 	issueID, _ := cmd.Flags().GetString("issue")

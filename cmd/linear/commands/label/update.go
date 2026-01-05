@@ -1,7 +1,6 @@
 package label
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -30,7 +29,7 @@ Related: label_get, label_list`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			res := resolver.New(client)
 
 			labelID, err := res.ResolveLabel(ctx, args[0])

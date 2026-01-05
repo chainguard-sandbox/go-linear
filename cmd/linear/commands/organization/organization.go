@@ -2,7 +2,6 @@
 package organization
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -45,7 +44,7 @@ Examples:
 }
 
 func run(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	org, err := client.Organization(ctx)
 	if err != nil {

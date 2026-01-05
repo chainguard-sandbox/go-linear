@@ -1,7 +1,6 @@
 package cycle
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -31,7 +30,7 @@ Related: cycle_list, team_list`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			res := resolver.New(client)
 			parser := dateparser.New()
 

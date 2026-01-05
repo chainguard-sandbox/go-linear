@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -45,7 +44,7 @@ Related: notification_archive, notification_subscribe`,
 }
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, notificationID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	read, _ := cmd.Flags().GetBool("read")
 	snoozeUntilStr, _ := cmd.Flags().GetString("snooze-until")

@@ -2,7 +2,6 @@ package project
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -40,7 +39,7 @@ Related: project_get, project_milestone-create`,
 }
 
 func runMilestoneDelete(cmd *cobra.Command, client *linear.Client, milestoneID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Confirmation prompt
 	yes, _ := cmd.Flags().GetBool("yes")

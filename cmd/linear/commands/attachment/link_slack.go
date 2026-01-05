@@ -1,7 +1,6 @@
 package attachment
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -43,7 +42,7 @@ Related: attachment_link-url, attachment_link-github, issue_get`,
 }
 
 func runLinkSlack(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	issueID, _ := cmd.Flags().GetString("issue")
 	url, _ := cmd.Flags().GetString("url")

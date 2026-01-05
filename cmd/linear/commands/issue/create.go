@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -61,7 +60,7 @@ Related: issue_get, issue_list`,
 }
 
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Load config for defaults

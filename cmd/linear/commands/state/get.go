@@ -1,7 +1,6 @@
 package state
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: state_list, issue_update`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, stateID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	state, err := client.WorkflowState(ctx, stateID)
 	if err != nil {

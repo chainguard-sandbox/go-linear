@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ Related: linear issue list (discover IDs), linear issue update`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, issueID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	issue, err := client.Issue(ctx, issueID)
 	if err != nil {

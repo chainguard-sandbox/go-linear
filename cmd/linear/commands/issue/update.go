@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -55,7 +54,7 @@ Related: issue_get, issue_create`,
 }
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Check if we need nullable support (for removing parent/cycle/project with 'none')
@@ -241,7 +240,7 @@ func findSubstring(s, substr string) bool {
 
 // runUpdateWithNullable handles updates that require explicit null (e.g., removing parent).
 func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID string, res *resolver.Resolver) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Build nullable input
 	input := linear.IssueUpdateNullableInput{}

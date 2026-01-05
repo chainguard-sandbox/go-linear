@@ -1,7 +1,6 @@
 package cycle
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -26,7 +25,7 @@ Related: cycle_list, cycle_get`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			err = client.CycleArchive(ctx, args[0])
 			if err != nil {
 				return fmt.Errorf("failed to archive cycle: %w", err)

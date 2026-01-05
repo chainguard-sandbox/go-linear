@@ -2,7 +2,6 @@
 package viewer
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ Examples:
 }
 
 func run(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	viewer, err := client.Viewer(ctx)
 	if err != nil {

@@ -1,7 +1,6 @@
 package cycle
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -29,7 +28,7 @@ Related: cycle_get, cycle_list`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			input := intgraphql.CycleUpdateInput{}
 			updated := false
 

@@ -1,7 +1,6 @@
 package reaction
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -35,7 +34,7 @@ Related: reaction_create`,
 }
 
 func runDelete(cmd *cobra.Command, client *linear.Client, reactionID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	err := client.ReactionDelete(ctx, reactionID)
 	if err != nil {

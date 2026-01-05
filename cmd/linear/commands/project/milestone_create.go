@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -49,7 +48,7 @@ Related: project_milestone-update, project_milestone-delete, project_get`,
 }
 
 func runMilestoneCreate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	projectName, _ := cmd.Flags().GetString("project")

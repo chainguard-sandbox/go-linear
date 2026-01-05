@@ -2,7 +2,6 @@ package issue
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -97,7 +96,7 @@ Related: issue_list, issue_update`,
 }
 
 func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Build filter from flags

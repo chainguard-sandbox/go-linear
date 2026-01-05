@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: project_list, project_milestone-create`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, projectID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	project, err := client.Project(ctx, projectID)
 	if err != nil {

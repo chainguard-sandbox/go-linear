@@ -2,7 +2,6 @@ package attachment
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -29,7 +28,7 @@ Related: attachment_get, issue_get`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 
 			// Confirmation
 			yes, _ := cmd.Flags().GetBool("yes")

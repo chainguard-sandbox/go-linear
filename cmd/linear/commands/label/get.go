@@ -1,7 +1,6 @@
 package label
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: label_list, label_create`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, labelID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	label, err := client.IssueLabel(ctx, labelID)
 	if err != nil {

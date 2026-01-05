@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -49,7 +48,7 @@ Related: project_list, project_get, team_list`,
 }
 
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Resolve team to UUID
 	res := resolver.New(client)

@@ -2,7 +2,6 @@ package issue
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -42,7 +41,7 @@ Related: issue_list, issue_get`,
 }
 
 func runDelete(cmd *cobra.Command, client *linear.Client, issueID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Confirmation prompt unless --yes
 	yes, _ := cmd.Flags().GetBool("yes")

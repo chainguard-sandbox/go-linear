@@ -2,7 +2,6 @@ package project
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -29,7 +28,7 @@ Related: project_list, project_get`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 
 			// Confirmation
 			yes, _ := cmd.Flags().GetBool("yes")

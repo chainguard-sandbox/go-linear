@@ -1,7 +1,6 @@
 package roadmap
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: roadmap_list, project_list`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, roadmapID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	roadmap, err := client.Roadmap(ctx, roadmapID)
 	if err != nil {

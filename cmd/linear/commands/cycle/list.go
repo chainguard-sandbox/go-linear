@@ -1,7 +1,6 @@
 package cycle
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -76,7 +75,7 @@ Related: cycle_get, cycle_create, issue_list`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Build filter from flags

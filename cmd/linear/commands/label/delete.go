@@ -2,7 +2,6 @@ package label
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -30,7 +29,7 @@ Related: label_list, label_get`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			res := resolver.New(client)
 
 			labelID, err := res.ResolveLabel(ctx, args[0])

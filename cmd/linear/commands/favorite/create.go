@@ -1,7 +1,6 @@
 package favorite
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -43,7 +42,7 @@ Related: favorite_delete, issue_list, project_list`,
 }
 
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	issueID, _ := cmd.Flags().GetString("issue")
 	projectID, _ := cmd.Flags().GetString("project")

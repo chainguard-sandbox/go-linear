@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -45,7 +44,7 @@ Related: project_milestone-create, project_milestone-delete, project_get`,
 }
 
 func runMilestoneUpdate(cmd *cobra.Command, client *linear.Client, milestoneID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	input := intgraphql.ProjectMilestoneUpdateInput{}
 

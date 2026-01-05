@@ -1,7 +1,6 @@
 package attachment
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: issue_get, attachment_delete`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, attachmentID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	attachment, err := client.Attachment(ctx, attachmentID)
 	if err != nil {

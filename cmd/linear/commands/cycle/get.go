@@ -1,7 +1,6 @@
 package cycle
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ Related: cycle_list, cycle_update`,
 }
 
 func runGet(cmd *cobra.Command, client *linear.Client, cycleID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	cycle, err := client.Cycle(ctx, cycleID)
 	if err != nil {

@@ -1,7 +1,6 @@
 package team
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -68,7 +67,7 @@ Related: team_get, team_members, issue_list`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Build filter from flags
 	filterBuilder := teamfilter.NewFilterBuilder(nil)

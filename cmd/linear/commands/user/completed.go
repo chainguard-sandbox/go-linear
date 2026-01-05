@@ -1,7 +1,6 @@
 package user
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -57,7 +56,7 @@ Related: user_list, team_list, issue_list`,
 }
 
 func runCompleted(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 	parser := dateparser.New()
 

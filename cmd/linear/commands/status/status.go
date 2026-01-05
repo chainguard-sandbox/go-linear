@@ -2,7 +2,6 @@
 package status
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -103,7 +102,7 @@ Examples:
 }
 
 func runStatus(cmd *cobra.Command) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	// Get API key
 	apiKey := os.Getenv("LINEAR_API_KEY")

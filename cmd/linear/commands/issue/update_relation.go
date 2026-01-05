@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -43,7 +42,7 @@ Related: issue_relate, issue_unrelate, issue_get`,
 }
 
 func runUpdateRelation(cmd *cobra.Command, client *linear.Client, relationID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	relationType, _ := cmd.Flags().GetString("type")
 

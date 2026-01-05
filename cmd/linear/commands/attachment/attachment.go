@@ -2,7 +2,6 @@
 package attachment
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -85,7 +84,7 @@ Related: attachment_get, attachment_create, attachment_link-url`,
 }
 
 func runList(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 	res := resolver.New(client)
 
 	// Build filter from flags
@@ -187,7 +186,7 @@ Related: attachment_link-github, attachment_link-slack, attachment_create`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			issueID, _ := cmd.Flags().GetString("issue")
 			url, _ := cmd.Flags().GetString("url")
 			title, _ := cmd.Flags().GetString("title")
@@ -239,7 +238,7 @@ Related: attachment_link-url, attachment_link-slack, issue_get`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			issueID, _ := cmd.Flags().GetString("issue")
 			url, _ := cmd.Flags().GetString("url")
 

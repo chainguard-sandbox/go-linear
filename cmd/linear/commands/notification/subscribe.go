@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ Related: notification_unsubscribe, notification_update`,
 }
 
 func runSubscribe(cmd *cobra.Command, client *linear.Client) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	projectID, _ := cmd.Flags().GetString("project")
 	cycleID, _ := cmd.Flags().GetString("cycle")

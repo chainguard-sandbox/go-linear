@@ -2,7 +2,6 @@
 package template
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ Related: template_get, issue_create`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 
 			templates, err := client.Templates(ctx)
 			if err != nil {
@@ -101,7 +100,7 @@ Related: template_list, issue_create`,
 			}
 			defer client.Close()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			template, err := client.Template(ctx, args[0])
 			if err != nil {
 				return fmt.Errorf("failed to get template: %w", err)

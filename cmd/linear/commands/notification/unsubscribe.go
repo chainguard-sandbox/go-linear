@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -35,7 +34,7 @@ Related: notification_subscribe, notification_update`,
 }
 
 func runUnsubscribe(cmd *cobra.Command, client *linear.Client, subscriptionID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	err := client.NotificationSubscriptionDelete(ctx, subscriptionID)
 	if err != nil {

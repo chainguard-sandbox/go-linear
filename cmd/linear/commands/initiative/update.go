@@ -1,7 +1,6 @@
 package initiative
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ Related: initiative_get, initiative_create`,
 }
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, initiativeID string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	input := intgraphql.InitiativeUpdateInput{}
 	updated := false
