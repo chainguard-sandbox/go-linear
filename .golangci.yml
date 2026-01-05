@@ -51,6 +51,9 @@ linters:
     # Forbidden patterns
     - forbidigo      # Forbid specific function calls (e.g., print statements)
 
+    # Enum completeness
+    - exhaustive     # Check exhaustiveness of enum switch statements
+
   # Linter-specific settings
   settings:
     # gosec configuration
