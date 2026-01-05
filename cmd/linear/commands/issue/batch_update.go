@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/filter"
+	issuefilter "github.com/chainguard-sandbox/go-linear/internal/filter/issue"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -101,7 +101,7 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	res := resolver.New(client)
 
 	// Build filter from flags
-	filterBuilder := filter.NewIssueFilterBuilder(res)
+	filterBuilder := issuefilter.NewIssueFilterBuilder(res)
 	if err := filterBuilder.FromFlags(ctx, cmd); err != nil {
 		return err
 	}
