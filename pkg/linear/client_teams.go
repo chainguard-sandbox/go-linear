@@ -1,0 +1,107 @@
+package linear
+
+import (
+	"context"
+
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+)
+
+// Team retrieves a single team by ID.
+//
+// Returns:
+//   - Team.ID: Team UUID (always populated)
+//   - Team.Name: Team name (always populated)
+//   - Team.Key: Team identifier used in URLs (always populated)
+//   - Team.Description: Team description (may be empty)
+//   - Team.Private: Whether team is private (always populated)
+//   - Team.Timezone: Team timezone (always populated)
+//   - Team.Icon: Team icon emoji (may be empty)
+//   - Team.Color: Team color hex code (may be empty)
+//   - Team.CreatedAt: Creation timestamp (always populated)
+//   - Team.UpdatedAt: Last update timestamp (always populated)
+//   - error: Non-nil if team not found or query fails
+//
+// Permissions Required: Read
+//
+// Related: [Teams], [TeamMemberships]
+func (c *Client) Team(ctx context.Context, id string) (*intgraphql.GetTeam_Team, error) {
+	resp, err := c.gqlClient.GetTeam(ctx, id)
+	if err != nil {
+		return nil, wrapGraphQLError("team query", err)
+	}
+	return &resp.Team, nil
+}
+
+// Teams retrieves a paginated list of teams.
+//
+// Parameters:
+//   - first: Number of teams to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - Teams.Nodes: Array of teams (may be empty)
+//   - Teams.PageInfo.HasNextPage: true if more results available
+//   - Teams.PageInfo.EndCursor: Cursor for next page
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [Team], [NewTeamIterator]
+func (c *Client) Teams(ctx context.Context, first *int64, after *string) (*intgraphql.ListTeams_Teams, error) {
+	resp, err := c.gqlClient.ListTeams(ctx, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("teams query", err)
+	}
+	return &resp.Teams, nil
+}
+
+// TeamsFiltered returns teams matching the specified filter.
+func (c *Client) TeamsFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.TeamFilter) (*intgraphql.ListTeamsFiltered_Teams, error) {
+	resp, err := c.gqlClient.ListTeamsFiltered(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("teams filtered query", err)
+	}
+	return &resp.Teams, nil
+}
+
+// TeamCreate creates a new team.
+func (c *Client) TeamCreate(ctx context.Context, input intgraphql.TeamCreateInput) (*intgraphql.CreateTeam_TeamCreate_Team, error) {
+	resp, err := c.gqlClient.CreateTeam(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("TeamCreate", err)
+	}
+
+	if !resp.TeamCreate.Success {
+		return nil, errMutationFailed("TeamCreate")
+	}
+
+	return resp.TeamCreate.Team, nil
+}
+
+// TeamUpdate updates an existing team.
+func (c *Client) TeamUpdate(ctx context.Context, id string, input intgraphql.TeamUpdateInput) (*intgraphql.UpdateTeam_TeamUpdate_Team, error) {
+	resp, err := c.gqlClient.UpdateTeam(ctx, id, input)
+	if err != nil {
+		return nil, wrapGraphQLError("TeamUpdate", err)
+	}
+
+	if !resp.TeamUpdate.Success {
+		return nil, errMutationFailed("TeamUpdate")
+	}
+
+	return resp.TeamUpdate.Team, nil
+}
+
+// TeamDelete deletes a team by ID.
+func (c *Client) TeamDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteTeam(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("TeamDelete", err)
+	}
+
+	if !resp.TeamDelete.Success {
+		return errMutationFailed("TeamDelete")
+	}
+
+	return nil
+}
