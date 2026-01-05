@@ -5,11 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewUnsubscribeCommand creates the notification unsubscribe command.
-func NewUnsubscribeCommand(clientFactory ClientFactory) *cobra.Command {
+func NewUnsubscribeCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unsubscribe <subscription-id>",
 		Short: "Remove a notification subscription",

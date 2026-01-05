@@ -4,14 +4,13 @@ package favorite
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewFavoriteCommand creates the favorite command group.
-func NewFavoriteCommand(clientFactory ClientFactory) *cobra.Command {
+func NewFavoriteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "favorite",
 		Short: "Manage Linear favorites (starred items)",

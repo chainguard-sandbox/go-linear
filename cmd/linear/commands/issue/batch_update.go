@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	issuefilter "github.com/chainguard-sandbox/go-linear/internal/filter/issue"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
@@ -16,7 +17,7 @@ import (
 )
 
 // NewBatchUpdateCommand creates the issue batch-update command.
-func NewBatchUpdateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewBatchUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "batch-update",
 		Short: "Update multiple issues matching filters",

@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -12,7 +13,7 @@ import (
 )
 
 // NewRelateCommand creates the issue relation command.
-func NewRelateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewRelateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relate <issue-id> <related-issue-id>",
 		Short: "Create a relationship between two issues",

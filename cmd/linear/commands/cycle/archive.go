@@ -5,10 +5,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 )
 
-func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
+func NewArchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "archive <id>",
 		Short: "Archive a cycle",

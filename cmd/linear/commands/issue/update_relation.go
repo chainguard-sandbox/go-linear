@@ -5,13 +5,14 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewUpdateRelationCommand creates the issue update-relation command.
-func NewUpdateRelationCommand(clientFactory ClientFactory) *cobra.Command {
+func NewUpdateRelationCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-relation <relation-id>",
 		Short: "Update the type of an existing issue relationship",

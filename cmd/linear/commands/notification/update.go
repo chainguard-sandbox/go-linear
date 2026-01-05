@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewUpdateCommand creates the notification update command.
-func NewUpdateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update <notification-id>",
 		Short: "Mark a notification as read or snooze it",

@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
@@ -14,7 +15,7 @@ import (
 
 // NewCompletedCommand creates the user completed command.
 // This is a CRITICAL complex query that answers: "find users from team X who completed tasks yesterday"
-func NewCompletedCommand(clientFactory ClientFactory) *cobra.Command {
+func NewCompletedCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "completed",
 		Short: "Get users' completed issues",

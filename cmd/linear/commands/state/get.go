@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
@@ -12,7 +13,7 @@ import (
 )
 
 // NewGetCommand creates the workflow state get command.
-func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
+func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <state-id>",
 		Short: "Get a single workflow state by ID",

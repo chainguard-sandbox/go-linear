@@ -4,14 +4,13 @@ package project
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewProjectCommand creates the project command group.
-func NewProjectCommand(clientFactory ClientFactory) *cobra.Command {
+func NewProjectCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project",
 		Short: "Manage Linear projects",

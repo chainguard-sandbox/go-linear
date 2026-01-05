@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	docfilter "github.com/chainguard-sandbox/go-linear/internal/filter/document"
@@ -14,9 +15,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-type ClientFactory func() (*linear.Client, error)
-
-func NewDocumentCommand(clientFactory ClientFactory) *cobra.Command {
+func NewDocumentCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "document",
 		Aliases: []string{"doc"},
@@ -30,7 +29,7 @@ func NewDocumentCommand(clientFactory ClientFactory) *cobra.Command {
 	return cmd
 }
 
-func NewListCommand(clientFactory ClientFactory) *cobra.Command {
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List documents with filtering",
@@ -164,7 +163,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 }
 
-func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
+func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single document by ID",

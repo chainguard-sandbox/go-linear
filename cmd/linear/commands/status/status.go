@@ -48,8 +48,7 @@ func toStatusOutput(info *linear.RateLimitInfo) *statusOutput {
 	return out
 }
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // rateLimitCapture stores the most recent rate limit info from callbacks.
 type rateLimitCapture struct {

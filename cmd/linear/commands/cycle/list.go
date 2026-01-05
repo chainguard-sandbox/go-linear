@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	cyclefilter "github.com/chainguard-sandbox/go-linear/internal/filter/cycle"
@@ -14,7 +15,7 @@ import (
 )
 
 // NewListCommand creates the cycle list command.
-func NewListCommand(clientFactory ClientFactory) *cobra.Command {
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List cycles with filtering",

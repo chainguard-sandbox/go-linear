@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	initfilter "github.com/chainguard-sandbox/go-linear/internal/filter/initiative"
@@ -13,7 +14,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-func NewListCommand(clientFactory ClientFactory) *cobra.Command {
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List initiatives with filtering",

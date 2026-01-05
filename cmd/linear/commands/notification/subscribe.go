@@ -5,13 +5,14 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewSubscribeCommand creates the notification subscribe command.
-func NewSubscribeCommand(clientFactory ClientFactory) *cobra.Command {
+func NewSubscribeCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "subscribe",
 		Short: "Subscribe to notifications for a project, cycle, team, or user",

@@ -4,12 +4,10 @@ package initiative
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-type ClientFactory func() (*linear.Client, error)
-
-func NewInitiativeCommand(clientFactory ClientFactory) *cobra.Command {
+func NewInitiativeCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "initiative",
 		Short: "Manage Linear initiatives",

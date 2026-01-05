@@ -8,11 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewMilestoneDeleteCommand creates the project milestone-delete command.
-func NewMilestoneDeleteCommand(clientFactory ClientFactory) *cobra.Command {
+func NewMilestoneDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "milestone-delete <milestone-id>",
 		Short: "Delete a project milestone",

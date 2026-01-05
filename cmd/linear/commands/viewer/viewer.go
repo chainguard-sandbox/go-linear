@@ -6,17 +6,17 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewViewerCommand creates the viewer command.
-func NewViewerCommand(clientFactory ClientFactory) *cobra.Command {
+func NewViewerCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "viewer",
 		Short: "Get current authenticated user information",

@@ -4,14 +4,13 @@ package issue
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewIssueCommand creates the issue command group.
-func NewIssueCommand(clientFactory ClientFactory) *cobra.Command {
+func NewIssueCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "issue",
 		Short: "Manage Linear issues",

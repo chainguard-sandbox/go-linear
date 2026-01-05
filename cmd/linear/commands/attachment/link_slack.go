@@ -5,12 +5,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewLinkSlackCommand creates the attachment link-slack command.
-func NewLinkSlackCommand(clientFactory ClientFactory) *cobra.Command {
+func NewLinkSlackCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "link-slack",
 		Short: "Link a Slack message to an issue",

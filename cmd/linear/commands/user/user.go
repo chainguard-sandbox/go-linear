@@ -4,14 +4,13 @@ package user
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewUserCommand creates the user command group.
-func NewUserCommand(clientFactory ClientFactory) *cobra.Command {
+func NewUserCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "user",
 		Short: "Manage Linear users",

@@ -4,14 +4,13 @@ package label
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewLabelCommand creates the label command group.
-func NewLabelCommand(clientFactory ClientFactory) *cobra.Command {
+func NewLabelCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "label",
 		Short: "Manage Linear labels",

@@ -5,11 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewArchiveCommand creates the notification archive command.
-func NewArchiveCommand(clientFactory ClientFactory) *cobra.Command {
+func NewArchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "archive <notification-id>",
 		Short: "Archive a notification",

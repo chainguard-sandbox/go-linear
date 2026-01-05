@@ -4,14 +4,13 @@ package cycle
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewCycleCommand creates the cycle command group.
-func NewCycleCommand(clientFactory ClientFactory) *cobra.Command {
+func NewCycleCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cycle",
 		Short: "Manage Linear cycles (sprints)",

@@ -8,11 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewUnrelateCommand creates the issue unrelate command.
-func NewUnrelateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewUnrelateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unrelate <relation-id>",
 		Short: "Delete an issue relationship",

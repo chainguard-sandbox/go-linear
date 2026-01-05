@@ -4,14 +4,13 @@ package comment
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 )
 
-// ClientFactory is a function that creates a Linear client.
-type ClientFactory func() (*linear.Client, error)
+// cli.ClientFactory is a function that creates a Linear client.
 
 // NewCommentCommand creates the comment command group.
-func NewCommentCommand(clientFactory ClientFactory) *cobra.Command {
+func NewCommentCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "comment",
 		Short: "Manage Linear comments",

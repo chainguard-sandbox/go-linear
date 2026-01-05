@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewMilestoneCreateCommand creates the project milestone-create command.
-func NewMilestoneCreateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewMilestoneCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "milestone-create",
 		Short: "Create a milestone within a project",

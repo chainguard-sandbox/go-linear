@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	teamfilter "github.com/chainguard-sandbox/go-linear/internal/filter/team"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewListCommand creates the team list command.
-func NewListCommand(clientFactory ClientFactory) *cobra.Command {
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all teams",

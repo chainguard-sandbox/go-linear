@@ -5,11 +5,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewDeleteCommand creates the favorite delete command.
-func NewDeleteCommand(clientFactory ClientFactory) *cobra.Command {
+func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <favorite-id>",
 		Short: "Unstar a favorited item",

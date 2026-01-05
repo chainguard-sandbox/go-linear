@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	attachmentfilter "github.com/chainguard-sandbox/go-linear/internal/filter/attachment"
@@ -14,9 +15,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-type ClientFactory func() (*linear.Client, error)
-
-func NewAttachmentCommand(clientFactory ClientFactory) *cobra.Command {
+func NewAttachmentCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "attachment",
 		Short: "Manage Linear attachments",
@@ -34,7 +33,7 @@ func NewAttachmentCommand(clientFactory ClientFactory) *cobra.Command {
 	return cmd
 }
 
-func NewListCommand(clientFactory ClientFactory) *cobra.Command {
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all attachments",
@@ -167,7 +166,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 }
 
-func NewLinkURLCommand(clientFactory ClientFactory) *cobra.Command {
+func NewLinkURLCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "link-url",
 		Short: "Link an external URL to an issue",
@@ -220,7 +219,7 @@ Related: attachment_link-github, attachment_link-slack, attachment_create`,
 	return cmd
 }
 
-func NewLinkGitHubCommand(clientFactory ClientFactory) *cobra.Command {
+func NewLinkGitHubCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "link-github",
 		Short: "Link a GitHub PR to an issue",

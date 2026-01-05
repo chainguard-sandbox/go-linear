@@ -6,15 +6,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
-type ClientFactory func() (*linear.Client, error)
-
-func NewTemplateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewTemplateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "template",
 		Short: "Manage Linear templates",
@@ -27,7 +25,7 @@ func NewTemplateCommand(clientFactory ClientFactory) *cobra.Command {
 	return cmd
 }
 
-func NewListCommand(clientFactory ClientFactory) *cobra.Command {
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all templates",
@@ -83,7 +81,7 @@ Related: template_get, issue_create`,
 	return cmd
 }
 
-func NewGetCommand(clientFactory ClientFactory) *cobra.Command {
+func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single template by ID",

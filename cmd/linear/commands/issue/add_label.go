@@ -5,13 +5,14 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
 // NewAddLabelCommand creates the issue add-label command.
-func NewAddLabelCommand(clientFactory ClientFactory) *cobra.Command {
+func NewAddLabelCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-label <issue-id> <label>",
 		Short: "Add a label to an issue",

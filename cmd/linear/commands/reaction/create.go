@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/internal/resolver"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewCreateCommand creates the reaction create command.
-func NewCreateCommand(clientFactory ClientFactory) *cobra.Command {
+func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Add an emoji reaction to an issue or comment",

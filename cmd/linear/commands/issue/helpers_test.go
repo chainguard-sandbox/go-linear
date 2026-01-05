@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -56,8 +57,8 @@ func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 	}))
 }
 
-// testFactory creates a ClientFactory that connects to the given test server.
-func testFactory(t *testing.T, serverURL string) ClientFactory {
+// testFactory creates a cli.ClientFactory that connects to the given test server.
+func testFactory(t *testing.T, serverURL string) cli.ClientFactory {
 	t.Helper()
 	return func() (*linear.Client, error) {
 		return linear.NewClient("lin_api_test", linear.WithBaseURL(serverURL))
