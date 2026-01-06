@@ -11,6 +11,9 @@ import (
 // FormatJSON writes data as JSON to the writer.
 // If pretty is true, the JSON is indented for readability.
 func FormatJSON(w io.Writer, data any, pretty bool) error {
+	if w == nil {
+		return io.ErrClosedPipe
+	}
 	encoder := json.NewEncoder(w)
 	if pretty {
 		encoder.SetIndent("", "  ")
@@ -22,6 +25,10 @@ func FormatJSON(w io.Writer, data any, pretty bool) error {
 // If fieldSelector is nil, behaves like FormatJSON (no filtering).
 // Otherwise, filters JSON to include only selected fields.
 func FormatJSONFiltered(w io.Writer, data any, pretty bool, fieldSelector *fieldfilter.FieldSelector) error {
+	if w == nil {
+		return io.ErrClosedPipe
+	}
+
 	// Marshal to JSON first
 	var jsonData []byte
 	var err error

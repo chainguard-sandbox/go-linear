@@ -133,7 +133,10 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 		// Check if we've exceeded total retry time
 		if attempt > 0 && time.Since(retryStartTime) > maxRetryDuration {
-			return nil, fmt.Errorf("retry duration exceeded (%v): %w", maxRetryDuration, lastErr)
+			if lastErr != nil {
+				return nil, fmt.Errorf("retry duration exceeded (%v): %w", maxRetryDuration, lastErr)
+			}
+			return nil, fmt.Errorf("retry duration exceeded (%v)", maxRetryDuration)
 		}
 
 		if attempt > 0 {
@@ -149,7 +152,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 				t.OnRetry(attempt, lastErr)
 			}
 
-			if t.Logger != nil {
+			if t.Logger != nil && lastErr != nil {
 				t.Logger.WarnContext(req.Context(), "retrying request",
 					"attempt", attempt,
 					"max_retries", maxRetries,
@@ -205,6 +208,11 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 				return nil, fmt.Errorf("max retries exceeded: %w", lastErr)
 			}
 			return nil, err
+		}
+
+		// Defensive check: resp should be non-nil per http.RoundTripper contract
+		if resp == nil {
+			return nil, fmt.Errorf("invalid response: nil response with nil error")
 		}
 
 		// Check rate limiting

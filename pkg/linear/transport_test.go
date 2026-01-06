@@ -69,6 +69,9 @@ func TestTransport_Retry429(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
+	if resp == nil {
+		t.Fatal("expected response, got nil")
+	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
@@ -108,6 +111,9 @@ func TestTransport_Retry5xx(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected response, got nil")
 	}
 	defer func() { _ = resp.Body.Close() }()
 
