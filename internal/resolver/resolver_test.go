@@ -25,7 +25,14 @@ func testSetup(t *testing.T) (*linear.Client, *Resolver, func()) {
 	}
 
 	r := New(client)
-	cleanup := func() { client.Close() }
+
+	// Clear cache to avoid race conditions in parallel tests
+	r.cache.Clear()
+
+	cleanup := func() {
+		r.cache.Clear()
+		client.Close()
+	}
 
 	return client, r, cleanup
 }
@@ -557,38 +564,55 @@ func TestLive_ResolveCycle(t *testing.T) {
 		t.Skip("First cycle has no name")
 	}
 
+	// Check if cycle name is unique to avoid ambiguous name errors
+	cycleNameUnique := true
+	for _, c := range cycles.Nodes {
+		if c.ID != firstCycle.ID && c.Name != nil && *c.Name == *firstCycle.Name {
+			cycleNameUnique = false
+			break
+		}
+	}
+
 	tests := []struct {
 		name    string
 		input   string
 		wantID  string
 		wantErr bool
+		skip    bool
 	}{
 		{
 			name:    "resolve by cycle name",
 			input:   *firstCycle.Name,
 			wantID:  firstCycle.ID,
 			wantErr: false,
+			skip:    !cycleNameUnique, // Skip if name is not unique
 		},
 		{
 			name:    "uuid passthrough",
 			input:   "12345678-1234-1234-1234-123456789abc",
 			wantID:  "12345678-1234-1234-1234-123456789abc",
 			wantErr: false,
+			skip:    false,
 		},
 		{
 			name:    "empty cycle",
 			input:   "",
 			wantErr: true,
+			skip:    false,
 		},
 		{
 			name:    "nonexistent cycle",
 			input:   "NonexistentCycle99999XYZ",
 			wantErr: true,
+			skip:    false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skip {
+				t.Skipf("Skipping because cycle name is not unique")
+			}
 			id, err := r.ResolveCycle(ctx, tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ResolveCycle() error = %v, wantErr %v", err, tt.wantErr)

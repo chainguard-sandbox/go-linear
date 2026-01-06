@@ -14,6 +14,7 @@ import (
 )
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
 		Short: "Delete a team permanently",
@@ -39,8 +40,7 @@ Related: team_list, team_get`,
 			}
 
 			// Confirmation
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
+			if !confirmFlags.Yes {
 				fmt.Fprintf(cmd.OutOrStderr(), "🚨 Delete team %s? This CANNOT be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
@@ -65,7 +65,7 @@ Related: team_list, team_get`,
 		},
 	}
 
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	confirmFlags.Bind(cmd)
 	return cmd
 }

@@ -15,6 +15,8 @@ import (
 )
 
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	outputFlags := &cli.OutputFlags{}
+	paginationFlags := &cli.PaginationFlags{}
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List initiatives with filtering",
@@ -33,12 +35,11 @@ Related: initiative_get, project_list, issue_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client)
+			return runList(cmd, client, outputFlags, paginationFlags)
 		},
 	}
 
 	// Pagination
-	cmd.Flags().IntP("limit", "l", 50, "Number to return")
 
 	// Date filters
 	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
@@ -60,14 +61,17 @@ Related: initiative_get, project_list, issue_list`,
 	cmd.Flags().String("status", "", "Status: Planned, Active, Completed")
 
 	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
-
+	paginationFlags.Bind(cmd, 50)
+	outputFlags.Bind(cmd, "defaults (...) | none | defaults,extra")
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client) error {
+func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
+
+	if err := outputFlags.Validate(); err != nil {
+		return err
+	}
 	res := resolver.New(client)
 
 	// Build filter from flags
@@ -77,20 +81,16 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 	initFilter := filterBuilder.Build()
 
-	limit, _ := cmd.Flags().GetInt("limit")
-	first := int64(limit)
-
-	output, _ := cmd.Flags().GetString("output")
-	fieldsSpec, _ := cmd.Flags().GetString("fields")
+	first := paginationFlags.LimitPtr()
 
 	// Use filtered or unfiltered query based on whether filters were set
 	if initFilter != nil {
-		initiatives, err := client.InitiativesFiltered(ctx, &first, nil, initFilter)
+		initiatives, err := client.InitiativesFiltered(ctx, first, nil, initFilter)
 		if err != nil {
 			return fmt.Errorf("failed to list initiatives: %w", err)
 		}
 
-		switch output {
+		switch outputFlags.Output {
 		case "json":
 			cfg, _ := config.Load()
 			var configOverrides map[string]string
@@ -98,7 +98,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 				configOverrides = cfg.FieldDefaults
 			}
 			defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
@@ -113,17 +113,17 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			}
 			return nil
 		default:
-			return fmt.Errorf("unsupported output format: %s", output)
+			return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
 		}
 	}
 
 	// No filters: use regular query
-	initiatives, err := client.Initiatives(ctx, &first, nil)
+	initiatives, err := client.Initiatives(ctx, first, nil)
 	if err != nil {
 		return fmt.Errorf("failed to list initiatives: %w", err)
 	}
 
-	switch output {
+	switch outputFlags.Output {
 	case "json":
 		cfg, _ := config.Load()
 		var configOverrides map[string]string
@@ -131,7 +131,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			configOverrides = cfg.FieldDefaults
 		}
 		defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
-		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
@@ -146,6 +146,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		}
 		return nil
 	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+		return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
 	}
 }

@@ -79,12 +79,15 @@ func (c *Cache) Get(key string) (string, bool) {
 }
 
 // Set stores a value in the cache with TTL.
-// Uses async write for better performance.
+// Uses synchronous write to ensure reliability for name→ID mappings.
 func (c *Cache) Set(key, value string) {
 	ctx := context.Background()
 
 	if c.tiered != nil {
-		_ = c.tiered.SetAsync(ctx, key, value)
+		// Use synchronous write - resolver mappings are critical and the
+		// performance impact is minimal since these are small KV pairs
+		_ = c.tiered.Set(ctx, key, value)
+		// Ignore errors - cache is best-effort, multicache handles logging
 		return
 	}
 

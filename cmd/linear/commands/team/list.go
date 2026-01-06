@@ -15,6 +15,9 @@ import (
 
 // NewListCommand creates the team list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	outputFlags := &cli.OutputFlags{}
+	paginationFlags := &cli.PaginationFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all teams",
@@ -36,12 +39,12 @@ Related: team_get, team_members, issue_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client)
+			return runList(cmd, client, outputFlags, paginationFlags)
 		},
 	}
 
-	// Pagination
-	cmd.Flags().IntP("limit", "l", 100, "Number of teams to return")
+	// Bind common flags
+	paginationFlags.Bind(cmd, 100)
 
 	// Date filters
 	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
@@ -60,15 +63,19 @@ Related: team_get, team_members, issue_list`,
 	// Boolean filters
 	cmd.Flags().Bool("private", false, "Filter by private status")
 
-	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,name,key,description,icon,createdAt) | none | defaults,extra | id,name,...")
+	// Output flags
+	outputFlags.Bind(cmd, "defaults (id,name,key,description,icon,createdAt) | none | defaults,extra | id,name,...")
 
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client) error {
+func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
+
+	// Validate flags
+	if err := outputFlags.Validate(); err != nil {
+		return err
+	}
 
 	// Build filter from flags
 	filterBuilder := teamfilter.NewFilterBuilder(nil)
@@ -77,20 +84,16 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 	tmFilter := filterBuilder.Build()
 
-	limit, _ := cmd.Flags().GetInt("limit")
-	first := int64(limit)
-
-	output, _ := cmd.Flags().GetString("output")
-	fieldsSpec, _ := cmd.Flags().GetString("fields")
+	first := paginationFlags.LimitPtr()
 
 	// Use filtered or unfiltered query based on whether filters were set
 	if tmFilter != nil {
-		teams, err := client.TeamsFiltered(ctx, &first, nil, tmFilter)
+		teams, err := client.TeamsFiltered(ctx, first, nil, tmFilter)
 		if err != nil {
 			return fmt.Errorf("failed to list teams: %w", err)
 		}
 
-		switch output {
+		switch outputFlags.Output {
 		case "json":
 			cfg, _ := config.Load()
 			var configOverrides map[string]string
@@ -98,7 +101,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 				configOverrides = cfg.FieldDefaults
 			}
 			defaults := fieldfilter.GetDefaults("team.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
@@ -106,17 +109,17 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		case "table":
 			return formatter.FormatTeamsTableFiltered(cmd.OutOrStdout(), teams.Nodes)
 		default:
-			return fmt.Errorf("unsupported output format: %s", output)
+			return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 		}
 	}
 
 	// No filters: use regular query
-	teams, err := client.Teams(ctx, &first, nil)
+	teams, err := client.Teams(ctx, first, nil)
 	if err != nil {
 		return fmt.Errorf("failed to list teams: %w", err)
 	}
 
-	switch output {
+	switch outputFlags.Output {
 	case "json":
 		// Load config for field defaults
 		cfg, _ := config.Load()
@@ -129,7 +132,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		defaults := fieldfilter.GetDefaults("team.list", configOverrides)
 
 		// Parse field selector with defaults (list command preserves nodes/pageInfo)
-		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
@@ -138,6 +141,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	case "table":
 		return formatter.FormatTeamsTable(cmd.OutOrStdout(), teams.Nodes)
 	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
 }

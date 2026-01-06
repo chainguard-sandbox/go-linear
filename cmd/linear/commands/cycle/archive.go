@@ -10,6 +10,7 @@ import (
 )
 
 func NewArchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
 	cmd := &cobra.Command{
 		Use:   "archive <id>",
 		Short: "Archive a cycle",
@@ -42,5 +43,6 @@ Related: cycle_list, cycle_get`,
 	}
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	confirmFlags.Bind(cmd)
 	return cmd
 }

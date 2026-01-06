@@ -18,6 +18,9 @@ import (
 
 // NewListCommand creates the issue list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	outputFlags := &cli.OutputFlags{}
+	paginationFlags := &cli.PaginationFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List issues with filtering",
@@ -40,13 +43,9 @@ Related: issue_get, issue_create, team_list, user_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client)
+			return runList(cmd, client, outputFlags, paginationFlags)
 		},
 	}
-
-	// Pagination
-	cmd.Flags().IntP("limit", "l", 50, "Number of issues to return")
-	cmd.Flags().String("after", "", "Cursor for pagination")
 
 	// Identity filtering (AI-friendly names)
 	cmd.Flags().String("team", "", "Team name or ID (e.g., 'Engineering')")
@@ -128,15 +127,20 @@ Related: issue_get, issue_create, team_list, user_list`,
 
 	// Output
 	cmd.Flags().Bool("count", false, "Return only count, not results (99% token reduction)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,...")
+
+	paginationFlags.Bind(cmd, 50)
+	outputFlags.Bind(cmd, "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,...")
 
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client) error {
+func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
+
+	if err := outputFlags.Validate(); err != nil {
+		return err
+	}
 
 	// Build filter from flags
 	filterBuilder := issuefilter.NewIssueFilterBuilder(res)
@@ -186,8 +190,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		}
 
 		// Return count
-		output, _ := cmd.Flags().GetString("output")
-		switch output {
+		switch outputFlags.Output {
 		case "json":
 			result := map[string]any{
 				"count": count,
@@ -197,18 +200,16 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			fmt.Fprintf(cmd.OutOrStdout(), "%d\n", count)
 			return nil
 		default:
-			return fmt.Errorf("unsupported output format: %s", output)
+			return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 		}
 	}
 
 	// Normal list mode: Get pagination parameters
-	limit, _ := cmd.Flags().GetInt("limit")
-	first := int64(limit)
+	first := paginationFlags.LimitPtr()
 
-	after, _ := cmd.Flags().GetString("after")
 	var afterPtr *string
-	if after != "" {
-		afterPtr = &after
+	if paginationFlags.After != "" {
+		afterPtr = &paginationFlags.After
 	}
 
 	// Query issues - use IssuesFiltered if we have filters, otherwise use Issues
@@ -217,7 +218,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 	if issueFilter != nil {
 		// Use IssuesFiltered with filters (no search term required)
-		filteredResult, err := client.IssuesFiltered(ctx, &first, afterPtr, issueFilter)
+		filteredResult, err := client.IssuesFiltered(ctx, first, afterPtr, issueFilter)
 		if err != nil {
 			return fmt.Errorf("failed to filter issues: %w", err)
 		}
@@ -229,10 +230,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		}
 
 		// Format output
-		output, _ := cmd.Flags().GetString("output")
-		fieldsSpec, _ := cmd.Flags().GetString("fields")
-
-		switch output {
+		switch outputFlags.Output {
 		case "json":
 			// Load config for field defaults
 			cfg, _ := config.Load()
@@ -246,7 +244,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 			// Parse field selector with defaults
 			// For list commands, fields apply to items in nodes array, not the wrapper
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
@@ -263,11 +261,11 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			}
 			return nil
 		default:
-			return fmt.Errorf("unsupported output format: %s (supported: json, table)", output)
+			return fmt.Errorf("unsupported output format: %s (supported: json, table)", outputFlags.Output)
 		}
 	} else {
 		// No filters - use regular Issues query
-		issues, err := client.Issues(ctx, &first, afterPtr)
+		issues, err := client.Issues(ctx, first, afterPtr)
 		if err != nil {
 			return fmt.Errorf("failed to list issues: %w", err)
 		}
@@ -278,10 +276,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		_ = issues.PageInfo // Unused for now
 
 		// Format output
-		output, _ := cmd.Flags().GetString("output")
-		fieldsSpec, _ := cmd.Flags().GetString("fields")
-
-		switch output {
+		switch outputFlags.Output {
 		case "json":
 			// Load config for field defaults
 			cfg, _ := config.Load()
@@ -295,7 +290,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 
 			// Parse field selector with defaults
 			// For list commands, fields apply to items in nodes array, not the wrapper
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
@@ -304,7 +299,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		case "table":
 			return formatter.FormatIssuesTable(cmd.OutOrStdout(), issues.Nodes)
 		default:
-			return fmt.Errorf("unsupported output format: %s (supported: json, table)", output)
+			return fmt.Errorf("unsupported output format: %s (supported: json, table)", outputFlags.Output)
 		}
 	}
 }

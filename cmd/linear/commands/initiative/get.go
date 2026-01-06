@@ -12,6 +12,8 @@ import (
 )
 
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	flags := &cli.OutputFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single initiative by ID",
@@ -34,10 +36,7 @@ Related: initiative_list, project_list`,
 				return fmt.Errorf("failed to get initiative: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			fieldsSpec, _ := cmd.Flags().GetString("fields")
-
-			switch output {
+			switch flags.Output {
 			case "json":
 				cfg, _ := config.Load()
 				var configOverrides map[string]string
@@ -45,7 +44,7 @@ Related: initiative_list, project_list`,
 					configOverrides = cfg.FieldDefaults
 				}
 				defaults := fieldfilter.GetDefaults("initiative.get", configOverrides)
-				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+				fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
 				if err != nil {
 					return fmt.Errorf("invalid --fields: %w", err)
 				}
@@ -54,12 +53,12 @@ Related: initiative_list, project_list`,
 				fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", initiative.Name)
 				return nil
 			default:
-				return fmt.Errorf("unsupported output format: %s", output)
+				return fmt.Errorf("unsupported output format: %s", flags.Output)
 			}
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
+	flags.Bind(cmd, "defaults (id,name,description,createdAt) | none | defaults,extra")
+
 	return cmd
 }

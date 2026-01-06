@@ -14,6 +14,9 @@ import (
 )
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
+	var output string
+
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
 		Short: "Delete a label permanently",
@@ -39,8 +42,7 @@ Related: label_list, label_get`,
 			}
 
 			// Confirmation
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
+			if !confirmFlags.Yes {
 				fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete label %s? This cannot be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
@@ -56,7 +58,6 @@ Related: label_list, label_get`,
 				return fmt.Errorf("failed to delete label: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 			}
@@ -65,7 +66,7 @@ Related: label_list, label_get`,
 		},
 	}
 
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	confirmFlags.Bind(cmd)
+	cmd.Flags().StringVarP(&output, "output", "o", "table", "Output format: json|table")
 	return cmd
 }

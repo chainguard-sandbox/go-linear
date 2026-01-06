@@ -14,6 +14,8 @@ import (
 
 // NewGetCommand creates the comment get command.
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	flags := &cli.OutputFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "get <comment-id>",
 		Short: "Get a single comment by ID",
@@ -30,28 +32,27 @@ Related: comment_list, issue_get`,
 			}
 			defer client.Close()
 
-			return runGet(cmd, client, args[0])
+			return runGet(cmd, client, args[0], flags)
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,body,createdAt,user.name,url,editedAt) | none | defaults,extra")
+	flags.Bind(cmd, "defaults (id,body,createdAt,user.name,url,editedAt) | none | defaults,extra")
 
 	return cmd
 }
-
-func runGet(cmd *cobra.Command, client *linear.Client, commentID string) error {
+func runGet(cmd *cobra.Command, client *linear.Client, commentID string, flags *cli.OutputFlags) error {
 	ctx := cmd.Context()
+
+	if err := flags.Validate(); err != nil {
+		return err
+	}
 
 	comment, err := client.Comment(ctx, commentID)
 	if err != nil {
 		return fmt.Errorf("failed to get comment: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	fieldsSpec, _ := cmd.Flags().GetString("fields")
-
-	switch output {
+	switch flags.Output {
 	case "json":
 		cfg, _ := config.Load()
 		var configOverrides map[string]string
@@ -59,7 +60,7 @@ func runGet(cmd *cobra.Command, client *linear.Client, commentID string) error {
 			configOverrides = cfg.FieldDefaults
 		}
 		defaults := fieldfilter.GetDefaults("comment.get", configOverrides)
-		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+		fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
@@ -75,6 +76,6 @@ func runGet(cmd *cobra.Command, client *linear.Client, commentID string) error {
 		fmt.Fprintf(cmd.OutOrStdout(), "Updated:     %s\n", comment.UpdatedAt)
 		return nil
 	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+		return fmt.Errorf("unsupported output format: %s", flags.Output)
 	}
 }

@@ -14,6 +14,8 @@ import (
 
 // NewGetCommand creates the issue get command.
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	flags := &cli.OutputFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single issue by ID",
@@ -33,28 +35,29 @@ Related: linear issue list (discover IDs), linear issue update`,
 			}
 			defer client.Close()
 
-			return runGet(cmd, client, args[0])
+			return runGet(cmd, client, args[0], flags)
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt,description,assignee.name) | none | defaults,extra | id,title,...")
+	flags.Bind(cmd, "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt,description,assignee.name) | none | defaults,extra | id,title,...")
 
 	return cmd
 }
 
-func runGet(cmd *cobra.Command, client *linear.Client, issueID string) error {
+func runGet(cmd *cobra.Command, client *linear.Client, issueID string, flags *cli.OutputFlags) error {
 	ctx := cmd.Context()
+
+	// Validate output format
+	if err := flags.Validate(); err != nil {
+		return err
+	}
 
 	issue, err := client.Issue(ctx, issueID)
 	if err != nil {
 		return fmt.Errorf("failed to get issue: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	fieldsSpec, _ := cmd.Flags().GetString("fields")
-
-	switch output {
+	switch flags.Output {
 	case "json":
 		// Load config for field defaults
 		cfg, _ := config.Load() // Ignore error - config is optional
@@ -67,7 +70,7 @@ func runGet(cmd *cobra.Command, client *linear.Client, issueID string) error {
 		defaults := fieldfilter.GetDefaults("issue.get", configOverrides)
 
 		// Parse field selector with defaults
-		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+		fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
@@ -85,6 +88,6 @@ func runGet(cmd *cobra.Command, client *linear.Client, issueID string) error {
 		fmt.Fprintf(cmd.OutOrStdout(), "Updated:     %s\n", issue.UpdatedAt)
 		return nil
 	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+		return fmt.Errorf("unsupported output format: %s", flags.Output)
 	}
 }

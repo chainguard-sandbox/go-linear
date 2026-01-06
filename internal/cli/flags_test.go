@@ -73,8 +73,8 @@ func TestPaginationFlags_Bind(t *testing.T) {
 	if limitFlag.DefValue != "100" {
 		t.Errorf("limit default = %q, want %q", limitFlag.DefValue, "100")
 	}
-	if limitFlag.Shorthand != "l" {
-		t.Errorf("limit shorthand = %q, want %q", limitFlag.Shorthand, "l")
+	if limitFlag.Shorthand != "" {
+		t.Errorf("limit shorthand = %q, want %q (no shorthand to avoid conflicts)", limitFlag.Shorthand, "")
 	}
 
 	// Check after flag

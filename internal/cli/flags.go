@@ -39,7 +39,7 @@ type PaginationFlags struct {
 
 // Bind adds pagination flags to the command.
 func (p *PaginationFlags) Bind(cmd *cobra.Command, defaultLimit int) {
-	cmd.Flags().IntVarP(&p.Limit, "limit", "l", defaultLimit, "Number of items to return")
+	cmd.Flags().IntVar(&p.Limit, "limit", defaultLimit, "Number of items to return")
 	cmd.Flags().StringVar(&p.After, "after", "", "Cursor for pagination")
 }
 

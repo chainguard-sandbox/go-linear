@@ -15,6 +15,7 @@ import (
 
 // NewDeleteCommand creates the comment delete command.
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete a comment permanently",
@@ -31,22 +32,21 @@ Related: comment_list, comment_get`,
 			}
 			defer client.Close()
 
-			return runDelete(cmd, client, args[0])
+			return runDelete(cmd, client, args[0], confirmFlags)
 		},
 	}
 
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
+	confirmFlags.Bind(cmd)
 	return cmd
 }
 
-func runDelete(cmd *cobra.Command, client *linear.Client, commentID string) error {
+func runDelete(cmd *cobra.Command, client *linear.Client, commentID string, confirmFlags *cli.ConfirmationFlags) error {
 	ctx := cmd.Context()
 
 	// Confirmation prompt unless --yes
-	yes, _ := cmd.Flags().GetBool("yes")
-	if !yes {
+	if !confirmFlags.Yes {
 		fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Are you sure you want to delete comment %s? This cannot be undone.\n", commentID)
 		fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 

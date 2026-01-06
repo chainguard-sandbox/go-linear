@@ -13,6 +13,7 @@ import (
 )
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an attachment permanently",
@@ -32,8 +33,7 @@ Related: attachment_get, issue_get`,
 			ctx := cmd.Context()
 
 			// Confirmation
-			yes, _ := cmd.Flags().GetBool("yes")
-			if !yes {
+			if !confirmFlags.Yes {
 				fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete attachment %s? This cannot be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
@@ -58,7 +58,7 @@ Related: attachment_get, issue_get`,
 		},
 	}
 
-	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	confirmFlags.Bind(cmd)
 	return cmd
 }

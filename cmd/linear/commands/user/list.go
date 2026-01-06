@@ -15,6 +15,8 @@ import (
 
 // NewListCommand creates the user list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	outputFlags := &cli.OutputFlags{}
+	paginationFlags := &cli.PaginationFlags{}
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all users",
@@ -34,12 +36,11 @@ Related: user_get, user_completed, issue_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client)
+			return runList(cmd, client, outputFlags, paginationFlags)
 		},
 	}
 
 	// Pagination
-	cmd.Flags().IntP("limit", "l", 250, "Number of users to return")
 
 	// Date filters
 	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
@@ -61,14 +62,17 @@ Related: user_get, user_completed, issue_list`,
 	cmd.Flags().Bool("is-me", false, "Filter for current user")
 
 	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,name,displayName,email,active,avatarUrl) | none | defaults,extra | id,email,...")
-
+	paginationFlags.Bind(cmd, 250)
+	outputFlags.Bind(cmd, "defaults (...) | none | defaults,extra")
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client) error {
+func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
+
+	if err := outputFlags.Validate(); err != nil {
+		return err
+	}
 
 	// Build filter from flags
 	filterBuilder := userfilter.NewFilterBuilder(nil)
@@ -77,20 +81,16 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	}
 	usrFilter := filterBuilder.Build()
 
-	limit, _ := cmd.Flags().GetInt("limit")
-	first := int64(limit)
-
-	output, _ := cmd.Flags().GetString("output")
-	fieldsSpec, _ := cmd.Flags().GetString("fields")
+	first := paginationFlags.LimitPtr()
 
 	// Use filtered or unfiltered query based on whether filters were set
 	if usrFilter != nil {
-		users, err := client.UsersFiltered(ctx, &first, nil, usrFilter)
+		users, err := client.UsersFiltered(ctx, first, nil, usrFilter)
 		if err != nil {
 			return fmt.Errorf("failed to list users: %w", err)
 		}
 
-		switch output {
+		switch outputFlags.Output {
 		case "json":
 			cfg, _ := config.Load()
 			var configOverrides map[string]string
@@ -98,7 +98,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 				configOverrides = cfg.FieldDefaults
 			}
 			defaults := fieldfilter.GetDefaults("user.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 			if err != nil {
 				return fmt.Errorf("invalid --fields: %w", err)
 			}
@@ -106,17 +106,17 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		case "table":
 			return formatter.FormatUsersTableFiltered(cmd.OutOrStdout(), users.Nodes)
 		default:
-			return fmt.Errorf("unsupported output format: %s", output)
+			return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
 		}
 	}
 
 	// No filters: use regular query
-	users, err := client.Users(ctx, &first, nil)
+	users, err := client.Users(ctx, first, nil)
 	if err != nil {
 		return fmt.Errorf("failed to list users: %w", err)
 	}
 
-	switch output {
+	switch outputFlags.Output {
 	case "json":
 		// Load config for field defaults
 		cfg, _ := config.Load()
@@ -129,7 +129,7 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 		defaults := fieldfilter.GetDefaults("user.list", configOverrides)
 
 		// Parse field selector with defaults (list command preserves nodes/pageInfo)
-		fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
@@ -138,6 +138,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	case "table":
 		return formatter.FormatUsersTable(cmd.OutOrStdout(), users.Nodes)
 	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+		return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
 	}
 }
