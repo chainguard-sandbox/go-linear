@@ -135,6 +135,77 @@ benchmark:  ## Run benchmarks
 	go test -bench=. -benchmem ./...
 
 #
+# Profiling targets
+#
+
+profile-cpu:  ## Run benchmarks with CPU profiling
+	@echo "Running benchmarks with CPU profiling..."
+	go test -bench=. -benchmem -cpuprofile=cpu.prof ./...
+	@echo "✓ CPU profile saved to cpu.prof"
+	@echo "Analyze with: go tool pprof cpu.prof"
+
+profile-mem:  ## Run benchmarks with memory profiling
+	@echo "Running benchmarks with memory profiling..."
+	go test -bench=. -benchmem -memprofile=mem.prof ./...
+	@echo "✓ Memory profile saved to mem.prof"
+	@echo "Analyze with: go tool pprof -alloc_space mem.prof"
+
+profile-all:  ## Run benchmarks with CPU and memory profiling
+	@echo "Running benchmarks with full profiling..."
+	go test -bench=. -benchmem -cpuprofile=cpu.prof -memprofile=mem.prof ./...
+	@echo "✓ CPU profile saved to cpu.prof"
+	@echo "✓ Memory profile saved to mem.prof"
+	@echo "\nAnalyze with:"
+	@echo "  go tool pprof cpu.prof"
+	@echo "  go tool pprof -alloc_space mem.prof"
+	@echo "  go tool pprof -inuse_space mem.prof"
+
+profile-example:  ## Run profiling example (generates cpu.prof, mem.prof, trace.out)
+	@echo "Running profiling example..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set"; \
+		exit 1; \
+	fi
+	@cd examples/profiling && go run main.go
+	@echo "\n✓ Profiles generated in examples/profiling/"
+	@echo "\nAnalyze with:"
+	@echo "  cd examples/profiling"
+	@echo "  go tool pprof cpu.prof"
+	@echo "  go tool pprof -alloc_space mem.prof"
+	@echo "  go tool trace trace.out"
+
+profile-server:  ## Run profiling server (live profiling at :6060)
+	@echo "Starting profiling server..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set"; \
+		exit 1; \
+	fi
+	@echo "Server will run at http://localhost:6060/debug/pprof/"
+	@PROFILE_MODE=server cd examples/profiling && go run main.go
+
+benchmark-baseline:  ## Save benchmark baseline (for comparison)
+	@echo "Saving benchmark baseline..."
+	@go test -bench=. -benchmem -count=5 ./... | tee benchmark-baseline.txt
+	@echo "✓ Baseline saved to benchmark-baseline.txt"
+
+benchmark-compare:  ## Compare current benchmarks with baseline
+	@echo "Running benchmarks and comparing with baseline..."
+	@if [ ! -f benchmark-baseline.txt ]; then \
+		echo "ERROR: No baseline found. Run 'make benchmark-baseline' first"; \
+		exit 1; \
+	fi
+	@go test -bench=. -benchmem -count=5 ./... | tee benchmark-current.txt
+	@echo "\n✓ Comparison:"
+	@benchstat benchmark-baseline.txt benchmark-current.txt || echo "Install benchstat: go install golang.org/x/perf/cmd/benchstat@latest"
+
+profile-clean:  ## Remove profile files
+	@echo "Cleaning profile files..."
+	@rm -f cpu.prof mem.prof trace.out block.prof mutex.prof
+	@rm -f benchmark-baseline.txt benchmark-current.txt
+	@rm -f examples/profiling/*.prof examples/profiling/*.out
+	@echo "✓ Profile files cleaned"
+
+#
 # Code quality targets
 #
 
