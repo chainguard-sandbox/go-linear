@@ -59,6 +59,56 @@ func TestOutputFlags_Validate(t *testing.T) {
 	}
 }
 
+func TestOutputOnlyFlags_Bind(t *testing.T) {
+	cmd := &cobra.Command{Use: "test"}
+	flags := &OutputOnlyFlags{}
+
+	flags.Bind(cmd)
+
+	// Check output flag exists with correct default
+	outputFlag := cmd.Flags().Lookup("output")
+	if outputFlag == nil {
+		t.Fatal("output flag not found")
+	}
+	if outputFlag.DefValue != "table" {
+		t.Errorf("output default = %q, want %q", outputFlag.DefValue, "table")
+	}
+	if outputFlag.Shorthand != "o" {
+		t.Errorf("output shorthand = %q, want %q", outputFlag.Shorthand, "o")
+	}
+
+	// Check fields flag does NOT exist (that's the point of OutputOnlyFlags)
+	fieldsFlag := cmd.Flags().Lookup("fields")
+	if fieldsFlag != nil {
+		t.Error("fields flag should not exist for OutputOnlyFlags")
+	}
+}
+
+func TestOutputOnlyFlags_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		output  string
+		wantErr bool
+	}{
+		{"json is valid", "json", false},
+		{"table is valid", "table", false},
+		{"empty is invalid", "", true},
+		{"yaml is invalid", "yaml", true},
+		{"csv is invalid", "csv", true},
+		{"JSON uppercase is invalid", "JSON", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &OutputOnlyFlags{Output: tt.output}
+			err := f.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestPaginationFlags_Bind(t *testing.T) {
 	cmd := &cobra.Command{Use: "test"}
 	flags := &PaginationFlags{}

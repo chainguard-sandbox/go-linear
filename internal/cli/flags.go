@@ -31,6 +31,28 @@ func (f *OutputFlags) Validate() error {
 	}
 }
 
+// OutputOnlyFlags holds just the output format flag.
+// Used for delete/archive commands that don't need field filtering.
+type OutputOnlyFlags struct {
+	Output string // Output format: json|table
+}
+
+// Bind adds output flag to the command.
+// Default output format is "table".
+func (f *OutputOnlyFlags) Bind(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&f.Output, "output", "o", "table", "Output format: json|table")
+}
+
+// Validate checks that output format is valid.
+func (f *OutputOnlyFlags) Validate() error {
+	switch f.Output {
+	case "json", "table":
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s (supported: json, table)", f.Output)
+	}
+}
+
 // PaginationFlags holds common pagination flags.
 type PaginationFlags struct {
 	Limit int    // Number of items to return
