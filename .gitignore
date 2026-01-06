@@ -45,7 +45,10 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Claude Code (user settings ignored, skills tracked)
 .claude/
+!.claude/skills/
 
 # Research and development (not for release)
 # MCP comparison research for v1.3.0
