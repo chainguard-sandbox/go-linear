@@ -240,9 +240,19 @@ gosec:  ## Run gosec security scanner
 	@gosec ./...
 	@echo "✓ Gosec passed"
 
+nilaway:  ## Run nilaway nil safety checker
+	@echo "Running nilaway..."
+	@nilaway ./pkg/... ./cmd/... ./internal/...
+	@echo "✓ Nilaway passed"
+
 trivy:  ## Scan with trivy (if available)
 	@echo "Scanning with trivy..."
 	@trivy fs --severity HIGH,CRITICAL .
+
+zizmor:  ## Run zizmor GitHub Actions security scanner
+	@echo "Running zizmor..."
+	@zizmor .github
+	@echo "✓ Zizmor passed"
 
 check: checkfmt vet lint test check-tidy  ## Run all checks (fmt, vet, lint, test, tidy) - use before commit
 	@echo "✓ All checks passed!"
@@ -362,13 +372,23 @@ setup-govulncheck:  ## Install govulncheck
 	@go install golang.org/x/vuln/cmd/govulncheck@latest
 	@echo "✓ govulncheck installed"
 
+setup-nilaway:  ## Install nilaway
+	@echo "Installing nilaway..."
+	@go install go.uber.org/nilaway/cmd/nilaway@latest
+	@echo "✓ nilaway installed"
+
 setup-trivy:  ## Install trivy (macOS)
 	@echo "Installing trivy..."
 	@brew install aquasecurity/trivy/trivy || echo "⚠ Install trivy manually: https://aquasecurity.github.io/trivy/"
 
-setup: setup-golangci-lint setup-goimports setup-genqlient setup-goreleaser setup-govulncheck  ## Install all development tools
+setup-zizmor:  ## Install zizmor
+	@echo "Installing zizmor..."
+	@go install github.com/woodruffw/zizmor/cmd/zizmor@latest
+	@echo "✓ zizmor installed"
+
+setup: setup-golangci-lint setup-goimports setup-genqlient setup-goreleaser setup-govulncheck setup-nilaway  ## Install all development tools
 	@echo "✓ All tools installed"
-	@echo "Optional: Run 'make setup-trivy' to install trivy"
+	@echo "Optional: Run 'make setup-trivy' and 'make setup-zizmor' for additional security tools"
 
 dev: setup  ## Complete developer onboarding (setup tools + deps + verify)
 	@echo "Installing dependencies..."
