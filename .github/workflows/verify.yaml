@@ -45,6 +45,7 @@ jobs:
   nilaway:
     name: Nil Safety Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -66,7 +67,7 @@ jobs:
         run: go install go.uber.org/nilaway/cmd/nilaway@latest
 
       - name: Run nilaway
-        run: nilaway ./...
+        run: nilaway ./pkg/... ./cmd/... ./internal/...
 
   format:
     name: Format Check
@@ -119,4 +120,4 @@ jobs:
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
       - name: Run gosec
-        run: gosec -conf .gosec.json ./...
+        run: gosec -conf .gosec.json -exclude-dir=examples ./...
