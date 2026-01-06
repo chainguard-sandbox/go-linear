@@ -14,6 +14,7 @@ import (
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
+	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an attachment permanently",
@@ -32,6 +33,10 @@ Related: attachment_get, issue_get`,
 
 			ctx := cmd.Context()
 
+			if err := outputFlags.Validate(); err != nil {
+				return err
+			}
+
 			// Confirmation
 			if !confirmFlags.Yes {
 				fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete attachment %s? This cannot be undone.\n", args[0])
@@ -49,8 +54,7 @@ Related: attachment_get, issue_get`,
 				return fmt.Errorf("failed to delete attachment: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if outputFlags.Output == "json" {
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "✓ Attachment deleted\n")
@@ -58,7 +62,7 @@ Related: attachment_get, issue_get`,
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	return cmd
 }

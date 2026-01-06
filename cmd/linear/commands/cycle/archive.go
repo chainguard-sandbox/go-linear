@@ -10,7 +10,7 @@ import (
 )
 
 func NewArchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	confirmFlags := &cli.ConfirmationFlags{}
+	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "archive <id>",
 		Short: "Archive a cycle",
@@ -28,13 +28,17 @@ Related: cycle_list, cycle_get`,
 			defer client.Close()
 
 			ctx := cmd.Context()
+
+			if err := outputFlags.Validate(); err != nil {
+				return err
+			}
+
 			err = client.CycleArchive(ctx, args[0])
 			if err != nil {
 				return fmt.Errorf("failed to archive cycle: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
+			if outputFlags.Output == "json" {
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "✓ Archived cycle\n")
@@ -42,7 +46,6 @@ Related: cycle_list, cycle_get`,
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	confirmFlags.Bind(cmd)
+	outputFlags.Bind(cmd)
 	return cmd
 }

@@ -15,7 +15,7 @@ import (
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	var output string
+	outputFlags := &cli.OutputOnlyFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
@@ -34,6 +34,11 @@ Related: label_list, label_get`,
 			defer client.Close()
 
 			ctx := cmd.Context()
+
+			if err := outputFlags.Validate(); err != nil {
+				return err
+			}
+
 			res := resolver.New(client)
 
 			labelID, err := res.ResolveLabel(ctx, args[0])
@@ -58,7 +63,7 @@ Related: label_list, label_get`,
 				return fmt.Errorf("failed to delete label: %w", err)
 			}
 
-			if output == "json" {
+			if outputFlags.Output == "json" {
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "✓ Label deleted\n")
@@ -66,7 +71,7 @@ Related: label_list, label_get`,
 		},
 	}
 
+	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
-	cmd.Flags().StringVarP(&output, "output", "o", "table", "Output format: json|table")
 	return cmd
 }

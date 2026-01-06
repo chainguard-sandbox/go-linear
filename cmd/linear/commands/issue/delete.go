@@ -16,6 +16,7 @@ import (
 // NewDeleteCommand creates the issue delete command.
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
+	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an issue permanently",
@@ -32,18 +33,21 @@ Related: issue_list, issue_get`,
 			}
 			defer client.Close()
 
-			return runDelete(cmd, client, args[0], confirmFlags)
+			return runDelete(cmd, client, args[0], confirmFlags, outputFlags)
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-
+	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	return cmd
 }
 
-func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, confirmFlags *cli.ConfirmationFlags) error {
+func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, confirmFlags *cli.ConfirmationFlags, outputFlags *cli.OutputOnlyFlags) error {
 	ctx := cmd.Context()
+
+	if err := outputFlags.Validate(); err != nil {
+		return err
+	}
 
 	// Confirmation prompt unless --yes
 	if !confirmFlags.Yes {
@@ -67,8 +71,7 @@ func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, confir
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
+	switch outputFlags.Output {
 	case "json":
 		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
 			"success": true,
@@ -78,6 +81,6 @@ func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, confir
 		fmt.Fprintf(cmd.OutOrStdout(), "✓ Issue %s deleted successfully\n", issueID)
 		return nil
 	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
 }
