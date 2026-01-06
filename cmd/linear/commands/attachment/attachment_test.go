@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewAttachmentCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewAttachmentCommand(factory)
 
 	if cmd.Use != "attachment" {
@@ -21,9 +23,9 @@ func TestNewAttachmentCommand(t *testing.T) {
 }
 
 func TestNewListCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewListCommand(factory)
 
 	if cmd.Use != "list" {
@@ -32,9 +34,9 @@ func TestNewListCommand(t *testing.T) {
 }
 
 func TestRunList(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewListCommand(factory)
@@ -58,9 +60,9 @@ func TestRunList(t *testing.T) {
 }
 
 func TestNewGetCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewGetCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "get") {
@@ -69,9 +71,9 @@ func TestNewGetCommand(t *testing.T) {
 }
 
 func TestRunGet(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewGetCommand(factory)
@@ -88,9 +90,9 @@ func TestRunGet(t *testing.T) {
 }
 
 func TestNewCreateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewCreateCommand(factory)
 
 	if cmd.Use != "create" {
@@ -99,9 +101,9 @@ func TestNewCreateCommand(t *testing.T) {
 }
 
 func TestRunCreate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewCreateCommand(factory)
@@ -116,9 +118,9 @@ func TestRunCreate(t *testing.T) {
 }
 
 func TestNewLinkURLCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewLinkURLCommand(factory)
 
 	if cmd.Use != "link-url" {
@@ -127,9 +129,9 @@ func TestNewLinkURLCommand(t *testing.T) {
 }
 
 func TestRunLinkURL(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewLinkURLCommand(factory)
@@ -143,9 +145,9 @@ func TestRunLinkURL(t *testing.T) {
 }
 
 func TestNewLinkGitHubCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewLinkGitHubCommand(factory)
 
 	if cmd.Use != "link-github" {
@@ -154,9 +156,9 @@ func TestNewLinkGitHubCommand(t *testing.T) {
 }
 
 func TestRunLinkGitHub(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewLinkGitHubCommand(factory)
@@ -170,9 +172,9 @@ func TestRunLinkGitHub(t *testing.T) {
 }
 
 func TestNewLinkSlackCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewLinkSlackCommand(factory)
 
 	if cmd.Use != "link-slack" {
@@ -181,9 +183,9 @@ func TestNewLinkSlackCommand(t *testing.T) {
 }
 
 func TestRunLinkSlack(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewLinkSlackCommand(factory)
@@ -197,9 +199,9 @@ func TestRunLinkSlack(t *testing.T) {
 }
 
 func TestNewDeleteCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewDeleteCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "delete") {
@@ -208,9 +210,9 @@ func TestNewDeleteCommand(t *testing.T) {
 }
 
 func TestRunDelete(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("with confirmation", func(t *testing.T) {
 		cmd := NewDeleteCommand(factory)

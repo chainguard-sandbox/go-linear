@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewAddLabelCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewAddLabelCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -38,10 +40,10 @@ func TestNewAddLabelCommand(t *testing.T) {
 }
 
 func TestRunAddLabel(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("add label json output", func(t *testing.T) {
 		cmd := NewAddLabelCommand(factory)
@@ -79,10 +81,10 @@ func TestRunAddLabel(t *testing.T) {
 }
 
 func TestNewRemoveLabelCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewRemoveLabelCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -105,10 +107,10 @@ func TestNewRemoveLabelCommand(t *testing.T) {
 }
 
 func TestRunRemoveLabel(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("remove label json output", func(t *testing.T) {
 		cmd := NewRemoveLabelCommand(factory)

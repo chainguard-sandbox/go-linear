@@ -1,71 +1,5 @@
 package issue
 
-import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
-
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-)
-
-// mockServer creates a test server that handles various Linear API queries.
-// It returns mock responses based on the operation name in the GraphQL request.
-func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {
-	t.Helper()
-
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		// Parse request body to determine operation
-		var reqBody struct {
-			Query         string         `json:"query"`
-			OperationName string         `json:"operationName"`
-			Variables     map[string]any `json:"variables"`
-		}
-
-		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-			t.Logf("Failed to decode request: %v", err)
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
-
-		query := strings.ToLower(reqBody.Query)
-		opName := strings.ToLower(reqBody.OperationName)
-
-		// Try to match by operation name first (case insensitive)
-		for key, response := range handlers {
-			if strings.EqualFold(key, opName) {
-				_, _ = w.Write([]byte(response))
-				return
-			}
-		}
-
-		// Fall back to query content matching (case insensitive)
-		for key, response := range handlers {
-			if strings.Contains(query, strings.ToLower(key)) {
-				_, _ = w.Write([]byte(response))
-				return
-			}
-		}
-
-		// Default: empty response
-		t.Logf("No handler matched for query: %s (operation: %s)", reqBody.Query[:min(100, len(reqBody.Query))], reqBody.OperationName)
-		_, _ = w.Write([]byte(`{"data":{}}`))
-	}))
-}
-
-// testFactory creates a cli.ClientFactory that connects to the given test server.
-func testFactory(t *testing.T, serverURL string) cli.ClientFactory {
-	t.Helper()
-	return func() (*linear.Client, error) {
-		return linear.NewClient("lin_api_test", linear.WithBaseURL(serverURL))
-	}
-}
-
-// Standard mock responses for common queries
 const (
 	mockTeamsResponse = `{
 		"data": {
@@ -293,19 +227,17 @@ const (
 	}`
 )
 
-// defaultHandlers returns a map of handlers for common queries.
-// Keys should match either the GraphQL operation name or a substring of the query.
 func defaultHandlers() map[string]string {
 	return map[string]string{
 		// Queries - match by query name in document
-		"teams":          mockTeamsResponse,
-		"users":          mockUsersResponse,
-		"viewer":         mockViewerResponse,
-		"workflowstates": mockStatesResponse,
-		"issuelabels":    mockLabelsResponse,
-		"issue":          mockIssueResponse,
-		"issues":         mockIssuesResponse,
-		"searchissues":   mockSearchResponse,
+		"ListTeams":          mockTeamsResponse,
+		"ListUsers":          mockUsersResponse,
+		"Viewer":             mockViewerResponse,
+		"ListWorkflowStates": mockStatesResponse,
+		"ListLabels":         mockLabelsResponse,
+		"GetIssue":           mockIssueResponse,
+		"ListIssues":         mockIssuesResponse,
+		"SearchIssues":       mockSearchResponse,
 
 		// Mutations - match by operation name (gqlgenc uses these)
 		"CreateIssue":         mockIssueCreateResponse,

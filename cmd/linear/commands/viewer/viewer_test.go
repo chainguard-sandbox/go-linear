@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewViewerCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewViewerCommand(factory)
 
 	if cmd.Use != "viewer" {
@@ -18,9 +20,9 @@ func TestNewViewerCommand(t *testing.T) {
 }
 
 func TestRunViewer(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewViewerCommand(factory)

@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewFavoriteCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewFavoriteCommand(factory)
 
 	if cmd.Use != "favorite" {
@@ -21,9 +23,9 @@ func TestNewFavoriteCommand(t *testing.T) {
 }
 
 func TestNewCreateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewCreateCommand(factory)
 
 	if cmd.Use != "create" {
@@ -32,9 +34,9 @@ func TestNewCreateCommand(t *testing.T) {
 }
 
 func TestRunCreate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("favorite issue", func(t *testing.T) {
 		cmd := NewCreateCommand(factory)
@@ -49,9 +51,9 @@ func TestRunCreate(t *testing.T) {
 }
 
 func TestNewDeleteCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewDeleteCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "delete") {
@@ -60,9 +62,9 @@ func TestNewDeleteCommand(t *testing.T) {
 }
 
 func TestRunDelete(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	cmd := NewDeleteCommand(factory)
 	var buf bytes.Buffer

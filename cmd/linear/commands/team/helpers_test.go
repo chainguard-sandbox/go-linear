@@ -1,70 +1,7 @@
 package team
 
-import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
+import "github.com/chainguard-sandbox/go-linear/internal/testutil"
 
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
-)
-
-// mockServer creates a test server that handles various Linear API queries.
-func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {
-	t.Helper()
-
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		// Parse request body to determine operation
-		var reqBody struct {
-			Query         string         `json:"query"`
-			OperationName string         `json:"operationName"`
-			Variables     map[string]any `json:"variables"`
-		}
-
-		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-			t.Logf("Failed to decode request: %v", err)
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
-
-		query := strings.ToLower(reqBody.Query)
-		opName := strings.ToLower(reqBody.OperationName)
-
-		// Try to match by operation name first (case insensitive)
-		for key, response := range handlers {
-			if strings.EqualFold(key, opName) {
-				_, _ = w.Write([]byte(response))
-				return
-			}
-		}
-
-		// Fall back to query content matching (case insensitive)
-		for key, response := range handlers {
-			if strings.Contains(query, strings.ToLower(key)) {
-				_, _ = w.Write([]byte(response))
-				return
-			}
-		}
-
-		// Default: empty response
-		t.Logf("No handler matched for query: %s (operation: %s)", reqBody.Query[:min(100, len(reqBody.Query))], reqBody.OperationName)
-		_, _ = w.Write([]byte(`{"data":{}}`))
-	}))
-}
-
-// testFactory creates a cli.ClientFactory that connects to the given test server.
-func testFactory(t *testing.T, serverURL string) cli.ClientFactory {
-	t.Helper()
-	return func() (*linear.Client, error) {
-		return linear.NewClient("lin_api_test", linear.WithBaseURL(serverURL))
-	}
-}
-
-// Standard mock responses for team queries
 const (
 	mockTeamsResponse = `{
 		"data": {
@@ -172,19 +109,15 @@ const (
 	}`
 )
 
-// defaultHandlers returns a map of handlers for common queries.
 func defaultHandlers() map[string]string {
-	return map[string]string{
-		// Queries
-		"teams":       mockTeamsResponse,
-		"team":        mockTeamResponse,
-		"users":       mockUsersResponse,
-		"viewer":      mockViewerResponse,
-		"teamMembers": mockTeamMembersResponse,
-
-		// Mutations
-		"CreateTeam": mockTeamCreateResponse,
-		"UpdateTeam": mockTeamUpdateResponse,
-		"DeleteTeam": mockTeamDeleteResponse,
-	}
+	handlers := testutil.DefaultHandlers()
+	handlers["ListTeams"] = mockTeamsResponse
+	handlers["GetTeam"] = mockTeamResponse
+	handlers["ListUsers"] = mockUsersResponse
+	handlers["Viewer"] = mockViewerResponse
+	handlers["TeamMembers"] = mockTeamMembersResponse
+	handlers["CreateTeam"] = mockTeamCreateResponse
+	handlers["UpdateTeam"] = mockTeamUpdateResponse
+	handlers["DeleteTeam"] = mockTeamDeleteResponse
+	return handlers
 }

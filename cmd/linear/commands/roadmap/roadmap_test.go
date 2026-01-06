@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewRoadmapCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewRoadmapCommand(factory)
 
 	if cmd.Use != "roadmap" {
@@ -21,9 +23,9 @@ func TestNewRoadmapCommand(t *testing.T) {
 }
 
 func TestNewListCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewListCommand(factory)
 
 	if cmd.Use != "list" {
@@ -32,9 +34,9 @@ func TestNewListCommand(t *testing.T) {
 }
 
 func TestRunList(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewListCommand(factory)
@@ -58,9 +60,9 @@ func TestRunList(t *testing.T) {
 }
 
 func TestNewGetCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewGetCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "get") {
@@ -69,9 +71,9 @@ func TestNewGetCommand(t *testing.T) {
 }
 
 func TestRunGet(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewGetCommand(factory)

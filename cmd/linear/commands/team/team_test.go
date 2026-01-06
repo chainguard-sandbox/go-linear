@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewTeamCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewTeamCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -48,10 +50,10 @@ func TestNewTeamCommand(t *testing.T) {
 }
 
 func TestNewListCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewListCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -71,10 +73,10 @@ func TestNewListCommand(t *testing.T) {
 }
 
 func TestRunList(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("list json output", func(t *testing.T) {
 		cmd := NewListCommand(factory)
@@ -137,10 +139,10 @@ func TestRunList(t *testing.T) {
 }
 
 func TestNewGetCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewGetCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -163,10 +165,10 @@ func TestNewGetCommand(t *testing.T) {
 }
 
 func TestRunGet(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("get json output", func(t *testing.T) {
 		cmd := NewGetCommand(factory)
@@ -204,10 +206,10 @@ func TestRunGet(t *testing.T) {
 }
 
 func TestNewMembersCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewMembersCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -225,10 +227,10 @@ func TestNewMembersCommand(t *testing.T) {
 }
 
 func TestNewCreateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewCreateCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -251,10 +253,10 @@ func TestNewCreateCommand(t *testing.T) {
 }
 
 func TestRunCreate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("create team json output", func(t *testing.T) {
 		cmd := NewCreateCommand(factory)
@@ -292,10 +294,10 @@ func TestRunCreate(t *testing.T) {
 }
 
 func TestNewUpdateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewUpdateCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -315,10 +317,10 @@ func TestNewUpdateCommand(t *testing.T) {
 }
 
 func TestRunUpdate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("update team json output", func(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
@@ -356,10 +358,10 @@ func TestRunUpdate(t *testing.T) {
 }
 
 func TestNewDeleteCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewDeleteCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -377,10 +379,10 @@ func TestNewDeleteCommand(t *testing.T) {
 }
 
 func TestRunDelete(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("delete team with confirmation", func(t *testing.T) {
 		cmd := NewDeleteCommand(factory)

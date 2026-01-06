@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewTemplateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewTemplateCommand(factory)
 
 	if cmd.Use != "template" {
@@ -21,9 +23,9 @@ func TestNewTemplateCommand(t *testing.T) {
 }
 
 func TestRunList(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewListCommand(factory)
@@ -47,9 +49,9 @@ func TestRunList(t *testing.T) {
 }
 
 func TestRunGet(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("json output", func(t *testing.T) {
 		cmd := NewGetCommand(factory)

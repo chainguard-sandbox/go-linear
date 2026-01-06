@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewNotificationCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewNotificationCommand(factory)
 
 	if cmd.Use != "notification" {
@@ -21,9 +23,9 @@ func TestNewNotificationCommand(t *testing.T) {
 }
 
 func TestNewArchiveCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewArchiveCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "archive") {
@@ -32,9 +34,9 @@ func TestNewArchiveCommand(t *testing.T) {
 }
 
 func TestRunArchive(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	cmd := NewArchiveCommand(factory)
 	var buf bytes.Buffer
@@ -46,9 +48,9 @@ func TestRunArchive(t *testing.T) {
 }
 
 func TestNewUpdateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewUpdateCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "update") {
@@ -57,9 +59,9 @@ func TestNewUpdateCommand(t *testing.T) {
 }
 
 func TestRunUpdate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("mark read", func(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
@@ -73,9 +75,9 @@ func TestRunUpdate(t *testing.T) {
 }
 
 func TestNewSubscribeCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewSubscribeCommand(factory)
 
 	if cmd.Use != "subscribe" {
@@ -84,9 +86,9 @@ func TestNewSubscribeCommand(t *testing.T) {
 }
 
 func TestRunSubscribe(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("subscribe to project", func(t *testing.T) {
 		cmd := NewSubscribeCommand(factory)
@@ -101,9 +103,9 @@ func TestRunSubscribe(t *testing.T) {
 }
 
 func TestNewUnsubscribeCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewUnsubscribeCommand(factory)
 
 	if !strings.HasPrefix(cmd.Use, "unsubscribe") {
@@ -112,9 +114,9 @@ func TestNewUnsubscribeCommand(t *testing.T) {
 }
 
 func TestRunUnsubscribe(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	cmd := NewUnsubscribeCommand(factory)
 	var buf bytes.Buffer

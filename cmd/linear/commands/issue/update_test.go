@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewUpdateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewUpdateCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -47,10 +49,10 @@ func TestNewUpdateCommand(t *testing.T) {
 }
 
 func TestRunUpdate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("update title", func(t *testing.T) {
 		cmd := NewUpdateCommand(factory)

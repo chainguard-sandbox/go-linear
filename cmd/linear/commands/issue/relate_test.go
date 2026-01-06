@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 )
 
 func TestNewRelateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewRelateCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -43,10 +45,10 @@ func TestNewRelateCommand(t *testing.T) {
 }
 
 func TestRunRelate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("relate issues json output", func(t *testing.T) {
 		cmd := NewRelateCommand(factory)
@@ -96,10 +98,10 @@ func TestRunRelate(t *testing.T) {
 }
 
 func TestNewUnrelateCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewUnrelateCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -122,10 +124,10 @@ func TestNewUnrelateCommand(t *testing.T) {
 }
 
 func TestRunUnrelate(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("unrelate json output", func(t *testing.T) {
 		cmd := NewUnrelateCommand(factory)
@@ -164,10 +166,10 @@ func TestRunUnrelate(t *testing.T) {
 }
 
 func TestNewUpdateRelationCommand(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 	cmd := NewUpdateRelationCommand(factory)
 
 	t.Run("command setup", func(t *testing.T) {
@@ -197,10 +199,10 @@ func TestNewUpdateRelationCommand(t *testing.T) {
 }
 
 func TestRunUpdateRelation(t *testing.T) {
-	server := mockServer(t, defaultHandlers())
+	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()
 
-	factory := testFactory(t, server.URL)
+	factory := testutil.TestFactory(t, server.URL)
 
 	t.Run("update relation json output", func(t *testing.T) {
 		cmd := NewUpdateRelationCommand(factory)

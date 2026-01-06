@@ -112,8 +112,8 @@ const (
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"issuelabels": mockLabelsResponse,
-		"issuelabel":  mockLabelResponse,
+		"ListLabels":  mockLabelsResponse,
+		"GetLabel":    mockLabelResponse,
 		"CreateLabel": mockLabelCreateResponse,
 		"UpdateLabel": mockLabelUpdateResponse,
 		"DeleteLabel": mockLabelDeleteResponse,
