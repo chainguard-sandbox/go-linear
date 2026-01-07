@@ -5,6 +5,98 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-06
+
+### Overview
+
+**New CLI layer**: Introduced `go-linear` CLI between the SDK and MCP server. The CLI is context-engineered—it absorbs GraphQL complexity so agents (and humans) work at the semantic level.
+
+### Architecture
+
+```
+v1.1.0: Agent → MCP → SDK → GraphQL
+v1.2.0: Agent → MCP → CLI → SDK → GraphQL
+```
+
+The CLI operates at the right altitude—high enough to hide GraphQL mechanics, specific enough to express precise intent. This protects the agent's attention budget by absorbing:
+- **UUID resolution**: `--team=ENG` not `--team-id=abc-123-...`
+- **Field defaults**: 8 fields returned, not 50+
+- **Pagination**: Automatic, or `--count` for totals
+- **Date parsing**: `--created-after=7d`
+- **Batch operations**: Update 50 issues in one call
+
+MCP server auto-generated from CLI via [ophis](https://github.com/njayp/ophis).
+
+### Added
+
+#### CLI (`go-linear`) - 74 commands
+New semantic interface for humans and agents:
+- **Issue**: `list`, `get`, `create`, `update`, `delete`, `search`, `batch-update`, `add-label`, `remove-label`, `relate`, `unrelate`
+- **Attachment**: `list`, `get`, `create`, `delete`, `link-github`, `link-slack`, `link-url`
+- **Comment**: `list`, `get`, `create`, `update`, `delete`
+- **Cycle**: `list`, `get`, `create`, `update`, `archive`
+- **Project**: `list`, `get`, `create`, `update`, `delete`, `milestone-create`, `milestone-update`, `milestone-delete`
+- **Team**: `list`, `get`, `create`, `update`, `delete`, `members`
+- **User**: `list`, `get`, `completed`
+- **Label**: `list`, `get`, `create`, `update`, `delete`
+- **State**: `list`, `get`
+- **Notification**: `subscribe`, `unsubscribe`, `archive`, `update`
+- **Reaction**: `create`, `delete`
+- **Favorite**: `create`, `delete`
+- **Initiative**: `list`, `get`, `create`, `update`
+- **Document/Roadmap/Template**: `list`, `get`
+- **Utility**: `viewer`, `organization`, `status`
+
+#### Filtering (44 flags)
+- Issue: SLA status, customer counts, AI suggestions, relationships, collections
+- Cycle: 15 filters (active, past, future, date ranges)
+- Project/Comment/Label/State/Team/User: 5-16 filters each
+
+#### Output optimization
+- `--fields=defaults` (8 fields vs 50+)
+- `--count` returns `{"count": N}` (99% token reduction)
+- `Team.issueCount` without pagination
+
+#### Resolvers
+- `ResolveCycle`, `ResolveDocument`, `ResolveInitiative`, `ResolveProject`
+- Case-insensitive, fuzzy matching
+
+#### Infrastructure
+- GitHub Actions release workflow (5 platforms)
+- Performance profiling
+- Multicache resolver for MCP persistence
+- clog structured logging
+
+#### Documentation
+- Claude skill (`.claude/skills/go-linear/SKILL.md`)
+- SDK docs (`docs/SDK.md`)
+- Filter docs (`docs/FILTERS.md`)
+- Claude setup (`docs/CLAUDE-SETUP.md`)
+
+### Changed
+- **MCP rebuilt**: Now wraps CLI instead of SDK directly
+- **README**: Rewritten with context engineering principles
+- **Client**: Split into entity-focused files
+
+### Fixed
+- Resolver cache: synchronous writes
+- Context cancellation
+- Rate limit parsing
+- Identifier resolution
+- Nil safety across filter system
+
+### Testing
+- Command coverage: 61-87%
+- Filter tests: all 48 issue filters
+- Internal packages: 60%+
+
+### Security
+- gosec and nilaway in CI
+- Dependency updates
+
+### Upstream
+- @linear/sdk@68.1.0
+
 ## [1.1.0] - 2025-12-10
 
 ### Added
