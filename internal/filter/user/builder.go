@@ -15,7 +15,7 @@ import (
 type FilterBuilder struct {
 	filter   *intgraphql.UserFilter
 	resolver *resolver.Resolver
-	parser   *dateparser.Parser
+	parser   dateparser.Parser
 }
 
 // NewFilterBuilder creates a FilterBuilder with the given resolver.
@@ -33,7 +33,7 @@ func (b *FilterBuilder) Resolver() *resolver.Resolver {
 }
 
 // Parser returns the date parser.
-func (b *FilterBuilder) Parser() *dateparser.Parser {
+func (b *FilterBuilder) Parser() dateparser.Parser {
 	return b.parser
 }
 

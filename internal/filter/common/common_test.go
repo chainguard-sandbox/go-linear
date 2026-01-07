@@ -13,7 +13,7 @@ import (
 // mockDateFilterable implements DateFilterable for testing.
 type mockDateFilterable struct {
 	createdAt *intgraphql.DateComparator
-	parser    *dateparser.Parser
+	parser    dateparser.Parser
 }
 
 func newMockDateFilterable() *mockDateFilterable {
@@ -27,7 +27,7 @@ func (m *mockDateFilterable) CreatedAtComparator() *intgraphql.DateComparator {
 	return m.createdAt
 }
 
-func (m *mockDateFilterable) Parser() *dateparser.Parser {
+func (m *mockDateFilterable) Parser() dateparser.Parser {
 	return m.parser
 }
 

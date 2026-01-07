@@ -21,7 +21,7 @@ type FilterBuilder interface {
 	Resolver() *resolver.Resolver
 
 	// Parser returns the date parser for human-readable dates.
-	Parser() *dateparser.Parser
+	Parser() dateparser.Parser
 }
 
 // DateRange holds pointers to Gte and Lt fields for a date comparator.
@@ -38,7 +38,7 @@ type FilterFunc[T FilterBuilder] func(ctx context.Context, cmd *cobra.Command, b
 
 // ApplyDateRange parses date strings and applies them to a DateRange.
 // It handles the common pattern of --*-after and --*-before flags.
-func ApplyDateRange(parser *dateparser.Parser, dr *DateRange, afterFlag, beforeFlag, fieldName string) error {
+func ApplyDateRange(parser dateparser.Parser, dr *DateRange, afterFlag, beforeFlag, fieldName string) error {
 	if afterFlag != "" {
 		t, err := parser.Parse(afterFlag)
 		if err != nil {

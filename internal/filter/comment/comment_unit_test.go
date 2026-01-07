@@ -68,9 +68,11 @@ func TestFilterBuilder_Resolver(t *testing.T) {
 }
 
 func TestFilterBuilder_Parser(t *testing.T) {
+	// Parser is now a value type, always valid - test it works
 	b := testBuilder()
-	if b.Parser() == nil {
-		t.Error("Parser() should return non-nil parser")
+	_, err := b.Parser().Parse("today")
+	if err != nil {
+		t.Errorf("Parser() should return working parser, got error: %v", err)
 	}
 }
 

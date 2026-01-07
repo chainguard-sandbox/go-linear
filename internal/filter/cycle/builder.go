@@ -20,7 +20,7 @@ var (
 type FilterBuilder struct {
 	filter   *intgraphql.CycleFilter
 	resolver *resolver.Resolver
-	parser   *dateparser.Parser
+	parser   dateparser.Parser
 }
 
 // NewFilterBuilder creates a new cycle filter builder.
@@ -38,7 +38,7 @@ func (b *FilterBuilder) Resolver() *resolver.Resolver {
 }
 
 // Parser returns the date parser.
-func (b *FilterBuilder) Parser() *dateparser.Parser {
+func (b *FilterBuilder) Parser() dateparser.Parser {
 	return b.parser
 }
 

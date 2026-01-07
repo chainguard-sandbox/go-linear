@@ -9,7 +9,7 @@ import (
 // DateFilterable is implemented by filter builders that support CreatedAt filtering.
 type DateFilterable interface {
 	CreatedAtComparator() *intgraphql.DateComparator
-	Parser() *dateparser.Parser
+	Parser() dateparser.Parser
 }
 
 // UpdateDateFilterable extends DateFilterable with UpdatedAt support.

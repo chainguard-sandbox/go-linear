@@ -13,7 +13,7 @@ import (
 type IssueFilterBuilder struct {
 	filter   *intgraphql.IssueFilter
 	resolver *resolver.Resolver
-	parser   *dateparser.Parser
+	parser   dateparser.Parser
 }
 
 // NewIssueFilterBuilder creates a new filter builder.
@@ -31,7 +31,7 @@ func (b *IssueFilterBuilder) Resolver() *resolver.Resolver {
 }
 
 // Parser returns the date parser.
-func (b *IssueFilterBuilder) Parser() *dateparser.Parser {
+func (b *IssueFilterBuilder) Parser() dateparser.Parser {
 	return b.parser
 }
 

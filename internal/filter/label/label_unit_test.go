@@ -18,9 +18,6 @@ func TestNewFilterBuilder(t *testing.T) {
 	if b.Filter() == nil {
 		t.Fatal("Filter() returned nil")
 	}
-	if b.Parser() == nil {
-		t.Fatal("Parser() returned nil")
-	}
 }
 
 func TestFilterBuilder_Build_Empty(t *testing.T) {

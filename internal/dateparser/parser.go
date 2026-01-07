@@ -20,8 +20,8 @@ var durationRegex = regexp.MustCompile(`^(\d+)([dwm])$`)
 type Parser struct{}
 
 // New creates a new date parser.
-func New() *Parser {
-	return &Parser{}
+func New() Parser {
+	return Parser{}
 }
 
 // Parse parses a date string and returns a time.Time.
@@ -31,7 +31,7 @@ func New() *Parser {
 //   - RFC3339: "2025-12-10T15:04:05-07:00"
 //   - Named: "today", "yesterday", "tomorrow"
 //   - Duration: "7d" (7 days ago), "2w" (2 weeks ago), "3m" (3 months ago)
-func (p *Parser) Parse(input string) (time.Time, error) {
+func (p Parser) Parse(input string) (time.Time, error) {
 	if input == "" {
 		return time.Time{}, fmt.Errorf("empty date string")
 	}
@@ -90,7 +90,7 @@ func (p *Parser) Parse(input string) (time.Time, error) {
 
 // MustParse parses a date string and panics on error.
 // Useful for testing and initialization.
-func (p *Parser) MustParse(input string) time.Time {
+func (p Parser) MustParse(input string) time.Time {
 	t, err := p.Parse(input)
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse date %q: %v", input, err))
