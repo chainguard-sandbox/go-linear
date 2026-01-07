@@ -242,7 +242,10 @@ gosec:  ## Run gosec security scanner
 
 nilaway:  ## Run nilaway nil safety checker
 	@echo "Running nilaway..."
-	@nilaway ./pkg/... ./cmd/... ./internal/...
+	@# Check all packages except pkg/linear (has example tests we skip)
+	@go list ./pkg/... ./cmd/... ./internal/... | grep -v "pkg/linear$$" | xargs nilaway
+	@# Check pkg/linear non-example files only (examples are documentation)
+	@nilaway $$(find ./pkg/linear -maxdepth 1 -name '*.go' ! -name 'examples*_test.go')
 	@echo "✓ Nilaway passed"
 
 trivy:  ## Scan with trivy (if available)

@@ -366,6 +366,9 @@ func TestTransport_NetworkError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error after retries, got %v", err)
 	}
+	if resp == nil {
+		t.Fatal("expected non-nil response")
+	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {

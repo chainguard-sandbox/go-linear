@@ -46,6 +46,10 @@ func TestIssueIterator(t *testing.T) {
 
 	want := []string{"Issue 1", "Issue 2", "Issue 3"}
 	for i, title := range want {
+		if i >= len(issues) {
+			t.Errorf("missing issue[%d], want %q", i, title)
+			continue
+		}
 		if issues[i] != title {
 			t.Errorf("issue[%d] = %q, want %q", i, issues[i], title)
 		}

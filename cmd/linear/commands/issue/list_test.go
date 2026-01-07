@@ -297,6 +297,7 @@ func TestRunList_InvalidOutput(t *testing.T) {
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("Expected error for invalid output format")
+		return
 	}
 	if !strings.Contains(err.Error(), "unsupported output format") {
 		t.Errorf("Error should mention unsupported format: %v", err)
