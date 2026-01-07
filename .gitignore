@@ -9,9 +9,6 @@ dist/
 *_bin
 *_example_bin
 
-# MCP server binary
-cmd/go-linear-mcp/go-linear-mcp
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -74,7 +71,6 @@ scripts/
 internal/mcptools/
 internal/schema/
 cmd/schema-gen/
-cmd/go-linear-mcp/enhance/
 
 # Generated files (can be regenerated from source)
 pkg/linear/schema.json
