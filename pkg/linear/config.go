@@ -1,9 +1,10 @@
 package linear
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/chainguard-dev/clog"
 )
 
 // ClientConfig holds configuration for a Linear client.
@@ -24,7 +25,7 @@ type ClientConfig struct {
 	HTTPClient *http.Client
 
 	// Logger for structured logging
-	Logger *slog.Logger
+	Logger *clog.Logger
 
 	// CredentialProvider for dynamic credential management
 	// If set, APIKey is ignored

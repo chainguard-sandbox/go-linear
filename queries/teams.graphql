@@ -10,6 +10,7 @@ query GetTeam($id: String!) {
     timezone
     icon
     color
+    issueCount
   }
 }
 
@@ -24,6 +25,27 @@ query ListTeams($first: Int, $after: String) {
       private
       icon
       color
+      issueCount
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query ListTeamsFiltered($first: Int, $after: String, $filter: TeamFilter) {
+  teams(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      name
+      key
+      description
+      createdAt
+      private
+      icon
+      color
+      issueCount
     }
     pageInfo {
       hasNextPage

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/chainguard-dev/clog"
 )
 
 // mockRoundTripper allows testing Transport behavior
@@ -67,6 +69,9 @@ func TestTransport_Retry429(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
+	if resp == nil {
+		t.Fatal("expected response, got nil")
+	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
@@ -106,6 +111,9 @@ func TestTransport_Retry5xx(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected response, got nil")
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -234,7 +242,7 @@ func TestTransport_RateLimitHeaders(t *testing.T) {
 
 func TestTransport_Logging(t *testing.T) {
 	var logBuf strings.Builder
-	logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
+	logger := clog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 
@@ -295,7 +303,7 @@ func TestTransport_RequestIDLogging(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var logBuf strings.Builder
-			logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
+			logger := clog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{
 				Level: slog.LevelInfo,
 			}))
 
@@ -357,6 +365,9 @@ func TestTransport_NetworkError(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("expected no error after retries, got %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected non-nil response")
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -447,6 +458,39 @@ func TestIsRetryable(t *testing.T) {
 			got := isRetryable(tt.err)
 			if got != tt.want {
 				t.Errorf("isRetryable(%v) = %v, want %v", tt.err, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseTimestamp(t *testing.T) {
+	tests := []struct {
+		name     string
+		ts       int64
+		wantYear int
+	}{
+		{
+			name:     "unix seconds",
+			ts:       1704153600, // 2024-01-02 00:00:00 UTC
+			wantYear: 2024,
+		},
+		{
+			name:     "unix milliseconds",
+			ts:       1704153600000, // 2024-01-02 00:00:00 UTC in millis
+			wantYear: 2024,
+		},
+		{
+			name:     "linear api timestamp",
+			ts:       1735776000000, // 2025-01-02 00:00:00 UTC
+			wantYear: 2025,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseTimestamp(tt.ts)
+			if got.Year() != tt.wantYear {
+				t.Errorf("parseTimestamp(%d) year = %d, want %d", tt.ts, got.Year(), tt.wantYear)
 			}
 		})
 	}

@@ -29,3 +29,22 @@ query ListDocuments($first: Int, $after: String) {
     }
   }
 }
+
+query ListDocumentsFiltered($first: Int, $after: String, $filter: DocumentFilter) {
+  documents(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      title
+      content
+      createdAt
+      updatedAt
+      slugId
+      color
+      icon
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

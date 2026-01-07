@@ -58,7 +58,7 @@ func main() {
 	// Example 3: Include archived issues
 	fmt.Println("\n=== Example 3: Including archived issues ===")
 	includeArchived := true
-	searchWithOptions(ctx, client, "hexproof", &includeArchived)
+	searchWithOptions(ctx, client, "urgent", &includeArchived)
 }
 
 // searchSimple demonstrates basic text search

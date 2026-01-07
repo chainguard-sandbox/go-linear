@@ -24,6 +24,32 @@ query ListComments($first: Int, $after: String) {
       createdAt
       updatedAt
       url
+      user {
+        id
+        name
+        email
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query ListCommentsFiltered($first: Int, $after: String, $filter: CommentFilter) {
+  comments(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      body
+      createdAt
+      updatedAt
+      url
+      user {
+        id
+        name
+        email
+      }
     }
     pageInfo {
       hasNextPage

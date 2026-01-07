@@ -28,3 +28,21 @@ query ListWorkflowStates($first: Int, $after: String) {
     }
   }
 }
+
+query ListWorkflowStatesFiltered($first: Int, $after: String, $filter: WorkflowStateFilter) {
+  workflowStates(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      name
+      description
+      type
+      color
+      position
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

@@ -30,3 +30,22 @@ query ListInitiatives($first: Int, $after: String) {
     }
   }
 }
+
+query ListInitiativesFiltered($first: Int, $after: String, $filter: InitiativeFilter) {
+  initiatives(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      name
+      description
+      createdAt
+      targetDate
+      sortOrder
+      color
+      icon
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

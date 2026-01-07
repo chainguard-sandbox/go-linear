@@ -3,12 +3,17 @@ mutation CreateIssue($input: IssueCreateInput!) {
     success
     issue {
       id
+      identifier
       title
       description
       priority
       createdAt
       number
       url
+      parent {
+        id
+        identifier
+      }
       state {
         id
         name
@@ -27,6 +32,7 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
     success
     issue {
       id
+      identifier
       title
       description
       priority

@@ -2,6 +2,8 @@ package linear
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -166,18 +168,72 @@ type ForbiddenError struct {
 	*LinearError
 }
 
+// Error pattern groups for HTTP status detection.
+var (
+	authErrorPatterns      = []string{`"code":401`, "AUTHENTICATION_ERROR"}
+	forbiddenErrorPatterns = []string{`"code":403`, "FORBIDDEN"}
+	rateLimitErrorPatterns = []string{`"code":429`, "RATELIMITED"}
+)
+
+// containsAny checks if value contains any of the patterns.
+func containsAny(value string, patterns []string) bool {
+	return slices.ContainsFunc(patterns, func(pattern string) bool {
+		return strings.Contains(value, pattern)
+	})
+}
+
 // wrapGraphQLError wraps a gqlgenc error in a LinearError with operation context.
-// Preserves the original error for errors.As() and errors.Unwrap() support.
+// Extracts user-friendly error messages from verbose gqlgenc responses.
 func wrapGraphQLError(operation string, err error) error {
 	if err == nil {
 		return nil
 	}
 
-	// gqlgenc wraps GraphQL errors - preserve chain for errors.As()
+	errStr := err.Error()
+
+	// Extract clean error message from gqlgenc JSON errors
+	// gqlgenc returns: {"networkErrors":{"code":401,"message":"Response body {...}"},...}
+	// We want to extract the actual GraphQL error message for better UX
+
+	// Check for authentication errors (401)
+	if containsAny(errStr, authErrorPatterns) {
+		return &AuthenticationError{
+			LinearError: &LinearError{
+				Type:       ErrorTypeAuthenticationError,
+				Message:    "invalid or expired API key",
+				StatusCode: 401,
+				wrapped:    err,
+			},
+		}
+	}
+
+	// Check for forbidden errors (403)
+	if containsAny(errStr, forbiddenErrorPatterns) {
+		return &ForbiddenError{
+			LinearError: &LinearError{
+				Type:       ErrorTypeForbidden,
+				Message:    "permission denied - check API key scopes",
+				StatusCode: 403,
+				wrapped:    err,
+			},
+		}
+	}
+
+	// Check for rate limit errors (429)
+	if containsAny(errStr, rateLimitErrorPatterns) {
+		return &LinearError{
+			Type:       ErrorTypeRateLimited,
+			Message:    "rate limit exceeded",
+			StatusCode: 429,
+			wrapped:    err,
+		}
+	}
+
+	// For other errors, just use operation context without verbose JSON
 	return &LinearError{
 		Type:       ErrorTypeGraphQLError,
 		Message:    fmt.Sprintf("%s failed", operation),
-		StatusCode: 200, // HTTP success but GraphQL error
+		StatusCode: 200,
 		wrapped:    err,
 	}
 }

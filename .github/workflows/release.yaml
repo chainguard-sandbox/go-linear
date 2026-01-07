@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Build binaries
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+
+          # Build matrix
+          platforms=(
+            "linux/amd64"
+            "linux/arm64"
+            "darwin/amd64"
+            "darwin/arm64"
+            "windows/amd64"
+          )
+
+          mkdir -p dist
+
+          for platform in "${platforms[@]}"; do
+            GOOS="${platform%/*}"
+            GOARCH="${platform#*/}"
+            output="dist/go-linear-${VERSION}-${GOOS}-${GOARCH}"
+
+            if [ "$GOOS" = "windows" ]; then
+              output="${output}.exe"
+            fi
+
+            echo "Building ${GOOS}/${GOARCH}..."
+            GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build \
+              -ldflags="-s -w -X main.version=${VERSION}" \
+              -o "$output" \
+              ./cmd/linear
+          done
+
+          # Create checksums
+          cd dist
+          sha256sum go-linear-* > checksums.txt
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          PRERELEASE=""
+          if [[ "$VERSION" == *"-"* ]]; then
+            PRERELEASE="--prerelease"
+          fi
+
+          gh release create "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$VERSION" \
+            --generate-notes \
+            $PRERELEASE \
+            dist/go-linear-* \
+            dist/checksums.txt

@@ -30,3 +30,22 @@ query ListUsers($first: Int, $after: String) {
     }
   }
 }
+
+query ListUsersFiltered($first: Int, $after: String, $filter: UserFilter) {
+  users(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      name
+      email
+      displayName
+      createdAt
+      admin
+      active
+      avatarUrl
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

@@ -4,11 +4,11 @@
 # Usage: make <target>
 # Run 'make' or 'make help' to see available commands
 
-.PHONY: help
+.PHONY: help build build-cli build-mcp
 
 # Project configuration
 BINARY_NAME := go-linear
-MODULE := github.com/eslerm/go-linear
+MODULE := github.com/chainguard-sandbox/go-linear
 BINDIR := bin
 GOFILES := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./upstream/*" -not -path "./internal/graphql/generated.go")
 
@@ -48,18 +48,31 @@ help:  ## Show this help message
 # Build targets
 #
 
-build: $(BINDIR)/$(BINARY_NAME)  ## Build the binary
+build: build-cli  ## Build the CLI (includes MCP server)
 
-$(BINDIR)/$(BINARY_NAME): $(GOFILES)
-	@echo "Building $(BINARY_NAME)..."
+#
+# CLI targets (includes MCP via 'mcp' subcommand)
+#
+
+build-cli:  ## Build go-linear (CLI + MCP server in one binary)
+	@echo "Building go-linear..."
 	@mkdir -p $(BINDIR)
-	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@ .
-	@echo "✓ Built: $@"
+	CGO_ENABLED=0 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINDIR)/go-linear ./cmd/linear
+	@echo "✓ Built: $(BINDIR)/go-linear"
+	@echo "  CLI mode: ./bin/go-linear issue list"
+	@echo "  MCP mode: ./bin/go-linear mcp start"
 
-install: build  ## Install binary to $GOPATH/bin
-	@echo "Installing $(BINARY_NAME)..."
-	@cp $(BINDIR)/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
-	@echo "✓ Installed to $(GOPATH)/bin/$(BINARY_NAME)"
+build-mcp: build-cli  ## Alias for build-cli (same binary, different mode)
+
+install: build-cli  ## Install go-linear to $GOPATH/bin
+	@echo "Installing go-linear..."
+	@cp $(BINDIR)/go-linear $(GOPATH)/bin/go-linear
+	@echo "✓ Installed go-linear to $(GOPATH)/bin/"
+
+clean-mcp:  ## Remove binaries
+	@echo "Cleaning binaries..."
+	@rm -f $(BINDIR)/go-linear
+	@echo "✓ Cleaned"
 
 #
 # Code generation
@@ -122,6 +135,77 @@ benchmark:  ## Run benchmarks
 	go test -bench=. -benchmem ./...
 
 #
+# Profiling targets
+#
+
+profile-cpu:  ## Run benchmarks with CPU profiling
+	@echo "Running benchmarks with CPU profiling..."
+	go test -bench=. -benchmem -cpuprofile=cpu.prof ./...
+	@echo "✓ CPU profile saved to cpu.prof"
+	@echo "Analyze with: go tool pprof cpu.prof"
+
+profile-mem:  ## Run benchmarks with memory profiling
+	@echo "Running benchmarks with memory profiling..."
+	go test -bench=. -benchmem -memprofile=mem.prof ./...
+	@echo "✓ Memory profile saved to mem.prof"
+	@echo "Analyze with: go tool pprof -alloc_space mem.prof"
+
+profile-all:  ## Run benchmarks with CPU and memory profiling
+	@echo "Running benchmarks with full profiling..."
+	go test -bench=. -benchmem -cpuprofile=cpu.prof -memprofile=mem.prof ./...
+	@echo "✓ CPU profile saved to cpu.prof"
+	@echo "✓ Memory profile saved to mem.prof"
+	@echo "\nAnalyze with:"
+	@echo "  go tool pprof cpu.prof"
+	@echo "  go tool pprof -alloc_space mem.prof"
+	@echo "  go tool pprof -inuse_space mem.prof"
+
+profile-example:  ## Run profiling example (generates cpu.prof, mem.prof, trace.out)
+	@echo "Running profiling example..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set"; \
+		exit 1; \
+	fi
+	@cd examples/profiling && go run main.go
+	@echo "\n✓ Profiles generated in examples/profiling/"
+	@echo "\nAnalyze with:"
+	@echo "  cd examples/profiling"
+	@echo "  go tool pprof cpu.prof"
+	@echo "  go tool pprof -alloc_space mem.prof"
+	@echo "  go tool trace trace.out"
+
+profile-server:  ## Run profiling server (live profiling at :6060)
+	@echo "Starting profiling server..."
+	@if [ -z "$$LINEAR_API_KEY" ]; then \
+		echo "ERROR: LINEAR_API_KEY not set"; \
+		exit 1; \
+	fi
+	@echo "Server will run at http://localhost:6060/debug/pprof/"
+	@PROFILE_MODE=server cd examples/profiling && go run main.go
+
+benchmark-baseline:  ## Save benchmark baseline (for comparison)
+	@echo "Saving benchmark baseline..."
+	@go test -bench=. -benchmem -count=5 ./... | tee benchmark-baseline.txt
+	@echo "✓ Baseline saved to benchmark-baseline.txt"
+
+benchmark-compare:  ## Compare current benchmarks with baseline
+	@echo "Running benchmarks and comparing with baseline..."
+	@if [ ! -f benchmark-baseline.txt ]; then \
+		echo "ERROR: No baseline found. Run 'make benchmark-baseline' first"; \
+		exit 1; \
+	fi
+	@go test -bench=. -benchmem -count=5 ./... | tee benchmark-current.txt
+	@echo "\n✓ Comparison:"
+	@benchstat benchmark-baseline.txt benchmark-current.txt || echo "Install benchstat: go install golang.org/x/perf/cmd/benchstat@latest"
+
+profile-clean:  ## Remove profile files
+	@echo "Cleaning profile files..."
+	@rm -f cpu.prof mem.prof trace.out block.prof mutex.prof
+	@rm -f benchmark-baseline.txt benchmark-current.txt
+	@rm -f examples/profiling/*.prof examples/profiling/*.out
+	@echo "✓ Profile files cleaned"
+
+#
 # Code quality targets
 #
 
@@ -151,12 +235,35 @@ vulncheck:  ## Check for known vulnerabilities
 	@govulncheck ./...
 	@echo "✓ No vulnerabilities found"
 
+gosec:  ## Run gosec security scanner
+	@echo "Running gosec..."
+	@gosec ./...
+	@echo "✓ Gosec passed"
+
+nilaway:  ## Run nilaway nil safety checker
+	@echo "Running nilaway..."
+	@# Check all packages except pkg/linear (has example tests we skip)
+	@go list ./pkg/... ./cmd/... ./internal/... | grep -v "pkg/linear$$" | xargs nilaway
+	@# Check pkg/linear non-example files only (examples are documentation)
+	@nilaway $$(find ./pkg/linear -maxdepth 1 -name '*.go' ! -name 'examples*_test.go')
+	@echo "✓ Nilaway passed"
+
 trivy:  ## Scan with trivy (if available)
 	@echo "Scanning with trivy..."
 	@trivy fs --severity HIGH,CRITICAL .
 
-check: checkfmt vet lint test  ## Run all checks (fmt, vet, lint, test) - use before commit
+zizmor:  ## Run zizmor GitHub Actions security scanner
+	@echo "Running zizmor..."
+	@zizmor .github
+	@echo "✓ Zizmor passed"
+
+check: checkfmt vet lint test check-tidy  ## Run all checks (fmt, vet, lint, test, tidy) - use before commit
 	@echo "✓ All checks passed!"
+
+check-tidy:  ## Verify go.mod is tidy
+	@echo "Verifying go.mod is tidy..."
+	@go mod tidy
+	@git diff --exit-code go.mod go.sum || (echo "ERROR: go.mod is not tidy. Run 'go mod tidy'" && exit 1)
 
 check-full: check vulncheck  ## Run all checks including vulncheck (slower)
 	@echo "✓ All checks including vulncheck passed!"
@@ -268,13 +375,23 @@ setup-govulncheck:  ## Install govulncheck
 	@go install golang.org/x/vuln/cmd/govulncheck@latest
 	@echo "✓ govulncheck installed"
 
+setup-nilaway:  ## Install nilaway
+	@echo "Installing nilaway..."
+	@go install go.uber.org/nilaway/cmd/nilaway@latest
+	@echo "✓ nilaway installed"
+
 setup-trivy:  ## Install trivy (macOS)
 	@echo "Installing trivy..."
 	@brew install aquasecurity/trivy/trivy || echo "⚠ Install trivy manually: https://aquasecurity.github.io/trivy/"
 
-setup: setup-golangci-lint setup-goimports setup-genqlient setup-goreleaser setup-govulncheck  ## Install all development tools
+setup-zizmor:  ## Install zizmor
+	@echo "Installing zizmor..."
+	@go install github.com/woodruffw/zizmor/cmd/zizmor@latest
+	@echo "✓ zizmor installed"
+
+setup: setup-golangci-lint setup-goimports setup-genqlient setup-goreleaser setup-govulncheck setup-nilaway  ## Install all development tools
 	@echo "✓ All tools installed"
-	@echo "Optional: Run 'make setup-trivy' to install trivy"
+	@echo "Optional: Run 'make setup-trivy' and 'make setup-zizmor' for additional security tools"
 
 dev: setup  ## Complete developer onboarding (setup tools + deps + verify)
 	@echo "Installing dependencies..."

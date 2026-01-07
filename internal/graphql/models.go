@@ -415,12 +415,18 @@ type AgentSession struct {
 	EndedAt *time.Time `json:"endedAt,omitempty"`
 	// The URL of an external agent-hosted page associated with this session.
 	ExternalLink *string `json:"externalLink,omitempty"`
+	// URLs of external resources associated with this session.
+	ExternalUrls string `json:"externalUrls"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The issue this agent session is associated with.
 	Issue *Issue `json:"issue,omitempty"`
 	// A dynamically updated list of the agent's execution strategy.
 	Plan *string `json:"plan,omitempty"`
+	// [Internal] A formatted prompt string containing relevant context for the agent session, including issue details, comments, and guidance.
+	PromptContext *string `json:"promptContext,omitempty"`
+	// [Internal] Pull requests associated with this agent session.
+	PullRequests *AgentSessionToPullRequestConnection `json:"pullRequests"`
 	// The comment that this agent session was spawned from, if from a different thread.
 	SourceComment *Comment `json:"sourceComment,omitempty"`
 	// Metadata about the external source that created this agent session.
@@ -455,7 +461,7 @@ type AgentSessionCreateInput struct {
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// The issue that this session will be associated with.
-	IssueID string `json:"issueId"`
+	IssueID *string `json:"issueId,omitempty"`
 }
 
 type AgentSessionCreateOnComment struct {
@@ -463,11 +469,15 @@ type AgentSessionCreateOnComment struct {
 	CommentID string `json:"commentId"`
 	// The URL of an external agent-hosted page associated with this session.
 	ExternalLink *string `json:"externalLink,omitempty"`
+	// URLs of external resources associated with this session.
+	ExternalUrls []*AgentSessionExternalURLInput `json:"externalUrls,omitempty"`
 }
 
 type AgentSessionCreateOnIssue struct {
 	// The URL of an external agent-hosted page associated with this session.
 	ExternalLink *string `json:"externalLink,omitempty"`
+	// URLs of external resources associated with this session.
+	ExternalUrls []*AgentSessionExternalURLInput `json:"externalUrls,omitempty"`
 	// The issue that this session will be associated with.
 	IssueID string `json:"issueId"`
 }
@@ -498,8 +508,22 @@ type AgentSessionEventWebhookPayload struct {
 	OrganizationID string `json:"organizationId"`
 	// The previous comments in the thread before this agent was mentioned and the session was initiated, if any. Present only for `created` events where the session was initiated by mentioning the agent in a child comment of a thread.
 	PreviousComments []*CommentChildWebhookPayload `json:"previousComments,omitempty"`
+	// A formatted prompt string containing the relevant context for the agent session, including issue details, comments, and guidance. Present only for `created` events.
+	PromptContext *string `json:"promptContext,omitempty"`
 	// The type of resource.
 	Type string `json:"type"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
+}
+
+// Input for an external URL associated with an agent session.
+type AgentSessionExternalURLInput struct {
+	// Optional label for the URL.
+	Label *string `json:"label,omitempty"`
+	// The URL of the external resource.
+	URL string `json:"url"`
 }
 
 type AgentSessionPayload struct {
@@ -511,18 +535,64 @@ type AgentSessionPayload struct {
 	Success bool `json:"success"`
 }
 
+// Join table between agent sessions and pull requests.
+type AgentSessionToPullRequest struct {
+	// The agent session that the pull request is associated with.
+	AgentSession *AgentSession `json:"agentSession"`
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// The pull request that the agent session is associated with.
+	PullRequest *PullRequest `json:"pullRequest"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (AgentSessionToPullRequest) IsNode() {}
+
+// The unique identifier of the entity.
+func (this AgentSessionToPullRequest) GetID() string { return this.ID }
+
+type AgentSessionToPullRequestConnection struct {
+	Edges    []*AgentSessionToPullRequestEdge `json:"edges"`
+	Nodes    []*AgentSessionToPullRequest     `json:"nodes"`
+	PageInfo *PageInfo                        `json:"pageInfo"`
+}
+
+type AgentSessionToPullRequestEdge struct {
+	// Used in `before` and `after` args
+	Cursor string                     `json:"cursor"`
+	Node   *AgentSessionToPullRequest `json:"node"`
+}
+
 type AgentSessionUpdateExternalURLInput struct {
+	// URLs of external resources to be added to this session.
+	AddedExternalUrls []*AgentSessionExternalURLInput `json:"addedExternalUrls,omitempty"`
 	// The URL of an external agent-hosted page associated with this session.
 	ExternalLink *string `json:"externalLink,omitempty"`
+	// URLs of external resources associated with this session. Replaces existing URLs.
+	ExternalUrls []*AgentSessionExternalURLInput `json:"externalUrls,omitempty"`
+	// URLs to be removed from this session.
+	RemovedExternalUrls []string `json:"removedExternalUrls,omitempty"`
 }
 
 type AgentSessionUpdateInput struct {
+	// URLs of external resources to be added to this session. Only updatable by the OAuth application that owns the session.
+	AddedExternalUrls []*AgentSessionExternalURLInput `json:"addedExternalUrls,omitempty"`
 	// [Internal] The time the agent session was dismissed. Only updatable by internal clients.
 	DismissedAt *time.Time `json:"dismissedAt,omitempty"`
 	// The URL of an external agent-hosted page associated with this session. Only updatable by the OAuth application that owns the session.
 	ExternalLink *string `json:"externalLink,omitempty"`
+	// URLs of external resources associated with this session. Replaces existing URLs. Only updatable by the OAuth application that owns the session. If supplied, addedExternalUrls and removedExternalUrls are ignored.
+	ExternalUrls []*AgentSessionExternalURLInput `json:"externalUrls,omitempty"`
 	// A dynamically updated list of the agent's execution strategy. Only updatable by the OAuth application that owns the session.
 	Plan *string `json:"plan,omitempty"`
+	// URLs to be removed from this session. Only updatable by the OAuth application that owns the session.
+	RemovedExternalUrls []string `json:"removedExternalUrls,omitempty"`
 }
 
 // Payload for an agent session webhook.
@@ -610,6 +680,10 @@ type AppUserNotificationWebhookPayload struct {
 	OrganizationID string `json:"organizationId"`
 	// The type of resource.
 	Type string `json:"type"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // Payload for app user team access change webhook events.
@@ -632,6 +706,10 @@ type AppUserTeamAccessChangedWebhookPayload struct {
 	RemovedTeamIds []string `json:"removedTeamIds"`
 	// The type of resource.
 	Type string `json:"type"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // Public information of the OAuth application.
@@ -683,6 +761,13 @@ type AsksChannelConnectPayload struct {
 	Mapping *SlackChannelNameMapping `json:"mapping"`
 	// Whether the operation was successful.
 	Success bool `json:"success"`
+}
+
+type AsksWebFormsAuthResponse struct {
+	// User email.
+	Email string `json:"email"`
+	// User display name.
+	Name string `json:"name"`
 }
 
 // Issue assignee sorting options.
@@ -1147,6 +1232,10 @@ type BaseWebhookPayload struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// ID of the organization for which the webhook belongs to.
 	OrganizationID string `json:"organizationId"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // Comparator for booleans.
@@ -1560,6 +1649,10 @@ type CustomResourceWebhookPayload struct {
 	OrganizationID string `json:"organizationId"`
 	// The type of resource.
 	Type string `json:"type"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // A custom view that has been saved by a user.
@@ -3025,10 +3118,10 @@ type CustomerTierFilter struct {
 	CreatedAt *DateComparator `json:"createdAt,omitempty"`
 	// Comparator for the customer tier description.
 	Description *StringComparator `json:"description,omitempty"`
+	// Comparator for the customer tier display name.
+	DisplayName *StringComparator `json:"displayName,omitempty"`
 	// Comparator for the identifier.
 	ID *IDComparator `json:"id,omitempty"`
-	// Comparator for the customer tier name.
-	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which needs to be matched by the customer tier.
 	Or []*CustomerTierFilter `json:"or,omitempty"`
 	// Comparator for the customer tier position.
@@ -4569,6 +4662,10 @@ type EntityWebhookPayload struct {
 	UpdatedFrom *string `json:"updatedFrom,omitempty"`
 	// URL for the entity.
 	URL *string `json:"url,omitempty"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // Comparator for estimates.
@@ -4807,6 +4904,10 @@ type Favorite struct {
 	ProjectTeam *Team `json:"projectTeam,omitempty"`
 	// The favorited pull request.
 	PullRequest *PullRequest `json:"pullRequest,omitempty"`
+	// [ALPHA] The favorited release.
+	Release *Release `json:"release,omitempty"`
+	// [ALPHA] The favorited release pipeline.
+	ReleasePipeline *ReleasePipeline `json:"releasePipeline,omitempty"`
 	// The order of the item in the favorites list.
 	SortOrder float64 `json:"sortOrder"`
 	// [Internal] Favorite's title text (name of the favorite'd object or folder).
@@ -4872,6 +4973,10 @@ type FavoriteCreateInput struct {
 	ProjectTab *ProjectTab `json:"projectTab,omitempty"`
 	// The identifier of the pull request to favorite.
 	PullRequestID *string `json:"pullRequestId,omitempty"`
+	// [ALPHA] The identifier of the release to favorite.
+	ReleaseID *string `json:"releaseId,omitempty"`
+	// [ALPHA] The identifier of the release pipeline to favorite.
+	ReleasePipelineID *string `json:"releasePipelineId,omitempty"`
 	// The position of the item in the favorites list.
 	SortOrder *float64 `json:"sortOrder,omitempty"`
 	// The identifier of the user to favorite.
@@ -5326,6 +5431,8 @@ type IDComparator struct {
 type IdentityProvider struct {
 	// [INTERNAL] SCIM admins group push settings.
 	AdminsGroupPush *string `json:"adminsGroupPush,omitempty"`
+	// Whether users are allowed to change their name and display name even if SCIM is enabled.
+	AllowNameChange bool `json:"allowNameChange"`
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 	// The time at which the entity was created.
@@ -6915,8 +7022,6 @@ type Issue struct {
 	RecurringIssueTemplate *Template `json:"recurringIssueTemplate,omitempty"`
 	// Relations associated with this issue.
 	Relations *IssueRelationConnection `json:"relations"`
-	// [Internal] Id of the releases associated with this issue.
-	ReleaseIds []string `json:"releaseIds"`
 	// The time at which the issue's SLA will breach.
 	SLABreachesAt *time.Time `json:"slaBreachesAt,omitempty"`
 	// The time at which the issue's SLA will enter high risk state.
@@ -7122,7 +7227,7 @@ type IssueCollectionFilter struct {
 	// [Internal] Comparator for filtering issues which have suggested teams.
 	HasSuggestedTeams *RelationExistsComparator `json:"hasSuggestedTeams,omitempty"`
 	// Comparator for the identifier.
-	ID *IDComparator `json:"id,omitempty"`
+	ID *IssueIDComparator `json:"id,omitempty"`
 	// Filters that issue labels must satisfy.
 	Labels *IssueLabelCollectionFilter `json:"labels,omitempty"`
 	// Filters that the last applied template must satisfy.
@@ -7519,7 +7624,7 @@ type IssueFilter struct {
 	// [Internal] Comparator for filtering issues which have suggested teams.
 	HasSuggestedTeams *RelationExistsComparator `json:"hasSuggestedTeams,omitempty"`
 	// Comparator for the identifier.
-	ID *IDComparator `json:"id,omitempty"`
+	ID *IssueIDComparator `json:"id,omitempty"`
 	// Filters that issue labels must satisfy.
 	Labels *IssueLabelCollectionFilter `json:"labels,omitempty"`
 	// Filters that the last applied template must satisfy.
@@ -7593,6 +7698,10 @@ type IssueHistory struct {
 	AddedLabelIds []string `json:"addedLabelIds,omitempty"`
 	// The labels that were added to the issue.
 	AddedLabels []*IssueLabel `json:"addedLabels,omitempty"`
+	// [ALPHA] ID's of releases that the issue was added to.
+	AddedToReleaseIds []string `json:"addedToReleaseIds,omitempty"`
+	// The releases that the issue was added to.
+	AddedToReleases []*Release `json:"addedToReleases,omitempty"`
 	// Whether the issue is archived at the time of this history entry.
 	Archived *bool `json:"archived,omitempty"`
 	// The time at which the entity was archived. Null if the entity has not been archived.
@@ -7657,6 +7766,10 @@ type IssueHistory struct {
 	IssueImport *IssueImport `json:"issueImport,omitempty"`
 	// Changed issue relationships.
 	RelationChanges []*IssueRelationHistoryPayload `json:"relationChanges,omitempty"`
+	// [ALPHA] ID's of releases that the issue was removed from.
+	RemovedFromReleaseIds []string `json:"removedFromReleaseIds,omitempty"`
+	// The releases that the issue was removed from.
+	RemovedFromReleases []*Release `json:"removedFromReleases,omitempty"`
 	// ID's of labels that were removed.
 	RemovedLabelIds []string `json:"removedLabelIds,omitempty"`
 	// The labels that were removed from the issue.
@@ -7727,6 +7840,18 @@ type IssueHistoryEdge struct {
 	// Used in `before` and `after` args
 	Cursor string        `json:"cursor"`
 	Node   *IssueHistory `json:"node"`
+}
+
+// Comparator for issue identifiers.
+type IssueIDComparator struct {
+	// Equals constraint.
+	Eq *string `json:"eq,omitempty"`
+	// In-array constraint.
+	In []string `json:"in,omitempty"`
+	// Not-equals constraint.
+	Neq *string `json:"neq,omitempty"`
+	// Not-in-array constraint.
+	Nin []string `json:"nin,omitempty"`
 }
 
 // An import job for data from an external service.
@@ -8469,8 +8594,6 @@ type IssueSearchResult struct {
 	RecurringIssueTemplate *Template `json:"recurringIssueTemplate,omitempty"`
 	// Relations associated with this issue.
 	Relations *IssueRelationConnection `json:"relations"`
-	// [Internal] Id of the releases associated with this issue.
-	ReleaseIds []string `json:"releaseIds"`
 	// The time at which the issue's SLA will breach.
 	SLABreachesAt *time.Time `json:"slaBreachesAt,omitempty"`
 	// The time at which the issue's SLA will enter high risk state.
@@ -8547,6 +8670,10 @@ type IssueSLAWebhookPayload struct {
 	Type string `json:"type"`
 	// URL for the issue.
 	URL *string `json:"url,omitempty"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // Issue sorting options.
@@ -8776,6 +8903,60 @@ type IssueTitleSuggestionFromCustomerRequestPayload struct {
 	LogID *string `json:"logId,omitempty"`
 	// The suggested issue title.
 	Title string `json:"title"`
+}
+
+// [Internal] Join table between issues and releases.
+type IssueToRelease struct {
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// The issue associated with the release.
+	Issue *Issue `json:"issue"`
+	// The release associated with the issue.
+	Release *Release `json:"release"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (IssueToRelease) IsNode() {}
+
+// The unique identifier of the entity.
+func (this IssueToRelease) GetID() string { return this.ID }
+
+type IssueToReleaseConnection struct {
+	Edges    []*IssueToReleaseEdge `json:"edges"`
+	Nodes    []*IssueToRelease     `json:"nodes"`
+	PageInfo *PageInfo             `json:"pageInfo"`
+}
+
+// [ALPHA] The properties of the issueToRelease to create.
+type IssueToReleaseCreateInput struct {
+	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
+	ID *string `json:"id,omitempty"`
+	// The identifier of the issue
+	IssueID string `json:"issueId"`
+	// The identifier of the release
+	ReleaseID string `json:"releaseId"`
+}
+
+type IssueToReleaseEdge struct {
+	// Used in `before` and `after` args
+	Cursor string          `json:"cursor"`
+	Node   *IssueToRelease `json:"node"`
+}
+
+// [ALPHA] The result of an issueToRelease mutation.
+type IssueToReleasePayload struct {
+	// The issueToRelease that was created or updated.
+	IssueToRelease *IssueToRelease `json:"issueToRelease"`
+	// The identifier of the last sync operation.
+	LastSyncID float64 `json:"lastSyncId"`
+	// Whether the operation was successful.
+	Success bool `json:"success"`
 }
 
 // Payload for an issue unassignment notification.
@@ -9834,7 +10015,7 @@ type NullableIssueFilter struct {
 	// [Internal] Comparator for filtering issues which have suggested teams.
 	HasSuggestedTeams *RelationExistsComparator `json:"hasSuggestedTeams,omitempty"`
 	// Comparator for the identifier.
-	ID *IDComparator `json:"id,omitempty"`
+	ID *IssueIDComparator `json:"id,omitempty"`
 	// Filters that issue labels must satisfy.
 	Labels *IssueLabelCollectionFilter `json:"labels,omitempty"`
 	// Filters that the last applied template must satisfy.
@@ -10225,6 +10406,10 @@ type OAuthAppWebhookPayload struct {
 	OrganizationID string `json:"organizationId"`
 	// The type of resource.
 	Type string `json:"type"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // Payload for OAuth authorization webhook events.
@@ -10247,6 +10432,10 @@ type OAuthAuthorizationWebhookPayload struct {
 	User *UserChildWebhookPayload `json:"user"`
 	// ID of the user that the authorization belongs to.
 	UserID string `json:"userId"`
+	// The ID of the webhook that sent this event.
+	WebhookID string `json:"webhookId"`
+	// Unix timestamp in milliseconds when the webhook was sent.
+	WebhookTimestamp float64 `json:"webhookTimestamp"`
 }
 
 // OAuth client actor payload for webhooks.
@@ -10609,6 +10798,8 @@ type Organization struct {
 	ThemeSettings *string `json:"themeSettings,omitempty"`
 	// The time at which the trial will end.
 	TrialEndsAt *time.Time `json:"trialEndsAt,omitempty"`
+	// The time at which the trial started.
+	TrialStartsAt *time.Time `json:"trialStartsAt,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -10949,6 +11140,8 @@ type OrganizationUpdateInput struct {
 	GitLinkbackMessagesEnabled *bool `json:"gitLinkbackMessagesEnabled,omitempty"`
 	// Whether the Git integration linkback messages should be sent for public repositories.
 	GitPublicLinkbackMessagesEnabled *bool `json:"gitPublicLinkbackMessagesEnabled,omitempty"`
+	// Whether HIPAA compliance is enabled for organization.
+	HipaaComplianceEnabled *bool `json:"hipaaComplianceEnabled,omitempty"`
 	// [ALPHA] The n-weekly frequency at which to prompt for initiative updates.
 	InitiativeUpdateReminderFrequencyInWeeks *float64 `json:"initiativeUpdateReminderFrequencyInWeeks,omitempty"`
 	// [ALPHA] The day at which initiative updates are sent.
@@ -13904,8 +14097,12 @@ type RelationExistsComparator struct {
 type Release struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The time at which the release was canceled.
+	CanceledAt *time.Time `json:"canceledAt,omitempty"`
 	// The commit SHA associated with this release.
 	CommitSha *string `json:"commitSha,omitempty"`
+	// The time at which the release was completed.
+	CompletedAt *time.Time `json:"completedAt,omitempty"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The unique identifier of the entity.
@@ -13914,8 +14111,16 @@ type Release struct {
 	Name string `json:"name"`
 	// The pipeline this release belongs to.
 	Pipeline *ReleasePipeline `json:"pipeline"`
+	// The release's unique URL slug.
+	SlugID string `json:"slugId"`
 	// The current stage of the release.
 	Stage *ReleaseStage `json:"stage"`
+	// The estimated start date of the release.
+	StartDate *string `json:"startDate,omitempty"`
+	// The time at which the release was started.
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+	// The estimated completion date of the release.
+	TargetDate *string `json:"targetDate,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -13967,8 +14172,12 @@ type ReleaseCreateInput struct {
 	PipelineID string `json:"pipelineId"`
 	// Pull request references to look up. Issues linked to found PRs will be associated with this release.
 	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
-	// The current stage of the release. Defaults to the first 'planned' stage.
+	// The current stage of the release. Defaults to the first 'completed' stage.
 	StageID *string `json:"stageId,omitempty"`
+	// The estimated start date of the release.
+	StartDate *string `json:"startDate,omitempty"`
+	// The estimated completion date of the release.
+	TargetDate *string `json:"targetDate,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
 }
@@ -14014,6 +14223,8 @@ type ReleasePipeline struct {
 	SlugID string `json:"slugId"`
 	// [ALPHA] Stages associated with this pipeline.
 	Stages *ReleaseStageConnection `json:"stages"`
+	// The type of the pipeline.
+	Type ReleasePipelineType `json:"type"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -14055,6 +14266,8 @@ type ReleasePipelineCreateInput struct {
 	Name string `json:"name"`
 	// The pipeline's unique slug identifier. If not provided, it will be auto-generated.
 	SlugID *string `json:"slugId,omitempty"`
+	// The type of the pipeline.
+	Type *ReleasePipelineType `json:"type,omitempty"`
 }
 
 type ReleasePipelineEdge struct {
@@ -14077,6 +14290,8 @@ type ReleasePipelineUpdateInput struct {
 	Name *string `json:"name,omitempty"`
 	// The pipeline's unique slug identifier.
 	SlugID *string `json:"slugId,omitempty"`
+	// The type of the pipeline.
+	Type *ReleasePipelineType `json:"type,omitempty"`
 }
 
 // [Internal] A release stage.
@@ -14183,6 +14398,10 @@ type ReleaseUpdateInput struct {
 	PipelineID *string `json:"pipelineId,omitempty"`
 	// The current stage of the release.
 	StageID *string `json:"stageId,omitempty"`
+	// The estimated start date of the release.
+	StartDate *string `json:"startDate,omitempty"`
+	// The estimated completion date of the release.
+	TargetDate *string `json:"targetDate,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
 }
@@ -15024,7 +15243,7 @@ type Team struct {
 	InheritWorkflowStatuses bool `json:"inheritWorkflowStatuses"`
 	// Settings for all integrations associated with that team.
 	IntegrationsSettings *IntegrationsSettings `json:"integrationsSettings,omitempty"`
-	// Unique hash for the team to be used in invite URLs.
+	// [DEPRECATED] Unique hash for the team to be used in invite URLs.
 	InviteHash string `json:"inviteHash"`
 	// Number of issues in the team.
 	IssueCount int64 `json:"issueCount"`
@@ -15575,6 +15794,8 @@ type TeamUpdateInput struct {
 	ProductIntelligenceScope *ProductIntelligenceScope `json:"productIntelligenceScope,omitempty"`
 	// Whether an issue needs to have a priority set before leaving triage.
 	RequirePriorityToLeaveTriage *bool `json:"requirePriorityToLeaveTriage,omitempty"`
+	// [Internal] When the team was retired.
+	RetiredAt *time.Time `json:"retiredAt,omitempty"`
 	// Whether the team is managed by SCIM integration. Mutation restricted to workspace admins or owners and only unsetting is allowed!
 	ScimManaged *bool `json:"scimManaged,omitempty"`
 	// The security settings for the team.
@@ -16580,6 +16801,8 @@ type ViewPreferencesUpdateInput struct {
 type ViewPreferencesValues struct {
 	// The issue grouping.
 	IssueGrouping *string `json:"issueGrouping,omitempty"`
+	// The issue sub grouping.
+	IssueSubGrouping *string `json:"issueSubGrouping,omitempty"`
 	// Whether to show completed issues.
 	ShowCompletedIssues *string `json:"showCompletedIssues,omitempty"`
 	// The issue ordering.
@@ -19966,6 +20189,62 @@ func (e ReleaseChannel) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// A type of release pipeline.
+type ReleasePipelineType string
+
+const (
+	ReleasePipelineTypeContinuous ReleasePipelineType = "continuous"
+	ReleasePipelineTypeScheduled  ReleasePipelineType = "scheduled"
+)
+
+var AllReleasePipelineType = []ReleasePipelineType{
+	ReleasePipelineTypeContinuous,
+	ReleasePipelineTypeScheduled,
+}
+
+func (e ReleasePipelineType) IsValid() bool {
+	switch e {
+	case ReleasePipelineTypeContinuous, ReleasePipelineTypeScheduled:
+		return true
+	}
+	return false
+}
+
+func (e ReleasePipelineType) String() string {
+	return string(e)
+}
+
+func (e *ReleasePipelineType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReleasePipelineType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReleasePipelineType", str)
+	}
+	return nil
+}
+
+func (e ReleasePipelineType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ReleasePipelineType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ReleasePipelineType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 // A type of release stage.
 type ReleaseStageType string
 
@@ -21038,6 +21317,7 @@ const (
 	ViewTypeProjectsBacklog                  ViewType = "projectsBacklog"
 	ViewTypeProjectsClosed                   ViewType = "projectsClosed"
 	ViewTypeQuickView                        ViewType = "quickView"
+	ViewTypeRelease                          ViewType = "release"
 	ViewTypeReviews                          ViewType = "reviews"
 	ViewTypeRoadmap                          ViewType = "roadmap"
 	ViewTypeRoadmapAll                       ViewType = "roadmapAll"
@@ -21096,6 +21376,7 @@ var AllViewType = []ViewType{
 	ViewTypeProjectsBacklog,
 	ViewTypeProjectsClosed,
 	ViewTypeQuickView,
+	ViewTypeRelease,
 	ViewTypeReviews,
 	ViewTypeRoadmap,
 	ViewTypeRoadmapAll,
@@ -21114,7 +21395,7 @@ var AllViewType = []ViewType{
 
 func (e ViewType) IsValid() bool {
 	switch e {
-	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
+	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
 		return true
 	}
 	return false

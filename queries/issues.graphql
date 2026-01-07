@@ -1,6 +1,7 @@
 query GetIssue($id: String!) {
   issue(id: $id) {
     id
+    identifier
     title
     description
     priority
@@ -9,6 +10,10 @@ query GetIssue($id: String!) {
     updatedAt
     number
     url
+    parent {
+      id
+      identifier
+    }
     state {
       id
       name
@@ -31,10 +36,12 @@ query ListIssues($first: Int, $after: String) {
   issues(first: $first, after: $after) {
     nodes {
       id
+      identifier
       title
       description
       priority
       createdAt
+      updatedAt
       number
       url
       state {
@@ -45,6 +52,12 @@ query ListIssues($first: Int, $after: String) {
         id
         name
         key
+      }
+      assignee {
+        id
+        name
+        displayName
+        email
       }
     }
     pageInfo {

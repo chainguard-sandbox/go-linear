@@ -35,3 +35,29 @@ query ListCycles($first: Int, $after: String) {
     }
   }
 }
+
+query ListCyclesFiltered($first: Int, $after: String, $filter: CycleFilter) {
+  cycles(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      number
+      name
+      description
+      startsAt
+      endsAt
+      completedAt
+      createdAt
+      updatedAt
+      progress
+      team {
+        id
+        name
+        key
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

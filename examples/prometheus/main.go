@@ -11,7 +11,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -51,10 +50,8 @@ func main() {
 		}
 	}()
 
-	// Setup structured logging
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+	// Setup structured logging using the convenience logger
+	logger := linear.NewLogger()
 
 	// Create client with metrics enabled
 	client, err := linear.NewClient(apiKey,

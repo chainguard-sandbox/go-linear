@@ -1,0 +1,34 @@
+query ListIssuesFiltered($first: Int, $after: String, $filter: IssueFilter) {
+  issues(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      identifier
+      title
+      description
+      priority
+      createdAt
+      updatedAt
+      number
+      url
+      state {
+        id
+        name
+      }
+      team {
+        id
+        name
+        key
+      }
+      assignee {
+        id
+        name
+        displayName
+        email
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
