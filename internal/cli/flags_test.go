@@ -248,7 +248,10 @@ func TestFlags_Integration(t *testing.T) {
 	if *pagination.LimitPtr() != 25 {
 		t.Errorf("LimitPtr() = %d, want %d", *pagination.LimitPtr(), 25)
 	}
-	if *pagination.AfterPtr() != "abc123" {
-		t.Errorf("AfterPtr() = %q, want %q", *pagination.AfterPtr(), "abc123")
+	after := pagination.AfterPtr()
+	if after == nil {
+		t.Error("AfterPtr() = nil, want abc123")
+	} else if *after != "abc123" {
+		t.Errorf("AfterPtr() = %q, want %q", *after, "abc123")
 	}
 }

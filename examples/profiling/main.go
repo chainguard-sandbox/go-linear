@@ -52,7 +52,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" // #nosec G108 - intentional pprof endpoint for profiling example
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -180,7 +180,12 @@ func runServerMode(apiKey string) {
 
 	// Start pprof server (net/http/pprof automatically registers handlers)
 	go func() {
-		log.Fatal(http.ListenAndServe(":6060", nil))
+		server := &http.Server{
+			Addr:         ":6060",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+		log.Fatal(server.ListenAndServe())
 	}()
 
 	// Create client
