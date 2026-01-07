@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -30,74 +31,104 @@ func New(client *linear.Client) *Resolver {
 	}
 }
 
-// ResolveTeam resolves a team name or key to its ID.
-// Accepts: team name, team key, or UUID.
-func (r *Resolver) ResolveTeam(ctx context.Context, nameOrID string) (string, error) {
+// entityMatcher defines how to fetch, match, and format entities for resolution.
+type entityMatcher[T any] struct {
+	cachePrefix string
+	entityName  string
+	fetch       func(ctx context.Context) ([]T, error)
+	matches     func(entity T, query string) bool
+	getID       func(entity T) string
+	formatName  func(entity T) string
+}
+
+// resolve is a generic helper that implements the common resolution pattern:
+// 1. Empty check
+// 2. UUID passthrough
+// 3. Cache lookup
+// 4. Fetch entities
+// 5. Find matches
+// 6. Handle ambiguity
+// 7. Cache and return
+func resolve[T any](r *Resolver, ctx context.Context, nameOrID string, matcher entityMatcher[T]) (string, error) {
+	// Empty check
 	if nameOrID == "" {
-		return "", fmt.Errorf("team name/ID cannot be empty")
+		return "", fmt.Errorf("%s name/ID cannot be empty", matcher.entityName)
 	}
 
-	// Check if already a UUID
+	// UUID passthrough
 	if uuidRegex.MatchString(nameOrID) {
 		return nameOrID, nil
 	}
 
-	// Check cache
-	cacheKey := "team:" + strings.ToLower(nameOrID)
+	// Cache lookup
+	cacheKey := matcher.cachePrefix + strings.ToLower(nameOrID)
 	if id, ok := r.cache.Get(cacheKey); ok {
 		return id, nil
 	}
 
-	// Query API
-	first := int64(100)
-	teams, err := r.client.Teams(ctx, &first, nil)
+	// Fetch entities
+	entities, err := matcher.fetch(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch teams: %w", err)
+		return "", fmt.Errorf("failed to fetch %ss: %w", matcher.entityName, err)
 	}
 
-	// Find by name or key (case-insensitive)
-	var matches []*struct {
-		ID   string
-		Name string
-		Key  string
-	}
-
-	// Case-insensitive comparison via EqualFold
-	for _, team := range teams.Nodes {
-		if strings.EqualFold(team.Name, nameOrID) || strings.EqualFold(team.Key, nameOrID) {
-			matches = append(matches, &struct {
-				ID   string
-				Name string
-				Key  string
-			}{ID: team.ID, Name: team.Name, Key: team.Key})
+	// Find matches
+	var matchedIDs []string
+	var matchedEntities []T
+	for _, entity := range entities {
+		if matcher.matches(entity, nameOrID) {
+			matchedIDs = append(matchedIDs, matcher.getID(entity))
+			matchedEntities = append(matchedEntities, entity)
 		}
 	}
 
-	if len(matches) == 0 {
-		return "", fmt.Errorf("team not found: %s", nameOrID)
+	// Handle no matches
+	if len(matchedIDs) == 0 {
+		return "", fmt.Errorf("%s not found: %s", matcher.entityName, nameOrID)
 	}
 
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = fmt.Sprintf("%s (%s)", m.Name, m.Key)
+	// Handle ambiguity
+	if len(matchedIDs) > 1 {
+		names := make([]string, len(matchedEntities))
+		for i, entity := range matchedEntities {
+			names[i] = matcher.formatName(entity)
 		}
-		return "", fmt.Errorf("ambiguous team name %q, matches: %s", nameOrID, strings.Join(names, ", "))
+		return "", fmt.Errorf("ambiguous %s name %q, matches: %s", matcher.entityName, nameOrID, strings.Join(names, ", "))
 	}
 
 	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	r.cache.Set(cacheKey, matchedIDs[0])
+	return matchedIDs[0], nil
+}
+
+// ResolveTeam resolves a team name or key to its ID.
+// Accepts: team name, team key, or UUID.
+func (r *Resolver) ResolveTeam(ctx context.Context, nameOrID string) (string, error) {
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListTeams_Teams_Nodes]{
+		cachePrefix: "team:",
+		entityName:  "team",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListTeams_Teams_Nodes, error) {
+			first := int64(100)
+			resp, err := r.client.Teams(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(team *intgraphql.ListTeams_Teams_Nodes, query string) bool {
+			return strings.EqualFold(team.Name, query) || strings.EqualFold(team.Key, query)
+		},
+		getID: func(team *intgraphql.ListTeams_Teams_Nodes) string { return team.ID },
+		formatName: func(team *intgraphql.ListTeams_Teams_Nodes) string {
+			return fmt.Sprintf("%s (%s)", team.Name, team.Key)
+		},
+	})
 }
 
 // ResolveUser resolves a user name, email, or display name to their ID.
 // Accepts: full name, email, display name, "me" (for current user), or UUID.
 func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (string, error) {
-	if nameOrEmailOrID == "" {
-		return "", fmt.Errorf("user name/email/ID cannot be empty")
-	}
-
-	// Handle "me" special case
+	// Handle "me" special case before generic resolution
 	if strings.EqualFold(nameOrEmailOrID, "me") {
 		viewer, err := r.client.Viewer(ctx)
 		if err != nil {
@@ -106,175 +137,71 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 		return viewer.ID, nil
 	}
 
-	// Check if already a UUID
-	if uuidRegex.MatchString(nameOrEmailOrID) {
-		return nameOrEmailOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "user:" + strings.ToLower(nameOrEmailOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(250)
-	users, err := r.client.Users(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch users: %w", err)
-	}
-
-	// Find by name, email, or display name (case-insensitive)
-	var matches []*struct {
-		ID    string
-		Name  string
-		Email string
-	}
-
-	// Case-insensitive comparison via EqualFold
-	for _, user := range users.Nodes {
-		if strings.EqualFold(user.Name, nameOrEmailOrID) ||
-			strings.EqualFold(user.Email, nameOrEmailOrID) ||
-			(user.DisplayName != "" && strings.EqualFold(user.DisplayName, nameOrEmailOrID)) {
-			matches = append(matches, &struct {
-				ID    string
-				Name  string
-				Email string
-			}{ID: user.ID, Name: user.Name, Email: user.Email})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("user not found: %s", nameOrEmailOrID)
-	}
-
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = fmt.Sprintf("%s <%s>", m.Name, m.Email)
-		}
-		return "", fmt.Errorf("ambiguous user %q, matches: %s", nameOrEmailOrID, strings.Join(names, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, nameOrEmailOrID, entityMatcher[*intgraphql.ListUsers_Users_Nodes]{
+		cachePrefix: "user:",
+		entityName:  "user",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListUsers_Users_Nodes, error) {
+			first := int64(250)
+			resp, err := r.client.Users(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(user *intgraphql.ListUsers_Users_Nodes, query string) bool {
+			return strings.EqualFold(user.Name, query) ||
+				strings.EqualFold(user.Email, query) ||
+				(user.DisplayName != "" && strings.EqualFold(user.DisplayName, query))
+		},
+		getID: func(user *intgraphql.ListUsers_Users_Nodes) string { return user.ID },
+		formatName: func(user *intgraphql.ListUsers_Users_Nodes) string {
+			return fmt.Sprintf("%s <%s>", user.Name, user.Email)
+		},
+	})
 }
 
 // ResolveState resolves a workflow state name to its ID.
 // Accepts: state name or UUID.
 func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, error) {
-	if nameOrID == "" {
-		return "", fmt.Errorf("state name/ID cannot be empty")
-	}
-
-	// Check if already a UUID
-	if uuidRegex.MatchString(nameOrID) {
-		return nameOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "state:" + strings.ToLower(nameOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(100)
-	states, err := r.client.WorkflowStates(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch workflow states: %w", err)
-	}
-
-	// Find by name (case-insensitive)
-	var matches []*struct {
-		ID   string
-		Name string
-	}
-
-	// Case-insensitive comparison via EqualFold
-	for _, state := range states.Nodes {
-		if strings.EqualFold(state.Name, nameOrID) {
-			matches = append(matches, &struct {
-				ID   string
-				Name string
-			}{ID: state.ID, Name: state.Name})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("workflow state not found: %s", nameOrID)
-	}
-
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = m.Name
-		}
-		return "", fmt.Errorf("ambiguous state name %q, matches: %s", nameOrID, strings.Join(names, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListWorkflowStates_WorkflowStates_Nodes]{
+		cachePrefix: "state:",
+		entityName:  "workflow state",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListWorkflowStates_WorkflowStates_Nodes, error) {
+			first := int64(100)
+			resp, err := r.client.WorkflowStates(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(state *intgraphql.ListWorkflowStates_WorkflowStates_Nodes, query string) bool {
+			return strings.EqualFold(state.Name, query)
+		},
+		getID:      func(state *intgraphql.ListWorkflowStates_WorkflowStates_Nodes) string { return state.ID },
+		formatName: func(state *intgraphql.ListWorkflowStates_WorkflowStates_Nodes) string { return state.Name },
+	})
 }
 
 // ResolveLabel resolves a label name to its ID.
 // Accepts: label name or UUID.
 func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, error) {
-	if nameOrID == "" {
-		return "", fmt.Errorf("label name/ID cannot be empty")
-	}
-
-	// Check if already a UUID
-	if uuidRegex.MatchString(nameOrID) {
-		return nameOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "label:" + strings.ToLower(nameOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(250)
-	labels, err := r.client.IssueLabels(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch labels: %w", err)
-	}
-
-	// Find by name (case-insensitive)
-	var matches []*struct {
-		ID   string
-		Name string
-	}
-
-	// Case-insensitive comparison via EqualFold
-	for _, label := range labels.Nodes {
-		if strings.EqualFold(label.Name, nameOrID) {
-			matches = append(matches, &struct {
-				ID   string
-				Name string
-			}{ID: label.ID, Name: label.Name})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("label not found: %s", nameOrID)
-	}
-
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = m.Name
-		}
-		return "", fmt.Errorf("ambiguous label name %q, matches: %s", nameOrID, strings.Join(names, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListLabels_IssueLabels_Nodes]{
+		cachePrefix: "label:",
+		entityName:  "label",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListLabels_IssueLabels_Nodes, error) {
+			first := int64(250)
+			resp, err := r.client.IssueLabels(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(label *intgraphql.ListLabels_IssueLabels_Nodes, query string) bool {
+			return strings.EqualFold(label.Name, query)
+		},
+		getID:      func(label *intgraphql.ListLabels_IssueLabels_Nodes) string { return label.ID },
+		formatName: func(label *intgraphql.ListLabels_IssueLabels_Nodes) string { return label.Name },
+	})
 }
 
 // ResolveIssue resolves an issue identifier or ID to its UUID.
@@ -314,228 +241,92 @@ func (r *Resolver) ResolveIssue(ctx context.Context, identifierOrID string) (str
 // ResolveProject resolves a project name to its ID.
 // Accepts: project name or UUID.
 func (r *Resolver) ResolveProject(ctx context.Context, nameOrID string) (string, error) {
-	if nameOrID == "" {
-		return "", fmt.Errorf("project name/ID cannot be empty")
-	}
-
-	// Check if already a UUID
-	if uuidRegex.MatchString(nameOrID) {
-		return nameOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "project:" + strings.ToLower(nameOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(100)
-	projects, err := r.client.Projects(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch projects: %w", err)
-	}
-
-	// Find by name (case-insensitive)
-	var matches []*struct {
-		ID   string
-		Name string
-	}
-
-	// Case-insensitive comparison via EqualFold
-	for _, project := range projects.Nodes {
-		if strings.EqualFold(project.Name, nameOrID) {
-			matches = append(matches, &struct {
-				ID   string
-				Name string
-			}{ID: project.ID, Name: project.Name})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("project not found: %s", nameOrID)
-	}
-
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = m.Name
-		}
-		return "", fmt.Errorf("ambiguous project name %q, matches: %s", nameOrID, strings.Join(names, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListProjects_Projects_Nodes]{
+		cachePrefix: "project:",
+		entityName:  "project",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListProjects_Projects_Nodes, error) {
+			first := int64(100)
+			resp, err := r.client.Projects(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(project *intgraphql.ListProjects_Projects_Nodes, query string) bool {
+			return strings.EqualFold(project.Name, query)
+		},
+		getID:      func(project *intgraphql.ListProjects_Projects_Nodes) string { return project.ID },
+		formatName: func(project *intgraphql.ListProjects_Projects_Nodes) string { return project.Name },
+	})
 }
 
 // ResolveCycle resolves a cycle name to its ID.
 // Accepts: cycle name or UUID.
 func (r *Resolver) ResolveCycle(ctx context.Context, nameOrID string) (string, error) {
-	if nameOrID == "" {
-		return "", fmt.Errorf("cycle name/ID cannot be empty")
-	}
-
-	// Check if already a UUID
-	if uuidRegex.MatchString(nameOrID) {
-		return nameOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "cycle:" + strings.ToLower(nameOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(100)
-	cycles, err := r.client.Cycles(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch cycles: %w", err)
-	}
-
-	// Find by name (case-insensitive)
-	var matches []*struct {
-		ID   string
-		Name string
-	}
-
-	for _, cycle := range cycles.Nodes {
-		if cycle.Name != nil && strings.EqualFold(*cycle.Name, nameOrID) {
-			matches = append(matches, &struct {
-				ID   string
-				Name string
-			}{ID: cycle.ID, Name: *cycle.Name})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("cycle not found: %s", nameOrID)
-	}
-
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = m.Name
-		}
-		return "", fmt.Errorf("ambiguous cycle name %q, matches: %s", nameOrID, strings.Join(names, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListCycles_Cycles_Nodes]{
+		cachePrefix: "cycle:",
+		entityName:  "cycle",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListCycles_Cycles_Nodes, error) {
+			first := int64(100)
+			resp, err := r.client.Cycles(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(cycle *intgraphql.ListCycles_Cycles_Nodes, query string) bool {
+			return cycle.Name != nil && strings.EqualFold(*cycle.Name, query)
+		},
+		getID: func(cycle *intgraphql.ListCycles_Cycles_Nodes) string { return cycle.ID },
+		formatName: func(cycle *intgraphql.ListCycles_Cycles_Nodes) string {
+			if cycle.Name != nil {
+				return *cycle.Name
+			}
+			return cycle.ID
+		},
+	})
 }
 
 // ResolveInitiative resolves an initiative name to its ID.
 // Accepts: initiative name or UUID.
 func (r *Resolver) ResolveInitiative(ctx context.Context, nameOrID string) (string, error) {
-	if nameOrID == "" {
-		return "", fmt.Errorf("initiative name/ID cannot be empty")
-	}
-
-	// Check if already a UUID
-	if uuidRegex.MatchString(nameOrID) {
-		return nameOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "initiative:" + strings.ToLower(nameOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(100)
-	initiatives, err := r.client.Initiatives(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch initiatives: %w", err)
-	}
-
-	// Find by name (case-insensitive)
-	var matches []*struct {
-		ID   string
-		Name string
-	}
-
-	for _, initiative := range initiatives.Nodes {
-		if strings.EqualFold(initiative.Name, nameOrID) {
-			matches = append(matches, &struct {
-				ID   string
-				Name string
-			}{ID: initiative.ID, Name: initiative.Name})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("initiative not found: %s", nameOrID)
-	}
-
-	if len(matches) > 1 {
-		names := make([]string, len(matches))
-		for i, m := range matches {
-			names[i] = m.Name
-		}
-		return "", fmt.Errorf("ambiguous initiative name %q, matches: %s", nameOrID, strings.Join(names, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListInitiatives_Initiatives_Nodes]{
+		cachePrefix: "initiative:",
+		entityName:  "initiative",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListInitiatives_Initiatives_Nodes, error) {
+			first := int64(100)
+			resp, err := r.client.Initiatives(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(initiative *intgraphql.ListInitiatives_Initiatives_Nodes, query string) bool {
+			return strings.EqualFold(initiative.Name, query)
+		},
+		getID:      func(initiative *intgraphql.ListInitiatives_Initiatives_Nodes) string { return initiative.ID },
+		formatName: func(initiative *intgraphql.ListInitiatives_Initiatives_Nodes) string { return initiative.Name },
+	})
 }
 
 // ResolveDocument resolves a document title to its ID.
 // Accepts: document title or UUID.
 func (r *Resolver) ResolveDocument(ctx context.Context, titleOrID string) (string, error) {
-	if titleOrID == "" {
-		return "", fmt.Errorf("document title/ID cannot be empty")
-	}
-
-	// Check if already a UUID
-	if uuidRegex.MatchString(titleOrID) {
-		return titleOrID, nil
-	}
-
-	// Check cache
-	cacheKey := "document:" + strings.ToLower(titleOrID)
-	if id, ok := r.cache.Get(cacheKey); ok {
-		return id, nil
-	}
-
-	// Query API
-	first := int64(100)
-	documents, err := r.client.Documents(ctx, &first, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch documents: %w", err)
-	}
-
-	// Find by title (case-insensitive)
-	var matches []*struct {
-		ID    string
-		Title string
-	}
-
-	for _, doc := range documents.Nodes {
-		if strings.EqualFold(doc.Title, titleOrID) {
-			matches = append(matches, &struct {
-				ID    string
-				Title string
-			}{ID: doc.ID, Title: doc.Title})
-		}
-	}
-
-	if len(matches) == 0 {
-		return "", fmt.Errorf("document not found: %s", titleOrID)
-	}
-
-	if len(matches) > 1 {
-		titles := make([]string, len(matches))
-		for i, m := range matches {
-			titles[i] = m.Title
-		}
-		return "", fmt.Errorf("ambiguous document title %q, matches: %s", titleOrID, strings.Join(titles, ", "))
-	}
-
-	// Cache and return
-	r.cache.Set(cacheKey, matches[0].ID)
-	return matches[0].ID, nil
+	return resolve(r, ctx, titleOrID, entityMatcher[*intgraphql.ListDocuments_Documents_Nodes]{
+		cachePrefix: "document:",
+		entityName:  "document",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListDocuments_Documents_Nodes, error) {
+			first := int64(100)
+			resp, err := r.client.Documents(ctx, &first, nil)
+			if err != nil {
+				return nil, err
+			}
+			return resp.Nodes, nil
+		},
+		matches: func(doc *intgraphql.ListDocuments_Documents_Nodes, query string) bool {
+			return strings.EqualFold(doc.Title, query)
+		},
+		getID:      func(doc *intgraphql.ListDocuments_Documents_Nodes) string { return doc.ID },
+		formatName: func(doc *intgraphql.ListDocuments_Documents_Nodes) string { return doc.Title },
+	})
 }
