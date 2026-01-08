@@ -1,6 +1,7 @@
 package attachment
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -70,8 +71,12 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		input.IconURL = &iconURL
 	}
 
-	if metadata, _ := cmd.Flags().GetString("metadata"); metadata != "" {
-		input.Metadata = &metadata
+	if metadataStr, _ := cmd.Flags().GetString("metadata"); metadataStr != "" {
+		var metadata map[string]any
+		if err := json.Unmarshal([]byte(metadataStr), &metadata); err != nil {
+			return fmt.Errorf("invalid metadata JSON: %w", err)
+		}
+		input.Metadata = metadata
 	}
 
 	result, err := client.AttachmentCreate(ctx, input)
