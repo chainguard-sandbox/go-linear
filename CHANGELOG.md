@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-07
+
+### Fixed
+- **Attachments**: Fixed `attachment list` command failure caused by JSONObject scalar mapping. Linear's `source` field returns native JSON objects (TypeScript behavior) but gqlgenc defaulted to string mapping. Now properly maps `JSONObject` to `map[string]interface{}` in gqlgenc.yaml, preserving all source metadata (imageUrl, syncedCommentId, channelId, etc.). Fixes #14.
+- **CLI**: Fixed metadata flag parsing in `attachment create` to properly convert JSON string to map.
+
+### Added
+- **Tests**: Comprehensive attachment integration tests with full lifecycle coverage (create, list, filter, get, delete) and all link types (URL, GitHub PR, Slack).
+
+### Dependencies
+- Bump golang.org/x/sync from 0.17.0 to 0.19.0
+
 ## [1.2.0] - 2026-01-06
 
 ### Overview
