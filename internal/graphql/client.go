@@ -103,15 +103,15 @@ func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Option
 }
 
 type GetAttachment_Attachment struct {
-	CreatedAt  time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string    "json:\"id\" graphql:\"id\""
-	Metadata   string    "json:\"metadata\" graphql:\"metadata\""
-	Source     *string   "json:\"source,omitempty\" graphql:\"source\""
-	SourceType *string   "json:\"sourceType,omitempty\" graphql:\"sourceType\""
-	Subtitle   *string   "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title      string    "json:\"title\" graphql:\"title\""
-	UpdatedAt  time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL        string    "json:\"url\" graphql:\"url\""
+	CreatedAt  time.Time              "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string                 "json:\"id\" graphql:\"id\""
+	Metadata   map[string]interface{} "json:\"metadata\" graphql:\"metadata\""
+	Source     map[string]interface{} "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string                "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string                 "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time              "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string                 "json:\"url\" graphql:\"url\""
 }
 
 func (t *GetAttachment_Attachment) GetCreatedAt() *time.Time {
@@ -126,13 +126,13 @@ func (t *GetAttachment_Attachment) GetID() string {
 	}
 	return t.ID
 }
-func (t *GetAttachment_Attachment) GetMetadata() string {
+func (t *GetAttachment_Attachment) GetMetadata() map[string]any {
 	if t == nil {
 		t = &GetAttachment_Attachment{}
 	}
 	return t.Metadata
 }
-func (t *GetAttachment_Attachment) GetSource() *string {
+func (t *GetAttachment_Attachment) GetSource() map[string]any {
 	if t == nil {
 		t = &GetAttachment_Attachment{}
 	}
@@ -170,14 +170,14 @@ func (t *GetAttachment_Attachment) GetURL() string {
 }
 
 type ListAttachments_Attachments_Nodes struct {
-	CreatedAt  time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string    "json:\"id\" graphql:\"id\""
-	Source     *string   "json:\"source,omitempty\" graphql:\"source\""
-	SourceType *string   "json:\"sourceType,omitempty\" graphql:\"sourceType\""
-	Subtitle   *string   "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title      string    "json:\"title\" graphql:\"title\""
-	UpdatedAt  time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL        string    "json:\"url\" graphql:\"url\""
+	CreatedAt  time.Time              "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string                 "json:\"id\" graphql:\"id\""
+	Source     map[string]interface{} "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string                "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string                 "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time              "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string                 "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListAttachments_Attachments_Nodes) GetCreatedAt() *time.Time {
@@ -192,7 +192,7 @@ func (t *ListAttachments_Attachments_Nodes) GetID() string {
 	}
 	return t.ID
 }
-func (t *ListAttachments_Attachments_Nodes) GetSource() *string {
+func (t *ListAttachments_Attachments_Nodes) GetSource() map[string]any {
 	if t == nil {
 		t = &ListAttachments_Attachments_Nodes{}
 	}
@@ -266,14 +266,14 @@ func (t *ListAttachments_Attachments) GetPageInfo() *ListAttachments_Attachments
 }
 
 type ListAttachmentsFiltered_Attachments_Nodes struct {
-	CreatedAt  time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string    "json:\"id\" graphql:\"id\""
-	Source     *string   "json:\"source,omitempty\" graphql:\"source\""
-	SourceType *string   "json:\"sourceType,omitempty\" graphql:\"sourceType\""
-	Subtitle   *string   "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title      string    "json:\"title\" graphql:\"title\""
-	UpdatedAt  time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL        string    "json:\"url\" graphql:\"url\""
+	CreatedAt  time.Time              "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string                 "json:\"id\" graphql:\"id\""
+	Source     map[string]interface{} "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string                "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string                 "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time              "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string                 "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListAttachmentsFiltered_Attachments_Nodes) GetCreatedAt() *time.Time {
@@ -288,7 +288,7 @@ func (t *ListAttachmentsFiltered_Attachments_Nodes) GetID() string {
 	}
 	return t.ID
 }
-func (t *ListAttachmentsFiltered_Attachments_Nodes) GetSource() *string {
+func (t *ListAttachmentsFiltered_Attachments_Nodes) GetSource() map[string]any {
 	if t == nil {
 		t = &ListAttachmentsFiltered_Attachments_Nodes{}
 	}
@@ -2388,11 +2388,11 @@ func (t *ListLabelsFiltered_IssueLabels) GetPageInfo() *ListLabelsFiltered_Issue
 }
 
 type AttachmentCreate_AttachmentCreate_Attachment struct {
-	ID       string  "json:\"id\" graphql:\"id\""
-	Metadata string  "json:\"metadata\" graphql:\"metadata\""
-	Subtitle *string "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title    string  "json:\"title\" graphql:\"title\""
-	URL      string  "json:\"url\" graphql:\"url\""
+	ID       string                 "json:\"id\" graphql:\"id\""
+	Metadata map[string]interface{} "json:\"metadata\" graphql:\"metadata\""
+	Subtitle *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title    string                 "json:\"title\" graphql:\"title\""
+	URL      string                 "json:\"url\" graphql:\"url\""
 }
 
 func (t *AttachmentCreate_AttachmentCreate_Attachment) GetID() string {
@@ -2401,7 +2401,7 @@ func (t *AttachmentCreate_AttachmentCreate_Attachment) GetID() string {
 	}
 	return t.ID
 }
-func (t *AttachmentCreate_AttachmentCreate_Attachment) GetMetadata() string {
+func (t *AttachmentCreate_AttachmentCreate_Attachment) GetMetadata() map[string]any {
 	if t == nil {
 		t = &AttachmentCreate_AttachmentCreate_Attachment{}
 	}

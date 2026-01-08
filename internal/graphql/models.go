@@ -251,9 +251,9 @@ type AgentActivityCreateInput struct {
 	AgentSessionID string `json:"agentSessionId"`
 	// The content payload of the agent activity. This object is not strictly typed.
 	// See https://linear.app/developers/agent-interaction#activity-content-payload for typing details.
-	Content string `json:"content"`
+	Content map[string]any `json:"content"`
 	// [Internal] Metadata about user-provided contextual information for this agent activity.
-	ContextualMetadata *string `json:"contextualMetadata,omitempty"`
+	ContextualMetadata map[string]any `json:"contextualMetadata,omitempty"`
 	// Whether the activity is ephemeral, and should disappear after the next activity. Defaults to false.
 	Ephemeral *bool `json:"ephemeral,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
@@ -261,7 +261,7 @@ type AgentActivityCreateInput struct {
 	// An optional modifier that provides additional instructions on how the activity should be interpreted.
 	Signal *AgentActivitySignal `json:"signal,omitempty"`
 	// Metadata about this agent activity's signal.
-	SignalMetadata *string `json:"signalMetadata,omitempty"`
+	SignalMetadata map[string]any `json:"signalMetadata,omitempty"`
 }
 
 // [Internal] Input for creating prompt-type agent activities (created by users).
@@ -269,15 +269,15 @@ type AgentActivityCreatePromptInput struct {
 	// The agent session this activity belongs to.
 	AgentSessionID string `json:"agentSessionId"`
 	// The content payload of the prompt agent activity.
-	Content string `json:"content"`
+	Content map[string]any `json:"content"`
 	// [Internal] Metadata about user-provided contextual information for this agent activity.
-	ContextualMetadata *string `json:"contextualMetadata,omitempty"`
+	ContextualMetadata map[string]any `json:"contextualMetadata,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// An optional modifier that provides additional instructions on how the activity should be interpreted.
 	Signal *AgentActivitySignal `json:"signal,omitempty"`
 	// Metadata about this agent activity's signal.
-	SignalMetadata *string `json:"signalMetadata,omitempty"`
+	SignalMetadata map[string]any `json:"signalMetadata,omitempty"`
 	// The comment that contains the content of this activity.
 	SourceCommentID *string `json:"sourceCommentId,omitempty"`
 }
@@ -374,7 +374,7 @@ type AgentActivityWebhookPayload struct {
 	// The time at which the entity was archived.
 	ArchivedAt *string `json:"archivedAt,omitempty"`
 	// The content of the agent activity.
-	Content string `json:"content"`
+	Content map[string]any `json:"content"`
 	// The time at which the entity was created.
 	CreatedAt string `json:"createdAt"`
 	// The ID of the entity.
@@ -382,7 +382,7 @@ type AgentActivityWebhookPayload struct {
 	// An optional modifier that provides additional instructions on how the activity should be interpreted.
 	Signal *string `json:"signal,omitempty"`
 	// Metadata about this agent activity's signal.
-	SignalMetadata *string `json:"signalMetadata,omitempty"`
+	SignalMetadata map[string]any `json:"signalMetadata,omitempty"`
 	// The ID of the comment this activity is linked to.
 	SourceCommentID *string `json:"sourceCommentId,omitempty"`
 	// The time at which the entity was updated.
@@ -590,7 +590,7 @@ type AgentSessionUpdateInput struct {
 	// URLs of external resources associated with this session. Replaces existing URLs. Only updatable by the OAuth application that owns the session. If supplied, addedExternalUrls and removedExternalUrls are ignored.
 	ExternalUrls []*AgentSessionExternalURLInput `json:"externalUrls,omitempty"`
 	// A dynamically updated list of the agent's execution strategy. Only updatable by the OAuth application that owns the session.
-	Plan *string `json:"plan,omitempty"`
+	Plan map[string]any `json:"plan,omitempty"`
 	// URLs to be removed from this session. Only updatable by the OAuth application that owns the session.
 	RemovedExternalUrls []string `json:"removedExternalUrls,omitempty"`
 }
@@ -624,7 +624,7 @@ type AgentSessionWebhookPayload struct {
 	// The ID of the comment that this agent session was spawned from, if from a different thread.
 	SourceCommentID *string `json:"sourceCommentId,omitempty"`
 	// Metadata about the external source that created this agent session.
-	SourceMetadata *string `json:"sourceMetadata,omitempty"`
+	SourceMetadata map[string]any `json:"sourceMetadata,omitempty"`
 	// The time the agent session started working.
 	StartedAt *string `json:"startedAt,omitempty"`
 	// The current status of the agent session.
@@ -797,11 +797,11 @@ type Attachment struct {
 	// The issue this attachment belongs to.
 	Issue *Issue `json:"issue"`
 	// Custom metadata related to the attachment.
-	Metadata string `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// The issue this attachment was originally created on. Will be undefined if the attachment hasn't been moved.
 	OriginalIssue *Issue `json:"originalIssue,omitempty"`
 	// Information about the source which created the attachment.
-	Source *string `json:"source,omitempty"`
+	Source map[string]any `json:"source,omitempty"`
 	// An accessor helper to source.type, defines the source type of the attachment.
 	SourceType *string `json:"sourceType,omitempty"`
 	// Content for the subtitle line in the Linear attachment widget.
@@ -860,7 +860,7 @@ type AttachmentCreateInput struct {
 	// Create a linked comment with markdown body.
 	CommentBody *string `json:"commentBody,omitempty"`
 	// [Internal] Create a linked comment with Prosemirror body. Please use `commentBody` instead.
-	CommentBodyData *string `json:"commentBodyData,omitempty"`
+	CommentBodyData map[string]any `json:"commentBodyData,omitempty"`
 	// Create attachment as a user with the provided name. This option is only available to OAuth applications creating attachments in `actor=application` mode.
 	CreateAsUser *string `json:"createAsUser,omitempty"`
 	// Indicates if attachments for the same source application should be grouped in the Linear UI.
@@ -872,7 +872,7 @@ type AttachmentCreateInput struct {
 	// The issue to associate the attachment with.
 	IssueID string `json:"issueId"`
 	// Attachment metadata object with string and number values.
-	Metadata *string `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 	// The attachment subtitle.
 	Subtitle *string `json:"subtitle,omitempty"`
 	// The attachment title.
@@ -922,14 +922,14 @@ type AttachmentPayload struct {
 
 type AttachmentSourcesPayload struct {
 	// A unique list of all source types used in this workspace.
-	Sources string `json:"sources"`
+	Sources map[string]any `json:"sources"`
 }
 
 type AttachmentUpdateInput struct {
 	// An icon url to display with the attachment. Should be of jpg or png format. Maximum of 1MB in size. Dimensions should be 20x20px for optimal display quality.
 	IconURL *string `json:"iconUrl,omitempty"`
 	// Attachment metadata object with string and number values.
-	Metadata *string `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 	// The attachment subtitle.
 	Subtitle *string `json:"subtitle,omitempty"`
 	// The attachment title.
@@ -953,11 +953,11 @@ type AttachmentWebhookPayload struct {
 	// The ID of the issue this attachment belongs to.
 	IssueID string `json:"issueId"`
 	// Custom metadata related to the attachment.
-	Metadata string `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// The ID of the issue this attachment belonged to originally.
 	OriginalIssueID *string `json:"originalIssueId,omitempty"`
 	// Information about the source which created the attachment.
-	Source *string `json:"source,omitempty"`
+	Source map[string]any `json:"source,omitempty"`
 	// The source type of the attachment.
 	SourceType *string `json:"sourceType,omitempty"`
 	// Optional subtitle of the attachment.
@@ -989,12 +989,12 @@ type AuditEntry struct {
 	// IP from actor when entry was recorded.
 	IP *string `json:"ip,omitempty"`
 	// Additional metadata related to the audit entry.
-	Metadata *string `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 	// The organization the audit log belongs to.
 	Organization *Organization `json:"organization,omitempty"`
 	// Additional information related to the request which performed the action.
-	RequestInformation *string `json:"requestInformation,omitempty"`
-	Type               string  `json:"type"`
+	RequestInformation map[string]any `json:"requestInformation,omitempty"`
+	Type               string         `json:"type"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -1061,11 +1061,11 @@ type AuditEntryWebhookPayload struct {
 	// IP from actor when entry was recorded.
 	IP *string `json:"ip,omitempty"`
 	// Additional metadata related to the audit entry.
-	Metadata *string `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 	// The ID of the organization that the audit entry belongs to.
 	OrganizationID string `json:"organizationId"`
 	// Additional information related to the request which performed the action.
-	RequestInformation *string `json:"requestInformation,omitempty"`
+	RequestInformation map[string]any `json:"requestInformation,omitempty"`
 	// The type of the audit entry.
 	Type string `json:"type"`
 	// The time at which the entity was updated.
@@ -1129,7 +1129,7 @@ type AuthOrganization struct {
 	// Whether SAML authentication is enabled for organization.
 	SamlEnabled bool `json:"samlEnabled"`
 	// [INTERNAL] SAML settings
-	SamlSettings *string `json:"samlSettings,omitempty"`
+	SamlSettings map[string]any `json:"samlSettings,omitempty"`
 	// Whether SCIM provisioning is enabled for organization.
 	ScimEnabled bool `json:"scimEnabled"`
 	// The email domain or URL key for the organization.
@@ -1306,7 +1306,7 @@ type Comment struct {
 	// The text that this comment references. Only defined for inline comments.
 	QuotedText *string `json:"quotedText,omitempty"`
 	// Emoji reaction summary, grouped by emoji type.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// Reactions associated with the comment.
 	Reactions []*Reaction `json:"reactions"`
 	// The time the resolvingUser resolved the thread.
@@ -1320,7 +1320,7 @@ type Comment struct {
 	// The external services the comment is synced with.
 	SyncedWith []*ExternalEntityInfo `json:"syncedWith,omitempty"`
 	// [Internal] A generated summary of the comment thread.
-	ThreadSummary *string `json:"threadSummary,omitempty"`
+	ThreadSummary map[string]any `json:"threadSummary,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -1535,7 +1535,7 @@ type CommentWebhookPayload struct {
 	// The quoted text in this comment.
 	QuotedText *string `json:"quotedText,omitempty"`
 	// The reaction data for this comment.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// When the comment was resolved.
 	ResolvedAt *string `json:"resolvedAt,omitempty"`
 	// The ID of the comment that resolved this comment.
@@ -1543,7 +1543,7 @@ type CommentWebhookPayload struct {
 	// The ID of the user who resolved this comment.
 	ResolvingUserID *string `json:"resolvingUserId,omitempty"`
 	// The entity this comment is synced with.
-	SyncedWith *string `json:"syncedWith,omitempty"`
+	SyncedWith map[string]any `json:"syncedWith,omitempty"`
 	// The time at which the entity was updated.
 	UpdatedAt string `json:"updatedAt"`
 	// The user who created this comment.
@@ -1670,17 +1670,17 @@ type CustomView struct {
 	// [INTERNAL] The facet associated with the custom view.
 	Facet *Facet `json:"facet,omitempty"`
 	// The filter applied to feed items in the custom view.
-	FeedItemFilterData *string `json:"feedItemFilterData,omitempty"`
+	FeedItemFilterData map[string]any `json:"feedItemFilterData,omitempty"`
 	// The filter applied to issues in the custom view.
-	FilterData string `json:"filterData"`
+	FilterData map[string]any `json:"filterData"`
 	// The filters applied to issues in the custom view.
-	Filters string `json:"filters"`
+	Filters map[string]any `json:"filters"`
 	// The icon of the custom view.
 	Icon *string `json:"icon,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The filter applied to initiatives in the custom view.
-	InitiativeFilterData *string `json:"initiativeFilterData,omitempty"`
+	InitiativeFilterData map[string]any `json:"initiativeFilterData,omitempty"`
 	// Initiatives associated with the custom view.
 	Initiatives *InitiativeConnection `json:"initiatives"`
 	// Issues associated with the custom view.
@@ -1696,7 +1696,7 @@ type CustomView struct {
 	// The user who owns the custom view.
 	Owner *User `json:"owner"`
 	// The filter applied to projects in the custom view.
-	ProjectFilterData *string `json:"projectFilterData,omitempty"`
+	ProjectFilterData map[string]any `json:"projectFilterData,omitempty"`
 	// Projects associated with the custom view.
 	Projects *ProjectConnection `json:"projects"`
 	// Whether the custom view is shared with everyone in the organization.
@@ -3265,7 +3265,7 @@ type Cycle struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// [Internal] The current progress of the cycle.
-	CurrentProgress string `json:"currentProgress"`
+	CurrentProgress map[string]any `json:"currentProgress"`
 	// The cycle's description.
 	Description *string `json:"description,omitempty"`
 	// The end time of the cycle.
@@ -3297,7 +3297,7 @@ type Cycle struct {
 	// The overall progress of the cycle. This is the (completed estimate points + 0.25 * in progress estimate points) / total estimate points.
 	Progress float64 `json:"progress"`
 	// [Internal] The progress history of the cycle.
-	ProgressHistory string `json:"progressHistory"`
+	ProgressHistory map[string]any `json:"progressHistory"`
 	// The total number of estimation points after each day.
 	ScopeHistory []float64 `json:"scopeHistory"`
 	// The start time of the cycle.
@@ -3644,7 +3644,7 @@ type Dashboard struct {
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The filter applied to all dashboard widgets showing issues data.
-	IssueFilter *string `json:"issueFilter,omitempty"`
+	IssueFilter map[string]any `json:"issueFilter,omitempty"`
 	// The name of the dashboard.
 	Name string `json:"name"`
 	// The organization of the dashboard.
@@ -3652,7 +3652,7 @@ type Dashboard struct {
 	// The owner of the dashboard.
 	Owner *User `json:"owner,omitempty"`
 	// The filter applied to all dashboard widgets showing projects data.
-	ProjectFilter *string `json:"projectFilter,omitempty"`
+	ProjectFilter map[string]any `json:"projectFilter,omitempty"`
 	// Whether the dashboard is shared with everyone in the organization.
 	Shared bool `json:"shared"`
 	// The dashboard's unique URL slug.
@@ -3665,7 +3665,7 @@ type Dashboard struct {
 	// The user who last updated the dashboard.
 	UpdatedBy *User `json:"updatedBy,omitempty"`
 	// The widgets on the dashboard.
-	Widgets string `json:"widgets"`
+	Widgets map[string]any `json:"widgets"`
 }
 
 func (Dashboard) IsNode() {}
@@ -4166,7 +4166,7 @@ type DocumentSearchResult struct {
 	// The last template that was applied to this document.
 	LastAppliedTemplate *Template `json:"lastAppliedTemplate,omitempty"`
 	// Metadata related to search result.
-	Metadata string `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// The project that the document is associated with.
 	Project *Project `json:"project,omitempty"`
 	// The document's unique URL slug.
@@ -4289,7 +4289,7 @@ type Draft struct {
 	// The customer need that this draft is referencing.
 	CustomerNeed *CustomerNeed `json:"customerNeed,omitempty"`
 	// Additional properties for the draft.
-	Data *string `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The initiative for which this is a draft initiative update.
@@ -4659,7 +4659,7 @@ type EntityWebhookPayload struct {
 	// The type of resource, i.e., the name of the entity.
 	Type string `json:"type"`
 	// In case of an update event, previous values of all updated properties.
-	UpdatedFrom *string `json:"updatedFrom,omitempty"`
+	UpdatedFrom map[string]any `json:"updatedFrom,omitempty"`
 	// URL for the entity.
 	URL *string `json:"url,omitempty"`
 	// The ID of the webhook that sent this event.
@@ -5077,9 +5077,9 @@ type FeedItemFilter struct {
 
 type FetchDataPayload struct {
 	// The fetched data based on the natural language query.
-	Data *string `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 	// The filters used to fetch the data.
-	Filters *string `json:"filters,omitempty"`
+	Filters map[string]any `json:"filters,omitempty"`
 	// The GraphQL query used to fetch the data.
 	Query *string `json:"query,omitempty"`
 	// Whether the fetch operation was successful.
@@ -5278,7 +5278,7 @@ type GitHubEnterpriseServerPayload struct {
 
 type GitHubImportSettingsInput struct {
 	// A map storing all available issue labels per repository
-	Labels *string `json:"labels,omitempty"`
+	Labels map[string]any `json:"labels,omitempty"`
 	// The avatar URL for the GitHub organization.
 	OrgAvatarURL string `json:"orgAvatarUrl"`
 	// The GitHub organization's name.
@@ -5430,7 +5430,7 @@ type IDComparator struct {
 // An identity provider.
 type IdentityProvider struct {
 	// [INTERNAL] SCIM admins group push settings.
-	AdminsGroupPush *string `json:"adminsGroupPush,omitempty"`
+	AdminsGroupPush map[string]any `json:"adminsGroupPush,omitempty"`
 	// Whether users are allowed to change their name and display name even if SCIM is enabled.
 	AllowNameChange bool `json:"allowNameChange"`
 	// The time at which the entity was archived. Null if the entity has not been archived.
@@ -5440,13 +5440,13 @@ type IdentityProvider struct {
 	// Whether the identity provider is the default identity provider migrated from organization level settings.
 	DefaultMigrated bool `json:"defaultMigrated"`
 	// [INTERNAL] SCIM guests group push settings.
-	GuestsGroupPush *string `json:"guestsGroupPush,omitempty"`
+	GuestsGroupPush map[string]any `json:"guestsGroupPush,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The issuer's custom entity ID.
 	IssuerEntityID *string `json:"issuerEntityId,omitempty"`
 	// [INTERNAL] SCIM owners group push settings.
-	OwnersGroupPush *string `json:"ownersGroupPush,omitempty"`
+	OwnersGroupPush map[string]any `json:"ownersGroupPush,omitempty"`
 	// The SAML priority used to pick default workspace in SAML SP initiated flow, when same domain is claimed for SAML by multiple workspaces. Lower priority value means higher preference.
 	Priority *float64 `json:"priority,omitempty"`
 	// Whether SAML authentication is enabled for organization.
@@ -5486,9 +5486,9 @@ type ImageUploadFromURLPayload struct {
 
 type InheritanceEntityMapping struct {
 	// Mapping of the IssueLabel ID to the new IssueLabel name.
-	IssueLabels *string `json:"issueLabels,omitempty"`
+	IssueLabels map[string]any `json:"issueLabels,omitempty"`
 	// Mapping of the WorkflowState ID to the new WorkflowState ID.
-	WorkflowStates string `json:"workflowStates"`
+	WorkflowStates map[string]any `json:"workflowStates"`
 }
 
 // An initiative to group projects.
@@ -5754,7 +5754,7 @@ type InitiativeHistory struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The events that happened while recording that history.
-	Entries string `json:"entries"`
+	Entries map[string]any `json:"entries"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The initiative that the history is associated with.
@@ -6282,7 +6282,7 @@ type InitiativeUpdate struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The diff between the current update and the previous one.
-	Diff *string `json:"diff,omitempty"`
+	Diff map[string]any `json:"diff,omitempty"`
 	// The diff between the current update and the previous one, formatted as markdown.
 	DiffMarkdown *string `json:"diffMarkdown,omitempty"`
 	// The time the update was edited.
@@ -6292,7 +6292,7 @@ type InitiativeUpdate struct {
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// [Internal] Serialized JSON representing current state of the initiative properties when posting the initiative update.
-	InfoSnapshot *string `json:"infoSnapshot,omitempty"`
+	InfoSnapshot map[string]any `json:"infoSnapshot,omitempty"`
 	// The initiative that the update is associated with.
 	Initiative *Initiative `json:"initiative"`
 	// Whether initiative update diff should be hidden.
@@ -6300,7 +6300,7 @@ type InitiativeUpdate struct {
 	// Whether the initiative update is stale.
 	IsStale bool `json:"isStale"`
 	// Emoji reaction summary, grouped by emoji type.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// Reactions associated with the initiative update.
 	Reactions []*Reaction `json:"reactions"`
 	// The update's unique URL slug.
@@ -6480,7 +6480,7 @@ type InitiativeUpdateWebhookPayload struct {
 	// The initiative id of the initiative update.
 	InitiativeID string `json:"initiativeId"`
 	// The reaction data for this initiative update.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// The slug id of the initiative update.
 	SlugID string `json:"slugId"`
 	// The time at which the entity was updated.
@@ -6913,7 +6913,7 @@ type IntercomSettingsInput struct {
 // An issue.
 type Issue struct {
 	// [Internal] The activity summary information for this issue.
-	ActivitySummary *string `json:"activitySummary,omitempty"`
+	ActivitySummary map[string]any `json:"activitySummary,omitempty"`
 	// The time at which the issue was added to a cycle.
 	AddedToCycleAt *time.Time `json:"addedToCycleAt,omitempty"`
 	// The time at which the issue was added to a project.
@@ -7015,7 +7015,7 @@ type Issue struct {
 	// The projectMilestone that the issue is associated with.
 	ProjectMilestone *ProjectMilestone `json:"projectMilestone,omitempty"`
 	// Emoji reaction summary, grouped by emoji type.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// Reactions associated with the issue.
 	Reactions []*Reaction `json:"reactions"`
 	// The recurring issue template that created this issue.
@@ -7444,7 +7444,7 @@ type IssueDraft struct {
 	// The user assigned to the draft.
 	AssigneeID *string `json:"assigneeId,omitempty"`
 	// Serialized array of JSONs representing attachments.
-	Attachments *string `json:"attachments,omitempty"`
+	Attachments map[string]any `json:"attachments,omitempty"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The user who created the draft.
@@ -7466,7 +7466,7 @@ type IssueDraft struct {
 	// The IDs of labels added to the draft.
 	LabelIds []string `json:"labelIds"`
 	// Serialized array of JSONs representing customer needs.
-	Needs *string `json:"needs,omitempty"`
+	Needs map[string]any `json:"needs,omitempty"`
 	// The parent draft of the draft.
 	Parent *IssueDraft `json:"parent,omitempty"`
 	// The ID of the parent issue draft, if any.
@@ -7484,7 +7484,7 @@ type IssueDraft struct {
 	// The project milestone associated with the draft.
 	ProjectMilestoneID *string `json:"projectMilestoneId,omitempty"`
 	// Serialized array of JSONs representing the recurring issue's schedule.
-	Schedule *string `json:"schedule,omitempty"`
+	Schedule map[string]any `json:"schedule,omitempty"`
 	// The ID of the comment that the draft was created from.
 	SourceCommentID *string `json:"sourceCommentId,omitempty"`
 	// The workflow state associated with the draft.
@@ -7681,7 +7681,7 @@ type IssueFilter struct {
 
 type IssueFilterSuggestionPayload struct {
 	// The json filter that is suggested.
-	Filter *string `json:"filter,omitempty"`
+	Filter map[string]any `json:"filter,omitempty"`
 	// The log id of the prompt, that created this filter.
 	LogID *string `json:"logId,omitempty"`
 }
@@ -7717,7 +7717,7 @@ type IssueHistory struct {
 	// The bot that performed the action.
 	BotActor *ActorBot `json:"botActor,omitempty"`
 	// [Internal] Serialized JSON representing changes for certain non-relational properties.
-	Changes *string `json:"changes,omitempty"`
+	Changes map[string]any `json:"changes,omitempty"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The id of linked customer need.
@@ -7869,17 +7869,17 @@ type IssueImport struct {
 	// User readable error message, if one has occurred during the import.
 	Error *string `json:"error,omitempty"`
 	// Error code and metadata, if one has occurred during the import.
-	ErrorMetadata *string `json:"errorMetadata,omitempty"`
+	ErrorMetadata map[string]any `json:"errorMetadata,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The data mapping configuration for the import job.
-	Mapping *string `json:"mapping,omitempty"`
+	Mapping map[string]any `json:"mapping,omitempty"`
 	// Current step progress in % (0-100).
 	Progress *float64 `json:"progress,omitempty"`
 	// The service from which data will be imported.
 	Service string `json:"service"`
 	// Metadata related to import service.
-	ServiceMetadata *string `json:"serviceMetadata,omitempty"`
+	ServiceMetadata map[string]any `json:"serviceMetadata,omitempty"`
 	// The status for the import job.
 	Status string `json:"status"`
 	// New team's name in cases when teamId not set.
@@ -7937,7 +7937,7 @@ type IssueImportSyncCheckPayload struct {
 
 type IssueImportUpdateInput struct {
 	// The mapping configuration for the import.
-	Mapping string `json:"mapping"`
+	Mapping map[string]any `json:"mapping"`
 }
 
 // Labels that can be associated with issues.
@@ -8483,7 +8483,7 @@ type IssueSearchPayload struct {
 
 type IssueSearchResult struct {
 	// [Internal] The activity summary information for this issue.
-	ActivitySummary *string `json:"activitySummary,omitempty"`
+	ActivitySummary map[string]any `json:"activitySummary,omitempty"`
 	// The time at which the issue was added to a cycle.
 	AddedToCycleAt *time.Time `json:"addedToCycleAt,omitempty"`
 	// The time at which the issue was added to a project.
@@ -8567,7 +8567,7 @@ type IssueSearchResult struct {
 	// The last template that was applied to this issue.
 	LastAppliedTemplate *Template `json:"lastAppliedTemplate,omitempty"`
 	// Metadata related to search result.
-	Metadata string `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// Customer needs associated with the issue.
 	Needs *CustomerNeedConnection `json:"needs"`
 	// The issue's unique number.
@@ -8587,7 +8587,7 @@ type IssueSearchResult struct {
 	// The projectMilestone that the issue is associated with.
 	ProjectMilestone *ProjectMilestone `json:"projectMilestone,omitempty"`
 	// Emoji reaction summary, grouped by emoji type.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// Reactions associated with the issue.
 	Reactions []*Reaction `json:"reactions"`
 	// The recurring issue template that created this issue.
@@ -9131,7 +9131,7 @@ type IssueWebhookPayload struct {
 	// The ID of the project milestone that the issue belongs to.
 	ProjectMilestoneID *string `json:"projectMilestoneId,omitempty"`
 	// The reaction data for this issue.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// The ID of the recurring issue template that created the issue.
 	RecurringIssueTemplateID *string `json:"recurringIssueTemplateId,omitempty"`
 	// The time at which the issue would breach its SLA.
@@ -9163,7 +9163,7 @@ type IssueWebhookPayload struct {
 	// The IDs of the users that are subscribed to the issue.
 	SubscriberIds []string `json:"subscriberIds"`
 	// The entity this issue is synced with.
-	SyncedWith *string `json:"syncedWith,omitempty"`
+	SyncedWith map[string]any `json:"syncedWith,omitempty"`
 	// The team that the issue belongs to.
 	Team *TeamChildWebhookPayload `json:"team,omitempty"`
 	// The ID of the team that the issue belongs to.
@@ -10709,7 +10709,7 @@ type Organization struct {
 	// Number of customers in the organization.
 	CustomerCount int64 `json:"customerCount"`
 	// Configuration settings for the Customers feature.
-	CustomersConfiguration string `json:"customersConfiguration"`
+	CustomersConfiguration map[string]any `json:"customersConfiguration"`
 	// Whether the organization is using Customers.
 	CustomersEnabled bool `json:"customersEnabled"`
 	// Default schedule for how often feed summaries are generated.
@@ -10779,13 +10779,13 @@ type Organization struct {
 	// Whether SAML authentication is enabled for organization.
 	SamlEnabled bool `json:"samlEnabled"`
 	// [INTERNAL] SAML settings.
-	SamlSettings *string `json:"samlSettings,omitempty"`
+	SamlSettings map[string]any `json:"samlSettings,omitempty"`
 	// Whether SCIM provisioning is enabled for organization.
 	ScimEnabled bool `json:"scimEnabled"`
 	// [INTERNAL] SCIM settings.
-	ScimSettings *string `json:"scimSettings,omitempty"`
+	ScimSettings map[string]any `json:"scimSettings,omitempty"`
 	// Security settings for the organization.
-	SecuritySettings string `json:"securitySettings"`
+	SecuritySettings map[string]any `json:"securitySettings"`
 	// [DEPRECATED] Which day count to use for SLA calculations.
 	SLADayCount SLADayCountType `json:"slaDayCount"`
 	// The organization's subscription to a paid plan.
@@ -10795,7 +10795,7 @@ type Organization struct {
 	// Templates associated with the organization.
 	Templates *TemplateConnection `json:"templates"`
 	// [ALPHA] Theme settings for the organization.
-	ThemeSettings *string `json:"themeSettings,omitempty"`
+	ThemeSettings map[string]any `json:"themeSettings,omitempty"`
 	// The time at which the trial will end.
 	TrialEndsAt *time.Time `json:"trialEndsAt,omitempty"`
 	// The time at which the trial started.
@@ -10944,7 +10944,7 @@ type OrganizationInvite struct {
 	// The user who created the invitation.
 	Inviter *User `json:"inviter"`
 	// Extra metadata associated with the organization invite.
-	Metadata *string `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 	// The organization that the invite is associated with.
 	Organization *Organization `json:"organization"`
 	// The user role that the invitee will receive upon accepting the invite.
@@ -10971,7 +10971,7 @@ type OrganizationInviteCreateInput struct {
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// [INTERNAL] Optional metadata about the invite.
-	Metadata *string `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 	// What user role the invite should grant.
 	Role *UserRoleType `json:"role,omitempty"`
 	// The teams that the user has been invited to.
@@ -11121,7 +11121,7 @@ type OrganizationUpdateInput struct {
 	// [INTERNAL] GitHub repository in owner/repo format for code intelligence.
 	CodeIntelligenceRepository *string `json:"codeIntelligenceRepository,omitempty"`
 	// [INTERNAL] Configuration settings for the Customers feature.
-	CustomersConfiguration *string `json:"customersConfiguration,omitempty"`
+	CustomersConfiguration map[string]any `json:"customersConfiguration,omitempty"`
 	// [INTERNAL] Whether the organization is using customers.
 	CustomersEnabled *bool `json:"customersEnabled,omitempty"`
 	// Default schedule for how often feed summaries are generated.
@@ -11173,7 +11173,7 @@ type OrganizationUpdateInput struct {
 	// Internal. Whether SLAs have been enabled for the organization.
 	SLAEnabled *bool `json:"slaEnabled,omitempty"`
 	// [ALPHA] Theme settings for the organization.
-	ThemeSettings *string `json:"themeSettings,omitempty"`
+	ThemeSettings map[string]any `json:"themeSettings,omitempty"`
 	// The URL key of the organization.
 	URLKey *string `json:"urlKey,omitempty"`
 	// [Internal] The list of working days. Sunday is 0, Monday is 1, etc.
@@ -11306,8 +11306,8 @@ type PartialNotificationChannelPreferencesInput struct {
 }
 
 type PasskeyLoginStartResponse struct {
-	Options string `json:"options"`
-	Success bool   `json:"success"`
+	Options map[string]any `json:"options"`
+	Success bool           `json:"success"`
 }
 
 // [Internal] A generic post.
@@ -11333,7 +11333,7 @@ type Post struct {
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// Emoji reaction summary, grouped by emoji type.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// The post's unique URL slug.
 	SlugID string `json:"slugId"`
 	// The team that the post is associated with.
@@ -11350,7 +11350,7 @@ type Post struct {
 	// The user that the post is associated with.
 	User *User `json:"user,omitempty"`
 	// [Internal] The written update data used to compose the written post.
-	WrittenSummaryData *string `json:"writtenSummaryData,omitempty"`
+	WrittenSummaryData map[string]any `json:"writtenSummaryData,omitempty"`
 }
 
 func (Post) IsNode() {}
@@ -11567,7 +11567,7 @@ type Project struct {
 	// The user who created the project.
 	Creator *User `json:"creator,omitempty"`
 	// [INTERNAL] The current progress of the project.
-	CurrentProgress string `json:"currentProgress"`
+	CurrentProgress map[string]any `json:"currentProgress"`
 	// The project's description.
 	Description string `json:"description"`
 	// The content of the project description.
@@ -11629,7 +11629,7 @@ type Project struct {
 	// The overall progress of the project. This is the (completed estimate points + 0.25 * in progress estimate points) / total estimate points.
 	Progress float64 `json:"progress"`
 	// [INTERNAL] The progress history of the project.
-	ProgressHistory string `json:"progressHistory"`
+	ProgressHistory map[string]any `json:"progressHistory"`
 	// Milestones associated with the project.
 	ProjectMilestones *ProjectMilestoneConnection `json:"projectMilestones"`
 	// The time until which project update reminders are paused.
@@ -11719,9 +11719,9 @@ type ProjectAttachment struct {
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// Custom metadata related to the attachment.
-	Metadata string `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// Information about the external source which created the attachment.
-	Source *string `json:"source,omitempty"`
+	Source map[string]any `json:"source,omitempty"`
 	// An accessor helper to source.type, defines the source type of the attachment.
 	SourceType *string `json:"sourceType,omitempty"`
 	// Optional subtitle of the attachment
@@ -11997,7 +11997,7 @@ type ProjectFilter struct {
 
 type ProjectFilterSuggestionPayload struct {
 	// The json filter that is suggested.
-	Filter *string `json:"filter,omitempty"`
+	Filter map[string]any `json:"filter,omitempty"`
 	// The log id of the prompt, that created this filter.
 	LogID *string `json:"logId,omitempty"`
 }
@@ -12017,7 +12017,7 @@ type ProjectHistory struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The events that happened while recording that history.
-	Entries string `json:"entries"`
+	Entries map[string]any `json:"entries"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The project that the history is associated with.
@@ -12251,7 +12251,7 @@ type ProjectMilestone struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// [Internal] The current progress of the project milestone.
-	CurrentProgress string `json:"currentProgress"`
+	CurrentProgress map[string]any `json:"currentProgress"`
 	// The project milestone's description in markdown format.
 	Description *string `json:"description,omitempty"`
 	// [Internal] The project milestone's description as YJS state.
@@ -12267,7 +12267,7 @@ type ProjectMilestone struct {
 	// The progress % of the project milestone.
 	Progress float64 `json:"progress"`
 	// [Internal] The progress history of the project milestone.
-	ProgressHistory string `json:"progressHistory"`
+	ProgressHistory map[string]any `json:"progressHistory"`
 	// The project of the milestone.
 	Project *Project `json:"project"`
 	// The order of the milestone in relation to other milestones within a project.
@@ -12332,7 +12332,7 @@ type ProjectMilestoneCreateInput struct {
 	// The description of the project milestone in markdown format.
 	Description *string `json:"description,omitempty"`
 	// [Internal] The description of the project milestone as a Prosemirror document.
-	DescriptionData *string `json:"descriptionData,omitempty"`
+	DescriptionData map[string]any `json:"descriptionData,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// The name of the project milestone.
@@ -12440,7 +12440,7 @@ type ProjectMilestoneUpdateInput struct {
 	// The description of the project milestone in markdown format.
 	Description *string `json:"description,omitempty"`
 	// [Internal] The description of the project milestone as a Prosemirror document.
-	DescriptionData *string `json:"descriptionData,omitempty"`
+	DescriptionData map[string]any `json:"descriptionData,omitempty"`
 	// The name of the project milestone.
 	Name *string `json:"name,omitempty"`
 	// Related project for the project milestone.
@@ -12903,7 +12903,7 @@ type ProjectSearchResult struct {
 	// The user who created the project.
 	Creator *User `json:"creator,omitempty"`
 	// [INTERNAL] The current progress of the project.
-	CurrentProgress string `json:"currentProgress"`
+	CurrentProgress map[string]any `json:"currentProgress"`
 	// The project's description.
 	Description string `json:"description"`
 	// The content of the project description.
@@ -12953,7 +12953,7 @@ type ProjectSearchResult struct {
 	// Users that are members of the project.
 	Members *UserConnection `json:"members"`
 	// Metadata related to search result.
-	Metadata string `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// The project's name.
 	Name string `json:"name"`
 	// Customer needs associated with the project.
@@ -12967,7 +12967,7 @@ type ProjectSearchResult struct {
 	// The overall progress of the project. This is the (completed estimate points + 0.25 * in progress estimate points) / total estimate points.
 	Progress float64 `json:"progress"`
 	// [INTERNAL] The progress history of the project.
-	ProgressHistory string `json:"progressHistory"`
+	ProgressHistory map[string]any `json:"progressHistory"`
 	// Milestones associated with the project.
 	ProjectMilestones *ProjectMilestoneConnection `json:"projectMilestones"`
 	// The time until which project update reminders are paused.
@@ -13235,7 +13235,7 @@ type ProjectUpdate struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The diff between the current update and the previous one.
-	Diff *string `json:"diff,omitempty"`
+	Diff map[string]any `json:"diff,omitempty"`
 	// The diff between the current update and the previous one, formatted as markdown.
 	DiffMarkdown *string `json:"diffMarkdown,omitempty"`
 	// The time the update was edited.
@@ -13245,7 +13245,7 @@ type ProjectUpdate struct {
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// [Internal] Serialized JSON representing current state of the project properties when posting the project update.
-	InfoSnapshot *string `json:"infoSnapshot,omitempty"`
+	InfoSnapshot map[string]any `json:"infoSnapshot,omitempty"`
 	// Whether project update diff should be hidden.
 	IsDiffHidden bool `json:"isDiffHidden"`
 	// Whether the project update is stale.
@@ -13253,7 +13253,7 @@ type ProjectUpdate struct {
 	// The project that the update is associated with.
 	Project *Project `json:"project"`
 	// Emoji reaction summary, grouped by emoji type.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// Reactions associated with the project update.
 	Reactions []*Reaction `json:"reactions"`
 	// The update's unique URL slug.
@@ -13462,7 +13462,7 @@ type ProjectUpdateWebhookPayload struct {
 	// The project id of the project update.
 	ProjectID string `json:"projectId"`
 	// The reaction data for this project update.
-	ReactionData string `json:"reactionData"`
+	ReactionData map[string]any `json:"reactionData"`
 	// The slug id of the project update.
 	SlugID string `json:"slugId"`
 	// The time at which the entity was updated.
@@ -14187,9 +14187,9 @@ type ReleaseDebugSinkInput struct {
 	// List of commit SHAs that were inspected.
 	InspectedShas []string `json:"inspectedShas"`
 	// Map of issue identifiers to their source information.
-	Issues string `json:"issues"`
+	Issues map[string]any `json:"issues"`
 	// Pull request debug information.
-	PullRequests []string `json:"pullRequests"`
+	PullRequests []map[string]interface{} `json:"pullRequests"`
 }
 
 type ReleaseEdge struct {
@@ -14653,7 +14653,7 @@ type RootIssueSort struct {
 // [INTERNAL] Comparator for Salesforce metadata.
 type SalesforceMetadataIntegrationComparator struct {
 	// Salesforce Case metadata filter
-	CaseMetadata *string `json:"caseMetadata,omitempty"`
+	CaseMetadata map[string]any `json:"caseMetadata,omitempty"`
 }
 
 type SalesforceSettingsInput struct {
@@ -15188,7 +15188,7 @@ type Team struct {
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// [Internal] The current progress of the team.
-	CurrentProgress string `json:"currentProgress"`
+	CurrentProgress map[string]any `json:"currentProgress"`
 	// Calendar feed URL (iCal) for cycles.
 	CycleCalenderURL string `json:"cycleCalenderUrl"`
 	// The cooldown time after each cycle in weeks.
@@ -15288,7 +15288,7 @@ type Team struct {
 	// Whether the team is private or not.
 	Private bool `json:"private"`
 	// [Internal] The progress history of the team.
-	ProgressHistory string `json:"progressHistory"`
+	ProgressHistory map[string]any `json:"progressHistory"`
 	// Projects associated with the team.
 	Projects *ProjectConnection `json:"projects"`
 	// Whether an issue needs to have a priority set before leaving triage.
@@ -15300,7 +15300,7 @@ type Team struct {
 	// Whether the team is managed by SCIM integration.
 	ScimManaged bool `json:"scimManaged"`
 	// Security settings for the team.
-	SecuritySettings string `json:"securitySettings"`
+	SecuritySettings map[string]any `json:"securitySettings"`
 	// Where to move issues when changing state.
 	SetIssueSortOrderOnStateChange string `json:"setIssueSortOrderOnStateChange"`
 	// Whether to send new issue comment notifications to Slack.
@@ -16156,7 +16156,7 @@ type UploadFile struct {
 	// The filename.
 	Filename string              `json:"filename"`
 	Headers  []*UploadFileHeader `json:"headers"`
-	MetaData *string             `json:"metaData,omitempty"`
+	MetaData map[string]any      `json:"metaData,omitempty"`
 	// The size of the uploaded file.
 	Size int64 `json:"size"`
 	// The signed URL the for the uploaded file. (assigned automatically).
@@ -16649,7 +16649,7 @@ type UserSettingsUpdateInput struct {
 	// The user's notification delivery preferences.
 	NotificationDeliveryPreferences *NotificationDeliveryPreferencesInput `json:"notificationDeliveryPreferences,omitempty"`
 	// The user's settings.
-	Settings *string `json:"settings,omitempty"`
+	Settings map[string]any `json:"settings,omitempty"`
 	// Whether this user is subscribed to changelog email or not.
 	SubscribedToChangelog *bool `json:"subscribedToChangelog,omitempty"`
 	// Whether this user is subscribed to DPA emails or not.
@@ -16661,7 +16661,7 @@ type UserSettingsUpdateInput struct {
 	// Whether this user is subscribed to privacy and legal update emails or not.
 	SubscribedToPrivacyLegalUpdates *bool `json:"subscribedToPrivacyLegalUpdates,omitempty"`
 	// [Internal] The user's usage warning history.
-	UsageWarningHistory *string `json:"usageWarningHistory,omitempty"`
+	UsageWarningHistory map[string]any `json:"usageWarningHistory,omitempty"`
 }
 
 // User sorting options.
@@ -16763,11 +16763,11 @@ type ViewPreferencesCreateInput struct {
 	// [Internal] The initiative these view preferences are associated with.
 	InitiativeID *string `json:"initiativeId,omitempty"`
 	// The default parameters for the insight on that view.
-	Insights *string `json:"insights,omitempty"`
+	Insights map[string]any `json:"insights,omitempty"`
 	// The label these view preferences are associated with.
 	LabelID *string `json:"labelId,omitempty"`
 	// View preferences object.
-	Preferences string `json:"preferences"`
+	Preferences map[string]any `json:"preferences"`
 	// The project these view preferences are associated with.
 	ProjectID *string `json:"projectId,omitempty"`
 	// The project label these view preferences are associated with.
@@ -16793,9 +16793,9 @@ type ViewPreferencesPayload struct {
 
 type ViewPreferencesUpdateInput struct {
 	// The default parameters for the insight on that view.
-	Insights *string `json:"insights,omitempty"`
+	Insights map[string]any `json:"insights,omitempty"`
 	// View preferences.
-	Preferences *string `json:"preferences,omitempty"`
+	Preferences map[string]any `json:"preferences,omitempty"`
 }
 
 type ViewPreferencesValues struct {
