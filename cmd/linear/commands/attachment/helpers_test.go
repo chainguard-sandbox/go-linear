@@ -5,7 +5,7 @@ const (
 		"data": {
 			"attachments": {
 				"nodes": [
-					{"id": "att-123", "title": "Design Doc", "url": "https://example.com/doc", "createdAt": "2024-01-01T00:00:00.000Z", "source": "url", "sourceType": "custom"}
+					{"id": "att-123", "title": "Design Doc", "url": "https://example.com/doc", "createdAt": "2024-01-01T00:00:00.000Z", "source": {"type": "url"}, "sourceType": "custom"}
 				],
 				"pageInfo": {"hasNextPage": false}
 			}
@@ -21,7 +21,7 @@ const (
 				"url": "https://example.com/doc",
 				"createdAt": "2024-01-01T00:00:00.000Z",
 				"updatedAt": "2024-01-01T00:00:00.000Z",
-				"source": "url",
+				"source": {"type": "url"},
 				"sourceType": "custom"
 			}
 		}
@@ -35,7 +35,8 @@ const (
 					"id": "att-new",
 					"title": "New Attachment",
 					"subtitle": "Subtitle",
-					"url": "https://example.com/new"
+					"url": "https://example.com/new",
+					"metadata": {}
 				}
 			}
 		}
