@@ -7,8 +7,12 @@ query GetProject($id: String!) {
     createdAt
     updatedAt
     startedAt
+    completedAt
+    canceledAt
     targetDate
     progress
+    health
+    healthUpdatedAt
     url
     icon
     color
@@ -16,6 +20,20 @@ query GetProject($id: String!) {
       id
       name
       email
+    }
+    teams(first: 10) {
+      nodes {
+        id
+        name
+        key
+      }
+    }
+    initiatives(first: 10) {
+      nodes {
+        id
+        name
+        status
+      }
     }
   }
 }
@@ -31,6 +49,7 @@ query ListProjects($first: Int, $after: String) {
       updatedAt
       targetDate
       progress
+      health
       url
       icon
       color
@@ -53,6 +72,7 @@ query ListProjectsFiltered($first: Int, $after: String, $filter: ProjectFilter) 
       updatedAt
       targetDate
       progress
+      health
       url
       icon
       color
