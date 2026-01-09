@@ -28,7 +28,7 @@ func TestNewTeamCommand(t *testing.T) {
 			t.Error("Expected subcommands to be added")
 		}
 
-		expectedSubcommands := []string{"list", "get", "members", "create", "update", "delete"}
+		expectedSubcommands := []string{"list", "get", "members", "create", "update", "delete", "velocity"}
 		subcommandNames := make(map[string]bool)
 		for _, sub := range subcommands {
 			subcommandNames[sub.Use] = true
@@ -415,6 +415,81 @@ func TestRunDelete(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(strings.ToLower(output), "deleted") {
 			t.Errorf("Table output should show deleted, got: %s", output)
+		}
+	})
+}
+
+func TestNewVelocityCommand(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+
+	factory := testutil.TestFactory(t, server.URL)
+	cmd := NewVelocityCommand(factory)
+
+	t.Run("command setup", func(t *testing.T) {
+		if cmd.Use != "velocity" {
+			t.Errorf("Use = %q, want %q", cmd.Use, "velocity")
+		}
+	})
+
+	t.Run("team flag required", func(t *testing.T) {
+		if cmd.Flags().Lookup("team") == nil {
+			t.Error("team flag not found")
+		}
+	})
+}
+
+func TestRunVelocity(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+
+	factory := testutil.TestFactory(t, server.URL)
+
+	t.Run("velocity json output", func(t *testing.T) {
+		cmd := NewVelocityCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--team=ENG", "--output=json"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v\nOutput: %s", err, buf.String())
+		}
+
+		// Check expected fields
+		if result["teamKey"] != "ENG" {
+			t.Errorf("Expected teamKey=ENG, got %v", result["teamKey"])
+		}
+		if result["cyclesAnalyzed"] != float64(3) {
+			t.Errorf("Expected cyclesAnalyzed=3, got %v", result["cyclesAnalyzed"])
+		}
+	})
+
+	t.Run("velocity table output", func(t *testing.T) {
+		cmd := NewVelocityCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--team=ENG", "--cycles=3", "--output=table"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		output := buf.String()
+		if !strings.Contains(output, "Engineering") {
+			t.Errorf("Table output should show team name, got: %s", output)
+		}
+		if !strings.Contains(output, "Velocity Metrics") {
+			t.Errorf("Table output should show velocity metrics, got: %s", output)
+		}
+		if !strings.Contains(output, "Average per Cycle") {
+			t.Errorf("Table output should show averages, got: %s", output)
 		}
 	})
 }

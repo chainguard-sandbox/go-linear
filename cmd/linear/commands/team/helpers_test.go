@@ -107,6 +107,61 @@ const (
 			}
 		}
 	}`
+
+	mockCyclesFilteredResponse = `{
+		"data": {
+			"cycles": {
+				"nodes": [
+					{
+						"id": "cycle-1",
+						"number": 1,
+						"name": "Sprint 1",
+						"startsAt": "2024-01-01T00:00:00.000Z",
+						"endsAt": "2024-01-14T00:00:00.000Z",
+						"completedAt": "2024-01-14T00:00:00.000Z",
+						"progress": 0.95,
+						"scopeHistory": [0, 10, 20, 30],
+						"completedScopeHistory": [0, 5, 15, 28],
+						"inProgressScopeHistory": [0, 3, 2, 1],
+						"issueCountHistory": [0, 5, 10, 12],
+						"completedIssueCountHistory": [0, 2, 8, 11],
+						"team": {"id": "team-123", "key": "ENG", "name": "Engineering"}
+					},
+					{
+						"id": "cycle-2",
+						"number": 2,
+						"name": "Sprint 2",
+						"startsAt": "2024-01-15T00:00:00.000Z",
+						"endsAt": "2024-01-28T00:00:00.000Z",
+						"completedAt": "2024-01-28T00:00:00.000Z",
+						"progress": 0.88,
+						"scopeHistory": [0, 15, 25, 35],
+						"completedScopeHistory": [0, 8, 18, 31],
+						"inProgressScopeHistory": [0, 4, 3, 2],
+						"issueCountHistory": [0, 8, 12, 14],
+						"completedIssueCountHistory": [0, 4, 9, 12],
+						"team": {"id": "team-123", "key": "ENG", "name": "Engineering"}
+					},
+					{
+						"id": "cycle-3",
+						"number": 3,
+						"name": "Sprint 3",
+						"startsAt": "2024-01-29T00:00:00.000Z",
+						"endsAt": "2024-02-11T00:00:00.000Z",
+						"completedAt": "2024-02-11T00:00:00.000Z",
+						"progress": 1.0,
+						"scopeHistory": [0, 12, 22, 25],
+						"completedScopeHistory": [0, 6, 18, 25],
+						"inProgressScopeHistory": [0, 5, 3, 0],
+						"issueCountHistory": [0, 6, 10, 10],
+						"completedIssueCountHistory": [0, 3, 8, 10],
+						"team": {"id": "team-123", "key": "ENG", "name": "Engineering"}
+					}
+				],
+				"pageInfo": {"hasNextPage": false}
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -119,5 +174,6 @@ func defaultHandlers() map[string]string {
 	handlers["CreateTeam"] = mockTeamCreateResponse
 	handlers["UpdateTeam"] = mockTeamUpdateResponse
 	handlers["DeleteTeam"] = mockTeamDeleteResponse
+	handlers["ListCyclesFiltered"] = mockCyclesFilteredResponse
 	return handlers
 }

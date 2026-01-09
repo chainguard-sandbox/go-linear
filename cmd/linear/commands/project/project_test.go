@@ -95,7 +95,7 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"proj-123", "--output=json"})
+		cmd.SetArgs([]string{"Test Project", "--output=json"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -108,9 +108,29 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"proj-123", "--output=table"})
+		cmd.SetArgs([]string{"Test Project", "--output=table"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
+		}
+		output := buf.String()
+		// Validate enhanced fields are displayed
+		if !strings.Contains(output, "proj-123") {
+			t.Error("Expected ID in output")
+		}
+		if !strings.Contains(output, "68.0%") {
+			t.Error("Expected progress percentage in output")
+		}
+		if !strings.Contains(output, "onTrack") {
+			t.Error("Expected health in output")
+		}
+		if !strings.Contains(output, "Test Lead") {
+			t.Error("Expected lead name in output")
+		}
+		if !strings.Contains(output, "ENG") {
+			t.Error("Expected team key in output")
+		}
+		if !strings.Contains(output, "Test Initiative") {
+			t.Error("Expected linked initiative in output")
 		}
 	})
 }
@@ -165,7 +185,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"proj-123", "--name=Updated", "--output=json"})
+		cmd.SetArgs([]string{"Test Project", "--name=Updated", "--output=json"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -195,7 +215,7 @@ func TestRunDelete(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"proj-123", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"Test Project", "--yes", "--output=json"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

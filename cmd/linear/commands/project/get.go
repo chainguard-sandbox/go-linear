@@ -2,6 +2,7 @@ package project
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -17,10 +19,11 @@ func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	flags := &cli.OutputFlags{}
 
 	cmd := &cobra.Command{
-		Use:   "get <id>",
-		Short: "Get a single project by ID",
-		Long: `Get project by UUID. Returns 6 default fields.
+		Use:   "get <name-or-id>",
+		Short: "Get a single project by name or ID",
+		Long: `Get project by name or UUID. Returns 6 default fields.
 
+Example: go-linear project get "Cloud cost optimization" --output=json
 Example: go-linear project get <uuid> --output=json
 
 Related: project_list, project_milestone-create`,
@@ -32,7 +35,16 @@ Related: project_list, project_milestone-create`,
 			}
 			defer client.Close()
 
-			return runGet(cmd, client, args[0], flags)
+			ctx := cmd.Context()
+
+			// Resolve project name to UUID
+			res := resolver.New(client)
+			projectID, err := res.ResolveProject(ctx, args[0])
+			if err != nil {
+				return fmt.Errorf("failed to resolve project: %w", err)
+			}
+
+			return runGet(cmd, client, projectID, flags)
 		},
 	}
 
@@ -66,7 +78,68 @@ func runGet(cmd *cobra.Command, client *linear.Client, projectID string, flags *
 		}
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), project, true, fieldSelector)
 	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", project.Name)
+		// Identity
+		fmt.Fprintf(cmd.OutOrStdout(), "ID:       %s\n", project.ID)
+		fmt.Fprintf(cmd.OutOrStdout(), "Name:     %s\n", project.Name)
+
+		// Status
+		fmt.Fprintf(cmd.OutOrStdout(), "State:    %s\n", project.State)
+		fmt.Fprintf(cmd.OutOrStdout(), "Progress: %.1f%%\n", project.Progress*100)
+		if project.Health != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Health:   %s\n", *project.Health)
+		}
+
+		// Ownership
+		if project.Lead != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Lead:     %s\n", project.Lead.Name)
+		}
+		if len(project.Teams.Nodes) > 0 {
+			teamNames := make([]string, len(project.Teams.Nodes))
+			for i, team := range project.Teams.Nodes {
+				teamNames[i] = team.Key
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Teams:    %s\n", strings.Join(teamNames, ", "))
+		}
+
+		// Timeline
+		if project.TargetDate != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Target:   %s\n", *project.TargetDate)
+		}
+		if project.StartedAt != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Started:  %s\n", project.StartedAt.Format("2006-01-02"))
+		}
+		if project.CompletedAt != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Completed: %s\n", project.CompletedAt.Format("2006-01-02"))
+		}
+		if project.CanceledAt != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Canceled:  %s\n", project.CanceledAt.Format("2006-01-02"))
+		}
+
+		// Linked initiatives
+		if len(project.Initiatives.Nodes) > 0 {
+			initNames := make([]string, len(project.Initiatives.Nodes))
+			for i, init := range project.Initiatives.Nodes {
+				status := string(init.Status)
+				if status != "" {
+					initNames[i] = fmt.Sprintf("%s (%s)", init.Name, status)
+				} else {
+					initNames[i] = init.Name
+				}
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "\nInitiatives: %d linked\n", len(project.Initiatives.Nodes))
+			for _, name := range initNames {
+				fmt.Fprintf(cmd.OutOrStdout(), "  - %s\n", name)
+			}
+		}
+
+		// Additional info
+		if project.Description != "" {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nDescription:\n%s\n", project.Description)
+		}
+		if project.URL != "" {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nURL: %s\n", project.URL)
+		}
+
 		return nil
 	default:
 		return fmt.Errorf("unsupported output format: %s", flags.Output)

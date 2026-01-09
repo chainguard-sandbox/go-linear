@@ -1,0 +1,35 @@
+mutation CreateDocument($input: DocumentCreateInput!) {
+  documentCreate(input: $input) {
+    success
+    document {
+      id
+      title
+      content
+      createdAt
+      url
+      creator {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation UpdateDocument($id: String!, $input: DocumentUpdateInput!) {
+  documentUpdate(id: $id, input: $input) {
+    success
+    document {
+      id
+      title
+      content
+      updatedAt
+      url
+    }
+  }
+}
+
+mutation DeleteDocument($id: String!) {
+  documentDelete(id: $id) {
+    success
+  }
+}

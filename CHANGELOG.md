@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-09
+
+### Added
+
+**Status Updates** (8 commands):
+- `project status-update-{create,list,get,delete}`: Track project progress with health indicators
+- `initiative status-update-{create,list,get,archive}`: Track initiative progress
+- Health states: onTrack, atRisk, offTrack
+
+**Team Metrics** (1 command):
+- `team velocity`: Calculate performance from completed cycles (avg points/issues per cycle)
+
+**Command Enhancements**:
+- `initiative get`: Accepts name or UUID; displays ID, status, health, target date, owner, parent initiative, linked projects (with progress), description, URL
+- `project get`: Accepts name or UUID; displays ID, progress, health, all dates (target/started/completed/canceled), lead, team(s), linked initiatives (with status), description, URL
+- `cycle get`: Displays scope history and issue count metrics
+- `initiative delete`: Delete initiatives with confirmation
+
+Name resolution in get commands simplifies workflows.
+Enhanced displays show strategic relationships and full context for weekly updates.
+All metrics from existing Linear API fields.
+
+**Initiative-Project Linking** (2 commands):
+- `initiative add-project`: Link projects to strategic initiatives
+- `initiative remove-project`: Unlink projects from initiatives
+
+**Document Management** (3 commands):
+- `document create`: Create knowledge base documents (requires --team, --project, --initiative, or --issue)
+- `document update`: Modify document title and content
+- `document delete`: Remove documents with confirmation
+
+**Total**: 89 commands (was 74), 89 MCP tools
+
+### Changed
+- GraphQL queries updated with progress, health, and history fields for metrics
+- `initiative create/update`: Fixed field names (OwnerId→OwnerID), removed unsupported parent filtering, fixed status type casting
+- `initiative get`: Fixed description pointer handling
+- `initiative remove-project`: Uses pagination to handle workspaces with 100+ links (prevents silent failures)
+
+### Fixed
+- Initiative delete command compilation errors
+- Nil pointer checks in initiative and project commands
+- Lint issues (nil checks, prealloc)
+
 ## [1.2.1] - 2026-01-07
 
 ### Fixed

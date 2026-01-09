@@ -1,0 +1,38 @@
+query GetInitiativeUpdate($id: String!) {
+  initiativeUpdate(id: $id) {
+    id
+    body
+    health
+    createdAt
+    user {
+      id
+      name
+      email
+    }
+    url
+  }
+}
+
+query ListInitiativeUpdates($initiativeId: String!, $first: Int, $after: String) {
+  initiative(id: $initiativeId) {
+    id
+    name
+    initiativeUpdates(first: $first, after: $after) {
+      nodes {
+        id
+        body
+        health
+        createdAt
+        user {
+          id
+          name
+        }
+        url
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

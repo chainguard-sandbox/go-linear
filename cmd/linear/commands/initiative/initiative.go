@@ -18,6 +18,13 @@ func NewInitiativeCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewGetCommand(clientFactory))
 	cmd.AddCommand(NewCreateCommand(clientFactory))
 	cmd.AddCommand(NewUpdateCommand(clientFactory))
+	cmd.AddCommand(NewDeleteCommand(clientFactory))
+	cmd.AddCommand(NewStatusUpdateCreateCommand(clientFactory))
+	cmd.AddCommand(NewStatusUpdateListCommand(clientFactory))
+	cmd.AddCommand(NewStatusUpdateGetCommand(clientFactory))
+	cmd.AddCommand(NewStatusUpdateArchiveCommand(clientFactory))
+	cmd.AddCommand(NewAddProjectCommand(clientFactory))
+	cmd.AddCommand(NewRemoveProjectCommand(clientFactory))
 
 	return cmd
 }

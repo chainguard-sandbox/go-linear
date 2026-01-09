@@ -1,0 +1,38 @@
+query GetProjectUpdate($id: String!) {
+  projectUpdate(id: $id) {
+    id
+    body
+    health
+    createdAt
+    user {
+      id
+      name
+      email
+    }
+    url
+  }
+}
+
+query ListProjectUpdates($projectId: String!, $first: Int, $after: String) {
+  project(id: $projectId) {
+    id
+    name
+    projectUpdates(first: $first, after: $after) {
+      nodes {
+        id
+        body
+        health
+        createdAt
+        user {
+          id
+          name
+        }
+        url
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

@@ -8,6 +8,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -19,9 +20,9 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Long: `Create initiative. Safe operation.
 
 Required: --name
-Optional: --description
+Optional: --description, --parent, --target-date, --owner, --status
 
-Example: go-linear initiative create --name="Security Policy" --description="Improve security" --output=json
+Example: go-linear initiative create --name="Security Policy" --description="Improve security" --status=Active --output=json
 
 Related: initiative_get, initiative_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,6 +40,9 @@ Related: initiative_get, initiative_list`,
 	_ = cmd.MarkFlagRequired("name")
 
 	cmd.Flags().String("description", "", "Initiative description (markdown)")
+	cmd.Flags().String("target-date", "", "Target completion date (ISO8601 format: YYYY-MM-DD)")
+	cmd.Flags().String("owner", "", "Owner name, email, or 'me'")
+	cmd.Flags().String("status", "", "Status: planned, active, completed")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -47,6 +51,7 @@ Related: initiative_get, initiative_list`,
 
 func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
 	name, _ := cmd.Flags().GetString("name")
 	input := intgraphql.InitiativeCreateInput{
@@ -55,6 +60,26 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 
 	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
 		input.Description = &desc
+	}
+
+	// Resolve owner
+	if owner, _ := cmd.Flags().GetString("owner"); owner != "" {
+		ownerID, err := res.ResolveUser(ctx, owner)
+		if err != nil {
+			return fmt.Errorf("failed to resolve owner: %w", err)
+		}
+		input.OwnerID = &ownerID
+	}
+
+	// Set target date (ISO8601 format: YYYY-MM-DD)
+	if targetDate, _ := cmd.Flags().GetString("target-date"); targetDate != "" {
+		input.TargetDate = &targetDate
+	}
+
+	// Set status
+	if status, _ := cmd.Flags().GetString("status"); status != "" {
+		statusType := intgraphql.InitiativeStatus(status)
+		input.Status = &statusType
 	}
 
 	result, err := client.InitiativeCreate(ctx, input)

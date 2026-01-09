@@ -15,8 +15,11 @@ import (
 func NewSubscribeCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "subscribe",
-		Short: "Subscribe to notifications for a project, cycle, team, or user",
-		Long: `Subscribe to updates. Safe operation. Must specify exactly one of: --project, --cycle, --team, --user.
+		Short: "Subscribe to notifications for a project, cycle, team, initiative, or user",
+		Long: `Subscribe to updates. Safe operation. Must specify exactly one of: --project, --cycle, --team, --initiative, --user.
+
+Note: Linear API does not support subscribing to individual issues.
+To follow an issue, subscribe to its project or use project-level notifications.
 
 Example: go-linear notification subscribe --project=<uuid> --output=json
 
@@ -35,6 +38,7 @@ Related: notification_unsubscribe, notification_update`,
 	cmd.Flags().String("project", "", "Project name or UUID")
 	cmd.Flags().String("cycle", "", "Cycle UUID")
 	cmd.Flags().String("team", "", "Team name or UUID")
+	cmd.Flags().String("initiative", "", "Initiative name or UUID")
 	cmd.Flags().String("user", "", "User name, email, or UUID")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -47,6 +51,7 @@ func runSubscribe(cmd *cobra.Command, client *linear.Client) error {
 	projectID, _ := cmd.Flags().GetString("project")
 	cycleID, _ := cmd.Flags().GetString("cycle")
 	teamID, _ := cmd.Flags().GetString("team")
+	initiativeID, _ := cmd.Flags().GetString("initiative")
 	userID, _ := cmd.Flags().GetString("user")
 
 	// Validate exactly one resource type specified
@@ -64,13 +69,17 @@ func runSubscribe(cmd *cobra.Command, client *linear.Client) error {
 		resourceCount++
 		resourceType = "team"
 	}
+	if initiativeID != "" {
+		resourceCount++
+		resourceType = "initiative"
+	}
 	if userID != "" {
 		resourceCount++
 		resourceType = "user"
 	}
 
 	if resourceCount == 0 {
-		return fmt.Errorf("must specify one of: --project, --cycle, --team, or --user")
+		return fmt.Errorf("must specify one of: --project, --cycle, --team, --initiative, or --user")
 	}
 	if resourceCount > 1 {
 		return fmt.Errorf("must specify exactly one resource type, not multiple")
@@ -85,6 +94,8 @@ func runSubscribe(cmd *cobra.Command, client *linear.Client) error {
 		input.CycleID = &cycleID
 	case "team":
 		input.TeamID = &teamID
+	case "initiative":
+		input.InitiativeID = &initiativeID
 	case "user":
 		input.UserID = &userID
 	}

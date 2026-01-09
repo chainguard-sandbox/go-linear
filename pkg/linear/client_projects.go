@@ -220,3 +220,95 @@ func (c *Client) ProjectMilestoneDelete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+// ProjectUpdateCreate creates a status update for a project.
+//
+// Parameters:
+//   - input: Status update creation parameters
+//
+// Required fields:
+//   - ProjectID: UUID of the project (required)
+//   - Body: Update body in markdown format (required)
+//
+// Optional fields:
+//   - Health: Project health status (onTrack, atRisk, offTrack)
+//
+// Returns:
+//   - Created project update with ID, body, health, and dates
+//   - error: Non-nil if creation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [ProjectUpdateDelete], [ProjectUpdate], [ListProjectUpdates]
+func (c *Client) ProjectUpdateCreate(ctx context.Context, input intgraphql.ProjectUpdateCreateInput) (*intgraphql.CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate, error) {
+	resp, err := c.gqlClient.CreateProjectUpdate(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("ProjectUpdateCreate", err)
+	}
+	if !resp.ProjectUpdateCreate.Success {
+		return nil, errMutationFailed("ProjectUpdateCreate")
+	}
+	return &resp.ProjectUpdateCreate.ProjectUpdate, nil
+}
+
+// GetProjectUpdate retrieves a single project status update by ID.
+//
+// Returns:
+//   - ProjectUpdate with ID, body, health, user, dates, and URL
+//   - error: Non-nil if update not found or query fails
+//
+// Permissions Required: Read
+//
+// Related: [ListProjectUpdates], [ProjectUpdateCreate]
+func (c *Client) GetProjectUpdate(ctx context.Context, id string) (*intgraphql.GetProjectUpdate_ProjectUpdate, error) {
+	resp, err := c.gqlClient.GetProjectUpdate(ctx, id)
+	if err != nil {
+		return nil, wrapGraphQLError("project update query", err)
+	}
+	return &resp.ProjectUpdate, nil
+}
+
+// ListProjectUpdates retrieves status updates for a project.
+//
+// Parameters:
+//   - projectID: Project UUID (required)
+//   - first: Number of updates to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - Project with nested project updates list
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [ProjectUpdate], [ProjectUpdateCreate]
+func (c *Client) ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string) (*intgraphql.ListProjectUpdates_Project, error) {
+	resp, err := c.gqlClient.ListProjectUpdates(ctx, projectID, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("list project updates query", err)
+	}
+	return &resp.Project, nil
+}
+
+// ProjectUpdateDelete deletes a project status update by ID.
+//
+// Parameters:
+//   - id: Project update UUID to delete (required)
+//
+// Returns:
+//   - nil: Update successfully deleted
+//   - error: Non-nil if delete fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [ProjectUpdateCreate], [ProjectUpdate]
+func (c *Client) ProjectUpdateDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteProjectUpdate(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("ProjectUpdateDelete", err)
+	}
+	if !resp.ProjectUpdateDelete.Success {
+		return errMutationFailed("ProjectUpdateDelete")
+	}
+	return nil
+}

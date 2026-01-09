@@ -838,6 +838,7 @@ func TestCLI_InitiativeCreateUpdateDelete(t *testing.T) {
 		stdout, stderr, err := r.run("initiative", "create",
 			"--name="+initName,
 			"--description=Created by CLI integration test",
+			"--status=Active",
 			"--output=json",
 		)
 		if err != nil {
@@ -863,6 +864,7 @@ func TestCLI_InitiativeCreateUpdateDelete(t *testing.T) {
 		newName := initName + " (updated)"
 		stdout, stderr, err := r.run("initiative", "update", initID,
 			"--name="+newName,
+			"--status=Completed",
 			"--output=json",
 		)
 		if err != nil {
@@ -873,8 +875,112 @@ func TestCLI_InitiativeCreateUpdateDelete(t *testing.T) {
 		_ = stdout
 	})
 
-	// Note: Initiatives don't have a delete command in Linear API
-	// They are typically archived through the UI
+	// DELETE
+	t.Run("delete", func(t *testing.T) {
+		if initID == "" {
+			t.Skip("No initiative to delete")
+		}
+
+		stdout, stderr, err := r.run("initiative", "delete", initID, "--yes")
+		if err != nil {
+			t.Fatalf("initiative delete failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Deleted initiative: %s", initID)
+		_ = stdout
+	})
+}
+
+// --- Initiative Hierarchy Tests ---
+
+func TestCLI_InitiativeHierarchy(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	parentName := fmt.Sprintf("Parent Initiative %s", timestamp)
+	childName := fmt.Sprintf("Child Initiative %s", timestamp)
+
+	var parentID, childID string
+
+	// CREATE parent initiative
+	t.Run("create_parent", func(t *testing.T) {
+		stdout, stderr, err := r.run("initiative", "create",
+			"--name="+parentName,
+			"--description=Parent initiative for hierarchy test",
+			"--status=Active",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("parent initiative create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		parent := extractEntity(result, "initiative")
+		parentID = parent["id"].(string)
+		t.Logf("Created parent initiative: %s (%s)", parentName, parentID)
+	})
+
+	// CREATE child initiative with parent
+	t.Run("create_child_with_parent", func(t *testing.T) {
+		if parentID == "" {
+			t.Skip("No parent initiative created")
+		}
+
+		stdout, stderr, err := r.run("initiative", "create",
+			"--name="+childName,
+			"--description=Child initiative for hierarchy test",
+			"--parent="+parentID,
+			"--status=Planned",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("child initiative create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		child := extractEntity(result, "initiative")
+		childID = child["id"].(string)
+		t.Logf("Created child initiative: %s (%s) with parent %s", childName, childID, parentID)
+	})
+
+	// LIST initiatives with parent filter
+	t.Run("list_with_parent_filter", func(t *testing.T) {
+		if parentID == "" {
+			t.Skip("No parent initiative")
+		}
+
+		stdout, stderr, err := r.run("initiative", "list",
+			"--parent="+parentID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("list with parent filter failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		nodes := result["nodes"].([]any)
+
+		if len(nodes) < 1 {
+			t.Error("Expected at least one child initiative in filtered list")
+		}
+
+		t.Logf("Found %d child initiatives for parent %s", len(nodes), parentID)
+	})
+
+	// Cleanup: delete child first, then parent
+	t.Run("cleanup", func(t *testing.T) {
+		if childID != "" {
+			r.run("initiative", "delete", childID, "--yes")
+			t.Logf("Deleted child initiative: %s", childID)
+		}
+		if parentID != "" {
+			r.run("initiative", "delete", parentID, "--yes")
+			t.Logf("Deleted parent initiative: %s", parentID)
+		}
+	})
 }
 
 // --- Issue State Update Test ---
@@ -2271,6 +2377,538 @@ func TestCLI_CycleWithDescription(t *testing.T) {
 		if cycleID != "" {
 			r.run("cycle", "archive", cycleID, "--output=json")
 		}
+	})
+}
+
+// --- Project Status Update Lifecycle Test ---
+
+func TestCLI_ProjectStatusUpdateLifecycle(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("StatusUpdate Test Project %s", timestamp)
+
+	var projectID, updateID string
+
+	// CREATE project
+	t.Run("create_project", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "create",
+			"--team="+r.teamKey,
+			"--name="+projectName,
+			"--description=Project for status update testing",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		project := extractEntity(result, "project")
+		projectID = project["id"].(string)
+		t.Logf("Created project: %s (%s)", projectName, projectID)
+	})
+
+	// CREATE status update
+	t.Run("create_status_update", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project created")
+		}
+
+		stdout, stderr, err := r.run("project", "status-update-create",
+			"--project="+projectID,
+			"--body=Week 1: All systems operational",
+			"--health=onTrack",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("status update create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		update := extractEntity(result, "projectUpdate")
+		updateID = update["id"].(string)
+		t.Logf("Created status update: %s", updateID)
+
+		// Verify health
+		if health, ok := update["health"].(string); ok && health != "onTrack" {
+			t.Errorf("Expected health=onTrack, got %s", health)
+		}
+	})
+
+	// LIST status updates
+	t.Run("list_status_updates", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project")
+		}
+
+		stdout, stderr, err := r.run("project", "status-update-list",
+			"--project="+projectID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("status update list failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		// Check if we have projectUpdates nested structure
+		if projectUpdates, ok := result["projectUpdates"].(map[string]any); ok {
+			if nodes, ok := projectUpdates["nodes"].([]any); ok {
+				if len(nodes) < 1 {
+					t.Error("Expected at least one status update in list")
+				}
+				t.Logf("Found %d status updates for project", len(nodes))
+			}
+		}
+	})
+
+	// GET status update
+	t.Run("get_status_update", func(t *testing.T) {
+		if updateID == "" {
+			t.Skip("No status update created")
+		}
+
+		stdout, stderr, err := r.run("project", "status-update-get",
+			updateID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("status update get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if result["id"] != updateID {
+			t.Errorf("Expected update ID %s, got %v", updateID, result["id"])
+		}
+
+		if !strings.Contains(result["body"].(string), "Week 1") {
+			t.Error("Expected body to contain 'Week 1'")
+		}
+
+		t.Logf("Retrieved status update: %s", updateID)
+	})
+
+	// DELETE status update
+	t.Run("delete_status_update", func(t *testing.T) {
+		if updateID == "" {
+			t.Skip("No status update to delete")
+		}
+
+		stdout, stderr, err := r.run("project", "status-update-delete",
+			updateID,
+			"--yes",
+		)
+		if err != nil {
+			t.Fatalf("status update delete failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Deleted status update: %s", updateID)
+		_ = stdout
+	})
+
+	// Cleanup: delete project
+	t.Run("cleanup", func(t *testing.T) {
+		if projectID != "" {
+			r.run("project", "delete", projectID, "--yes")
+			t.Logf("Deleted project: %s", projectID)
+		}
+	})
+}
+
+// --- Initiative Status Update Lifecycle Test ---
+
+func TestCLI_InitiativeStatusUpdateLifecycle(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	initiativeName := fmt.Sprintf("StatusUpdate Test Initiative %s", timestamp)
+
+	var initiativeID, updateID string
+
+	// CREATE initiative
+	t.Run("create_initiative", func(t *testing.T) {
+		stdout, stderr, err := r.run("initiative", "create",
+			"--name="+initiativeName,
+			"--description=Initiative for status update testing",
+			"--status=Active",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("initiative create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		initiative := extractEntity(result, "initiative")
+		initiativeID = initiative["id"].(string)
+		t.Logf("Created initiative: %s (%s)", initiativeName, initiativeID)
+	})
+
+	// CREATE status update
+	t.Run("create_status_update", func(t *testing.T) {
+		if initiativeID == "" {
+			t.Skip("No initiative created")
+		}
+
+		stdout, stderr, err := r.run("initiative", "status-update-create",
+			"--initiative="+initiativeID,
+			"--body=Q1 Progress: Ahead of schedule",
+			"--health=onTrack",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("status update create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		update := extractEntity(result, "initiativeUpdate")
+		updateID = update["id"].(string)
+		t.Logf("Created status update: %s", updateID)
+
+		// Verify health
+		if health, ok := update["health"].(string); ok && health != "onTrack" {
+			t.Errorf("Expected health=onTrack, got %s", health)
+		}
+	})
+
+	// LIST status updates
+	t.Run("list_status_updates", func(t *testing.T) {
+		if initiativeID == "" {
+			t.Skip("No initiative")
+		}
+
+		stdout, stderr, err := r.run("initiative", "status-update-list",
+			"--initiative="+initiativeID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("status update list failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		// Check if we have initiativeUpdates nested structure
+		if initiativeUpdates, ok := result["initiativeUpdates"].(map[string]any); ok {
+			if nodes, ok := initiativeUpdates["nodes"].([]any); ok {
+				if len(nodes) < 1 {
+					t.Error("Expected at least one status update in list")
+				}
+				t.Logf("Found %d status updates for initiative", len(nodes))
+			}
+		}
+	})
+
+	// GET status update
+	t.Run("get_status_update", func(t *testing.T) {
+		if updateID == "" {
+			t.Skip("No status update created")
+		}
+
+		stdout, stderr, err := r.run("initiative", "status-update-get",
+			updateID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("status update get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if result["id"] != updateID {
+			t.Errorf("Expected update ID %s, got %v", updateID, result["id"])
+		}
+
+		if !strings.Contains(result["body"].(string), "Q1 Progress") {
+			t.Error("Expected body to contain 'Q1 Progress'")
+		}
+
+		t.Logf("Retrieved status update: %s", updateID)
+	})
+
+	// ARCHIVE status update
+	t.Run("archive_status_update", func(t *testing.T) {
+		if updateID == "" {
+			t.Skip("No status update to archive")
+		}
+
+		stdout, stderr, err := r.run("initiative", "status-update-archive",
+			updateID,
+			"--yes",
+		)
+		if err != nil {
+			t.Fatalf("status update archive failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Archived status update: %s", updateID)
+		_ = stdout
+	})
+
+	// Cleanup: delete initiative
+	t.Run("cleanup", func(t *testing.T) {
+		if initiativeID != "" {
+			r.run("initiative", "delete", initiativeID, "--yes")
+			t.Logf("Deleted initiative: %s", initiativeID)
+		}
+	})
+}
+
+// --- Team Velocity Test ---
+
+func TestCLI_TeamVelocity(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// Test velocity calculation with team that has existing cycles
+	t.Run("calculate_velocity", func(t *testing.T) {
+		stdout, stderr, err := r.run("team", "velocity",
+			"--team="+r.teamKey,
+			"--cycles=3",
+			"--output=json",
+		)
+
+		// Check if team has no completed cycles (valid case)
+		if strings.Contains(stdout, "No completed cycles") {
+			t.Logf("Team %s has no completed cycles (valid case)", r.teamKey)
+			return
+		}
+
+		if err != nil {
+			t.Fatalf("team velocity failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal([]byte(stdout), &result); err != nil {
+			t.Fatalf("Failed to parse velocity response: %v\nOutput: %s", err, stdout)
+		}
+
+		// Verify expected fields
+		if result["teamKey"] == nil {
+			t.Error("Expected teamKey in response")
+		}
+		if result["cyclesAnalyzed"] == nil {
+			t.Error("Expected cyclesAnalyzed in response")
+		}
+		if result["avgPointsCompleted"] == nil {
+			t.Error("Expected avgPointsCompleted in response")
+		}
+		if result["avgIssuesCompleted"] == nil {
+			t.Error("Expected avgIssuesCompleted in response")
+		}
+
+		t.Logf("Velocity for team %s: %.1f avg points/cycle, %.1f avg issues/cycle",
+			result["teamKey"],
+			result["avgPointsCompleted"],
+			result["avgIssuesCompleted"])
+	})
+
+	t.Run("table_output", func(t *testing.T) {
+		stdout, stderr, err := r.run("team", "velocity",
+			"--team="+r.teamKey,
+			"--output=table",
+		)
+		if err != nil {
+			t.Fatalf("team velocity table failed: %v\nstderr: %s", err, stderr)
+		}
+
+		// Check for either metrics or no cycles message
+		hasMetrics := strings.Contains(stdout, "Velocity Metrics")
+		hasNoCycles := strings.Contains(stdout, "No completed cycles")
+
+		if !hasMetrics && !hasNoCycles {
+			t.Errorf("Expected either velocity metrics or no cycles message, got: %s", stdout)
+		}
+
+		t.Logf("Velocity output:\n%s", stdout)
+	})
+}
+
+// --- Initiative-Project Linking Test ---
+
+func TestCLI_InitiativeProjectLinking(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	initiativeName := fmt.Sprintf("Link Test Initiative %s", timestamp)
+	projectName := fmt.Sprintf("Link Test Project %s", timestamp)
+
+	var initiativeID, projectID string
+
+	// CREATE initiative
+	t.Run("create_initiative", func(t *testing.T) {
+		stdout, stderr, err := r.run("initiative", "create",
+			"--name="+initiativeName,
+			"--description=Initiative for linking test",
+			"--status=Active",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("initiative create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		initiative := extractEntity(result, "initiative")
+		initiativeID = initiative["id"].(string)
+		t.Logf("Created initiative: %s (%s)", initiativeName, initiativeID)
+	})
+
+	// CREATE project
+	t.Run("create_project", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "create",
+			"--team="+r.teamKey,
+			"--name="+projectName,
+			"--description=Project for linking test",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		project := extractEntity(result, "project")
+		projectID = project["id"].(string)
+		t.Logf("Created project: %s (%s)", projectName, projectID)
+	})
+
+	// LINK project to initiative
+	var linkCreated bool
+	t.Run("add_project_to_initiative", func(t *testing.T) {
+		if initiativeID == "" || projectID == "" {
+			t.Skip("Missing initiative or project")
+		}
+
+		stdout, stderr, err := r.run("initiative", "add-project",
+			"--initiative="+initiativeID,
+			"--project="+projectID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("add-project failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if result["id"] == nil {
+			t.Error("Expected link ID in response")
+		}
+
+		linkCreated = true
+		t.Logf("Linked project %s to initiative %s", projectID, initiativeID)
+	})
+
+	// UNLINK project from initiative
+	t.Run("remove_project_from_initiative", func(t *testing.T) {
+		if !linkCreated {
+			t.Skip("No link created")
+		}
+
+		stdout, stderr, err := r.run("initiative", "remove-project",
+			"--initiative="+initiativeID,
+			"--project="+projectID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("remove-project failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if success, ok := result["success"].(bool); !ok || !success {
+			t.Error("Expected success=true in response")
+		}
+
+		t.Logf("Unlinked project %s from initiative %s", projectID, initiativeID)
+	})
+
+	// Cleanup
+	t.Run("cleanup", func(t *testing.T) {
+		if projectID != "" {
+			r.run("project", "delete", projectID, "--yes")
+			t.Logf("Deleted project: %s", projectID)
+		}
+		if initiativeID != "" {
+			r.run("initiative", "delete", initiativeID, "--yes")
+			t.Logf("Deleted initiative: %s", initiativeID)
+		}
+	})
+}
+
+// --- Document CRUD Test ---
+
+func TestCLI_DocumentCRUD(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	docTitle := fmt.Sprintf("Test Document %s", timestamp)
+
+	var documentID string
+
+	// CREATE document
+	t.Run("create", func(t *testing.T) {
+		stdout, stderr, err := r.run("document", "create",
+			"--title="+docTitle,
+			"--content=# Test\n\nThis is test documentation.",
+			"--team="+r.teamKey,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("document create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		documentID = result["id"].(string)
+		t.Logf("Created document: %s (%s)", docTitle, documentID)
+	})
+
+	// UPDATE document
+	t.Run("update", func(t *testing.T) {
+		if documentID == "" {
+			t.Skip("No document created")
+		}
+
+		newTitle := docTitle + " (updated)"
+		stdout, stderr, err := r.run("document", "update", documentID,
+			"--title="+newTitle,
+			"--content=# Updated\n\nUpdated content.",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("document update failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		if !strings.Contains(result["title"].(string), "updated") {
+			t.Error("Expected updated title")
+		}
+
+		t.Logf("Updated document: %s", documentID)
+	})
+
+	// DELETE document
+	t.Run("delete", func(t *testing.T) {
+		if documentID == "" {
+			t.Skip("No document to delete")
+		}
+
+		stdout, stderr, err := r.run("document", "delete", documentID, "--yes")
+		if err != nil {
+			t.Fatalf("document delete failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Deleted document: %s", documentID)
+		_ = stdout
 	})
 }
 

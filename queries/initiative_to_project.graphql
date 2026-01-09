@@ -1,0 +1,35 @@
+query ListInitiativeToProjects($first: Int, $after: String) {
+  initiativeToProjects(first: $first, after: $after) {
+    nodes {
+      id
+      initiative {
+        id
+        name
+      }
+      project {
+        id
+        name
+      }
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query GetInitiativeToProject($id: String!) {
+  initiativeToProject(id: $id) {
+    id
+    initiative {
+      id
+      name
+    }
+    project {
+      id
+      name
+    }
+    createdAt
+  }
+}
