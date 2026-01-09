@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/internal/testutil"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -44,11 +45,56 @@ func testFactory(t *testing.T, serverURL string) cli.ClientFactory {
 const (
 	mockDocumentsResponse = `{"data": {"documents": {"nodes": [{"id": "doc-123", "title": "Design Doc", "content": "Content here", "createdAt": "2024-01-01T00:00:00.000Z"}], "pageInfo": {"hasNextPage": false}}}}`
 	mockDocumentResponse  = `{"data": {"document": {"id": "doc-123", "title": "Design Doc", "content": "Content here", "createdAt": "2024-01-01T00:00:00.000Z"}}}`
+
+	mockDocumentCreateResponse = `{
+		"data": {
+			"documentCreate": {
+				"success": true,
+				"document": {
+					"id": "doc-new",
+					"title": "New Document",
+					"content": "New content",
+					"url": "https://linear.app/test/doc/doc-new",
+					"createdAt": "2024-01-08T00:00:00.000Z",
+					"creator": {
+						"id": "user-123",
+						"name": "Test User"
+					}
+				}
+			}
+		}
+	}`
+
+	mockDocumentUpdateResponse = `{
+		"data": {
+			"documentUpdate": {
+				"success": true,
+				"document": {
+					"id": "doc-123",
+					"title": "Updated Document",
+					"content": "Updated content",
+					"url": "https://linear.app/test/doc/doc-123",
+					"updatedAt": "2024-01-08T00:00:00.000Z"
+				}
+			}
+		}
+	}`
+
+	mockDocumentDeleteResponse = `{
+		"data": {
+			"documentDelete": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
-	return map[string]string{
-		"ListDocuments": mockDocumentsResponse,
-		"GetDocument":   mockDocumentResponse,
-	}
+	handlers := testutil.DefaultHandlers()
+	handlers["ListDocuments"] = mockDocumentsResponse
+	handlers["GetDocument"] = mockDocumentResponse
+	handlers["CreateDocument"] = mockDocumentCreateResponse
+	handlers["UpdateDocument"] = mockDocumentUpdateResponse
+	handlers["DeleteDocument"] = mockDocumentDeleteResponse
+	return handlers
 }
