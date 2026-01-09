@@ -66,9 +66,10 @@ func runRemoveProject(cmd *cobra.Command, client *linear.Client) error {
 
 	// Find the link by searching through all links with pagination
 	// Note: Linear API doesn't support filtering initiativeToProjects, so we must search
+	const searchBatchSize = 100 // Links to fetch per page
 	var linkID string
 	var linkFound bool
-	limit := int64(100)
+	limit := int64(searchBatchSize)
 	cursor := (*string)(nil)
 
 	for {
