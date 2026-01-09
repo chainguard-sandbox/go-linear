@@ -80,6 +80,51 @@ go-linear user get me
 go-linear issue relate ENG-123 ENG-124 --type=blocks
 ```
 
+### Status Updates & Metrics
+```bash
+# Create project status update
+go-linear project status-update-create --project="Q1 Platform" --body="Week 1: On track" --health=onTrack
+
+# List project updates
+go-linear project status-update-list --project="Q1 Platform"
+
+# Create initiative status update
+go-linear initiative status-update-create --initiative="Shrink Wolfi" --body="Q1 progress update" --health=atRisk
+
+# Calculate team velocity
+go-linear team velocity --team=ENG --cycles=3
+
+# View enhanced project metrics
+go-linear project get <uuid>  # Shows: progress %, health, dates, lead, teams, linked initiatives
+
+# View enhanced initiative metrics
+go-linear initiative get <uuid>  # Shows: status, health, owner, parent, linked projects
+```
+
+### Initiative-Project Linking
+```bash
+# Link project to initiative
+go-linear initiative add-project --initiative="Shrink Wolfi" --project="Cloud cost optimization"
+
+# Unlink project from initiative
+go-linear initiative remove-project --initiative="Shrink Wolfi" --project="Cloud cost optimization"
+```
+
+### Documents
+```bash
+# Create team document
+go-linear document create --title="API Guide" --team=ENG --content="# Documentation..."
+
+# Create project document
+go-linear document create --title="Architecture" --project="Q1 Platform" --content="## Design..."
+
+# Update document
+go-linear document update <uuid> --title="Updated Guide" --content="New content"
+
+# Delete document
+go-linear document delete <uuid>
+```
+
 ## All Available Commands
 
 **Issues (8)**:
@@ -97,19 +142,37 @@ go-linear issue relate ENG-123 ENG-124 --type=blocks
 - `go-linear user get <name|email>` - Get user details
 - `go-linear user completed` - Get completed work ⭐
 
-**Teams (2)**:
+**Teams (3)**:
 - `go-linear team list` - List teams
 - `go-linear team members --team=X` - List members
+- `go-linear team velocity --team=X` - Calculate performance metrics ⭐
 
-**Projects (4)**:
+**Projects (8)**:
 - `go-linear project list` - List projects
-- `go-linear project get <id>` - Get project
+- `go-linear project get <id>` - Get project with metrics
 - `go-linear project create` - Create project
 - `go-linear project update <id>` - Update project
+- `go-linear project status-update-create` - Create status update ⭐
+- `go-linear project status-update-list` - List updates ⭐
+- `go-linear project status-update-get <id>` - Get update ⭐
+- `go-linear project status-update-delete <id>` - Delete update ⭐
+
+**Initiatives (11)**:
+- `go-linear initiative list` - List initiatives
+- `go-linear initiative get <id>` - Get initiative with metrics
+- `go-linear initiative create` - Create initiative
+- `go-linear initiative update <id>` - Update initiative
+- `go-linear initiative delete <id>` - Delete initiative ⚠️
+- `go-linear initiative status-update-create` - Create status update ⭐
+- `go-linear initiative status-update-list` - List updates ⭐
+- `go-linear initiative status-update-get <id>` - Get update ⭐
+- `go-linear initiative status-update-archive <id>` - Archive update ⭐
+- `go-linear initiative add-project` - Link project to initiative ⭐
+- `go-linear initiative remove-project` - Unlink project ⭐
 
 **Cycles (2)**:
 - `go-linear cycle list` - List cycles/sprints
-- `go-linear cycle get <id>` - Get cycle
+- `go-linear cycle get <id>` - Get cycle with metrics
 
 **Comments (4)**:
 - `go-linear comment list` - List comments
@@ -120,6 +183,13 @@ go-linear issue relate ENG-123 ENG-124 --type=blocks
 **Labels (2)**:
 - `go-linear label list` - List labels
 - `go-linear label create` - Create label
+
+**Documents (5)**:
+- `go-linear document list` - List documents
+- `go-linear document get <id>` - Get document
+- `go-linear document create` - Create document ⭐
+- `go-linear document update <id>` - Update document ⭐
+- `go-linear document delete <id>` - Delete document ⚠️
 
 **States & Info (2)**:
 - `go-linear state list` - List workflow states
@@ -164,7 +234,7 @@ go-linear issue list \
 
 ## MCP Mode (For AI Agents)
 
-The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into 72 MCP tools.
+The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into 89 MCP tools.
 
 **Setup for Claude Code:**
 

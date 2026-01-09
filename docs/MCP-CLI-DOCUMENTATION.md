@@ -2,7 +2,7 @@
 
 ## Core Insight
 
-MCP servers load ALL tool descriptions once per session and keep them in the AI agent's context permanently. With 72 tools, verbose documentation consumes thousands of tokens that could be used for actual conversation.
+MCP servers load ALL tool descriptions once per session and keep them in the AI agent's context permanently. With 89 tools, verbose documentation consumes thousands of tokens that could be used for actual conversation.
 
 **Our approach:** System-wide coherence and minimal error output.
 
