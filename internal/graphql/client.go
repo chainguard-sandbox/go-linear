@@ -23,9 +23,14 @@ type LinearGraphQLClient interface {
 	GetDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetDocument, error)
 	ListDocuments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListDocuments, error)
 	ListDocumentsFiltered(ctx context.Context, first *int64, after *string, filter *DocumentFilter, interceptors ...clientv2.RequestInterceptor) (*ListDocumentsFiltered, error)
+	ListInitiativeToProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiativeToProjects, error)
+	GetInitiativeToProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiativeToProject, error)
+	GetInitiativeUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiativeUpdate, error)
+	ListInitiativeUpdates(ctx context.Context, initiativeID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiativeUpdates, error)
 	GetInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiative, error)
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	ListInitiativesFiltered(ctx context.Context, first *int64, after *string, filter *InitiativeFilter, interceptors ...clientv2.RequestInterceptor) (*ListInitiativesFiltered, error)
+	ListSubInitiatives(ctx context.Context, id string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListSubInitiatives, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
@@ -43,10 +48,18 @@ type LinearGraphQLClient interface {
 	CreateCycle(ctx context.Context, input CycleCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCycle, error)
 	UpdateCycle(ctx context.Context, id string, input CycleUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCycle, error)
 	ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error)
+	CreateDocument(ctx context.Context, input DocumentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateDocument, error)
+	UpdateDocument(ctx context.Context, id string, input DocumentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateDocument, error)
+	DeleteDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteDocument, error)
 	FavoriteCreate(ctx context.Context, input FavoriteCreateInput, interceptors ...clientv2.RequestInterceptor) (*FavoriteCreate, error)
 	FavoriteDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*FavoriteDelete, error)
+	CreateInitiativeToProject(ctx context.Context, input InitiativeToProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiativeToProject, error)
+	DeleteInitiativeToProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteInitiativeToProject, error)
+	CreateInitiativeUpdate(ctx context.Context, input InitiativeUpdateCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiativeUpdate, error)
+	ArchiveInitiativeUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveInitiativeUpdate, error)
 	CreateInitiative(ctx context.Context, input InitiativeCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiative, error)
 	UpdateInitiative(ctx context.Context, id string, input InitiativeUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateInitiative, error)
+	DeleteInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteInitiative, error)
 	IssueAddLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueAddLabel, error)
 	IssueRemoveLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueRemoveLabel, error)
 	IssueRelationCreate(ctx context.Context, input IssueRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationCreate, error)
@@ -65,6 +78,8 @@ type LinearGraphQLClient interface {
 	ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error)
 	ProjectMilestoneUpdate(ctx context.Context, id string, input ProjectMilestoneUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneUpdate, error)
 	ProjectMilestoneDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneDelete, error)
+	CreateProjectUpdate(ctx context.Context, input ProjectUpdateCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProjectUpdate, error)
+	DeleteProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProjectUpdate, error)
 	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
 	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
@@ -74,6 +89,8 @@ type LinearGraphQLClient interface {
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
+	GetProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectUpdate, error)
+	ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectUpdates, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
 	ListProjectsFiltered(ctx context.Context, first *int64, after *string, filter *ProjectFilter, interceptors ...clientv2.RequestInterceptor) (*ListProjectsFiltered, error)
@@ -776,17 +793,22 @@ func (t *GetCycle_Cycle_Team) GetName() string {
 }
 
 type GetCycle_Cycle struct {
-	CompletedAt *time.Time          "json:\"completedAt,omitempty\" graphql:\"completedAt\""
-	CreatedAt   time.Time           "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string             "json:\"description,omitempty\" graphql:\"description\""
-	EndsAt      time.Time           "json:\"endsAt\" graphql:\"endsAt\""
-	ID          string              "json:\"id\" graphql:\"id\""
-	Name        *string             "json:\"name,omitempty\" graphql:\"name\""
-	Number      float64             "json:\"number\" graphql:\"number\""
-	Progress    float64             "json:\"progress\" graphql:\"progress\""
-	StartsAt    time.Time           "json:\"startsAt\" graphql:\"startsAt\""
-	Team        GetCycle_Cycle_Team "json:\"team\" graphql:\"team\""
-	UpdatedAt   time.Time           "json:\"updatedAt\" graphql:\"updatedAt\""
+	CompletedAt                *time.Time          "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CompletedIssueCountHistory []float64           "json:\"completedIssueCountHistory\" graphql:\"completedIssueCountHistory\""
+	CompletedScopeHistory      []float64           "json:\"completedScopeHistory\" graphql:\"completedScopeHistory\""
+	CreatedAt                  time.Time           "json:\"createdAt\" graphql:\"createdAt\""
+	Description                *string             "json:\"description,omitempty\" graphql:\"description\""
+	EndsAt                     time.Time           "json:\"endsAt\" graphql:\"endsAt\""
+	ID                         string              "json:\"id\" graphql:\"id\""
+	InProgressScopeHistory     []float64           "json:\"inProgressScopeHistory\" graphql:\"inProgressScopeHistory\""
+	IssueCountHistory          []float64           "json:\"issueCountHistory\" graphql:\"issueCountHistory\""
+	Name                       *string             "json:\"name,omitempty\" graphql:\"name\""
+	Number                     float64             "json:\"number\" graphql:\"number\""
+	Progress                   float64             "json:\"progress\" graphql:\"progress\""
+	ScopeHistory               []float64           "json:\"scopeHistory\" graphql:\"scopeHistory\""
+	StartsAt                   time.Time           "json:\"startsAt\" graphql:\"startsAt\""
+	Team                       GetCycle_Cycle_Team "json:\"team\" graphql:\"team\""
+	UpdatedAt                  time.Time           "json:\"updatedAt\" graphql:\"updatedAt\""
 }
 
 func (t *GetCycle_Cycle) GetCompletedAt() *time.Time {
@@ -794,6 +816,18 @@ func (t *GetCycle_Cycle) GetCompletedAt() *time.Time {
 		t = &GetCycle_Cycle{}
 	}
 	return t.CompletedAt
+}
+func (t *GetCycle_Cycle) GetCompletedIssueCountHistory() []float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.CompletedIssueCountHistory
+}
+func (t *GetCycle_Cycle) GetCompletedScopeHistory() []float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.CompletedScopeHistory
 }
 func (t *GetCycle_Cycle) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -819,6 +853,18 @@ func (t *GetCycle_Cycle) GetID() string {
 	}
 	return t.ID
 }
+func (t *GetCycle_Cycle) GetInProgressScopeHistory() []float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.InProgressScopeHistory
+}
+func (t *GetCycle_Cycle) GetIssueCountHistory() []float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.IssueCountHistory
+}
 func (t *GetCycle_Cycle) GetName() *string {
 	if t == nil {
 		t = &GetCycle_Cycle{}
@@ -836,6 +882,12 @@ func (t *GetCycle_Cycle) GetProgress() float64 {
 		t = &GetCycle_Cycle{}
 	}
 	return t.Progress
+}
+func (t *GetCycle_Cycle) GetScopeHistory() []float64 {
+	if t == nil {
+		t = &GetCycle_Cycle{}
+	}
+	return t.ScopeHistory
 }
 func (t *GetCycle_Cycle) GetStartsAt() *time.Time {
 	if t == nil {
@@ -971,17 +1023,22 @@ func (t *ListCyclesFiltered_Cycles_Nodes_Team) GetName() string {
 }
 
 type ListCyclesFiltered_Cycles_Nodes struct {
-	CompletedAt *time.Time                           "json:\"completedAt,omitempty\" graphql:\"completedAt\""
-	CreatedAt   time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string                              "json:\"description,omitempty\" graphql:\"description\""
-	EndsAt      time.Time                            "json:\"endsAt\" graphql:\"endsAt\""
-	ID          string                               "json:\"id\" graphql:\"id\""
-	Name        *string                              "json:\"name,omitempty\" graphql:\"name\""
-	Number      float64                              "json:\"number\" graphql:\"number\""
-	Progress    float64                              "json:\"progress\" graphql:\"progress\""
-	StartsAt    time.Time                            "json:\"startsAt\" graphql:\"startsAt\""
-	Team        ListCyclesFiltered_Cycles_Nodes_Team "json:\"team\" graphql:\"team\""
-	UpdatedAt   time.Time                            "json:\"updatedAt\" graphql:\"updatedAt\""
+	CompletedAt                *time.Time                           "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CompletedIssueCountHistory []float64                            "json:\"completedIssueCountHistory\" graphql:\"completedIssueCountHistory\""
+	CompletedScopeHistory      []float64                            "json:\"completedScopeHistory\" graphql:\"completedScopeHistory\""
+	CreatedAt                  time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
+	Description                *string                              "json:\"description,omitempty\" graphql:\"description\""
+	EndsAt                     time.Time                            "json:\"endsAt\" graphql:\"endsAt\""
+	ID                         string                               "json:\"id\" graphql:\"id\""
+	InProgressScopeHistory     []float64                            "json:\"inProgressScopeHistory\" graphql:\"inProgressScopeHistory\""
+	IssueCountHistory          []float64                            "json:\"issueCountHistory\" graphql:\"issueCountHistory\""
+	Name                       *string                              "json:\"name,omitempty\" graphql:\"name\""
+	Number                     float64                              "json:\"number\" graphql:\"number\""
+	Progress                   float64                              "json:\"progress\" graphql:\"progress\""
+	ScopeHistory               []float64                            "json:\"scopeHistory\" graphql:\"scopeHistory\""
+	StartsAt                   time.Time                            "json:\"startsAt\" graphql:\"startsAt\""
+	Team                       ListCyclesFiltered_Cycles_Nodes_Team "json:\"team\" graphql:\"team\""
+	UpdatedAt                  time.Time                            "json:\"updatedAt\" graphql:\"updatedAt\""
 }
 
 func (t *ListCyclesFiltered_Cycles_Nodes) GetCompletedAt() *time.Time {
@@ -989,6 +1046,18 @@ func (t *ListCyclesFiltered_Cycles_Nodes) GetCompletedAt() *time.Time {
 		t = &ListCyclesFiltered_Cycles_Nodes{}
 	}
 	return t.CompletedAt
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetCompletedIssueCountHistory() []float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.CompletedIssueCountHistory
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetCompletedScopeHistory() []float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.CompletedScopeHistory
 }
 func (t *ListCyclesFiltered_Cycles_Nodes) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -1014,6 +1083,18 @@ func (t *ListCyclesFiltered_Cycles_Nodes) GetID() string {
 	}
 	return t.ID
 }
+func (t *ListCyclesFiltered_Cycles_Nodes) GetInProgressScopeHistory() []float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.InProgressScopeHistory
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetIssueCountHistory() []float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.IssueCountHistory
+}
 func (t *ListCyclesFiltered_Cycles_Nodes) GetName() *string {
 	if t == nil {
 		t = &ListCyclesFiltered_Cycles_Nodes{}
@@ -1031,6 +1112,12 @@ func (t *ListCyclesFiltered_Cycles_Nodes) GetProgress() float64 {
 		t = &ListCyclesFiltered_Cycles_Nodes{}
 	}
 	return t.Progress
+}
+func (t *ListCyclesFiltered_Cycles_Nodes) GetScopeHistory() []float64 {
+	if t == nil {
+		t = &ListCyclesFiltered_Cycles_Nodes{}
+	}
+	return t.ScopeHistory
 }
 func (t *ListCyclesFiltered_Cycles_Nodes) GetStartsAt() *time.Time {
 	if t == nil {
@@ -1339,16 +1426,477 @@ func (t *ListDocumentsFiltered_Documents) GetPageInfo() *ListDocumentsFiltered_D
 	return &t.PageInfo
 }
 
+type ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative) GetID() string {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative{}
+	}
+	return t.ID
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative) GetName() string {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative{}
+	}
+	return t.Name
+}
+
+type ListInitiativeToProjects_InitiativeToProjects_Nodes_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes_Project) GetID() string {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes_Project{}
+	}
+	return t.ID
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes_Project) GetName() string {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes_Project{}
+	}
+	return t.Name
+}
+
+type ListInitiativeToProjects_InitiativeToProjects_Nodes struct {
+	CreatedAt  time.Time                                                      "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string                                                         "json:\"id\" graphql:\"id\""
+	Initiative ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative "json:\"initiative\" graphql:\"initiative\""
+	Project    ListInitiativeToProjects_InitiativeToProjects_Nodes_Project    "json:\"project\" graphql:\"project\""
+}
+
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes) GetID() string {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes) GetInitiative() *ListInitiativeToProjects_InitiativeToProjects_Nodes_Initiative {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes{}
+	}
+	return &t.Initiative
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects_Nodes) GetProject() *ListInitiativeToProjects_InitiativeToProjects_Nodes_Project {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_Nodes{}
+	}
+	return &t.Project
+}
+
+type ListInitiativeToProjects_InitiativeToProjects_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListInitiativeToProjects_InitiativeToProjects_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListInitiativeToProjects_InitiativeToProjects struct {
+	Nodes    []*ListInitiativeToProjects_InitiativeToProjects_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListInitiativeToProjects_InitiativeToProjects_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListInitiativeToProjects_InitiativeToProjects) GetNodes() []*ListInitiativeToProjects_InitiativeToProjects_Nodes {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects{}
+	}
+	return t.Nodes
+}
+func (t *ListInitiativeToProjects_InitiativeToProjects) GetPageInfo() *ListInitiativeToProjects_InitiativeToProjects_PageInfo {
+	if t == nil {
+		t = &ListInitiativeToProjects_InitiativeToProjects{}
+	}
+	return &t.PageInfo
+}
+
+type GetInitiativeToProject_InitiativeToProject_Initiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetInitiativeToProject_InitiativeToProject_Initiative) GetID() string {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject_Initiative{}
+	}
+	return t.ID
+}
+func (t *GetInitiativeToProject_InitiativeToProject_Initiative) GetName() string {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject_Initiative{}
+	}
+	return t.Name
+}
+
+type GetInitiativeToProject_InitiativeToProject_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetInitiativeToProject_InitiativeToProject_Project) GetID() string {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject_Project{}
+	}
+	return t.ID
+}
+func (t *GetInitiativeToProject_InitiativeToProject_Project) GetName() string {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject_Project{}
+	}
+	return t.Name
+}
+
+type GetInitiativeToProject_InitiativeToProject struct {
+	CreatedAt  time.Time                                             "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string                                                "json:\"id\" graphql:\"id\""
+	Initiative GetInitiativeToProject_InitiativeToProject_Initiative "json:\"initiative\" graphql:\"initiative\""
+	Project    GetInitiativeToProject_InitiativeToProject_Project    "json:\"project\" graphql:\"project\""
+}
+
+func (t *GetInitiativeToProject_InitiativeToProject) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetInitiativeToProject_InitiativeToProject) GetID() string {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject{}
+	}
+	return t.ID
+}
+func (t *GetInitiativeToProject_InitiativeToProject) GetInitiative() *GetInitiativeToProject_InitiativeToProject_Initiative {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject{}
+	}
+	return &t.Initiative
+}
+func (t *GetInitiativeToProject_InitiativeToProject) GetProject() *GetInitiativeToProject_InitiativeToProject_Project {
+	if t == nil {
+		t = &GetInitiativeToProject_InitiativeToProject{}
+	}
+	return &t.Project
+}
+
+type GetInitiativeUpdate_InitiativeUpdate_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetInitiativeUpdate_InitiativeUpdate_User) GetEmail() string {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate_User{}
+	}
+	return t.Email
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate_User) GetID() string {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate_User{}
+	}
+	return t.ID
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate_User) GetName() string {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate_User{}
+	}
+	return t.Name
+}
+
+type GetInitiativeUpdate_InitiativeUpdate struct {
+	Body      string                                    "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Health    InitiativeUpdateHealthType                "json:\"health\" graphql:\"health\""
+	ID        string                                    "json:\"id\" graphql:\"id\""
+	URL       string                                    "json:\"url\" graphql:\"url\""
+	User      GetInitiativeUpdate_InitiativeUpdate_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *GetInitiativeUpdate_InitiativeUpdate) GetBody() string {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate{}
+	}
+	return t.Body
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate{}
+	}
+	return &t.Health
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate) GetID() string {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate{}
+	}
+	return t.ID
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate) GetURL() string {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate{}
+	}
+	return t.URL
+}
+func (t *GetInitiativeUpdate_InitiativeUpdate) GetUser() *GetInitiativeUpdate_InitiativeUpdate_User {
+	if t == nil {
+		t = &GetInitiativeUpdate_InitiativeUpdate{}
+	}
+	return &t.User
+}
+
+type ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User{}
+	}
+	return t.Name
+}
+
+type ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes struct {
+	Body      string                                                        "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                                                     "json:\"createdAt\" graphql:\"createdAt\""
+	Health    InitiativeUpdateHealthType                                    "json:\"health\" graphql:\"health\""
+	ID        string                                                        "json:\"id\" graphql:\"id\""
+	URL       string                                                        "json:\"url\" graphql:\"url\""
+	User      ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes) GetBody() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes{}
+	}
+	return t.Body
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes{}
+	}
+	return &t.Health
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes) GetID() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes{}
+	}
+	return t.URL
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes) GetUser() *ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes_User {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes{}
+	}
+	return &t.User
+}
+
+type ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListInitiativeUpdates_Initiative_InitiativeUpdates struct {
+	Nodes    []*ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates) GetNodes() []*ListInitiativeUpdates_Initiative_InitiativeUpdates_Nodes {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates{}
+	}
+	return t.Nodes
+}
+func (t *ListInitiativeUpdates_Initiative_InitiativeUpdates) GetPageInfo() *ListInitiativeUpdates_Initiative_InitiativeUpdates_PageInfo {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative_InitiativeUpdates{}
+	}
+	return &t.PageInfo
+}
+
+type ListInitiativeUpdates_Initiative struct {
+	ID                string                                             "json:\"id\" graphql:\"id\""
+	InitiativeUpdates ListInitiativeUpdates_Initiative_InitiativeUpdates "json:\"initiativeUpdates\" graphql:\"initiativeUpdates\""
+	Name              string                                             "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiativeUpdates_Initiative) GetID() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative{}
+	}
+	return t.ID
+}
+func (t *ListInitiativeUpdates_Initiative) GetInitiativeUpdates() *ListInitiativeUpdates_Initiative_InitiativeUpdates {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative{}
+	}
+	return &t.InitiativeUpdates
+}
+func (t *ListInitiativeUpdates_Initiative) GetName() string {
+	if t == nil {
+		t = &ListInitiativeUpdates_Initiative{}
+	}
+	return t.Name
+}
+
+type GetInitiative_Initiative_ParentInitiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetInitiative_Initiative_ParentInitiative) GetID() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_ParentInitiative{}
+	}
+	return t.ID
+}
+func (t *GetInitiative_Initiative_ParentInitiative) GetName() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_ParentInitiative{}
+	}
+	return t.Name
+}
+
+type GetInitiative_Initiative_Owner struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetInitiative_Initiative_Owner) GetEmail() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_Owner{}
+	}
+	return t.Email
+}
+func (t *GetInitiative_Initiative_Owner) GetID() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_Owner{}
+	}
+	return t.ID
+}
+func (t *GetInitiative_Initiative_Owner) GetName() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_Owner{}
+	}
+	return t.Name
+}
+
+type GetInitiative_Initiative_Projects_Nodes struct {
+	ID       string  "json:\"id\" graphql:\"id\""
+	Name     string  "json:\"name\" graphql:\"name\""
+	Progress float64 "json:\"progress\" graphql:\"progress\""
+	State    string  "json:\"state\" graphql:\"state\""
+}
+
+func (t *GetInitiative_Initiative_Projects_Nodes) GetID() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_Projects_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetInitiative_Initiative_Projects_Nodes) GetName() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_Projects_Nodes{}
+	}
+	return t.Name
+}
+func (t *GetInitiative_Initiative_Projects_Nodes) GetProgress() float64 {
+	if t == nil {
+		t = &GetInitiative_Initiative_Projects_Nodes{}
+	}
+	return t.Progress
+}
+func (t *GetInitiative_Initiative_Projects_Nodes) GetState() string {
+	if t == nil {
+		t = &GetInitiative_Initiative_Projects_Nodes{}
+	}
+	return t.State
+}
+
+type GetInitiative_Initiative_Projects struct {
+	Nodes []*GetInitiative_Initiative_Projects_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetInitiative_Initiative_Projects) GetNodes() []*GetInitiative_Initiative_Projects_Nodes {
+	if t == nil {
+		t = &GetInitiative_Initiative_Projects{}
+	}
+	return t.Nodes
+}
+
 type GetInitiative_Initiative struct {
-	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string   "json:\"description,omitempty\" graphql:\"description\""
-	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	SortOrder   float64   "json:\"sortOrder\" graphql:\"sortOrder\""
-	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
-	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	Color            *string                                    "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt        time.Time                                  "json:\"createdAt\" graphql:\"createdAt\""
+	Description      *string                                    "json:\"description,omitempty\" graphql:\"description\""
+	Health           *InitiativeUpdateHealthType                "json:\"health,omitempty\" graphql:\"health\""
+	HealthUpdatedAt  *time.Time                                 "json:\"healthUpdatedAt,omitempty\" graphql:\"healthUpdatedAt\""
+	Icon             *string                                    "json:\"icon,omitempty\" graphql:\"icon\""
+	ID               string                                     "json:\"id\" graphql:\"id\""
+	Name             string                                     "json:\"name\" graphql:\"name\""
+	Owner            *GetInitiative_Initiative_Owner            "json:\"owner,omitempty\" graphql:\"owner\""
+	ParentInitiative *GetInitiative_Initiative_ParentInitiative "json:\"parentInitiative,omitempty\" graphql:\"parentInitiative\""
+	Projects         GetInitiative_Initiative_Projects          "json:\"projects\" graphql:\"projects\""
+	SortOrder        float64                                    "json:\"sortOrder\" graphql:\"sortOrder\""
+	Status           InitiativeStatus                           "json:\"status\" graphql:\"status\""
+	TargetDate       *string                                    "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt        time.Time                                  "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL              string                                     "json:\"url\" graphql:\"url\""
 }
 
 func (t *GetInitiative_Initiative) GetColor() *string {
@@ -1369,6 +1917,18 @@ func (t *GetInitiative_Initiative) GetDescription() *string {
 	}
 	return t.Description
 }
+func (t *GetInitiative_Initiative) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.Health
+}
+func (t *GetInitiative_Initiative) GetHealthUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.HealthUpdatedAt
+}
 func (t *GetInitiative_Initiative) GetIcon() *string {
 	if t == nil {
 		t = &GetInitiative_Initiative{}
@@ -1387,11 +1947,35 @@ func (t *GetInitiative_Initiative) GetName() string {
 	}
 	return t.Name
 }
+func (t *GetInitiative_Initiative) GetOwner() *GetInitiative_Initiative_Owner {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.Owner
+}
+func (t *GetInitiative_Initiative) GetParentInitiative() *GetInitiative_Initiative_ParentInitiative {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.ParentInitiative
+}
+func (t *GetInitiative_Initiative) GetProjects() *GetInitiative_Initiative_Projects {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return &t.Projects
+}
 func (t *GetInitiative_Initiative) GetSortOrder() float64 {
 	if t == nil {
 		t = &GetInitiative_Initiative{}
 	}
 	return t.SortOrder
+}
+func (t *GetInitiative_Initiative) GetStatus() *InitiativeStatus {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return &t.Status
 }
 func (t *GetInitiative_Initiative) GetTargetDate() *string {
 	if t == nil {
@@ -1405,16 +1989,62 @@ func (t *GetInitiative_Initiative) GetUpdatedAt() *time.Time {
 	}
 	return &t.UpdatedAt
 }
+func (t *GetInitiative_Initiative) GetURL() string {
+	if t == nil {
+		t = &GetInitiative_Initiative{}
+	}
+	return t.URL
+}
+
+type ListInitiatives_Initiatives_Nodes_ParentInitiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiatives_Initiatives_Nodes_ParentInitiative) GetID() string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes_ParentInitiative{}
+	}
+	return t.ID
+}
+func (t *ListInitiatives_Initiatives_Nodes_ParentInitiative) GetName() string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes_ParentInitiative{}
+	}
+	return t.Name
+}
+
+type ListInitiatives_Initiatives_Nodes_Owner struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiatives_Initiatives_Nodes_Owner) GetID() string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes_Owner{}
+	}
+	return t.ID
+}
+func (t *ListInitiatives_Initiatives_Nodes_Owner) GetName() string {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes_Owner{}
+	}
+	return t.Name
+}
 
 type ListInitiatives_Initiatives_Nodes struct {
-	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string   "json:\"description,omitempty\" graphql:\"description\""
-	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	SortOrder   float64   "json:\"sortOrder\" graphql:\"sortOrder\""
-	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	Color            *string                                             "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt        time.Time                                           "json:\"createdAt\" graphql:\"createdAt\""
+	Description      *string                                             "json:\"description,omitempty\" graphql:\"description\""
+	Health           *InitiativeUpdateHealthType                         "json:\"health,omitempty\" graphql:\"health\""
+	Icon             *string                                             "json:\"icon,omitempty\" graphql:\"icon\""
+	ID               string                                              "json:\"id\" graphql:\"id\""
+	Name             string                                              "json:\"name\" graphql:\"name\""
+	Owner            *ListInitiatives_Initiatives_Nodes_Owner            "json:\"owner,omitempty\" graphql:\"owner\""
+	ParentInitiative *ListInitiatives_Initiatives_Nodes_ParentInitiative "json:\"parentInitiative,omitempty\" graphql:\"parentInitiative\""
+	SortOrder        float64                                             "json:\"sortOrder\" graphql:\"sortOrder\""
+	Status           InitiativeStatus                                    "json:\"status\" graphql:\"status\""
+	TargetDate       *string                                             "json:\"targetDate,omitempty\" graphql:\"targetDate\""
 }
 
 func (t *ListInitiatives_Initiatives_Nodes) GetColor() *string {
@@ -1435,6 +2065,12 @@ func (t *ListInitiatives_Initiatives_Nodes) GetDescription() *string {
 	}
 	return t.Description
 }
+func (t *ListInitiatives_Initiatives_Nodes) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.Health
+}
 func (t *ListInitiatives_Initiatives_Nodes) GetIcon() *string {
 	if t == nil {
 		t = &ListInitiatives_Initiatives_Nodes{}
@@ -1453,11 +2089,29 @@ func (t *ListInitiatives_Initiatives_Nodes) GetName() string {
 	}
 	return t.Name
 }
+func (t *ListInitiatives_Initiatives_Nodes) GetOwner() *ListInitiatives_Initiatives_Nodes_Owner {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.Owner
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetParentInitiative() *ListInitiatives_Initiatives_Nodes_ParentInitiative {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return t.ParentInitiative
+}
 func (t *ListInitiatives_Initiatives_Nodes) GetSortOrder() float64 {
 	if t == nil {
 		t = &ListInitiatives_Initiatives_Nodes{}
 	}
 	return t.SortOrder
+}
+func (t *ListInitiatives_Initiatives_Nodes) GetStatus() *InitiativeStatus {
+	if t == nil {
+		t = &ListInitiatives_Initiatives_Nodes{}
+	}
+	return &t.Status
 }
 func (t *ListInitiatives_Initiatives_Nodes) GetTargetDate() *string {
 	if t == nil {
@@ -1502,15 +2156,55 @@ func (t *ListInitiatives_Initiatives) GetPageInfo() *ListInitiatives_Initiatives
 	return &t.PageInfo
 }
 
+type ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative) GetID() string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative{}
+	}
+	return t.ID
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative) GetName() string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative{}
+	}
+	return t.Name
+}
+
+type ListInitiativesFiltered_Initiatives_Nodes_Owner struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListInitiativesFiltered_Initiatives_Nodes_Owner) GetID() string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes_Owner{}
+	}
+	return t.ID
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes_Owner) GetName() string {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes_Owner{}
+	}
+	return t.Name
+}
+
 type ListInitiativesFiltered_Initiatives_Nodes struct {
-	Color       *string   "json:\"color,omitempty\" graphql:\"color\""
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string   "json:\"description,omitempty\" graphql:\"description\""
-	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	SortOrder   float64   "json:\"sortOrder\" graphql:\"sortOrder\""
-	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	Color            *string                                                     "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt        time.Time                                                   "json:\"createdAt\" graphql:\"createdAt\""
+	Description      *string                                                     "json:\"description,omitempty\" graphql:\"description\""
+	Health           *InitiativeUpdateHealthType                                 "json:\"health,omitempty\" graphql:\"health\""
+	Icon             *string                                                     "json:\"icon,omitempty\" graphql:\"icon\""
+	ID               string                                                      "json:\"id\" graphql:\"id\""
+	Name             string                                                      "json:\"name\" graphql:\"name\""
+	Owner            *ListInitiativesFiltered_Initiatives_Nodes_Owner            "json:\"owner,omitempty\" graphql:\"owner\""
+	ParentInitiative *ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative "json:\"parentInitiative,omitempty\" graphql:\"parentInitiative\""
+	SortOrder        float64                                                     "json:\"sortOrder\" graphql:\"sortOrder\""
+	Status           InitiativeStatus                                            "json:\"status\" graphql:\"status\""
+	TargetDate       *string                                                     "json:\"targetDate,omitempty\" graphql:\"targetDate\""
 }
 
 func (t *ListInitiativesFiltered_Initiatives_Nodes) GetColor() *string {
@@ -1531,6 +2225,12 @@ func (t *ListInitiativesFiltered_Initiatives_Nodes) GetDescription() *string {
 	}
 	return t.Description
 }
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.Health
+}
 func (t *ListInitiativesFiltered_Initiatives_Nodes) GetIcon() *string {
 	if t == nil {
 		t = &ListInitiativesFiltered_Initiatives_Nodes{}
@@ -1549,11 +2249,29 @@ func (t *ListInitiativesFiltered_Initiatives_Nodes) GetName() string {
 	}
 	return t.Name
 }
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetOwner() *ListInitiativesFiltered_Initiatives_Nodes_Owner {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.Owner
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetParentInitiative() *ListInitiativesFiltered_Initiatives_Nodes_ParentInitiative {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return t.ParentInitiative
+}
 func (t *ListInitiativesFiltered_Initiatives_Nodes) GetSortOrder() float64 {
 	if t == nil {
 		t = &ListInitiativesFiltered_Initiatives_Nodes{}
 	}
 	return t.SortOrder
+}
+func (t *ListInitiativesFiltered_Initiatives_Nodes) GetStatus() *InitiativeStatus {
+	if t == nil {
+		t = &ListInitiativesFiltered_Initiatives_Nodes{}
+	}
+	return &t.Status
 }
 func (t *ListInitiativesFiltered_Initiatives_Nodes) GetTargetDate() *string {
 	if t == nil {
@@ -1596,6 +2314,113 @@ func (t *ListInitiativesFiltered_Initiatives) GetPageInfo() *ListInitiativesFilt
 		t = &ListInitiativesFiltered_Initiatives{}
 	}
 	return &t.PageInfo
+}
+
+type ListSubInitiatives_Initiative_SubInitiatives_Nodes struct {
+	CreatedAt   time.Time                   "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string                     "json:\"description,omitempty\" graphql:\"description\""
+	Health      *InitiativeUpdateHealthType "json:\"health,omitempty\" graphql:\"health\""
+	ID          string                      "json:\"id\" graphql:\"id\""
+	Name        string                      "json:\"name\" graphql:\"name\""
+	Status      InitiativeStatus            "json:\"status\" graphql:\"status\""
+	TargetDate  *string                     "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+}
+
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return t.Health
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetID() string {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetName() string {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetStatus() *InitiativeStatus {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return &t.Status
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_Nodes{}
+	}
+	return t.TargetDate
+}
+
+type ListSubInitiatives_Initiative_SubInitiatives_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListSubInitiatives_Initiative_SubInitiatives_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListSubInitiatives_Initiative_SubInitiatives struct {
+	Nodes    []*ListSubInitiatives_Initiative_SubInitiatives_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListSubInitiatives_Initiative_SubInitiatives_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListSubInitiatives_Initiative_SubInitiatives) GetNodes() []*ListSubInitiatives_Initiative_SubInitiatives_Nodes {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives{}
+	}
+	return t.Nodes
+}
+func (t *ListSubInitiatives_Initiative_SubInitiatives) GetPageInfo() *ListSubInitiatives_Initiative_SubInitiatives_PageInfo {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative_SubInitiatives{}
+	}
+	return &t.PageInfo
+}
+
+type ListSubInitiatives_Initiative struct {
+	ID             string                                       "json:\"id\" graphql:\"id\""
+	SubInitiatives ListSubInitiatives_Initiative_SubInitiatives "json:\"subInitiatives\" graphql:\"subInitiatives\""
+}
+
+func (t *ListSubInitiatives_Initiative) GetID() string {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative{}
+	}
+	return t.ID
+}
+func (t *ListSubInitiatives_Initiative) GetSubInitiatives() *ListSubInitiatives_Initiative_SubInitiatives {
+	if t == nil {
+		t = &ListSubInitiatives_Initiative{}
+	}
+	return &t.SubInitiatives
 }
 
 type GetIssue_Issue_Parent struct {
@@ -2866,6 +3691,156 @@ func (t *ArchiveCycle_CycleArchive) GetSuccess() bool {
 	return t.Success
 }
 
+type CreateDocument_DocumentCreate_Document_Creator struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateDocument_DocumentCreate_Document_Creator) GetID() string {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document_Creator{}
+	}
+	return t.ID
+}
+func (t *CreateDocument_DocumentCreate_Document_Creator) GetName() string {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document_Creator{}
+	}
+	return t.Name
+}
+
+type CreateDocument_DocumentCreate_Document struct {
+	Content   *string                                         "json:\"content,omitempty\" graphql:\"content\""
+	CreatedAt time.Time                                       "json:\"createdAt\" graphql:\"createdAt\""
+	Creator   *CreateDocument_DocumentCreate_Document_Creator "json:\"creator,omitempty\" graphql:\"creator\""
+	ID        string                                          "json:\"id\" graphql:\"id\""
+	Title     string                                          "json:\"title\" graphql:\"title\""
+	URL       string                                          "json:\"url\" graphql:\"url\""
+}
+
+func (t *CreateDocument_DocumentCreate_Document) GetContent() *string {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document{}
+	}
+	return t.Content
+}
+func (t *CreateDocument_DocumentCreate_Document) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateDocument_DocumentCreate_Document) GetCreator() *CreateDocument_DocumentCreate_Document_Creator {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document{}
+	}
+	return t.Creator
+}
+func (t *CreateDocument_DocumentCreate_Document) GetID() string {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document{}
+	}
+	return t.ID
+}
+func (t *CreateDocument_DocumentCreate_Document) GetTitle() string {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document{}
+	}
+	return t.Title
+}
+func (t *CreateDocument_DocumentCreate_Document) GetURL() string {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate_Document{}
+	}
+	return t.URL
+}
+
+type CreateDocument_DocumentCreate struct {
+	Document CreateDocument_DocumentCreate_Document "json:\"document\" graphql:\"document\""
+	Success  bool                                   "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateDocument_DocumentCreate) GetDocument() *CreateDocument_DocumentCreate_Document {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate{}
+	}
+	return &t.Document
+}
+func (t *CreateDocument_DocumentCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateDocument_DocumentCreate{}
+	}
+	return t.Success
+}
+
+type UpdateDocument_DocumentUpdate_Document struct {
+	Content   *string   "json:\"content,omitempty\" graphql:\"content\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	Title     string    "json:\"title\" graphql:\"title\""
+	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string    "json:\"url\" graphql:\"url\""
+}
+
+func (t *UpdateDocument_DocumentUpdate_Document) GetContent() *string {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate_Document{}
+	}
+	return t.Content
+}
+func (t *UpdateDocument_DocumentUpdate_Document) GetID() string {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate_Document{}
+	}
+	return t.ID
+}
+func (t *UpdateDocument_DocumentUpdate_Document) GetTitle() string {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate_Document{}
+	}
+	return t.Title
+}
+func (t *UpdateDocument_DocumentUpdate_Document) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate_Document{}
+	}
+	return &t.UpdatedAt
+}
+func (t *UpdateDocument_DocumentUpdate_Document) GetURL() string {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate_Document{}
+	}
+	return t.URL
+}
+
+type UpdateDocument_DocumentUpdate struct {
+	Document UpdateDocument_DocumentUpdate_Document "json:\"document\" graphql:\"document\""
+	Success  bool                                   "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateDocument_DocumentUpdate) GetDocument() *UpdateDocument_DocumentUpdate_Document {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate{}
+	}
+	return &t.Document
+}
+func (t *UpdateDocument_DocumentUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateDocument_DocumentUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteDocument_DocumentDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteDocument_DocumentDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteDocument_DocumentDelete{}
+	}
+	return t.Success
+}
+
 type FavoriteCreate_FavoriteCreate_Favorite_Issue struct {
 	ID    string "json:\"id\" graphql:\"id\""
 	Title string "json:\"title\" graphql:\"title\""
@@ -2959,6 +3934,171 @@ type FavoriteDelete_FavoriteDelete struct {
 func (t *FavoriteDelete_FavoriteDelete) GetSuccess() bool {
 	if t == nil {
 		t = &FavoriteDelete_FavoriteDelete{}
+	}
+	return t.Success
+}
+
+type CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative) GetID() string {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative{}
+	}
+	return t.ID
+}
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative) GetName() string {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative{}
+	}
+	return t.Name
+}
+
+type CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project) GetID() string {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project{}
+	}
+	return t.ID
+}
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project) GetName() string {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project{}
+	}
+	return t.Name
+}
+
+type CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject struct {
+	CreatedAt  time.Time                                                                          "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string                                                                             "json:\"id\" graphql:\"id\""
+	Initiative CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative "json:\"initiative\" graphql:\"initiative\""
+	Project    CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project    "json:\"project\" graphql:\"project\""
+}
+
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject) GetID() string {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject{}
+	}
+	return t.ID
+}
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject) GetInitiative() *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Initiative {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject{}
+	}
+	return &t.Initiative
+}
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject) GetProject() *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject_Project {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject{}
+	}
+	return &t.Project
+}
+
+type CreateInitiativeToProject_InitiativeToProjectCreate struct {
+	InitiativeToProject CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject "json:\"initiativeToProject\" graphql:\"initiativeToProject\""
+	Success             bool                                                                    "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate) GetInitiativeToProject() *CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate{}
+	}
+	return &t.InitiativeToProject
+}
+func (t *CreateInitiativeToProject_InitiativeToProjectCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateInitiativeToProject_InitiativeToProjectCreate{}
+	}
+	return t.Success
+}
+
+type DeleteInitiativeToProject_InitiativeToProjectDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteInitiativeToProject_InitiativeToProjectDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteInitiativeToProject_InitiativeToProjectDelete{}
+	}
+	return t.Success
+}
+
+type CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate struct {
+	Body      string                     "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                  "json:\"createdAt\" graphql:\"createdAt\""
+	Health    InitiativeUpdateHealthType "json:\"health\" graphql:\"health\""
+	ID        string                     "json:\"id\" graphql:\"id\""
+	URL       string                     "json:\"url\" graphql:\"url\""
+}
+
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate) GetBody() string {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate{}
+	}
+	return t.Body
+}
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate{}
+	}
+	return &t.Health
+}
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate) GetID() string {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate{}
+	}
+	return t.ID
+}
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate) GetURL() string {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate{}
+	}
+	return t.URL
+}
+
+type CreateInitiativeUpdate_InitiativeUpdateCreate struct {
+	InitiativeUpdate CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate "json:\"initiativeUpdate\" graphql:\"initiativeUpdate\""
+	Success          bool                                                           "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate) GetInitiativeUpdate() *CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate{}
+	}
+	return &t.InitiativeUpdate
+}
+func (t *CreateInitiativeUpdate_InitiativeUpdateCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateInitiativeUpdate_InitiativeUpdateCreate{}
+	}
+	return t.Success
+}
+
+type ArchiveInitiativeUpdate_InitiativeUpdateArchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ArchiveInitiativeUpdate_InitiativeUpdateArchive) GetSuccess() bool {
+	if t == nil {
+		t = &ArchiveInitiativeUpdate_InitiativeUpdateArchive{}
 	}
 	return t.Success
 }
@@ -3059,6 +4199,17 @@ func (t *UpdateInitiative_InitiativeUpdate) GetInitiative() *UpdateInitiative_In
 func (t *UpdateInitiative_InitiativeUpdate) GetSuccess() bool {
 	if t == nil {
 		t = &UpdateInitiative_InitiativeUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteInitiative_InitiativeDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteInitiative_InitiativeDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteInitiative_InitiativeDelete{}
 	}
 	return t.Success
 }
@@ -4022,6 +5173,74 @@ func (t *ProjectMilestoneDelete_ProjectMilestoneDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate struct {
+	Body      string                  "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time               "json:\"createdAt\" graphql:\"createdAt\""
+	Health    ProjectUpdateHealthType "json:\"health\" graphql:\"health\""
+	ID        string                  "json:\"id\" graphql:\"id\""
+	URL       string                  "json:\"url\" graphql:\"url\""
+}
+
+func (t *CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate) GetBody() string {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate{}
+	}
+	return t.Body
+}
+func (t *CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate{}
+	}
+	return &t.Health
+}
+func (t *CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate) GetID() string {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate{}
+	}
+	return t.ID
+}
+func (t *CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate) GetURL() string {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate{}
+	}
+	return t.URL
+}
+
+type CreateProjectUpdate_ProjectUpdateCreate struct {
+	ProjectUpdate CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate "json:\"projectUpdate\" graphql:\"projectUpdate\""
+	Success       bool                                                  "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateProjectUpdate_ProjectUpdateCreate) GetProjectUpdate() *CreateProjectUpdate_ProjectUpdateCreate_ProjectUpdate {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate{}
+	}
+	return &t.ProjectUpdate
+}
+func (t *CreateProjectUpdate_ProjectUpdateCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateProjectUpdate_ProjectUpdateCreate{}
+	}
+	return t.Success
+}
+
+type DeleteProjectUpdate_ProjectUpdateDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteProjectUpdate_ProjectUpdateDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteProjectUpdate_ProjectUpdateDelete{}
+	}
+	return t.Success
+}
+
 type CreateProject_ProjectCreate_Project struct {
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	Description string    "json:\"description\" graphql:\"description\""
@@ -4404,6 +5623,202 @@ func (t *GetOrganization_Organization) GetURLKey() string {
 	return t.URLKey
 }
 
+type GetProjectUpdate_ProjectUpdate_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetProjectUpdate_ProjectUpdate_User) GetEmail() string {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate_User{}
+	}
+	return t.Email
+}
+func (t *GetProjectUpdate_ProjectUpdate_User) GetID() string {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate_User{}
+	}
+	return t.ID
+}
+func (t *GetProjectUpdate_ProjectUpdate_User) GetName() string {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate_User{}
+	}
+	return t.Name
+}
+
+type GetProjectUpdate_ProjectUpdate struct {
+	Body      string                              "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                           "json:\"createdAt\" graphql:\"createdAt\""
+	Health    ProjectUpdateHealthType             "json:\"health\" graphql:\"health\""
+	ID        string                              "json:\"id\" graphql:\"id\""
+	URL       string                              "json:\"url\" graphql:\"url\""
+	User      GetProjectUpdate_ProjectUpdate_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *GetProjectUpdate_ProjectUpdate) GetBody() string {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate{}
+	}
+	return t.Body
+}
+func (t *GetProjectUpdate_ProjectUpdate) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetProjectUpdate_ProjectUpdate) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate{}
+	}
+	return &t.Health
+}
+func (t *GetProjectUpdate_ProjectUpdate) GetID() string {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate{}
+	}
+	return t.ID
+}
+func (t *GetProjectUpdate_ProjectUpdate) GetURL() string {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate{}
+	}
+	return t.URL
+}
+func (t *GetProjectUpdate_ProjectUpdate) GetUser() *GetProjectUpdate_ProjectUpdate_User {
+	if t == nil {
+		t = &GetProjectUpdate_ProjectUpdate{}
+	}
+	return &t.User
+}
+
+type ListProjectUpdates_Project_ProjectUpdates_Nodes_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes_User{}
+	}
+	return t.Name
+}
+
+type ListProjectUpdates_Project_ProjectUpdates_Nodes struct {
+	Body      string                                               "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                                            "json:\"createdAt\" graphql:\"createdAt\""
+	Health    ProjectUpdateHealthType                              "json:\"health\" graphql:\"health\""
+	ID        string                                               "json:\"id\" graphql:\"id\""
+	URL       string                                               "json:\"url\" graphql:\"url\""
+	User      ListProjectUpdates_Project_ProjectUpdates_Nodes_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes) GetBody() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes{}
+	}
+	return t.Body
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes{}
+	}
+	return &t.Health
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes) GetID() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes) GetURL() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes{}
+	}
+	return t.URL
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_Nodes) GetUser() *ListProjectUpdates_Project_ProjectUpdates_Nodes_User {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_Nodes{}
+	}
+	return &t.User
+}
+
+type ListProjectUpdates_Project_ProjectUpdates_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListProjectUpdates_Project_ProjectUpdates_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListProjectUpdates_Project_ProjectUpdates struct {
+	Nodes    []*ListProjectUpdates_Project_ProjectUpdates_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListProjectUpdates_Project_ProjectUpdates_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListProjectUpdates_Project_ProjectUpdates) GetNodes() []*ListProjectUpdates_Project_ProjectUpdates_Nodes {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates{}
+	}
+	return t.Nodes
+}
+func (t *ListProjectUpdates_Project_ProjectUpdates) GetPageInfo() *ListProjectUpdates_Project_ProjectUpdates_PageInfo {
+	if t == nil {
+		t = &ListProjectUpdates_Project_ProjectUpdates{}
+	}
+	return &t.PageInfo
+}
+
+type ListProjectUpdates_Project struct {
+	ID             string                                    "json:\"id\" graphql:\"id\""
+	Name           string                                    "json:\"name\" graphql:\"name\""
+	ProjectUpdates ListProjectUpdates_Project_ProjectUpdates "json:\"projectUpdates\" graphql:\"projectUpdates\""
+}
+
+func (t *ListProjectUpdates_Project) GetID() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project{}
+	}
+	return t.ID
+}
+func (t *ListProjectUpdates_Project) GetName() string {
+	if t == nil {
+		t = &ListProjectUpdates_Project{}
+	}
+	return t.Name
+}
+func (t *ListProjectUpdates_Project) GetProjectUpdates() *ListProjectUpdates_Project_ProjectUpdates {
+	if t == nil {
+		t = &ListProjectUpdates_Project{}
+	}
+	return &t.ProjectUpdates
+}
+
 type GetProject_Project_Lead struct {
 	Email string "json:\"email\" graphql:\"email\""
 	ID    string "json:\"id\" graphql:\"id\""
@@ -4429,27 +5844,117 @@ func (t *GetProject_Project_Lead) GetName() string {
 	return t.Name
 }
 
-type GetProject_Project struct {
-	Color       string                   "json:\"color\" graphql:\"color\""
-	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
-	Description string                   "json:\"description\" graphql:\"description\""
-	Icon        *string                  "json:\"icon,omitempty\" graphql:\"icon\""
-	ID          string                   "json:\"id\" graphql:\"id\""
-	Lead        *GetProject_Project_Lead "json:\"lead,omitempty\" graphql:\"lead\""
-	Name        string                   "json:\"name\" graphql:\"name\""
-	Progress    float64                  "json:\"progress\" graphql:\"progress\""
-	StartedAt   *time.Time               "json:\"startedAt,omitempty\" graphql:\"startedAt\""
-	State       string                   "json:\"state\" graphql:\"state\""
-	TargetDate  *string                  "json:\"targetDate,omitempty\" graphql:\"targetDate\""
-	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL         string                   "json:\"url\" graphql:\"url\""
+type GetProject_Project_Teams_Nodes struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
 }
 
+func (t *GetProject_Project_Teams_Nodes) GetID() string {
+	if t == nil {
+		t = &GetProject_Project_Teams_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetProject_Project_Teams_Nodes) GetKey() string {
+	if t == nil {
+		t = &GetProject_Project_Teams_Nodes{}
+	}
+	return t.Key
+}
+func (t *GetProject_Project_Teams_Nodes) GetName() string {
+	if t == nil {
+		t = &GetProject_Project_Teams_Nodes{}
+	}
+	return t.Name
+}
+
+type GetProject_Project_Teams struct {
+	Nodes []*GetProject_Project_Teams_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetProject_Project_Teams) GetNodes() []*GetProject_Project_Teams_Nodes {
+	if t == nil {
+		t = &GetProject_Project_Teams{}
+	}
+	return t.Nodes
+}
+
+type GetProject_Project_Initiatives_Nodes struct {
+	ID     string           "json:\"id\" graphql:\"id\""
+	Name   string           "json:\"name\" graphql:\"name\""
+	Status InitiativeStatus "json:\"status\" graphql:\"status\""
+}
+
+func (t *GetProject_Project_Initiatives_Nodes) GetID() string {
+	if t == nil {
+		t = &GetProject_Project_Initiatives_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetProject_Project_Initiatives_Nodes) GetName() string {
+	if t == nil {
+		t = &GetProject_Project_Initiatives_Nodes{}
+	}
+	return t.Name
+}
+func (t *GetProject_Project_Initiatives_Nodes) GetStatus() *InitiativeStatus {
+	if t == nil {
+		t = &GetProject_Project_Initiatives_Nodes{}
+	}
+	return &t.Status
+}
+
+type GetProject_Project_Initiatives struct {
+	Nodes []*GetProject_Project_Initiatives_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetProject_Project_Initiatives) GetNodes() []*GetProject_Project_Initiatives_Nodes {
+	if t == nil {
+		t = &GetProject_Project_Initiatives{}
+	}
+	return t.Nodes
+}
+
+type GetProject_Project struct {
+	CanceledAt      *time.Time                     "json:\"canceledAt,omitempty\" graphql:\"canceledAt\""
+	Color           string                         "json:\"color\" graphql:\"color\""
+	CompletedAt     *time.Time                     "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CreatedAt       time.Time                      "json:\"createdAt\" graphql:\"createdAt\""
+	Description     string                         "json:\"description\" graphql:\"description\""
+	Health          *ProjectUpdateHealthType       "json:\"health,omitempty\" graphql:\"health\""
+	HealthUpdatedAt *time.Time                     "json:\"healthUpdatedAt,omitempty\" graphql:\"healthUpdatedAt\""
+	Icon            *string                        "json:\"icon,omitempty\" graphql:\"icon\""
+	ID              string                         "json:\"id\" graphql:\"id\""
+	Initiatives     GetProject_Project_Initiatives "json:\"initiatives\" graphql:\"initiatives\""
+	Lead            *GetProject_Project_Lead       "json:\"lead,omitempty\" graphql:\"lead\""
+	Name            string                         "json:\"name\" graphql:\"name\""
+	Progress        float64                        "json:\"progress\" graphql:\"progress\""
+	StartedAt       *time.Time                     "json:\"startedAt,omitempty\" graphql:\"startedAt\""
+	State           string                         "json:\"state\" graphql:\"state\""
+	TargetDate      *string                        "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	Teams           GetProject_Project_Teams       "json:\"teams\" graphql:\"teams\""
+	UpdatedAt       time.Time                      "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL             string                         "json:\"url\" graphql:\"url\""
+}
+
+func (t *GetProject_Project) GetCanceledAt() *time.Time {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.CanceledAt
+}
 func (t *GetProject_Project) GetColor() string {
 	if t == nil {
 		t = &GetProject_Project{}
 	}
 	return t.Color
+}
+func (t *GetProject_Project) GetCompletedAt() *time.Time {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.CompletedAt
 }
 func (t *GetProject_Project) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -4463,6 +5968,18 @@ func (t *GetProject_Project) GetDescription() string {
 	}
 	return t.Description
 }
+func (t *GetProject_Project) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.Health
+}
+func (t *GetProject_Project) GetHealthUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return t.HealthUpdatedAt
+}
 func (t *GetProject_Project) GetIcon() *string {
 	if t == nil {
 		t = &GetProject_Project{}
@@ -4474,6 +5991,12 @@ func (t *GetProject_Project) GetID() string {
 		t = &GetProject_Project{}
 	}
 	return t.ID
+}
+func (t *GetProject_Project) GetInitiatives() *GetProject_Project_Initiatives {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return &t.Initiatives
 }
 func (t *GetProject_Project) GetLead() *GetProject_Project_Lead {
 	if t == nil {
@@ -4511,6 +6034,12 @@ func (t *GetProject_Project) GetTargetDate() *string {
 	}
 	return t.TargetDate
 }
+func (t *GetProject_Project) GetTeams() *GetProject_Project_Teams {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return &t.Teams
+}
 func (t *GetProject_Project) GetUpdatedAt() *time.Time {
 	if t == nil {
 		t = &GetProject_Project{}
@@ -4525,17 +6054,18 @@ func (t *GetProject_Project) GetURL() string {
 }
 
 type ListProjects_Projects_Nodes struct {
-	Color       string    "json:\"color\" graphql:\"color\""
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description string    "json:\"description\" graphql:\"description\""
-	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	Progress    float64   "json:\"progress\" graphql:\"progress\""
-	State       string    "json:\"state\" graphql:\"state\""
-	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
-	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL         string    "json:\"url\" graphql:\"url\""
+	Color       string                   "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
+	Description string                   "json:\"description\" graphql:\"description\""
+	Health      *ProjectUpdateHealthType "json:\"health,omitempty\" graphql:\"health\""
+	Icon        *string                  "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string                   "json:\"id\" graphql:\"id\""
+	Name        string                   "json:\"name\" graphql:\"name\""
+	Progress    float64                  "json:\"progress\" graphql:\"progress\""
+	State       string                   "json:\"state\" graphql:\"state\""
+	TargetDate  *string                  "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string                   "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListProjects_Projects_Nodes) GetColor() string {
@@ -4555,6 +6085,12 @@ func (t *ListProjects_Projects_Nodes) GetDescription() string {
 		t = &ListProjects_Projects_Nodes{}
 	}
 	return t.Description
+}
+func (t *ListProjects_Projects_Nodes) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &ListProjects_Projects_Nodes{}
+	}
+	return t.Health
 }
 func (t *ListProjects_Projects_Nodes) GetIcon() *string {
 	if t == nil {
@@ -4642,17 +6178,18 @@ func (t *ListProjects_Projects) GetPageInfo() *ListProjects_Projects_PageInfo {
 }
 
 type ListProjectsFiltered_Projects_Nodes struct {
-	Color       string    "json:\"color\" graphql:\"color\""
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description string    "json:\"description\" graphql:\"description\""
-	Icon        *string   "json:\"icon,omitempty\" graphql:\"icon\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	Progress    float64   "json:\"progress\" graphql:\"progress\""
-	State       string    "json:\"state\" graphql:\"state\""
-	TargetDate  *string   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
-	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL         string    "json:\"url\" graphql:\"url\""
+	Color       string                   "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
+	Description string                   "json:\"description\" graphql:\"description\""
+	Health      *ProjectUpdateHealthType "json:\"health,omitempty\" graphql:\"health\""
+	Icon        *string                  "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string                   "json:\"id\" graphql:\"id\""
+	Name        string                   "json:\"name\" graphql:\"name\""
+	Progress    float64                  "json:\"progress\" graphql:\"progress\""
+	State       string                   "json:\"state\" graphql:\"state\""
+	TargetDate  *string                  "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL         string                   "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListProjectsFiltered_Projects_Nodes) GetColor() string {
@@ -4672,6 +6209,12 @@ func (t *ListProjectsFiltered_Projects_Nodes) GetDescription() string {
 		t = &ListProjectsFiltered_Projects_Nodes{}
 	}
 	return t.Description
+}
+func (t *ListProjectsFiltered_Projects_Nodes) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &ListProjectsFiltered_Projects_Nodes{}
+	}
+	return t.Health
 }
 func (t *ListProjectsFiltered_Projects_Nodes) GetIcon() *string {
 	if t == nil {
@@ -6164,6 +7707,50 @@ func (t *ListDocumentsFiltered) GetDocuments() *ListDocumentsFiltered_Documents 
 	return &t.Documents
 }
 
+type ListInitiativeToProjects struct {
+	InitiativeToProjects ListInitiativeToProjects_InitiativeToProjects "json:\"initiativeToProjects\" graphql:\"initiativeToProjects\""
+}
+
+func (t *ListInitiativeToProjects) GetInitiativeToProjects() *ListInitiativeToProjects_InitiativeToProjects {
+	if t == nil {
+		t = &ListInitiativeToProjects{}
+	}
+	return &t.InitiativeToProjects
+}
+
+type GetInitiativeToProject struct {
+	InitiativeToProject GetInitiativeToProject_InitiativeToProject "json:\"initiativeToProject\" graphql:\"initiativeToProject\""
+}
+
+func (t *GetInitiativeToProject) GetInitiativeToProject() *GetInitiativeToProject_InitiativeToProject {
+	if t == nil {
+		t = &GetInitiativeToProject{}
+	}
+	return &t.InitiativeToProject
+}
+
+type GetInitiativeUpdate struct {
+	InitiativeUpdate GetInitiativeUpdate_InitiativeUpdate "json:\"initiativeUpdate\" graphql:\"initiativeUpdate\""
+}
+
+func (t *GetInitiativeUpdate) GetInitiativeUpdate() *GetInitiativeUpdate_InitiativeUpdate {
+	if t == nil {
+		t = &GetInitiativeUpdate{}
+	}
+	return &t.InitiativeUpdate
+}
+
+type ListInitiativeUpdates struct {
+	Initiative ListInitiativeUpdates_Initiative "json:\"initiative\" graphql:\"initiative\""
+}
+
+func (t *ListInitiativeUpdates) GetInitiative() *ListInitiativeUpdates_Initiative {
+	if t == nil {
+		t = &ListInitiativeUpdates{}
+	}
+	return &t.Initiative
+}
+
 type GetInitiative struct {
 	Initiative GetInitiative_Initiative "json:\"initiative\" graphql:\"initiative\""
 }
@@ -6195,6 +7782,17 @@ func (t *ListInitiativesFiltered) GetInitiatives() *ListInitiativesFiltered_Init
 		t = &ListInitiativesFiltered{}
 	}
 	return &t.Initiatives
+}
+
+type ListSubInitiatives struct {
+	Initiative ListSubInitiatives_Initiative "json:\"initiative\" graphql:\"initiative\""
+}
+
+func (t *ListSubInitiatives) GetInitiative() *ListSubInitiatives_Initiative {
+	if t == nil {
+		t = &ListSubInitiatives{}
+	}
+	return &t.Initiative
 }
 
 type GetIssue struct {
@@ -6384,6 +7982,39 @@ func (t *ArchiveCycle) GetCycleArchive() *ArchiveCycle_CycleArchive {
 	return &t.CycleArchive
 }
 
+type CreateDocument struct {
+	DocumentCreate CreateDocument_DocumentCreate "json:\"documentCreate\" graphql:\"documentCreate\""
+}
+
+func (t *CreateDocument) GetDocumentCreate() *CreateDocument_DocumentCreate {
+	if t == nil {
+		t = &CreateDocument{}
+	}
+	return &t.DocumentCreate
+}
+
+type UpdateDocument struct {
+	DocumentUpdate UpdateDocument_DocumentUpdate "json:\"documentUpdate\" graphql:\"documentUpdate\""
+}
+
+func (t *UpdateDocument) GetDocumentUpdate() *UpdateDocument_DocumentUpdate {
+	if t == nil {
+		t = &UpdateDocument{}
+	}
+	return &t.DocumentUpdate
+}
+
+type DeleteDocument struct {
+	DocumentDelete DeleteDocument_DocumentDelete "json:\"documentDelete\" graphql:\"documentDelete\""
+}
+
+func (t *DeleteDocument) GetDocumentDelete() *DeleteDocument_DocumentDelete {
+	if t == nil {
+		t = &DeleteDocument{}
+	}
+	return &t.DocumentDelete
+}
+
 type FavoriteCreate struct {
 	FavoriteCreate FavoriteCreate_FavoriteCreate "json:\"favoriteCreate\" graphql:\"favoriteCreate\""
 }
@@ -6406,6 +8037,50 @@ func (t *FavoriteDelete) GetFavoriteDelete() *FavoriteDelete_FavoriteDelete {
 	return &t.FavoriteDelete
 }
 
+type CreateInitiativeToProject struct {
+	InitiativeToProjectCreate CreateInitiativeToProject_InitiativeToProjectCreate "json:\"initiativeToProjectCreate\" graphql:\"initiativeToProjectCreate\""
+}
+
+func (t *CreateInitiativeToProject) GetInitiativeToProjectCreate() *CreateInitiativeToProject_InitiativeToProjectCreate {
+	if t == nil {
+		t = &CreateInitiativeToProject{}
+	}
+	return &t.InitiativeToProjectCreate
+}
+
+type DeleteInitiativeToProject struct {
+	InitiativeToProjectDelete DeleteInitiativeToProject_InitiativeToProjectDelete "json:\"initiativeToProjectDelete\" graphql:\"initiativeToProjectDelete\""
+}
+
+func (t *DeleteInitiativeToProject) GetInitiativeToProjectDelete() *DeleteInitiativeToProject_InitiativeToProjectDelete {
+	if t == nil {
+		t = &DeleteInitiativeToProject{}
+	}
+	return &t.InitiativeToProjectDelete
+}
+
+type CreateInitiativeUpdate struct {
+	InitiativeUpdateCreate CreateInitiativeUpdate_InitiativeUpdateCreate "json:\"initiativeUpdateCreate\" graphql:\"initiativeUpdateCreate\""
+}
+
+func (t *CreateInitiativeUpdate) GetInitiativeUpdateCreate() *CreateInitiativeUpdate_InitiativeUpdateCreate {
+	if t == nil {
+		t = &CreateInitiativeUpdate{}
+	}
+	return &t.InitiativeUpdateCreate
+}
+
+type ArchiveInitiativeUpdate struct {
+	InitiativeUpdateArchive ArchiveInitiativeUpdate_InitiativeUpdateArchive "json:\"initiativeUpdateArchive\" graphql:\"initiativeUpdateArchive\""
+}
+
+func (t *ArchiveInitiativeUpdate) GetInitiativeUpdateArchive() *ArchiveInitiativeUpdate_InitiativeUpdateArchive {
+	if t == nil {
+		t = &ArchiveInitiativeUpdate{}
+	}
+	return &t.InitiativeUpdateArchive
+}
+
 type CreateInitiative struct {
 	InitiativeCreate CreateInitiative_InitiativeCreate "json:\"initiativeCreate\" graphql:\"initiativeCreate\""
 }
@@ -6426,6 +8101,17 @@ func (t *UpdateInitiative) GetInitiativeUpdate() *UpdateInitiative_InitiativeUpd
 		t = &UpdateInitiative{}
 	}
 	return &t.InitiativeUpdate
+}
+
+type DeleteInitiative struct {
+	InitiativeDelete DeleteInitiative_InitiativeDelete "json:\"initiativeDelete\" graphql:\"initiativeDelete\""
+}
+
+func (t *DeleteInitiative) GetInitiativeDelete() *DeleteInitiative_InitiativeDelete {
+	if t == nil {
+		t = &DeleteInitiative{}
+	}
+	return &t.InitiativeDelete
 }
 
 type IssueAddLabel struct {
@@ -6626,6 +8312,28 @@ func (t *ProjectMilestoneDelete) GetProjectMilestoneDelete() *ProjectMilestoneDe
 	return &t.ProjectMilestoneDelete
 }
 
+type CreateProjectUpdate struct {
+	ProjectUpdateCreate CreateProjectUpdate_ProjectUpdateCreate "json:\"projectUpdateCreate\" graphql:\"projectUpdateCreate\""
+}
+
+func (t *CreateProjectUpdate) GetProjectUpdateCreate() *CreateProjectUpdate_ProjectUpdateCreate {
+	if t == nil {
+		t = &CreateProjectUpdate{}
+	}
+	return &t.ProjectUpdateCreate
+}
+
+type DeleteProjectUpdate struct {
+	ProjectUpdateDelete DeleteProjectUpdate_ProjectUpdateDelete "json:\"projectUpdateDelete\" graphql:\"projectUpdateDelete\""
+}
+
+func (t *DeleteProjectUpdate) GetProjectUpdateDelete() *DeleteProjectUpdate_ProjectUpdateDelete {
+	if t == nil {
+		t = &DeleteProjectUpdate{}
+	}
+	return &t.ProjectUpdateDelete
+}
+
 type CreateProject struct {
 	ProjectCreate CreateProject_ProjectCreate "json:\"projectCreate\" graphql:\"projectCreate\""
 }
@@ -6723,6 +8431,28 @@ func (t *GetOrganization) GetOrganization() *GetOrganization_Organization {
 		t = &GetOrganization{}
 	}
 	return &t.Organization
+}
+
+type GetProjectUpdate struct {
+	ProjectUpdate GetProjectUpdate_ProjectUpdate "json:\"projectUpdate\" graphql:\"projectUpdate\""
+}
+
+func (t *GetProjectUpdate) GetProjectUpdate() *GetProjectUpdate_ProjectUpdate {
+	if t == nil {
+		t = &GetProjectUpdate{}
+	}
+	return &t.ProjectUpdate
+}
+
+type ListProjectUpdates struct {
+	Project ListProjectUpdates_Project "json:\"project\" graphql:\"project\""
+}
+
+func (t *ListProjectUpdates) GetProject() *ListProjectUpdates_Project {
+	if t == nil {
+		t = &ListProjectUpdates{}
+	}
+	return &t.Project
 }
 
 type GetProject struct {
@@ -7198,6 +8928,11 @@ const GetCycleDocument = `query GetCycle ($id: String!) {
 		createdAt
 		updatedAt
 		progress
+		scopeHistory
+		completedScopeHistory
+		inProgressScopeHistory
+		issueCountHistory
+		completedIssueCountHistory
 		team {
 			id
 			name
@@ -7274,6 +9009,11 @@ const ListCyclesFilteredDocument = `query ListCyclesFiltered ($first: Int, $afte
 			createdAt
 			updatedAt
 			progress
+			scopeHistory
+			completedScopeHistory
+			inProgressScopeHistory
+			issueCountHistory
+			completedIssueCountHistory
 			team {
 				id
 				name
@@ -7415,6 +9155,156 @@ func (c *Client) ListDocumentsFiltered(ctx context.Context, first *int64, after 
 	return &res, nil
 }
 
+const ListInitiativeToProjectsDocument = `query ListInitiativeToProjects ($first: Int, $after: String) {
+	initiativeToProjects(first: $first, after: $after) {
+		nodes {
+			id
+			initiative {
+				id
+				name
+			}
+			project {
+				id
+				name
+			}
+			createdAt
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListInitiativeToProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiativeToProjects, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListInitiativeToProjects
+	if err := c.Client.Post(ctx, "ListInitiativeToProjects", ListInitiativeToProjectsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetInitiativeToProjectDocument = `query GetInitiativeToProject ($id: String!) {
+	initiativeToProject(id: $id) {
+		id
+		initiative {
+			id
+			name
+		}
+		project {
+			id
+			name
+		}
+		createdAt
+	}
+}
+`
+
+func (c *Client) GetInitiativeToProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiativeToProject, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetInitiativeToProject
+	if err := c.Client.Post(ctx, "GetInitiativeToProject", GetInitiativeToProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetInitiativeUpdateDocument = `query GetInitiativeUpdate ($id: String!) {
+	initiativeUpdate(id: $id) {
+		id
+		body
+		health
+		createdAt
+		user {
+			id
+			name
+			email
+		}
+		url
+	}
+}
+`
+
+func (c *Client) GetInitiativeUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetInitiativeUpdate, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetInitiativeUpdate
+	if err := c.Client.Post(ctx, "GetInitiativeUpdate", GetInitiativeUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListInitiativeUpdatesDocument = `query ListInitiativeUpdates ($initiativeId: String!, $first: Int, $after: String) {
+	initiative(id: $initiativeId) {
+		id
+		name
+		initiativeUpdates(first: $first, after: $after) {
+			nodes {
+				id
+				body
+				health
+				createdAt
+				user {
+					id
+					name
+				}
+				url
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ListInitiativeUpdates(ctx context.Context, initiativeID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiativeUpdates, error) {
+	vars := map[string]any{
+		"initiativeId": initiativeID,
+		"first":        first,
+		"after":        after,
+	}
+
+	var res ListInitiativeUpdates
+	if err := c.Client.Post(ctx, "ListInitiativeUpdates", ListInitiativeUpdatesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetInitiativeDocument = `query GetInitiative ($id: String!) {
 	initiative(id: $id) {
 		id
@@ -7426,6 +9316,27 @@ const GetInitiativeDocument = `query GetInitiative ($id: String!) {
 		sortOrder
 		color
 		icon
+		status
+		health
+		healthUpdatedAt
+		url
+		parentInitiative {
+			id
+			name
+		}
+		owner {
+			id
+			name
+			email
+		}
+		projects(first: 10) {
+			nodes {
+				id
+				name
+				state
+				progress
+			}
+		}
 	}
 }
 `
@@ -7458,6 +9369,16 @@ const ListInitiativesDocument = `query ListInitiatives ($first: Int, $after: Str
 			sortOrder
 			color
 			icon
+			status
+			health
+			parentInitiative {
+				id
+				name
+			}
+			owner {
+				id
+				name
+			}
 		}
 		pageInfo {
 			hasNextPage
@@ -7496,6 +9417,16 @@ const ListInitiativesFilteredDocument = `query ListInitiativesFiltered ($first: 
 			sortOrder
 			color
 			icon
+			status
+			health
+			parentInitiative {
+				id
+				name
+			}
+			owner {
+				id
+				name
+			}
 		}
 		pageInfo {
 			hasNextPage
@@ -7514,6 +9445,47 @@ func (c *Client) ListInitiativesFiltered(ctx context.Context, first *int64, afte
 
 	var res ListInitiativesFiltered
 	if err := c.Client.Post(ctx, "ListInitiativesFiltered", ListInitiativesFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListSubInitiativesDocument = `query ListSubInitiatives ($id: String!, $first: Int, $after: String) {
+	initiative(id: $id) {
+		id
+		subInitiatives(first: $first, after: $after) {
+			nodes {
+				id
+				name
+				description
+				status
+				health
+				targetDate
+				createdAt
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ListSubInitiatives(ctx context.Context, id string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListSubInitiatives, error) {
+	vars := map[string]any{
+		"id":    id,
+		"first": first,
+		"after": after,
+	}
+
+	var res ListSubInitiatives
+	if err := c.Client.Post(ctx, "ListSubInitiatives", ListSubInitiativesDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8110,6 +10082,97 @@ func (c *Client) ArchiveCycle(ctx context.Context, id string, interceptors ...cl
 	return &res, nil
 }
 
+const CreateDocumentDocument = `mutation CreateDocument ($input: DocumentCreateInput!) {
+	documentCreate(input: $input) {
+		success
+		document {
+			id
+			title
+			content
+			createdAt
+			url
+			creator {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) CreateDocument(ctx context.Context, input DocumentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateDocument, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateDocument
+	if err := c.Client.Post(ctx, "CreateDocument", CreateDocumentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateDocumentDocument = `mutation UpdateDocument ($id: String!, $input: DocumentUpdateInput!) {
+	documentUpdate(id: $id, input: $input) {
+		success
+		document {
+			id
+			title
+			content
+			updatedAt
+			url
+		}
+	}
+}
+`
+
+func (c *Client) UpdateDocument(ctx context.Context, id string, input DocumentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateDocument, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateDocument
+	if err := c.Client.Post(ctx, "UpdateDocument", UpdateDocumentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteDocumentDocument = `mutation DeleteDocument ($id: String!) {
+	documentDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteDocument, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteDocument
+	if err := c.Client.Post(ctx, "DeleteDocument", DeleteDocumentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const FavoriteCreateDocument = `mutation FavoriteCreate ($input: FavoriteCreateInput!) {
 	favoriteCreate(input: $input) {
 		success
@@ -8160,6 +10223,121 @@ func (c *Client) FavoriteDelete(ctx context.Context, id string, interceptors ...
 
 	var res FavoriteDelete
 	if err := c.Client.Post(ctx, "FavoriteDelete", FavoriteDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const CreateInitiativeToProjectDocument = `mutation CreateInitiativeToProject ($input: InitiativeToProjectCreateInput!) {
+	initiativeToProjectCreate(input: $input) {
+		success
+		initiativeToProject {
+			id
+			initiative {
+				id
+				name
+			}
+			project {
+				id
+				name
+			}
+			createdAt
+		}
+	}
+}
+`
+
+func (c *Client) CreateInitiativeToProject(ctx context.Context, input InitiativeToProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiativeToProject, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateInitiativeToProject
+	if err := c.Client.Post(ctx, "CreateInitiativeToProject", CreateInitiativeToProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteInitiativeToProjectDocument = `mutation DeleteInitiativeToProject ($id: String!) {
+	initiativeToProjectDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteInitiativeToProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteInitiativeToProject, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteInitiativeToProject
+	if err := c.Client.Post(ctx, "DeleteInitiativeToProject", DeleteInitiativeToProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const CreateInitiativeUpdateDocument = `mutation CreateInitiativeUpdate ($input: InitiativeUpdateCreateInput!) {
+	initiativeUpdateCreate(input: $input) {
+		success
+		initiativeUpdate {
+			id
+			body
+			health
+			createdAt
+			url
+		}
+	}
+}
+`
+
+func (c *Client) CreateInitiativeUpdate(ctx context.Context, input InitiativeUpdateCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiativeUpdate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateInitiativeUpdate
+	if err := c.Client.Post(ctx, "CreateInitiativeUpdate", CreateInitiativeUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ArchiveInitiativeUpdateDocument = `mutation ArchiveInitiativeUpdate ($id: String!) {
+	initiativeUpdateArchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ArchiveInitiativeUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveInitiativeUpdate, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ArchiveInitiativeUpdate
+	if err := c.Client.Post(ctx, "ArchiveInitiativeUpdate", ArchiveInitiativeUpdateDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8221,6 +10399,30 @@ func (c *Client) UpdateInitiative(ctx context.Context, id string, input Initiati
 
 	var res UpdateInitiative
 	if err := c.Client.Post(ctx, "UpdateInitiative", UpdateInitiativeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteInitiativeDocument = `mutation DeleteInitiative ($id: String!) {
+	initiativeDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteInitiative, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteInitiative
+	if err := c.Client.Post(ctx, "DeleteInitiative", DeleteInitiativeDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -8789,6 +10991,61 @@ func (c *Client) ProjectMilestoneDelete(ctx context.Context, id string, intercep
 	return &res, nil
 }
 
+const CreateProjectUpdateDocument = `mutation CreateProjectUpdate ($input: ProjectUpdateCreateInput!) {
+	projectUpdateCreate(input: $input) {
+		success
+		projectUpdate {
+			id
+			body
+			health
+			createdAt
+			url
+		}
+	}
+}
+`
+
+func (c *Client) CreateProjectUpdate(ctx context.Context, input ProjectUpdateCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProjectUpdate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateProjectUpdate
+	if err := c.Client.Post(ctx, "CreateProjectUpdate", CreateProjectUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteProjectUpdateDocument = `mutation DeleteProjectUpdate ($id: String!) {
+	projectUpdateDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProjectUpdate, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteProjectUpdate
+	if err := c.Client.Post(ctx, "DeleteProjectUpdate", DeleteProjectUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateProjectDocument = `mutation CreateProject ($input: ProjectCreateInput!) {
 	projectCreate(input: $input) {
 		success
@@ -9048,6 +11305,83 @@ func (c *Client) GetOrganization(ctx context.Context, interceptors ...clientv2.R
 	return &res, nil
 }
 
+const GetProjectUpdateDocument = `query GetProjectUpdate ($id: String!) {
+	projectUpdate(id: $id) {
+		id
+		body
+		health
+		createdAt
+		user {
+			id
+			name
+			email
+		}
+		url
+	}
+}
+`
+
+func (c *Client) GetProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectUpdate, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetProjectUpdate
+	if err := c.Client.Post(ctx, "GetProjectUpdate", GetProjectUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListProjectUpdatesDocument = `query ListProjectUpdates ($projectId: String!, $first: Int, $after: String) {
+	project(id: $projectId) {
+		id
+		name
+		projectUpdates(first: $first, after: $after) {
+			nodes {
+				id
+				body
+				health
+				createdAt
+				user {
+					id
+					name
+				}
+				url
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectUpdates, error) {
+	vars := map[string]any{
+		"projectId": projectID,
+		"first":     first,
+		"after":     after,
+	}
+
+	var res ListProjectUpdates
+	if err := c.Client.Post(ctx, "ListProjectUpdates", ListProjectUpdatesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetProjectDocument = `query GetProject ($id: String!) {
 	project(id: $id) {
 		id
@@ -9057,8 +11391,12 @@ const GetProjectDocument = `query GetProject ($id: String!) {
 		createdAt
 		updatedAt
 		startedAt
+		completedAt
+		canceledAt
 		targetDate
 		progress
+		health
+		healthUpdatedAt
 		url
 		icon
 		color
@@ -9066,6 +11404,20 @@ const GetProjectDocument = `query GetProject ($id: String!) {
 			id
 			name
 			email
+		}
+		teams(first: 10) {
+			nodes {
+				id
+				name
+				key
+			}
+		}
+		initiatives(first: 10) {
+			nodes {
+				id
+				name
+				status
+			}
 		}
 	}
 }
@@ -9099,6 +11451,7 @@ const ListProjectsDocument = `query ListProjects ($first: Int, $after: String) {
 			updatedAt
 			targetDate
 			progress
+			health
 			url
 			icon
 			color
@@ -9140,6 +11493,7 @@ const ListProjectsFilteredDocument = `query ListProjectsFiltered ($first: Int, $
 			updatedAt
 			targetDate
 			progress
+			health
 			url
 			icon
 			color
@@ -9720,9 +12074,14 @@ var DocumentOperationNames = map[string]string{
 	GetDocumentDocument:                    "GetDocument",
 	ListDocumentsDocument:                  "ListDocuments",
 	ListDocumentsFilteredDocument:          "ListDocumentsFiltered",
+	ListInitiativeToProjectsDocument:       "ListInitiativeToProjects",
+	GetInitiativeToProjectDocument:         "GetInitiativeToProject",
+	GetInitiativeUpdateDocument:            "GetInitiativeUpdate",
+	ListInitiativeUpdatesDocument:          "ListInitiativeUpdates",
 	GetInitiativeDocument:                  "GetInitiative",
 	ListInitiativesDocument:                "ListInitiatives",
 	ListInitiativesFilteredDocument:        "ListInitiativesFiltered",
+	ListSubInitiativesDocument:             "ListSubInitiatives",
 	GetIssueDocument:                       "GetIssue",
 	ListIssuesDocument:                     "ListIssues",
 	ListIssuesFilteredDocument:             "ListIssuesFiltered",
@@ -9740,10 +12099,18 @@ var DocumentOperationNames = map[string]string{
 	CreateCycleDocument:                    "CreateCycle",
 	UpdateCycleDocument:                    "UpdateCycle",
 	ArchiveCycleDocument:                   "ArchiveCycle",
+	CreateDocumentDocument:                 "CreateDocument",
+	UpdateDocumentDocument:                 "UpdateDocument",
+	DeleteDocumentDocument:                 "DeleteDocument",
 	FavoriteCreateDocument:                 "FavoriteCreate",
 	FavoriteDeleteDocument:                 "FavoriteDelete",
+	CreateInitiativeToProjectDocument:      "CreateInitiativeToProject",
+	DeleteInitiativeToProjectDocument:      "DeleteInitiativeToProject",
+	CreateInitiativeUpdateDocument:         "CreateInitiativeUpdate",
+	ArchiveInitiativeUpdateDocument:        "ArchiveInitiativeUpdate",
 	CreateInitiativeDocument:               "CreateInitiative",
 	UpdateInitiativeDocument:               "UpdateInitiative",
+	DeleteInitiativeDocument:               "DeleteInitiative",
 	IssueAddLabelDocument:                  "IssueAddLabel",
 	IssueRemoveLabelDocument:               "IssueRemoveLabel",
 	IssueRelationCreateDocument:            "IssueRelationCreate",
@@ -9762,6 +12129,8 @@ var DocumentOperationNames = map[string]string{
 	ProjectMilestoneCreateDocument:         "ProjectMilestoneCreate",
 	ProjectMilestoneUpdateDocument:         "ProjectMilestoneUpdate",
 	ProjectMilestoneDeleteDocument:         "ProjectMilestoneDelete",
+	CreateProjectUpdateDocument:            "CreateProjectUpdate",
+	DeleteProjectUpdateDocument:            "DeleteProjectUpdate",
 	CreateProjectDocument:                  "CreateProject",
 	UpdateProjectDocument:                  "UpdateProject",
 	DeleteProjectDocument:                  "DeleteProject",
@@ -9771,6 +12140,8 @@ var DocumentOperationNames = map[string]string{
 	UpdateTeamDocument:                     "UpdateTeam",
 	DeleteTeamDocument:                     "DeleteTeam",
 	GetOrganizationDocument:                "GetOrganization",
+	GetProjectUpdateDocument:               "GetProjectUpdate",
+	ListProjectUpdatesDocument:             "ListProjectUpdates",
 	GetProjectDocument:                     "GetProject",
 	ListProjectsDocument:                   "ListProjects",
 	ListProjectsFilteredDocument:           "ListProjectsFiltered",

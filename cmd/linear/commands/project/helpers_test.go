@@ -70,8 +70,32 @@ const (
 				"name": "Test Project",
 				"description": "Test description",
 				"createdAt": "2024-01-01T00:00:00.000Z",
+				"updatedAt": "2024-01-02T00:00:00.000Z",
+				"startedAt": "2024-01-01T00:00:00.000Z",
+				"completedAt": null,
+				"canceledAt": null,
+				"targetDate": "2024-03-01",
+				"progress": 0.68,
+				"health": "onTrack",
+				"healthUpdatedAt": "2024-01-02T00:00:00.000Z",
+				"url": "https://linear.app/test/project/proj-123",
 				"color": "#3b82f6",
-				"state": "started"
+				"state": "started",
+				"lead": {
+					"id": "user-123",
+					"name": "Test Lead",
+					"email": "lead@example.com"
+				},
+				"teams": {
+					"nodes": [
+						{"id": "team-123", "name": "Engineering", "key": "ENG"}
+					]
+				},
+				"initiatives": {
+					"nodes": [
+						{"id": "init-123", "name": "Test Initiative", "status": "Active"}
+					]
+				}
 			}
 		}
 	}`
@@ -89,7 +113,7 @@ const (
 		}
 	}`
 
-	mockProjectUpdateResponse = `{
+	mockProjectMutationUpdateResponse = `{
 		"data": {
 			"projectUpdate": {
 				"success": true,
@@ -157,6 +181,71 @@ const (
 			}
 		}
 	}`
+
+	mockProjectUpdateCreateResponse = `{
+		"data": {
+			"projectUpdateCreate": {
+				"success": true,
+				"projectUpdate": {
+					"id": "update-123",
+					"body": "Test update body",
+					"health": "onTrack",
+					"createdAt": "2024-01-08T00:00:00.000Z",
+					"url": "https://linear.app/test/project/proj-123/update-123"
+				}
+			}
+		}
+	}`
+
+	mockProjectUpdatesResponse = `{
+		"data": {
+			"project": {
+				"id": "proj-123",
+				"name": "Test Project",
+				"projectUpdates": {
+					"nodes": [
+						{
+							"id": "update-123",
+							"body": "Test update body",
+							"health": "onTrack",
+							"createdAt": "2024-01-08T00:00:00.000Z",
+							"url": "https://linear.app/test/project/proj-123/update-123",
+							"user": {
+								"id": "user-123",
+								"name": "Test User"
+							}
+						}
+					],
+					"pageInfo": {"hasNextPage": false}
+				}
+			}
+		}
+	}`
+
+	mockProjectUpdateResponse = `{
+		"data": {
+			"projectUpdate": {
+				"id": "update-123",
+				"body": "Test update body",
+				"health": "onTrack",
+				"createdAt": "2024-01-08T00:00:00.000Z",
+				"url": "https://linear.app/test/project/proj-123/update-123",
+				"user": {
+					"id": "user-123",
+					"name": "Test User",
+					"email": "test@example.com"
+				}
+			}
+		}
+	}`
+
+	mockProjectUpdateDeleteResponse = `{
+		"data": {
+			"projectUpdateDelete": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -165,10 +254,14 @@ func defaultHandlers() map[string]string {
 		"GetProject":             mockProjectResponse,
 		"ListTeams":              mockTeamsResponse,
 		"CreateProject":          mockProjectCreateResponse,
-		"UpdateProject":          mockProjectUpdateResponse,
+		"UpdateProject":          mockProjectMutationUpdateResponse,
 		"DeleteProject":          mockProjectDeleteResponse,
 		"ProjectMilestoneCreate": mockMilestoneCreateResponse,
 		"ProjectMilestoneUpdate": mockMilestoneUpdateResponse,
 		"ProjectMilestoneDelete": mockMilestoneDeleteResponse,
+		"CreateProjectUpdate":    mockProjectUpdateCreateResponse,
+		"ListProjectUpdates":     mockProjectUpdatesResponse,
+		"GetProjectUpdate":       mockProjectUpdateResponse,
+		"DeleteProjectUpdate":    mockProjectUpdateDeleteResponse,
 	}
 }
