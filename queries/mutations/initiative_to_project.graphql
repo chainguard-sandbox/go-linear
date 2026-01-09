@@ -1,0 +1,23 @@
+mutation CreateInitiativeToProject($input: InitiativeToProjectCreateInput!) {
+  initiativeToProjectCreate(input: $input) {
+    success
+    initiativeToProject {
+      id
+      initiative {
+        id
+        name
+      }
+      project {
+        id
+        name
+      }
+      createdAt
+    }
+  }
+}
+
+mutation DeleteInitiativeToProject($id: String!) {
+  initiativeToProjectDelete(id: $id) {
+    success
+  }
+}
