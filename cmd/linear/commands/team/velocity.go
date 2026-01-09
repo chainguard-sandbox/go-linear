@@ -79,9 +79,7 @@ func runVelocity(cmd *cobra.Command, client *linear.Client) error {
 
 	// Get number of cycles to analyze
 	numCycles, _ := cmd.Flags().GetInt("cycles")
-	if numCycles < 1 {
-		numCycles = 3
-	}
+	numCycles = max(numCycles, 3)
 
 	// Fetch recent cycles for this team (fetch extra to ensure we get enough completed ones)
 	limit := int64(numCycles * 3)
@@ -99,7 +97,7 @@ func runVelocity(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Filter to only completed cycles and limit to requested number
-	completedCycles := []intgraphql.ListCyclesFiltered_Cycles_Nodes{}
+	completedCycles := make([]intgraphql.ListCyclesFiltered_Cycles_Nodes, 0, numCycles)
 	for _, cycle := range cycles.Nodes {
 		if cycle.CompletedAt != nil && len(completedCycles) < numCycles {
 			completedCycles = append(completedCycles, *cycle)
