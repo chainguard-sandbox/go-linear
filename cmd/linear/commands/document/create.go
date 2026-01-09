@@ -54,7 +54,7 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 
 	title, _ := cmd.Flags().GetString("title")
 	input := intgraphql.DocumentCreateInput{
-		Title: title,
+		Title: title, // Not a pointer - title is required in Linear API (String! in schema)
 	}
 
 	if content, _ := cmd.Flags().GetString("content"); content != "" {
