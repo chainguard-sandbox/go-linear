@@ -74,6 +74,21 @@ func runGet(cmd *cobra.Command, client *linear.Client, commentID string, flags *
 		fmt.Fprintf(cmd.OutOrStdout(), "Body:        %s\n", comment.Body)
 		fmt.Fprintf(cmd.OutOrStdout(), "Created:     %s\n", comment.CreatedAt)
 		fmt.Fprintf(cmd.OutOrStdout(), "Updated:     %s\n", comment.UpdatedAt)
+
+		// Show parent comment if this is a reply
+		if comment.Parent != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nReplying to: %s\n", comment.Parent.User.Name)
+			fmt.Fprintf(cmd.OutOrStdout(), "  %s\n", comment.Parent.Body)
+		}
+
+		// Show child comments (replies)
+		if len(comment.Children.Nodes) > 0 {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nReplies: %d\n", len(comment.Children.Nodes))
+			for _, child := range comment.Children.Nodes {
+				fmt.Fprintf(cmd.OutOrStdout(), "  [%s] %s: %s\n",
+					child.CreatedAt.Format("Jan 2"), child.User.Name, child.Body)
+			}
+		}
 		return nil
 	default:
 		return fmt.Errorf("unsupported output format: %s", flags.Output)

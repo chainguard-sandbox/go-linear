@@ -13,6 +13,25 @@ query GetComment($id: String!) {
       id
       title
     }
+    parent {
+      id
+      body
+      user {
+        id
+        name
+      }
+    }
+    children(first: 10) {
+      nodes {
+        id
+        body
+        user {
+          id
+          name
+        }
+        createdAt
+      }
+    }
   }
 }
 

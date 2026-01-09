@@ -500,14 +500,120 @@ func (t *GetComment_Comment_Issue) GetTitle() string {
 	return t.Title
 }
 
+type GetComment_Comment_Parent_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetComment_Comment_Parent_User) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent_User{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Parent_User) GetName() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent_User{}
+	}
+	return t.Name
+}
+
+type GetComment_Comment_Parent struct {
+	Body string                          "json:\"body\" graphql:\"body\""
+	ID   string                          "json:\"id\" graphql:\"id\""
+	User *GetComment_Comment_Parent_User "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *GetComment_Comment_Parent) GetBody() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent{}
+	}
+	return t.Body
+}
+func (t *GetComment_Comment_Parent) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Parent) GetUser() *GetComment_Comment_Parent_User {
+	if t == nil {
+		t = &GetComment_Comment_Parent{}
+	}
+	return t.User
+}
+
+type GetComment_Comment_Children_Nodes_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetComment_Comment_Children_Nodes_User) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Children_Nodes_User) GetName() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes_User{}
+	}
+	return t.Name
+}
+
+type GetComment_Comment_Children_Nodes struct {
+	Body      string                                  "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                               "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                                  "json:\"id\" graphql:\"id\""
+	User      *GetComment_Comment_Children_Nodes_User "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *GetComment_Comment_Children_Nodes) GetBody() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return t.Body
+}
+func (t *GetComment_Comment_Children_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetComment_Comment_Children_Nodes) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Children_Nodes) GetUser() *GetComment_Comment_Children_Nodes_User {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return t.User
+}
+
+type GetComment_Comment_Children struct {
+	Nodes []*GetComment_Comment_Children_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetComment_Comment_Children) GetNodes() []*GetComment_Comment_Children_Nodes {
+	if t == nil {
+		t = &GetComment_Comment_Children{}
+	}
+	return t.Nodes
+}
+
 type GetComment_Comment struct {
-	Body      string                    "json:\"body\" graphql:\"body\""
-	CreatedAt time.Time                 "json:\"createdAt\" graphql:\"createdAt\""
-	ID        string                    "json:\"id\" graphql:\"id\""
-	Issue     *GetComment_Comment_Issue "json:\"issue,omitempty\" graphql:\"issue\""
-	UpdatedAt time.Time                 "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL       string                    "json:\"url\" graphql:\"url\""
-	User      *GetComment_Comment_User  "json:\"user,omitempty\" graphql:\"user\""
+	Body      string                      "json:\"body\" graphql:\"body\""
+	Children  GetComment_Comment_Children "json:\"children\" graphql:\"children\""
+	CreatedAt time.Time                   "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                      "json:\"id\" graphql:\"id\""
+	Issue     *GetComment_Comment_Issue   "json:\"issue,omitempty\" graphql:\"issue\""
+	Parent    *GetComment_Comment_Parent  "json:\"parent,omitempty\" graphql:\"parent\""
+	UpdatedAt time.Time                   "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string                      "json:\"url\" graphql:\"url\""
+	User      *GetComment_Comment_User    "json:\"user,omitempty\" graphql:\"user\""
 }
 
 func (t *GetComment_Comment) GetBody() string {
@@ -515,6 +621,12 @@ func (t *GetComment_Comment) GetBody() string {
 		t = &GetComment_Comment{}
 	}
 	return t.Body
+}
+func (t *GetComment_Comment) GetChildren() *GetComment_Comment_Children {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return &t.Children
 }
 func (t *GetComment_Comment) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -533,6 +645,12 @@ func (t *GetComment_Comment) GetIssue() *GetComment_Comment_Issue {
 		t = &GetComment_Comment{}
 	}
 	return t.Issue
+}
+func (t *GetComment_Comment) GetParent() *GetComment_Comment_Parent {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.Parent
 }
 func (t *GetComment_Comment) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -3413,6 +3531,7 @@ type CreateComment_CommentCreate_Comment struct {
 	Body      string    "json:\"body\" graphql:\"body\""
 	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	ID        string    "json:\"id\" graphql:\"id\""
+	ParentID  *string   "json:\"parentId,omitempty\" graphql:\"parentId\""
 	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
 	URL       string    "json:\"url\" graphql:\"url\""
 }
@@ -3434,6 +3553,12 @@ func (t *CreateComment_CommentCreate_Comment) GetID() string {
 		t = &CreateComment_CommentCreate_Comment{}
 	}
 	return t.ID
+}
+func (t *CreateComment_CommentCreate_Comment) GetParentID() *string {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return t.ParentID
 }
 func (t *CreateComment_CommentCreate_Comment) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -8814,6 +8939,25 @@ const GetCommentDocument = `query GetComment ($id: String!) {
 			id
 			title
 		}
+		parent {
+			id
+			body
+			user {
+				id
+				name
+			}
+		}
+		children(first: 10) {
+			nodes {
+				id
+				body
+				user {
+					id
+					name
+				}
+				createdAt
+			}
+		}
 	}
 }
 `
@@ -9912,6 +10056,7 @@ const CreateCommentDocument = `mutation CreateComment ($input: CommentCreateInpu
 			createdAt
 			updatedAt
 			url
+			parentId
 		}
 	}
 }

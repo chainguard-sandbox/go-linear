@@ -228,6 +228,126 @@ func TestCLI_CommentCreateUpdateDelete(t *testing.T) {
 	})
 }
 
+// --- Comment Threading Test ---
+
+func TestCLI_CommentThreading(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	issueTitle := fmt.Sprintf("Thread Test %s", timestamp)
+
+	// Create issue
+	stdout, _, err := r.run("issue", "create",
+		"--team="+r.teamKey,
+		"--title="+issueTitle,
+		"--output=json",
+	)
+	if err != nil {
+		t.Fatalf("Failed to create issue: %v", err)
+	}
+
+	var createResult map[string]any
+	json.Unmarshal([]byte(stdout), &createResult)
+	issue := extractIssue(createResult)
+	issueID := issue["identifier"].(string)
+
+	defer r.run("issue", "delete", issueID, "--yes")
+
+	var parentID, replyID string
+
+	// CREATE parent
+	t.Run("create_parent", func(t *testing.T) {
+		stdout, stderr, err := r.run("comment", "create",
+			"--issue="+issueID,
+			"--body=Parent comment",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		comment := extractEntity(result, "comment")
+		parentID = comment["id"].(string)
+		t.Logf("Created parent: %s", parentID)
+	})
+
+	// CREATE reply
+	t.Run("create_reply", func(t *testing.T) {
+		if parentID == "" {
+			t.Skip("No parent")
+		}
+
+		stdout, stderr, err := r.run("comment", "create",
+			"--issue="+issueID,
+			"--body=Reply comment",
+			"--parent="+parentID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("create reply failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		comment := extractEntity(result, "comment")
+		replyID = comment["id"].(string)
+
+		if comment["parentId"] != parentID {
+			t.Errorf("Expected parentId=%s, got %v", parentID, comment["parentId"])
+		}
+		t.Logf("Created reply: %s", replyID)
+	})
+
+	// GET parent shows replies
+	t.Run("get_parent_shows_replies", func(t *testing.T) {
+		if parentID == "" {
+			t.Skip("No parent")
+		}
+
+		stdout, stderr, err := r.run("comment", "get", parentID, "--output=json")
+		if err != nil {
+			t.Fatalf("get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if children, ok := result["children"].(map[string]any); ok {
+			if nodes, ok := children["nodes"].([]any); ok && len(nodes) > 0 {
+				t.Logf("Parent has %d replies", len(nodes))
+			} else {
+				t.Error("Expected children nodes")
+			}
+		}
+	})
+
+	// GET reply shows parent
+	t.Run("get_reply_shows_parent", func(t *testing.T) {
+		if replyID == "" {
+			t.Skip("No reply")
+		}
+
+		stdout, stderr, err := r.run("comment", "get", replyID, "--fields=none", "--output=json")
+		if err != nil {
+			t.Fatalf("get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if parent, ok := result["parent"].(map[string]any); ok {
+			if parent["id"] != parentID {
+				t.Errorf("Expected parent.id=%s, got %v", parentID, parent["id"])
+			}
+			t.Logf("Reply shows parent")
+		} else {
+			t.Error("Expected parent field")
+		}
+	})
+}
+
 // --- Label CRUD Tests ---
 
 func TestCLI_LabelCreateUpdateDelete(t *testing.T) {
