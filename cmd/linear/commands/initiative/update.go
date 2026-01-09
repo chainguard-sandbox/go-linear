@@ -8,6 +8,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -18,9 +19,9 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing initiative",
 		Long: `Update initiative. Modifies existing data.
 
-Fields: --name, --description
+Fields: --name, --description, --parent, --target-date, --owner, --status
 
-Example: go-linear initiative update <uuid> --name="Updated Security Policy" --output=json
+Example: go-linear initiative update <uuid> --name="Updated Security Policy" --status=Completed --output=json
 
 Related: initiative_get, initiative_create`,
 		Args: cobra.ExactArgs(1),
@@ -37,6 +38,9 @@ Related: initiative_get, initiative_create`,
 
 	cmd.Flags().String("name", "", "New name")
 	cmd.Flags().String("description", "", "New description (markdown)")
+	cmd.Flags().String("target-date", "", "New target completion date (ISO8601 format: YYYY-MM-DD)")
+	cmd.Flags().String("owner", "", "New owner name, email, or 'me'")
+	cmd.Flags().String("status", "", "New status: planned, active, completed")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -45,6 +49,7 @@ Related: initiative_get, initiative_create`,
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, initiativeID string) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
 	input := intgraphql.InitiativeUpdateInput{}
 	updated := false
@@ -56,6 +61,29 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, initiativeID string) e
 
 	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
 		input.Description = &desc
+		updated = true
+	}
+
+	// Resolve owner
+	if owner, _ := cmd.Flags().GetString("owner"); owner != "" {
+		ownerID, err := res.ResolveUser(ctx, owner)
+		if err != nil {
+			return fmt.Errorf("failed to resolve owner: %w", err)
+		}
+		input.OwnerID = &ownerID
+		updated = true
+	}
+
+	// Set target date (ISO8601 format: YYYY-MM-DD)
+	if targetDate, _ := cmd.Flags().GetString("target-date"); targetDate != "" {
+		input.TargetDate = &targetDate
+		updated = true
+	}
+
+	// Set status
+	if status, _ := cmd.Flags().GetString("status"); status != "" {
+		statusType := intgraphql.InitiativeStatus(status)
+		input.Status = &statusType
 		updated = true
 	}
 

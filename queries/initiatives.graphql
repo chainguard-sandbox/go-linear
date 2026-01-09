@@ -9,6 +9,27 @@ query GetInitiative($id: String!) {
     sortOrder
     color
     icon
+    status
+    health
+    healthUpdatedAt
+    url
+    parentInitiative {
+      id
+      name
+    }
+    owner {
+      id
+      name
+      email
+    }
+    projects(first: 10) {
+      nodes {
+        id
+        name
+        state
+        progress
+      }
+    }
   }
 }
 
@@ -23,6 +44,16 @@ query ListInitiatives($first: Int, $after: String) {
       sortOrder
       color
       icon
+      status
+      health
+      parentInitiative {
+        id
+        name
+      }
+      owner {
+        id
+        name
+      }
     }
     pageInfo {
       hasNextPage
@@ -42,10 +73,41 @@ query ListInitiativesFiltered($first: Int, $after: String, $filter: InitiativeFi
       sortOrder
       color
       icon
+      status
+      health
+      parentInitiative {
+        id
+        name
+      }
+      owner {
+        id
+        name
+      }
     }
     pageInfo {
       hasNextPage
       endCursor
+    }
+  }
+}
+
+query ListSubInitiatives($id: String!, $first: Int, $after: String) {
+  initiative(id: $id) {
+    id
+    subInitiatives(first: $first, after: $after) {
+      nodes {
+        id
+        name
+        description
+        status
+        health
+        targetDate
+        createdAt
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 }

@@ -96,3 +96,189 @@ func (c *Client) InitiativeUpdate(ctx context.Context, id string, input intgraph
 	}
 	return &resp.InitiativeUpdate.Initiative, nil
 }
+
+// InitiativeUpdateCreate creates a status update for an initiative.
+//
+// Parameters:
+//   - input: Status update creation parameters
+//
+// Required fields:
+//   - InitiativeID: UUID of the initiative (required)
+//   - Body: Update body in markdown format (required)
+//
+// Optional fields:
+//   - Health: Initiative health status (onTrack, atRisk, offTrack)
+//
+// Returns:
+//   - Created initiative update with ID, body, health, and dates
+//   - error: Non-nil if creation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeUpdateArchive], [GetInitiativeUpdate], [ListInitiativeUpdates]
+func (c *Client) InitiativeUpdateCreate(ctx context.Context, input intgraphql.InitiativeUpdateCreateInput) (*intgraphql.CreateInitiativeUpdate_InitiativeUpdateCreate_InitiativeUpdate, error) {
+	resp, err := c.gqlClient.CreateInitiativeUpdate(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("InitiativeUpdateCreate", err)
+	}
+	if !resp.InitiativeUpdateCreate.Success {
+		return nil, errMutationFailed("InitiativeUpdateCreate")
+	}
+	return &resp.InitiativeUpdateCreate.InitiativeUpdate, nil
+}
+
+// GetInitiativeUpdate retrieves a single initiative status update by ID.
+//
+// Returns:
+//   - InitiativeUpdate with ID, body, health, user, dates, and URL
+//   - error: Non-nil if update not found or query fails
+//
+// Permissions Required: Read
+//
+// Related: [ListInitiativeUpdates], [InitiativeUpdateCreate]
+func (c *Client) GetInitiativeUpdate(ctx context.Context, id string) (*intgraphql.GetInitiativeUpdate_InitiativeUpdate, error) {
+	resp, err := c.gqlClient.GetInitiativeUpdate(ctx, id)
+	if err != nil {
+		return nil, wrapGraphQLError("initiative update query", err)
+	}
+	return &resp.InitiativeUpdate, nil
+}
+
+// ListInitiativeUpdates retrieves status updates for an initiative.
+//
+// Parameters:
+//   - initiativeID: Initiative UUID (required)
+//   - first: Number of updates to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - Initiative with nested initiative updates list
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [GetInitiativeUpdate], [InitiativeUpdateCreate]
+func (c *Client) ListInitiativeUpdates(ctx context.Context, initiativeID string, first *int64, after *string) (*intgraphql.ListInitiativeUpdates_Initiative, error) {
+	resp, err := c.gqlClient.ListInitiativeUpdates(ctx, initiativeID, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("list initiative updates query", err)
+	}
+	return &resp.Initiative, nil
+}
+
+// InitiativeUpdateArchive archives an initiative status update by ID.
+//
+// Parameters:
+//   - id: Initiative update UUID to archive (required)
+//
+// Returns:
+//   - nil: Update successfully archived
+//   - error: Non-nil if archive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeUpdateCreate], [GetInitiativeUpdate]
+func (c *Client) InitiativeUpdateArchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.ArchiveInitiativeUpdate(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("InitiativeUpdateArchive", err)
+	}
+	if !resp.InitiativeUpdateArchive.Success {
+		return errMutationFailed("InitiativeUpdateArchive")
+	}
+	return nil
+}
+
+// InitiativeDelete deletes an initiative by ID.
+//
+// Parameters:
+//   - id: Initiative UUID to delete (required)
+//
+// Returns:
+//   - nil: Initiative successfully deleted
+//   - error: Non-nil if delete fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeCreate], [InitiativeUpdate]
+func (c *Client) InitiativeDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteInitiative(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("InitiativeDelete", err)
+	}
+	if !resp.InitiativeDelete.Success {
+		return errMutationFailed("InitiativeDelete")
+	}
+	return nil
+}
+
+// InitiativeToProjectCreate links a project to an initiative.
+//
+// Parameters:
+//   - input: Initiative-project link creation parameters
+//
+// Required fields:
+//   - InitiativeID: UUID of the initiative (required)
+//   - ProjectID: UUID of the project (required)
+//
+// Returns:
+//   - Created link with ID, initiative, and project details
+//   - error: Non-nil if creation fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeToProjectDelete]
+func (c *Client) InitiativeToProjectCreate(ctx context.Context, input intgraphql.InitiativeToProjectCreateInput) (*intgraphql.CreateInitiativeToProject_InitiativeToProjectCreate_InitiativeToProject, error) {
+	resp, err := c.gqlClient.CreateInitiativeToProject(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("InitiativeToProjectCreate", err)
+	}
+	if !resp.InitiativeToProjectCreate.Success {
+		return nil, errMutationFailed("InitiativeToProjectCreate")
+	}
+	return &resp.InitiativeToProjectCreate.InitiativeToProject, nil
+}
+
+// InitiativeToProjectDelete unlinks a project from an initiative.
+//
+// Parameters:
+//   - id: InitiativeToProject link UUID to delete (required)
+//
+// Returns:
+//   - nil: Link successfully deleted
+//   - error: Non-nil if delete fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeToProjectCreate]
+func (c *Client) InitiativeToProjectDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.DeleteInitiativeToProject(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("InitiativeToProjectDelete", err)
+	}
+	if !resp.InitiativeToProjectDelete.Success {
+		return errMutationFailed("InitiativeToProjectDelete")
+	}
+	return nil
+}
+
+// ListInitiativeToProjects retrieves all initiative-project links.
+//
+// Parameters:
+//   - first: Number of links to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - Links with initiative and project details
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [InitiativeToProjectCreate], [InitiativeToProjectDelete]
+func (c *Client) ListInitiativeToProjects(ctx context.Context, first *int64, after *string) (*intgraphql.ListInitiativeToProjects_InitiativeToProjects, error) {
+	resp, err := c.gqlClient.ListInitiativeToProjects(ctx, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("list initiative to projects query", err)
+	}
+	return &resp.InitiativeToProjects, nil
+}

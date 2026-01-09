@@ -1,0 +1,18 @@
+mutation CreateInitiativeUpdate($input: InitiativeUpdateCreateInput!) {
+  initiativeUpdateCreate(input: $input) {
+    success
+    initiativeUpdate {
+      id
+      body
+      health
+      createdAt
+      url
+    }
+  }
+}
+
+mutation ArchiveInitiativeUpdate($id: String!) {
+  initiativeUpdateArchive(id: $id) {
+    success
+  }
+}

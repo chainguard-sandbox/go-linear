@@ -15,6 +15,7 @@ var Filters = map[string]FilterFunc{
 	"id":      common.ApplyID[*FilterBuilder],
 	"creator": ApplyCreator,
 	"owner":   ApplyOwner,
+	// "parent":  ApplyParent, // TODO: Linear API doesn't support parent filtering yet
 
 	// Text filters (initiative-specific)
 	"name":    ApplyName,

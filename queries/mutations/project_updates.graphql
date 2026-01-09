@@ -1,0 +1,18 @@
+mutation CreateProjectUpdate($input: ProjectUpdateCreateInput!) {
+  projectUpdateCreate(input: $input) {
+    success
+    projectUpdate {
+      id
+      body
+      health
+      createdAt
+      url
+    }
+  }
+}
+
+mutation DeleteProjectUpdate($id: String!) {
+  projectUpdateDelete(id: $id) {
+    success
+  }
+}

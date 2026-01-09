@@ -22,7 +22,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "List initiatives with filtering",
 		Long: `List initiatives with filtering. Returns 4 default fields per initiative.
 
-Filters: --name, --creator, --owner, --health, --status, --slug-id
+Filters: --name, --creator, --owner, --parent, --health, --status, --slug-id
 Date filters: --created-after, --target-after, etc. (date formats: see issue_list)
 
 Example: go-linear initiative list --status=Active --output=json
@@ -51,6 +51,7 @@ Related: initiative_get, project_list, issue_list`,
 	cmd.Flags().String("id", "", "Initiative UUID")
 	cmd.Flags().String("creator", "", "Creator name, email, or 'me'")
 	cmd.Flags().String("owner", "", "Owner name, email, or 'me'")
+	cmd.Flags().String("parent", "", "Parent initiative UUID or name")
 
 	// Text filters
 	cmd.Flags().String("name", "", "Name contains (case-insensitive)")
