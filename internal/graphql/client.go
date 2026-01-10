@@ -75,6 +75,7 @@ type LinearGraphQLClient interface {
 	NotificationArchive(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationArchive, error)
 	NotificationSubscriptionCreate(ctx context.Context, input NotificationSubscriptionCreateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionCreate, error)
 	NotificationSubscriptionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionDelete, error)
+	UnarchiveNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveNotification, error)
 	ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error)
 	ProjectMilestoneUpdate(ctx context.Context, id string, input ProjectMilestoneUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneUpdate, error)
 	ProjectMilestoneDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneDelete, error)
@@ -88,6 +89,8 @@ type LinearGraphQLClient interface {
 	CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error)
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
+	ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error)
+	GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
 	GetProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectUpdate, error)
 	ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectUpdates, error)
@@ -5148,6 +5151,17 @@ func (t *NotificationSubscriptionDelete_NotificationSubscriptionDelete) GetSucce
 	return t.Success
 }
 
+type UnarchiveNotification_NotificationUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveNotification_NotificationUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveNotification_NotificationUnarchive{}
+	}
+	return t.Success
+}
+
 type ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -5693,6 +5707,184 @@ func (t *DeleteTeam_TeamDelete) GetSuccess() bool {
 		t = &DeleteTeam_TeamDelete{}
 	}
 	return t.Success
+}
+
+type ListNotifications_Notifications_Nodes_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_User{}
+	}
+	return t.Name
+}
+
+type ListNotifications_Notifications_Nodes struct {
+	ArchivedAt     *time.Time                                 "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	CreatedAt      time.Time                                  "json:\"createdAt\" graphql:\"createdAt\""
+	ID             string                                     "json:\"id\" graphql:\"id\""
+	ReadAt         *time.Time                                 "json:\"readAt,omitempty\" graphql:\"readAt\""
+	SnoozedUntilAt *time.Time                                 "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
+	Type           string                                     "json:\"type\" graphql:\"type\""
+	User           ListNotifications_Notifications_Nodes_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *ListNotifications_Notifications_Nodes) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.ArchivedAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes) GetReadAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.ReadAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetSnoozedUntilAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.SnoozedUntilAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetType() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.Type
+}
+func (t *ListNotifications_Notifications_Nodes) GetUser() *ListNotifications_Notifications_Nodes_User {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.User
+}
+
+type ListNotifications_Notifications_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListNotifications_Notifications_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListNotifications_Notifications_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListNotifications_Notifications_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListNotifications_Notifications_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListNotifications_Notifications struct {
+	Nodes    []*ListNotifications_Notifications_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListNotifications_Notifications_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListNotifications_Notifications) GetNodes() []*ListNotifications_Notifications_Nodes {
+	if t == nil {
+		t = &ListNotifications_Notifications{}
+	}
+	return t.Nodes
+}
+func (t *ListNotifications_Notifications) GetPageInfo() *ListNotifications_Notifications_PageInfo {
+	if t == nil {
+		t = &ListNotifications_Notifications{}
+	}
+	return &t.PageInfo
+}
+
+type GetNotification_Notification_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_User) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_User{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_User) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_User{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification struct {
+	ArchivedAt     *time.Time                        "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	CreatedAt      time.Time                         "json:\"createdAt\" graphql:\"createdAt\""
+	ID             string                            "json:\"id\" graphql:\"id\""
+	ReadAt         *time.Time                        "json:\"readAt,omitempty\" graphql:\"readAt\""
+	SnoozedUntilAt *time.Time                        "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
+	Type           string                            "json:\"type\" graphql:\"type\""
+	User           GetNotification_Notification_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *GetNotification_Notification) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.ArchivedAt
+}
+func (t *GetNotification_Notification) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetNotification_Notification) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification) GetReadAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.ReadAt
+}
+func (t *GetNotification_Notification) GetSnoozedUntilAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.SnoozedUntilAt
+}
+func (t *GetNotification_Notification) GetType() string {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.Type
+}
+func (t *GetNotification_Notification) GetUser() *GetNotification_Notification_User {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.User
 }
 
 type GetOrganization_Organization struct {
@@ -8404,6 +8596,17 @@ func (t *NotificationSubscriptionDelete) GetNotificationSubscriptionDelete() *No
 	return &t.NotificationSubscriptionDelete
 }
 
+type UnarchiveNotification struct {
+	NotificationUnarchive UnarchiveNotification_NotificationUnarchive "json:\"notificationUnarchive\" graphql:\"notificationUnarchive\""
+}
+
+func (t *UnarchiveNotification) GetNotificationUnarchive() *UnarchiveNotification_NotificationUnarchive {
+	if t == nil {
+		t = &UnarchiveNotification{}
+	}
+	return &t.NotificationUnarchive
+}
+
 type ProjectMilestoneCreate struct {
 	ProjectMilestoneCreate ProjectMilestoneCreate_ProjectMilestoneCreate "json:\"projectMilestoneCreate\" graphql:\"projectMilestoneCreate\""
 }
@@ -8545,6 +8748,28 @@ func (t *DeleteTeam) GetTeamDelete() *DeleteTeam_TeamDelete {
 		t = &DeleteTeam{}
 	}
 	return &t.TeamDelete
+}
+
+type ListNotifications struct {
+	Notifications ListNotifications_Notifications "json:\"notifications\" graphql:\"notifications\""
+}
+
+func (t *ListNotifications) GetNotifications() *ListNotifications_Notifications {
+	if t == nil {
+		t = &ListNotifications{}
+	}
+	return &t.Notifications
+}
+
+type GetNotification struct {
+	Notification GetNotification_Notification "json:\"notification\" graphql:\"notification\""
+}
+
+func (t *GetNotification) GetNotification() *GetNotification_Notification {
+	if t == nil {
+		t = &GetNotification{}
+	}
+	return &t.Notification
 }
 
 type GetOrganization struct {
@@ -11045,6 +11270,30 @@ func (c *Client) NotificationSubscriptionDelete(ctx context.Context, id string, 
 	return &res, nil
 }
 
+const UnarchiveNotificationDocument = `mutation UnarchiveNotification ($id: String!) {
+	notificationUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveNotification, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveNotification
+	if err := c.Client.Post(ctx, "UnarchiveNotification", UnarchiveNotificationDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ProjectMilestoneCreateDocument = `mutation ProjectMilestoneCreate ($input: ProjectMilestoneCreateInput!) {
 	projectMilestoneCreate(input: $input) {
 		success
@@ -11412,6 +11661,80 @@ func (c *Client) DeleteTeam(ctx context.Context, id string, interceptors ...clie
 
 	var res DeleteTeam
 	if err := c.Client.Post(ctx, "DeleteTeam", DeleteTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListNotificationsDocument = `query ListNotifications ($first: Int, $after: String, $filter: NotificationFilter) {
+	notifications(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			type
+			createdAt
+			readAt
+			snoozedUntilAt
+			archivedAt
+			user {
+				id
+				name
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListNotifications
+	if err := c.Client.Post(ctx, "ListNotifications", ListNotificationsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetNotificationDocument = `query GetNotification ($id: String!) {
+	notification(id: $id) {
+		id
+		type
+		createdAt
+		readAt
+		snoozedUntilAt
+		archivedAt
+		user {
+			id
+			name
+		}
+	}
+}
+`
+
+func (c *Client) GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetNotification
+	if err := c.Client.Post(ctx, "GetNotification", GetNotificationDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -12271,6 +12594,7 @@ var DocumentOperationNames = map[string]string{
 	NotificationArchiveDocument:            "NotificationArchive",
 	NotificationSubscriptionCreateDocument: "NotificationSubscriptionCreate",
 	NotificationSubscriptionDeleteDocument: "NotificationSubscriptionDelete",
+	UnarchiveNotificationDocument:          "UnarchiveNotification",
 	ProjectMilestoneCreateDocument:         "ProjectMilestoneCreate",
 	ProjectMilestoneUpdateDocument:         "ProjectMilestoneUpdate",
 	ProjectMilestoneDeleteDocument:         "ProjectMilestoneDelete",
@@ -12284,6 +12608,8 @@ var DocumentOperationNames = map[string]string{
 	CreateTeamDocument:                     "CreateTeam",
 	UpdateTeamDocument:                     "UpdateTeam",
 	DeleteTeamDocument:                     "DeleteTeam",
+	ListNotificationsDocument:              "ListNotifications",
+	GetNotificationDocument:                "GetNotification",
 	GetOrganizationDocument:                "GetOrganization",
 	GetProjectUpdateDocument:               "GetProjectUpdate",
 	ListProjectUpdatesDocument:             "ListProjectUpdates",

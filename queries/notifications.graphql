@@ -1,0 +1,35 @@
+query ListNotifications($first: Int, $after: String, $filter: NotificationFilter) {
+  notifications(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      type
+      createdAt
+      readAt
+      snoozedUntilAt
+      archivedAt
+      user {
+        id
+        name
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query GetNotification($id: String!) {
+  notification(id: $id) {
+    id
+    type
+    createdAt
+    readAt
+    snoozedUntilAt
+    archivedAt
+    user {
+      id
+      name
+    }
+  }
+}

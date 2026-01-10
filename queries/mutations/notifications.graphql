@@ -31,3 +31,9 @@ mutation NotificationSubscriptionDelete($id: String!) {
     success
   }
 }
+
+mutation UnarchiveNotification($id: String!) {
+  notificationUnarchive(id: $id) {
+    success
+  }
+}

@@ -3032,6 +3032,87 @@ func TestCLI_DocumentCRUD(t *testing.T) {
 	})
 }
 
+// --- Notification Inbox Test ---
+
+func TestCLI_NotificationInbox(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// LIST notifications (inbox)
+	t.Run("list_notifications", func(t *testing.T) {
+		stdout, stderr, err := r.run("notification", "list",
+			"--limit=5",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("notification list failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if nodes, ok := result["nodes"].([]any); ok {
+			t.Logf("Found %d notifications", len(nodes))
+		}
+	})
+
+	// GET a notification if any exist
+	var notificationID string
+	t.Run("get_notification", func(t *testing.T) {
+		// Get first notification from list
+		stdout, _, _ := r.run("notification", "list", "--limit=1", "--output=json")
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if nodes, ok := result["nodes"].([]any); ok && len(nodes) > 0 {
+			notif := nodes[0].(map[string]any)
+			notificationID = notif["id"].(string)
+
+			stdout, stderr, err := r.run("notification", "get",
+				notificationID,
+				"--output=json",
+			)
+			if err != nil {
+				t.Fatalf("notification get failed: %v\nstderr: %s", err, stderr)
+			}
+
+			var getResult map[string]any
+			json.Unmarshal([]byte(stdout), &getResult)
+
+			if getResult["id"] != notificationID {
+				t.Errorf("Expected id=%s, got %v", notificationID, getResult["id"])
+			}
+
+			t.Logf("Retrieved notification: %s", notificationID)
+		} else {
+			t.Skip("No notifications available for testing")
+		}
+	})
+
+	// Test archive and unarchive cycle
+	t.Run("archive_unarchive_notification", func(t *testing.T) {
+		if notificationID == "" {
+			t.Skip("No notification to archive")
+		}
+
+		// Archive
+		stdout, stderr, err := r.run("notification", "archive", notificationID)
+		if err != nil {
+			t.Fatalf("archive failed: %v\nstderr: %s", err, stderr)
+		}
+		t.Logf("Archived notification: %s", notificationID)
+		_ = stdout
+
+		// Unarchive to restore
+		stdout, stderr, err = r.run("notification", "unarchive", notificationID)
+		if err != nil {
+			t.Fatalf("unarchive failed: %v\nstderr: %s", err, stderr)
+		}
+		t.Logf("Unarchived notification: %s", notificationID)
+		_ = stdout
+	})
+}
+
 // Helper to build CLI binary if needed
 func init() {
 	// Check if binary exists, build if not (path relative to cmd/linear/commands)
