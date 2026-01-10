@@ -2,6 +2,8 @@ package linear
 
 import (
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/chainguard-dev/clog"
@@ -46,6 +48,9 @@ type TransportConfig struct {
 	MaxBackoff       time.Duration
 	MaxRetryDuration time.Duration
 
+	// Security configuration
+	MaxBodySize int64 // Maximum request body size in bytes (default: 10MB)
+
 	// Circuit breaker for fail-fast behavior
 	CircuitBreaker *CircuitBreaker
 
@@ -83,12 +88,22 @@ func NewDefaultClientConfig(apiKey string) *ClientConfig {
 }
 
 // NewDefaultTransportConfig creates a TransportConfig with sensible defaults.
+// Reads LINEAR_MAX_BODY_SIZE environment variable to override default (10MB).
 func NewDefaultTransportConfig() *TransportConfig {
+	// Read max body size from environment (bytes)
+	var maxBodySize int64
+	if envSize := os.Getenv("LINEAR_MAX_BODY_SIZE"); envSize != "" {
+		if size, err := strconv.ParseInt(envSize, 10, 64); err == nil && size > 0 {
+			maxBodySize = size
+		}
+	}
+
 	return &TransportConfig{
 		MaxRetries:       3,
 		InitialBackoff:   1 * time.Second,
 		MaxBackoff:       30 * time.Second,
 		MaxRetryDuration: 90 * time.Second,
+		MaxBodySize:      maxBodySize, // 0 = use default (10MB) in Transport
 	}
 }
 

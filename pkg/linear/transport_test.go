@@ -1,6 +1,7 @@
 package linear
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -554,4 +555,59 @@ func TestParseRetryAfter(t *testing.T) {
 			t.Errorf("parseRetryAfter() = %v, want ~60s", got)
 		}
 	})
+}
+
+func TestTransport_LargeBodyRejected(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	transport := &Transport{
+		MaxBodySize: 1024, // 1KB limit for testing
+	}
+
+	// Create request with 2KB body
+	largeBody := bytes.Repeat([]byte("a"), 2048)
+	req, _ := http.NewRequest("POST", server.URL, bytes.NewReader(largeBody))
+
+	resp, err := transport.RoundTrip(req)
+	if resp != nil {
+		_ = resp.Body.Close()
+	}
+	if err == nil {
+		t.Fatal("expected error for oversized body")
+	}
+	if !strings.Contains(err.Error(), "too large") && !strings.Contains(err.Error(), "exceeds maximum") {
+		t.Errorf("error should mention size: %v", err)
+	}
+}
+
+func TestTransport_NormalBodyAccepted(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data":{}}`))
+	}))
+	defer server.Close()
+
+	transport := &Transport{
+		MaxBodySize: 10 << 20, // 10MB
+	}
+
+	// Small body should work
+	smallBody := bytes.NewReader([]byte(`{"query":"{ viewer { id } }"}`))
+	req, _ := http.NewRequest("POST", server.URL, smallBody)
+
+	resp, err := transport.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("expected success for normal body: %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected response, got nil")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("status = %d, want 200", resp.StatusCode)
+	}
 }

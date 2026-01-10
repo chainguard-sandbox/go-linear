@@ -63,6 +63,11 @@ type Transport struct {
 	// CircuitBreaker prevents cascading failures.
 	// If nil, circuit breaker is disabled.
 	CircuitBreaker *CircuitBreaker
+
+	// MaxBodySize is the maximum request body size in bytes.
+	// Prevents memory exhaustion from oversized GraphQL queries.
+	// Default: 10MB
+	MaxBodySize int64
 }
 
 // RateLimitInfo contains rate limit information from response headers.
@@ -88,14 +93,37 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		base = http.DefaultTransport
 	}
 
+	// Set default max body size
+	const DefaultMaxBodySize = 10 << 20 // 10MB
+	maxBodySize := t.MaxBodySize
+	if maxBodySize == 0 {
+		maxBodySize = DefaultMaxBodySize
+	}
+
 	// Clone request body for retries (prevent request body exhaustion)
 	var bodyBytes []byte
 	if req.Body != nil {
 		var err error
-		bodyBytes, err = io.ReadAll(req.Body)
+
+		// Check ContentLength if available (fast path)
+		if req.ContentLength > maxBodySize {
+			return nil, fmt.Errorf("request body too large: %d bytes exceeds maximum of %d bytes",
+				req.ContentLength, maxBodySize)
+		}
+
+		// Use LimitReader for defense-in-depth
+		limitedReader := io.LimitReader(req.Body, maxBodySize+1) // +1 to detect oversized
+		bodyBytes, err = io.ReadAll(limitedReader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read request body: %w", err)
 		}
+
+		// Check actual size read
+		if int64(len(bodyBytes)) > maxBodySize {
+			return nil, fmt.Errorf("request body size %d bytes exceeds maximum of %d bytes",
+				len(bodyBytes), maxBodySize)
+		}
+
 		_ = req.Body.Close()
 		req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 	}
@@ -430,9 +458,18 @@ func extractOperationName(req *http.Request) string {
 		return "graphql"
 	}
 
-	// Read body
-	body, err := io.ReadAll(req.Body)
+	// Limit read size to prevent memory exhaustion
+	const maxBodySize = 10 << 20 // 10MB
+	limitedReader := io.LimitReader(req.Body, maxBodySize+1)
+
+	body, err := io.ReadAll(limitedReader)
 	if err != nil {
+		return "graphql"
+	}
+
+	// If oversized, skip extraction (don't error - this is just for metrics)
+	if int64(len(body)) > maxBodySize {
+		req.Body = io.NopCloser(bytes.NewReader(body[:maxBodySize]))
 		return "graphql"
 	}
 
