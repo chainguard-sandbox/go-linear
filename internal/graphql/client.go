@@ -31,6 +31,7 @@ type LinearGraphQLClient interface {
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	ListInitiativesFiltered(ctx context.Context, first *int64, after *string, filter *InitiativeFilter, interceptors ...clientv2.RequestInterceptor) (*ListInitiativesFiltered, error)
 	ListSubInitiatives(ctx context.Context, id string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListSubInitiatives, error)
+	GetIssueSuggestionsForIssue(ctx context.Context, issueID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSuggestionsForIssue, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
@@ -2542,6 +2543,252 @@ func (t *ListSubInitiatives_Initiative) GetSubInitiatives() *ListSubInitiatives_
 		t = &ListSubInitiatives_Initiative{}
 	}
 	return &t.SubInitiatives
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam) GetKey() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam{}
+	}
+	return t.Key
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser) GetEmail() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser{}
+	}
+	return t.Email
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+	Title      string "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue) GetIdentifier() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue{}
+	}
+	return t.Identifier
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue) GetTitle() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue{}
+	}
+	return t.Title
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes struct {
+	CreatedAt        time.Time                                                                     "json:\"createdAt\" graphql:\"createdAt\""
+	ID               string                                                                        "json:\"id\" graphql:\"id\""
+	State            IssueSuggestionState                                                          "json:\"state\" graphql:\"state\""
+	SuggestedIssue   *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue   "json:\"suggestedIssue,omitempty\" graphql:\"suggestedIssue\""
+	SuggestedLabel   *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel   "json:\"suggestedLabel,omitempty\" graphql:\"suggestedLabel\""
+	SuggestedProject *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject "json:\"suggestedProject,omitempty\" graphql:\"suggestedProject\""
+	SuggestedTeam    *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam    "json:\"suggestedTeam,omitempty\" graphql:\"suggestedTeam\""
+	SuggestedUser    *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser    "json:\"suggestedUser,omitempty\" graphql:\"suggestedUser\""
+	Type             IssueSuggestionType                                                           "json:\"type\" graphql:\"type\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetState() *IssueSuggestionState {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return &t.State
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedIssue() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedIssue
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedLabel() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedLabel
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedProject() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedProject
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedTeam() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedTeam
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedUser() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedUser
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetType() *IssueSuggestionType {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return &t.Type
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions struct {
+	Nodes    []*GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions) GetNodes() []*GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions{}
+	}
+	return t.Nodes
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions) GetPageInfo() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions{}
+	}
+	return &t.PageInfo
+}
+
+type GetIssueSuggestionsForIssue_Issue struct {
+	ID                  string                                                "json:\"id\" graphql:\"id\""
+	Identifier          string                                                "json:\"identifier\" graphql:\"identifier\""
+	IncomingSuggestions GetIssueSuggestionsForIssue_Issue_IncomingSuggestions "json:\"incomingSuggestions\" graphql:\"incomingSuggestions\""
+	Title               string                                                "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return t.Identifier
+}
+func (t *GetIssueSuggestionsForIssue_Issue) GetIncomingSuggestions() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return &t.IncomingSuggestions
+}
+func (t *GetIssueSuggestionsForIssue_Issue) GetTitle() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return t.Title
 }
 
 type GetIssue_Issue_Parent struct {
@@ -8406,6 +8653,17 @@ func (t *ListSubInitiatives) GetInitiative() *ListSubInitiatives_Initiative {
 	return &t.Initiative
 }
 
+type GetIssueSuggestionsForIssue struct {
+	Issue GetIssueSuggestionsForIssue_Issue "json:\"issue\" graphql:\"issue\""
+}
+
+func (t *GetIssueSuggestionsForIssue) GetIssue() *GetIssueSuggestionsForIssue_Issue {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue{}
+	}
+	return &t.Issue
+}
+
 type GetIssue struct {
 	Issue GetIssue_Issue "json:\"issue\" graphql:\"issue\""
 }
@@ -10149,6 +10407,69 @@ func (c *Client) ListSubInitiatives(ctx context.Context, id string, first *int64
 
 	var res ListSubInitiatives
 	if err := c.Client.Post(ctx, "ListSubInitiatives", ListSubInitiativesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetIssueSuggestionsForIssueDocument = `query GetIssueSuggestionsForIssue ($issueId: String!, $first: Int, $after: String) {
+	issue(id: $issueId) {
+		id
+		identifier
+		title
+		incomingSuggestions(first: $first, after: $after) {
+			nodes {
+				id
+				type
+				state
+				createdAt
+				suggestedTeam {
+					id
+					name
+					key
+				}
+				suggestedUser {
+					id
+					name
+					email
+				}
+				suggestedLabel {
+					id
+					name
+				}
+				suggestedProject {
+					id
+					name
+				}
+				suggestedIssue {
+					id
+					identifier
+					title
+				}
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
+	}
+}
+`
+
+func (c *Client) GetIssueSuggestionsForIssue(ctx context.Context, issueID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSuggestionsForIssue, error) {
+	vars := map[string]any{
+		"issueId": issueID,
+		"first":   first,
+		"after":   after,
+	}
+
+	var res GetIssueSuggestionsForIssue
+	if err := c.Client.Post(ctx, "GetIssueSuggestionsForIssue", GetIssueSuggestionsForIssueDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -12892,6 +13213,7 @@ var DocumentOperationNames = map[string]string{
 	ListInitiativesDocument:                "ListInitiatives",
 	ListInitiativesFilteredDocument:        "ListInitiativesFiltered",
 	ListSubInitiativesDocument:             "ListSubInitiatives",
+	GetIssueSuggestionsForIssueDocument:    "GetIssueSuggestionsForIssue",
 	GetIssueDocument:                       "GetIssue",
 	ListIssuesDocument:                     "ListIssues",
 	ListIssuesFilteredDocument:             "ListIssuesFiltered",

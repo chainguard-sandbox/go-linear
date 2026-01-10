@@ -1,0 +1,42 @@
+query GetIssueSuggestionsForIssue($issueId: String!, $first: Int, $after: String) {
+  issue(id: $issueId) {
+    id
+    identifier
+    title
+    incomingSuggestions(first: $first, after: $after) {
+      nodes {
+        id
+        type
+        state
+        createdAt
+        suggestedTeam {
+          id
+          name
+          key
+        }
+        suggestedUser {
+          id
+          name
+          email
+        }
+        suggestedLabel {
+          id
+          name
+        }
+        suggestedProject {
+          id
+          name
+        }
+        suggestedIssue {
+          id
+          identifier
+          title
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
