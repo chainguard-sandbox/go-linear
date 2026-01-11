@@ -38,11 +38,13 @@ Related: issue_get, issue_list`,
 	}
 
 	// Required
-	cmd.Flags().String("title", "", "Issue title (required)")
-	_ = cmd.MarkFlagRequired("title")
+	cmd.Flags().String("title", "", "Issue title (required unless using --template)")
 
 	// Team is optional now (can come from config)
 	cmd.Flags().String("team", "", "Team name or ID (uses config default if not specified)")
+
+	// Template
+	cmd.Flags().String("template", "", "Template name or ID to apply")
 
 	// Optional
 	cmd.Flags().String("description", "", "Issue description (markdown)")
@@ -88,7 +90,22 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	title, _ := cmd.Flags().GetString("title")
 	input := intgraphql.IssueCreateInput{
 		TeamID: teamID,
-		Title:  &title,
+	}
+
+	// Template support
+	if template, _ := cmd.Flags().GetString("template"); template != "" {
+		templateID, err := res.ResolveTemplate(ctx, template)
+		if err != nil {
+			return fmt.Errorf("failed to resolve template: %w", err)
+		}
+		input.TemplateID = &templateID
+	}
+
+	// Title is optional if template is used
+	if title != "" {
+		input.Title = &title
+	} else if input.TemplateID == nil {
+		return fmt.Errorf("--title is required when not using --template")
 	}
 
 	// Optional fields

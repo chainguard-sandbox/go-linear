@@ -330,3 +330,24 @@ func (r *Resolver) ResolveDocument(ctx context.Context, titleOrID string) (strin
 		formatName: func(doc *intgraphql.ListDocuments_Documents_Nodes) string { return doc.Title },
 	})
 }
+
+// ResolveTemplate resolves a template name to its ID.
+// Accepts: template name or UUID.
+func (r *Resolver) ResolveTemplate(ctx context.Context, nameOrID string) (string, error) {
+	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListTemplates_Templates]{
+		cachePrefix: "template:",
+		entityName:  "template",
+		fetch: func(ctx context.Context) ([]*intgraphql.ListTemplates_Templates, error) {
+			templates, err := r.client.Templates(ctx)
+			if err != nil {
+				return nil, err
+			}
+			return templates, nil
+		},
+		matches: func(template *intgraphql.ListTemplates_Templates, query string) bool {
+			return strings.EqualFold(template.Name, query)
+		},
+		getID:      func(template *intgraphql.ListTemplates_Templates) string { return template.ID },
+		formatName: func(template *intgraphql.ListTemplates_Templates) string { return template.Name },
+	})
+}
