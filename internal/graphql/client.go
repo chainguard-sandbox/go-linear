@@ -5727,16 +5727,145 @@ func (t *ListNotifications_Notifications_Nodes_User) GetName() string {
 	return t.Name
 }
 
-type ListNotifications_Notifications_Nodes struct {
-	ArchivedAt     *time.Time                                 "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
-	CreatedAt      time.Time                                  "json:\"createdAt\" graphql:\"createdAt\""
-	ID             string                                     "json:\"id\" graphql:\"id\""
-	ReadAt         *time.Time                                 "json:\"readAt,omitempty\" graphql:\"readAt\""
-	SnoozedUntilAt *time.Time                                 "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
-	Type           string                                     "json:\"type\" graphql:\"type\""
-	User           ListNotifications_Notifications_Nodes_User "json:\"user\" graphql:\"user\""
+type ListNotifications_Notifications_Nodes_Actor struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
 }
 
+func (t *ListNotifications_Notifications_Nodes_Actor) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_Actor{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_Actor) GetName() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_Actor{}
+	}
+	return t.Name
+}
+
+type ListNotifications_Notifications_Nodes_IssueNotification_Issue struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+	Title      string "json:\"title\" graphql:\"title\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Issue) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Issue{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Issue{}
+	}
+	return t.Identifier
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Issue) GetTitle() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Issue{}
+	}
+	return t.Title
+}
+
+type ListNotifications_Notifications_Nodes_IssueNotification_Comment struct {
+	Body string "json:\"body\" graphql:\"body\""
+	ID   string "json:\"id\" graphql:\"id\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Comment) GetBody() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Comment{}
+	}
+	return t.Body
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Comment) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Comment{}
+	}
+	return t.ID
+}
+
+type ListNotifications_Notifications_Nodes_IssueNotification struct {
+	Issue   ListNotifications_Notifications_Nodes_IssueNotification_Issue    "json:\"issue\" graphql:\"issue\""
+	Comment *ListNotifications_Notifications_Nodes_IssueNotification_Comment "json:\"comment,omitempty\" graphql:\"comment\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_IssueNotification) GetIssue() *ListNotifications_Notifications_Nodes_IssueNotification_Issue {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification{}
+	}
+	return &t.Issue
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification) GetComment() *ListNotifications_Notifications_Nodes_IssueNotification_Comment {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification{}
+	}
+	return t.Comment
+}
+
+type ListNotifications_Notifications_Nodes_ProjectNotification_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_ProjectNotification_Project) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_ProjectNotification_Project{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_ProjectNotification_Project) GetName() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_ProjectNotification_Project{}
+	}
+	return t.Name
+}
+
+type ListNotifications_Notifications_Nodes_ProjectNotification struct {
+	Project ListNotifications_Notifications_Nodes_ProjectNotification_Project "json:\"project\" graphql:\"project\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_ProjectNotification) GetProject() *ListNotifications_Notifications_Nodes_ProjectNotification_Project {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_ProjectNotification{}
+	}
+	return &t.Project
+}
+
+type ListNotifications_Notifications_Nodes struct {
+	IssueNotification   ListNotifications_Notifications_Nodes_IssueNotification   "graphql:\"... on IssueNotification\""
+	ProjectNotification ListNotifications_Notifications_Nodes_ProjectNotification "graphql:\"... on ProjectNotification\""
+	Actor               *ListNotifications_Notifications_Nodes_Actor              "json:\"actor,omitempty\" graphql:\"actor\""
+	ArchivedAt          *time.Time                                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	CreatedAt           time.Time                                                 "json:\"createdAt\" graphql:\"createdAt\""
+	ID                  string                                                    "json:\"id\" graphql:\"id\""
+	ReadAt              *time.Time                                                "json:\"readAt,omitempty\" graphql:\"readAt\""
+	SnoozedUntilAt      *time.Time                                                "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
+	Type                string                                                    "json:\"type\" graphql:\"type\""
+	User                ListNotifications_Notifications_Nodes_User                "json:\"user\" graphql:\"user\""
+}
+
+func (t *ListNotifications_Notifications_Nodes) GetIssueNotification() *ListNotifications_Notifications_Nodes_IssueNotification {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.IssueNotification
+}
+func (t *ListNotifications_Notifications_Nodes) GetProjectNotification() *ListNotifications_Notifications_Nodes_ProjectNotification {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.ProjectNotification
+}
+func (t *ListNotifications_Notifications_Nodes) GetActor() *ListNotifications_Notifications_Nodes_Actor {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.Actor
+}
 func (t *ListNotifications_Notifications_Nodes) GetArchivedAt() *time.Time {
 	if t == nil {
 		t = &ListNotifications_Notifications_Nodes{}
@@ -5834,16 +5963,181 @@ func (t *GetNotification_Notification_User) GetName() string {
 	return t.Name
 }
 
-type GetNotification_Notification struct {
-	ArchivedAt     *time.Time                        "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
-	CreatedAt      time.Time                         "json:\"createdAt\" graphql:\"createdAt\""
-	ID             string                            "json:\"id\" graphql:\"id\""
-	ReadAt         *time.Time                        "json:\"readAt,omitempty\" graphql:\"readAt\""
-	SnoozedUntilAt *time.Time                        "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
-	Type           string                            "json:\"type\" graphql:\"type\""
-	User           GetNotification_Notification_User "json:\"user\" graphql:\"user\""
+type GetNotification_Notification_Actor struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
 }
 
+func (t *GetNotification_Notification_Actor) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_Actor{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_Actor) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_Actor{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_IssueNotification_Issue struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+	Title      string "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetNotification_Notification_IssueNotification_Issue) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Issue{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_IssueNotification_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Issue{}
+	}
+	return t.Identifier
+}
+func (t *GetNotification_Notification_IssueNotification_Issue) GetTitle() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Issue{}
+	}
+	return t.Title
+}
+
+type GetNotification_Notification_IssueNotification_Comment struct {
+	Body string "json:\"body\" graphql:\"body\""
+	ID   string "json:\"id\" graphql:\"id\""
+}
+
+func (t *GetNotification_Notification_IssueNotification_Comment) GetBody() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Comment{}
+	}
+	return t.Body
+}
+func (t *GetNotification_Notification_IssueNotification_Comment) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Comment{}
+	}
+	return t.ID
+}
+
+type GetNotification_Notification_IssueNotification struct {
+	Issue   GetNotification_Notification_IssueNotification_Issue    "json:\"issue\" graphql:\"issue\""
+	Comment *GetNotification_Notification_IssueNotification_Comment "json:\"comment,omitempty\" graphql:\"comment\""
+}
+
+func (t *GetNotification_Notification_IssueNotification) GetIssue() *GetNotification_Notification_IssueNotification_Issue {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification{}
+	}
+	return &t.Issue
+}
+func (t *GetNotification_Notification_IssueNotification) GetComment() *GetNotification_Notification_IssueNotification_Comment {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification{}
+	}
+	return t.Comment
+}
+
+type GetNotification_Notification_ProjectNotification_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_ProjectNotification_Project) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_ProjectNotification_Project{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_ProjectNotification_Project) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_ProjectNotification_Project{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_ProjectNotification struct {
+	Project GetNotification_Notification_ProjectNotification_Project "json:\"project\" graphql:\"project\""
+}
+
+func (t *GetNotification_Notification_ProjectNotification) GetProject() *GetNotification_Notification_ProjectNotification_Project {
+	if t == nil {
+		t = &GetNotification_Notification_ProjectNotification{}
+	}
+	return &t.Project
+}
+
+type GetNotification_Notification_InitiativeNotification_Initiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_InitiativeNotification_Initiative) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_InitiativeNotification_Initiative{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_InitiativeNotification_Initiative) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_InitiativeNotification_Initiative{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_InitiativeNotification struct {
+	Initiative *GetNotification_Notification_InitiativeNotification_Initiative "json:\"initiative,omitempty\" graphql:\"initiative\""
+}
+
+func (t *GetNotification_Notification_InitiativeNotification) GetInitiative() *GetNotification_Notification_InitiativeNotification_Initiative {
+	if t == nil {
+		t = &GetNotification_Notification_InitiativeNotification{}
+	}
+	return t.Initiative
+}
+
+type GetNotification_Notification struct {
+	InitiativeNotification GetNotification_Notification_InitiativeNotification "graphql:\"... on InitiativeNotification\""
+	IssueNotification      GetNotification_Notification_IssueNotification      "graphql:\"... on IssueNotification\""
+	ProjectNotification    GetNotification_Notification_ProjectNotification    "graphql:\"... on ProjectNotification\""
+	Actor                  *GetNotification_Notification_Actor                 "json:\"actor,omitempty\" graphql:\"actor\""
+	ArchivedAt             *time.Time                                          "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	CreatedAt              time.Time                                           "json:\"createdAt\" graphql:\"createdAt\""
+	ID                     string                                              "json:\"id\" graphql:\"id\""
+	ReadAt                 *time.Time                                          "json:\"readAt,omitempty\" graphql:\"readAt\""
+	SnoozedUntilAt         *time.Time                                          "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
+	Type                   string                                              "json:\"type\" graphql:\"type\""
+	User                   GetNotification_Notification_User                   "json:\"user\" graphql:\"user\""
+}
+
+func (t *GetNotification_Notification) GetInitiativeNotification() *GetNotification_Notification_InitiativeNotification {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.InitiativeNotification
+}
+func (t *GetNotification_Notification) GetIssueNotification() *GetNotification_Notification_IssueNotification {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.IssueNotification
+}
+func (t *GetNotification_Notification) GetProjectNotification() *GetNotification_Notification_ProjectNotification {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.ProjectNotification
+}
+func (t *GetNotification_Notification) GetActor() *GetNotification_Notification_Actor {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.Actor
+}
 func (t *GetNotification_Notification) GetArchivedAt() *time.Time {
 	if t == nil {
 		t = &GetNotification_Notification{}
@@ -11684,6 +11978,27 @@ const ListNotificationsDocument = `query ListNotifications ($first: Int, $after:
 				id
 				name
 			}
+			actor {
+				id
+				name
+			}
+			... on IssueNotification {
+				issue {
+					id
+					identifier
+					title
+				}
+				comment {
+					id
+					body
+				}
+			}
+			... on ProjectNotification {
+				project {
+					id
+					name
+				}
+			}
 		}
 		pageInfo {
 			hasNextPage
@@ -11723,6 +12038,33 @@ const GetNotificationDocument = `query GetNotification ($id: String!) {
 		user {
 			id
 			name
+		}
+		actor {
+			id
+			name
+		}
+		... on IssueNotification {
+			issue {
+				id
+				identifier
+				title
+			}
+			comment {
+				id
+				body
+			}
+		}
+		... on ProjectNotification {
+			project {
+				id
+				name
+			}
+		}
+		... on InitiativeNotification {
+			initiative {
+				id
+				name
+			}
 		}
 	}
 }

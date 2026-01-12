@@ -11,6 +11,27 @@ query ListNotifications($first: Int, $after: String, $filter: NotificationFilter
         id
         name
       }
+      actor {
+        id
+        name
+      }
+      ... on IssueNotification {
+        issue {
+          id
+          identifier
+          title
+        }
+        comment {
+          id
+          body
+        }
+      }
+      ... on ProjectNotification {
+        project {
+          id
+          name
+        }
+      }
     }
     pageInfo {
       hasNextPage
@@ -30,6 +51,33 @@ query GetNotification($id: String!) {
     user {
       id
       name
+    }
+    actor {
+      id
+      name
+    }
+    ... on IssueNotification {
+      issue {
+        id
+        identifier
+        title
+      }
+      comment {
+        id
+        body
+      }
+    }
+    ... on ProjectNotification {
+      project {
+        id
+        name
+      }
+    }
+    ... on InitiativeNotification {
+      initiative {
+        id
+        name
+      }
     }
   }
 }
