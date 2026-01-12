@@ -3123,3 +3123,81 @@ func init() {
 		cmd.Run()
 	}
 }
+
+// --- Template Integration Test ---
+
+func TestCLI_IssueCreateWithTemplate(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// Check if templates exist
+	stdout, _, _ := r.run("template", "list", "--limit=1", "--output=json")
+	var templates []map[string]any
+	json.Unmarshal([]byte(stdout), &templates)
+
+	if len(templates) == 0 {
+		t.Skip("No templates available in workspace")
+	}
+
+	templateName := templates[0]["name"].(string)
+
+	t.Run("create_with_template", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--template="+templateName,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("create with template failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+		issueID := issue["identifier"].(string)
+
+		t.Logf("Created issue %s from template %s", issueID, templateName)
+		r.run("issue", "delete", issueID, "--yes")
+	})
+}
+
+// --- AI Suggestions Test ---
+
+func TestCLI_IssueSuggestions(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// Find issue with AI suggestions
+	stdout, _, _ := r.run("issue", "list",
+		"--team="+r.teamKey,
+		"--has-suggested-teams",
+		"--limit=1",
+		"--output=json",
+	)
+
+	var result map[string]any
+	json.Unmarshal([]byte(stdout), &result)
+
+	if nodes, ok := result["nodes"].([]any); !ok || len(nodes) == 0 {
+		t.Skip("No issues with AI suggestions in workspace")
+	}
+
+	nodes := result["nodes"].([]any)
+	issue := nodes[0].(map[string]any)
+	issueID := issue["identifier"].(string)
+
+	t.Run("list_suggestions", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "suggestions",
+			issueID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("suggestions failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var suggestResult map[string]any
+		json.Unmarshal([]byte(stdout), &suggestResult)
+
+		if suggestions, ok := suggestResult["suggestions"].([]any); ok {
+			t.Logf("Issue %s has %d AI suggestions", issueID, len(suggestions))
+		}
+	})
+}
