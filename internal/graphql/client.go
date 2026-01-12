@@ -87,6 +87,8 @@ type LinearGraphQLClient interface {
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
 	ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error)
 	ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error)
+	AddTeamMember(ctx context.Context, input TeamMembershipCreateInput, interceptors ...clientv2.RequestInterceptor) (*AddTeamMember, error)
+	RemoveTeamMember(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*RemoveTeamMember, error)
 	CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error)
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
@@ -5831,6 +5833,110 @@ func (t *ReactionDelete_ReactionDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type AddTeamMember_TeamMembershipCreate_TeamMembership_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_Team) GetID() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_Team{}
+	}
+	return t.ID
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_Team) GetKey() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_Team{}
+	}
+	return t.Key
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_Team) GetName() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_Team{}
+	}
+	return t.Name
+}
+
+type AddTeamMember_TeamMembershipCreate_TeamMembership_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_User) GetEmail() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_User{}
+	}
+	return t.Email
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_User) GetID() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_User{}
+	}
+	return t.ID
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_User) GetName() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_User{}
+	}
+	return t.Name
+}
+
+type AddTeamMember_TeamMembershipCreate_TeamMembership struct {
+	ID   string                                                 "json:\"id\" graphql:\"id\""
+	Team AddTeamMember_TeamMembershipCreate_TeamMembership_Team "json:\"team\" graphql:\"team\""
+	User AddTeamMember_TeamMembershipCreate_TeamMembership_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership) GetID() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership{}
+	}
+	return t.ID
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership) GetTeam() *AddTeamMember_TeamMembershipCreate_TeamMembership_Team {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership{}
+	}
+	return &t.Team
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership) GetUser() *AddTeamMember_TeamMembershipCreate_TeamMembership_User {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership{}
+	}
+	return &t.User
+}
+
+type AddTeamMember_TeamMembershipCreate struct {
+	Success        bool                                               "json:\"success\" graphql:\"success\""
+	TeamMembership *AddTeamMember_TeamMembershipCreate_TeamMembership "json:\"teamMembership,omitempty\" graphql:\"teamMembership\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate) GetSuccess() bool {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate{}
+	}
+	return t.Success
+}
+func (t *AddTeamMember_TeamMembershipCreate) GetTeamMembership() *AddTeamMember_TeamMembershipCreate_TeamMembership {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate{}
+	}
+	return t.TeamMembership
+}
+
+type RemoveTeamMember_TeamMembershipDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *RemoveTeamMember_TeamMembershipDelete) GetSuccess() bool {
+	if t == nil {
+		t = &RemoveTeamMember_TeamMembershipDelete{}
+	}
+	return t.Success
+}
+
 type CreateTeam_TeamCreate_Team struct {
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
@@ -9269,6 +9375,28 @@ func (t *ReactionDelete) GetReactionDelete() *ReactionDelete_ReactionDelete {
 	return &t.ReactionDelete
 }
 
+type AddTeamMember struct {
+	TeamMembershipCreate AddTeamMember_TeamMembershipCreate "json:\"teamMembershipCreate\" graphql:\"teamMembershipCreate\""
+}
+
+func (t *AddTeamMember) GetTeamMembershipCreate() *AddTeamMember_TeamMembershipCreate {
+	if t == nil {
+		t = &AddTeamMember{}
+	}
+	return &t.TeamMembershipCreate
+}
+
+type RemoveTeamMember struct {
+	TeamMembershipDelete RemoveTeamMember_TeamMembershipDelete "json:\"teamMembershipDelete\" graphql:\"teamMembershipDelete\""
+}
+
+func (t *RemoveTeamMember) GetTeamMembershipDelete() *RemoveTeamMember_TeamMembershipDelete {
+	if t == nil {
+		t = &RemoveTeamMember{}
+	}
+	return &t.TeamMembershipDelete
+}
+
 type CreateTeam struct {
 	TeamCreate CreateTeam_TeamCreate "json:\"teamCreate\" graphql:\"teamCreate\""
 }
@@ -12199,6 +12327,67 @@ func (c *Client) ReactionDelete(ctx context.Context, id string, interceptors ...
 	return &res, nil
 }
 
+const AddTeamMemberDocument = `mutation AddTeamMember ($input: TeamMembershipCreateInput!) {
+	teamMembershipCreate(input: $input) {
+		success
+		teamMembership {
+			id
+			team {
+				id
+				name
+				key
+			}
+			user {
+				id
+				name
+				email
+			}
+		}
+	}
+}
+`
+
+func (c *Client) AddTeamMember(ctx context.Context, input TeamMembershipCreateInput, interceptors ...clientv2.RequestInterceptor) (*AddTeamMember, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res AddTeamMember
+	if err := c.Client.Post(ctx, "AddTeamMember", AddTeamMemberDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const RemoveTeamMemberDocument = `mutation RemoveTeamMember ($id: String!) {
+	teamMembershipDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) RemoveTeamMember(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*RemoveTeamMember, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res RemoveTeamMember
+	if err := c.Client.Post(ctx, "RemoveTeamMember", RemoveTeamMemberDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateTeamDocument = `mutation CreateTeam ($input: TeamCreateInput!) {
 	teamCreate(input: $input) {
 		success
@@ -13269,6 +13458,8 @@ var DocumentOperationNames = map[string]string{
 	DeleteProjectDocument:                  "DeleteProject",
 	ReactionCreateDocument:                 "ReactionCreate",
 	ReactionDeleteDocument:                 "ReactionDelete",
+	AddTeamMemberDocument:                  "AddTeamMember",
+	RemoveTeamMemberDocument:               "RemoveTeamMember",
 	CreateTeamDocument:                     "CreateTeam",
 	UpdateTeamDocument:                     "UpdateTeam",
 	DeleteTeamDocument:                     "DeleteTeam",

@@ -12,9 +12,10 @@ import (
 // NewRoadmapCommand creates the roadmap command group.
 func NewRoadmapCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "roadmap",
-		Short: "Manage Linear roadmaps",
-		Long:  "Commands for listing and viewing Linear roadmaps.",
+		Use:        "roadmap",
+		Short:      "Manage Linear roadmaps",
+		Long:       "Commands for listing and viewing Linear roadmaps.",
+		Deprecated: "Roadmaps are deprecated by Linear (GraphQL schema). Use 'initiative' commands instead.",
 	}
 
 	cmd.AddCommand(NewListCommand(clientFactory))
