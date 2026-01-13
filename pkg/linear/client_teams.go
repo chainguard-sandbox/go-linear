@@ -105,3 +105,49 @@ func (c *Client) TeamDelete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// TeamMembershipCreate adds a user to a team.
+//
+// Parameters:
+//   - input: Membership creation parameters (teamId, userId)
+//
+// Returns:
+//   - Created membership with team and user details
+//   - error: Non-nil if creation fails or Success is false
+//
+// Permissions Required: Admin
+//
+// Related: [TeamMembershipDelete], [Team]
+func (c *Client) TeamMembershipCreate(ctx context.Context, input intgraphql.TeamMembershipCreateInput) (*intgraphql.AddTeamMember_TeamMembershipCreate_TeamMembership, error) {
+	resp, err := c.gqlClient.AddTeamMember(ctx, input)
+	if err != nil {
+		return nil, wrapGraphQLError("TeamMembershipCreate", err)
+	}
+	if !resp.TeamMembershipCreate.Success {
+		return nil, errMutationFailed("TeamMembershipCreate")
+	}
+	return resp.TeamMembershipCreate.TeamMembership, nil
+}
+
+// TeamMembershipDelete removes a user from a team.
+//
+// Parameters:
+//   - id: TeamMembership UUID to delete (required)
+//
+// Returns:
+//   - nil: Membership successfully deleted
+//   - error: Non-nil if delete fails or Success is false
+//
+// Permissions Required: Admin
+//
+// Related: [TeamMembershipCreate], [Team]
+func (c *Client) TeamMembershipDelete(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.RemoveTeamMember(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("TeamMembershipDelete", err)
+	}
+	if !resp.TeamMembershipDelete.Success {
+		return errMutationFailed("TeamMembershipDelete")
+	}
+	return nil
+}

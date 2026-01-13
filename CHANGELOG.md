@@ -5,16 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [1.4.0] - 2026-01-12
+
+### Added
+
+**Notification Inbox** (3 commands):
+- `notification list`: View inbox notifications with filtering
+- `notification get`: Get notification details
+- `notification unarchive`: Restore archived notifications to inbox
+
+**AI Suggestions** (1 command):
+- `issue suggestions`: View AI-recommended assignees, teams, labels, projects, and related issues
+
+**Comment Threading**:
+- `comment create --parent`: Create threaded replies
+- `comment get`: Shows parent context and child replies with pagination (max 5000)
+
+**Issue Templates**:
+- `issue create --template`: Apply templates during creation (title becomes optional)
+
+**Team Management** (1 command):
+- `team add-member`: Add users to teams (admin required)
+
+**Total**: 94 commands (was 89), 94 MCP tools
 
 ### Changed
-
-- Migrate `multicache` to `fido` (new name)
+- Roadmap commands marked as deprecated (Linear deprecated in favor of initiatives)
+- Migrate `multicache` to `fido` (dependency renamed upstream)
 
 ### Fixed
+- Fix broken test related to sub-second TTL in cache
+- Fix concurrent cache race condition
 
-- Fix broken test related to sub-second TTL
-- Fix concurrent cache race condition(s)
+### Defensive Coding
+- Request body size limiting (default 10MB, configurable via LINEAR_MAX_BODY_SIZE)
+- Prevents OOM from bugs in query generation (hardening, not fixing exploitable vulnerability)
+
+### Developer Tools
+- Added `make modernize` target for modern Go pattern analysis (min/max, range-int, etc.)
 
 ## [1.3.0] - 2026-01-09
 

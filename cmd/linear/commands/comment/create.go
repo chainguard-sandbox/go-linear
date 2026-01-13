@@ -16,13 +16,15 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a comment on an issue",
-		Long: `Create comment on issue. Supports markdown. Safe operation.
+		Long: `Create comment on issue. Supports markdown and threading. Safe operation.
 
 Required: --issue (ID from issue_list), --body
+Optional: --parent (comment ID to create a threaded reply)
 
 Example: go-linear comment create --issue=ENG-123 --body="Fixed in PR #42" --output=json
+Example: go-linear comment create --issue=ENG-123 --body="Good point!" --parent=<comment-id> --output=json
 
-Related: comment_list, issue_get`,
+Related: comment_list, comment_get, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -40,6 +42,8 @@ Related: comment_list, issue_get`,
 	cmd.Flags().String("body", "", "Comment body text (markdown) (required)")
 	_ = cmd.MarkFlagRequired("body")
 
+	cmd.Flags().String("parent", "", "Parent comment ID to create a threaded reply")
+
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
@@ -54,6 +58,11 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	input := intgraphql.CommentCreateInput{
 		IssueID: &issueID,
 		Body:    &body,
+	}
+
+	// Add parent comment for threading
+	if parent, _ := cmd.Flags().GetString("parent"); parent != "" {
+		input.ParentID = &parent
 	}
 
 	result, err := client.CommentCreate(ctx, input)

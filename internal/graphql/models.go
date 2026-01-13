@@ -403,6 +403,8 @@ type AgentSession struct {
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 	// The comment this agent session is associated with.
 	Comment *Comment `json:"comment,omitempty"`
+	// Serialized JSON representing the contexts this session is related to, for direct chat sessions.
+	Context string `json:"context"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The human user responsible for the agent session. Null if the session was initiated via automation or by an agent user, with no responsible human user.
@@ -437,8 +439,8 @@ type AgentSession struct {
 	Status AgentSessionStatus `json:"status"`
 	// A summary of the activities in this session.
 	Summary *string `json:"summary,omitempty"`
-	// The type of the agent session.
-	Type AgentSessionType `json:"type"`
+	// [DEPRECATED] The type of the agent session.
+	Type *AgentSessionType `json:"type,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -458,9 +460,11 @@ type AgentSessionConnection struct {
 type AgentSessionCreateInput struct {
 	// The app user (agent) to create a session for.
 	AppUserID string `json:"appUserId"`
+	// Serialized JSON representing the page contexts this session is related to. Used for direct chat sessions to provide context about the current page (e.g., Issue, Project).
+	Context map[string]any `json:"context,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// The issue that this session will be associated with.
+	// The issue that this session will be associated with. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 }
 
@@ -478,7 +482,7 @@ type AgentSessionCreateOnIssue struct {
 	ExternalLink *string `json:"externalLink,omitempty"`
 	// URLs of external resources associated with this session.
 	ExternalUrls []*AgentSessionExternalURLInput `json:"externalUrls,omitempty"`
-	// The issue that this session will be associated with.
+	// The issue that this session will be associated with. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID string `json:"issueId"`
 }
 
@@ -520,8 +524,8 @@ type AgentSessionEventWebhookPayload struct {
 
 // Input for an external URL associated with an agent session.
 type AgentSessionExternalURLInput struct {
-	// Optional label for the URL.
-	Label *string `json:"label,omitempty"`
+	// Label for the URL.
+	Label string `json:"label"`
 	// The URL of the external resource.
 	URL string `json:"url"`
 }
@@ -869,7 +873,7 @@ type AttachmentCreateInput struct {
 	IconURL *string `json:"iconUrl,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// The issue to associate the attachment with.
+	// The issue to associate the attachment with. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID string `json:"issueId"`
 	// Attachment metadata object with string and number values.
 	Metadata map[string]any `json:"metadata,omitempty"`
@@ -1416,7 +1420,7 @@ type CommentCreateInput struct {
 	ID *string `json:"id,omitempty"`
 	// The initiative update to associate the comment with.
 	InitiativeUpdateID *string `json:"initiativeUpdateId,omitempty"`
-	// The issue to associate the comment with.
+	// The issue to associate the comment with. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// The parent comment under which to nest a current comment.
 	ParentID *string `json:"parentId,omitempty"`
@@ -2290,7 +2294,7 @@ type CustomerNeedCreateInput struct {
 	DisplayIconURL *string `json:"displayIconUrl,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// The issue this need is referencing.
+	// The issue this need is referencing. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// Whether the customer need is important or not. 0 = Not important, 1 = Important.
 	Priority *float64 `json:"priority,omitempty"`
@@ -2528,7 +2532,7 @@ type CustomerNeedUpdateInput struct {
 	CustomerID *string `json:"customerId,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// The issue this need is referencing.
+	// The issue this need is referencing. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// Whether the customer need is important or not. 0 = Not important, 1 = Important.
 	Priority *float64 `json:"priority,omitempty"`
@@ -3895,7 +3899,7 @@ type DocumentCreateInput struct {
 	ID *string `json:"id,omitempty"`
 	// [Internal] Related initiative for the document.
 	InitiativeID *string `json:"initiativeId,omitempty"`
-	// [Internal] Related issue for the document.
+	// Related issue for the document. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// The ID of the last template applied to the document.
 	LastAppliedTemplateID *string `json:"lastAppliedTemplateId,omitempty"`
@@ -4210,7 +4214,7 @@ type DocumentUpdateInput struct {
 	Icon *string `json:"icon,omitempty"`
 	// [Internal] Related initiative for the document.
 	InitiativeID *string `json:"initiativeId,omitempty"`
-	// [Internal] Related issue for the document.
+	// Related issue for the document. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// The ID of the last template applied to the document.
 	LastAppliedTemplateID *string `json:"lastAppliedTemplateId,omitempty"`
@@ -4488,6 +4492,8 @@ type EmailUnsubscribePayload struct {
 }
 
 type EmailUserAccountAuthChallengeInput struct {
+	// Response from the login challenge.
+	ChallengeResponse *string `json:"challengeResponse,omitempty"`
 	// Auth code for the client initiating the sequence.
 	ClientAuthCode *string `json:"clientAuthCode,omitempty"`
 	// The email for which to generate the magic login code.
@@ -4955,7 +4961,7 @@ type FavoriteCreateInput struct {
 	InitiativeID *string `json:"initiativeId,omitempty"`
 	// The tab of the initiative to favorite.
 	InitiativeTab *InitiativeTab `json:"initiativeTab,omitempty"`
-	// The identifier of the issue to favorite.
+	// The identifier of the issue to favorite. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// The identifier of the label to favorite.
 	LabelID *string `json:"labelId,omitempty"`
@@ -7395,7 +7401,7 @@ type IssueCreateInput struct {
 	LabelIds []string `json:"labelIds,omitempty"`
 	// The ID of the last template applied to the issue.
 	LastAppliedTemplateID *string `json:"lastAppliedTemplateId,omitempty"`
-	// The identifier of the parent issue.
+	// The identifier of the parent issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	ParentID *string `json:"parentId,omitempty"`
 	// Whether the passed sort order should be preserved.
 	PreserveSortOrderOnCreate *bool `json:"preserveSortOrderOnCreate,omitempty"`
@@ -8431,9 +8437,9 @@ type IssueRelationConnection struct {
 type IssueRelationCreateInput struct {
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// The identifier of the issue that is related to another issue.
+	// The identifier of the issue that is related to another issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID string `json:"issueId"`
-	// The identifier of the related issue.
+	// The identifier of the related issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	RelatedIssueID string `json:"relatedIssueId"`
 	// The type of relation of the issue to the related issue.
 	Type IssueRelationType `json:"type"`
@@ -8463,9 +8469,9 @@ type IssueRelationPayload struct {
 }
 
 type IssueRelationUpdateInput struct {
-	// The identifier of the issue that is related to another issue.
+	// The identifier of the issue that is related to another issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
-	// The identifier of the related issue.
+	// The identifier of the related issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	RelatedIssueID *string `json:"relatedIssueId,omitempty"`
 	// The type of relation of the issue to the related issue.
 	Type *string `json:"type,omitempty"`
@@ -8937,7 +8943,7 @@ type IssueToReleaseConnection struct {
 type IssueToReleaseCreateInput struct {
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// The identifier of the issue
+	// The identifier of the issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID string `json:"issueId"`
 	// The identifier of the release
 	ReleaseID string `json:"releaseId"`
@@ -9010,7 +9016,7 @@ type IssueUpdateInput struct {
 	LabelIds []string `json:"labelIds,omitempty"`
 	// The ID of the last template applied to the issue.
 	LastAppliedTemplateID *string `json:"lastAppliedTemplateId,omitempty"`
-	// The identifier of the parent issue.
+	// The identifier of the parent issue. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	ParentID *string `json:"parentId,omitempty"`
 	// The priority of the issue. 0 = No priority, 1 = Urgent, 2 = High, 3 = Normal, 4 = Low.
 	Priority *int64 `json:"priority,omitempty"`
@@ -10686,6 +10692,8 @@ type Organization struct {
 	AiAddonEnabled bool `json:"aiAddonEnabled"`
 	// Whether the organization has enabled AI discussion summaries for issues.
 	AiDiscussionSummariesEnabled bool `json:"aiDiscussionSummariesEnabled"`
+	// [INTERNAL] Configure per-modality AI host providers and model families.
+	AiProviderConfiguration map[string]any `json:"aiProviderConfiguration,omitempty"`
 	// Whether the organization has enabled resolved thread AI summaries.
 	AiThreadSummariesEnabled bool `json:"aiThreadSummariesEnabled"`
 	// [DEPRECATED] Whether member users are allowed to send invites.
@@ -11106,6 +11114,8 @@ type OrganizationUpdateInput struct {
 	AiAddonEnabled *bool `json:"aiAddonEnabled,omitempty"`
 	// Whether the organization has enabled AI discussion summaries for issues.
 	AiDiscussionSummariesEnabled *bool `json:"aiDiscussionSummariesEnabled,omitempty"`
+	// [INTERNAL] Configure per-modality AI host providers and model families.
+	AiProviderConfiguration map[string]any `json:"aiProviderConfiguration,omitempty"`
 	// [INTERNAL] Whether the organization has opted in to AI telemetry.
 	AiTelemetryEnabled *bool `json:"aiTelemetryEnabled,omitempty"`
 	// Whether the organization has enabled resolved thread AI summaries.
@@ -11594,6 +11604,8 @@ type Project struct {
 	ID string `json:"id"`
 	// The number of in progress estimation points after each week.
 	InProgressScopeHistory []float64 `json:"inProgressScopeHistory"`
+	// Associations of this project to parent initiatives.
+	InitiativeToProjects *InitiativeToProjectConnection `json:"initiativeToProjects"`
 	// Initiatives that this project belongs to.
 	Initiatives *InitiativeConnection `json:"initiatives"`
 	// Settings for all integrations associated with that project.
@@ -12930,6 +12942,8 @@ type ProjectSearchResult struct {
 	ID string `json:"id"`
 	// The number of in progress estimation points after each week.
 	InProgressScopeHistory []float64 `json:"inProgressScopeHistory"`
+	// Associations of this project to parent initiatives.
+	InitiativeToProjects *InitiativeToProjectConnection `json:"initiativeToProjects"`
 	// Initiatives that this project belongs to.
 	Initiatives *InitiativeConnection `json:"initiatives"`
 	// Settings for all integrations associated with that project.
@@ -14010,7 +14024,7 @@ type ReactionCreateInput struct {
 	ID *string `json:"id,omitempty"`
 	// The update to associate the reaction with.
 	InitiativeUpdateID *string `json:"initiativeUpdateId,omitempty"`
-	// The issue to associate the reaction with.
+	// The issue to associate the reaction with. Can be a UUID or issue identifier (e.g., 'LIN-123').
 	IssueID *string `json:"issueId,omitempty"`
 	// [Internal] The post to associate the reaction with.
 	PostID *string `json:"postId,omitempty"`
@@ -17286,7 +17300,7 @@ func (e AgentSessionStatus) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// The type of an agent session.
+// [DEPRECATED] The type of an agent session.
 type AgentSessionType string
 
 const (

@@ -431,3 +431,10 @@ goversion:  ## Show Go version
 all: clean build test lint  ## Clean, build, test, and lint
 
 .DEFAULT_GOAL := help
+
+modernize:  ## Run modernize analyzer for modern Go patterns (modern Go)
+	@echo "Running modernize..."
+	@go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest \
+		./cmd/... ./pkg/... ./internal/... \
+		2>&1 | { grep -v "internal/graphql\|examples/" || true; } | \
+		{ grep ":" && echo "⚠️  Modernize suggestions found (review above)" || echo "✓ Modernize passed"; }

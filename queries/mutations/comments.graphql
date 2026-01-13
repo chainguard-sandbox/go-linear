@@ -7,6 +7,7 @@ mutation CreateComment($input: CommentCreateInput!) {
       createdAt
       updatedAt
       url
+      parentId
     }
   }
 }

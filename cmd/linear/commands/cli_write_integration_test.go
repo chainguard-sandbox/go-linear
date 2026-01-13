@@ -228,6 +228,126 @@ func TestCLI_CommentCreateUpdateDelete(t *testing.T) {
 	})
 }
 
+// --- Comment Threading Test ---
+
+func TestCLI_CommentThreading(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	issueTitle := fmt.Sprintf("Thread Test %s", timestamp)
+
+	// Create issue
+	stdout, _, err := r.run("issue", "create",
+		"--team="+r.teamKey,
+		"--title="+issueTitle,
+		"--output=json",
+	)
+	if err != nil {
+		t.Fatalf("Failed to create issue: %v", err)
+	}
+
+	var createResult map[string]any
+	json.Unmarshal([]byte(stdout), &createResult)
+	issue := extractIssue(createResult)
+	issueID := issue["identifier"].(string)
+
+	defer r.run("issue", "delete", issueID, "--yes")
+
+	var parentID, replyID string
+
+	// CREATE parent
+	t.Run("create_parent", func(t *testing.T) {
+		stdout, stderr, err := r.run("comment", "create",
+			"--issue="+issueID,
+			"--body=Parent comment",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		comment := extractEntity(result, "comment")
+		parentID = comment["id"].(string)
+		t.Logf("Created parent: %s", parentID)
+	})
+
+	// CREATE reply
+	t.Run("create_reply", func(t *testing.T) {
+		if parentID == "" {
+			t.Skip("No parent")
+		}
+
+		stdout, stderr, err := r.run("comment", "create",
+			"--issue="+issueID,
+			"--body=Reply comment",
+			"--parent="+parentID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("create reply failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		comment := extractEntity(result, "comment")
+		replyID = comment["id"].(string)
+
+		if comment["parentId"] != parentID {
+			t.Errorf("Expected parentId=%s, got %v", parentID, comment["parentId"])
+		}
+		t.Logf("Created reply: %s", replyID)
+	})
+
+	// GET parent shows replies
+	t.Run("get_parent_shows_replies", func(t *testing.T) {
+		if parentID == "" {
+			t.Skip("No parent")
+		}
+
+		stdout, stderr, err := r.run("comment", "get", parentID, "--output=json")
+		if err != nil {
+			t.Fatalf("get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if children, ok := result["children"].(map[string]any); ok {
+			if nodes, ok := children["nodes"].([]any); ok && len(nodes) > 0 {
+				t.Logf("Parent has %d replies", len(nodes))
+			} else {
+				t.Error("Expected children nodes")
+			}
+		}
+	})
+
+	// GET reply shows parent
+	t.Run("get_reply_shows_parent", func(t *testing.T) {
+		if replyID == "" {
+			t.Skip("No reply")
+		}
+
+		stdout, stderr, err := r.run("comment", "get", replyID, "--fields=none", "--output=json")
+		if err != nil {
+			t.Fatalf("get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if parent, ok := result["parent"].(map[string]any); ok {
+			if parent["id"] != parentID {
+				t.Errorf("Expected parent.id=%s, got %v", parentID, parent["id"])
+			}
+			t.Logf("Reply shows parent")
+		} else {
+			t.Error("Expected parent field")
+		}
+	})
+}
+
 // --- Label CRUD Tests ---
 
 func TestCLI_LabelCreateUpdateDelete(t *testing.T) {
@@ -2912,6 +3032,87 @@ func TestCLI_DocumentCRUD(t *testing.T) {
 	})
 }
 
+// --- Notification Inbox Test ---
+
+func TestCLI_NotificationInbox(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// LIST notifications (inbox)
+	t.Run("list_notifications", func(t *testing.T) {
+		stdout, stderr, err := r.run("notification", "list",
+			"--limit=5",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("notification list failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if nodes, ok := result["nodes"].([]any); ok {
+			t.Logf("Found %d notifications", len(nodes))
+		}
+	})
+
+	// GET a notification if any exist
+	var notificationID string
+	t.Run("get_notification", func(t *testing.T) {
+		// Get first notification from list
+		stdout, _, _ := r.run("notification", "list", "--limit=1", "--output=json")
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if nodes, ok := result["nodes"].([]any); ok && len(nodes) > 0 {
+			notif := nodes[0].(map[string]any)
+			notificationID = notif["id"].(string)
+
+			stdout, stderr, err := r.run("notification", "get",
+				notificationID,
+				"--output=json",
+			)
+			if err != nil {
+				t.Fatalf("notification get failed: %v\nstderr: %s", err, stderr)
+			}
+
+			var getResult map[string]any
+			json.Unmarshal([]byte(stdout), &getResult)
+
+			if getResult["id"] != notificationID {
+				t.Errorf("Expected id=%s, got %v", notificationID, getResult["id"])
+			}
+
+			t.Logf("Retrieved notification: %s", notificationID)
+		} else {
+			t.Skip("No notifications available for testing")
+		}
+	})
+
+	// Test archive and unarchive cycle
+	t.Run("archive_unarchive_notification", func(t *testing.T) {
+		if notificationID == "" {
+			t.Skip("No notification to archive")
+		}
+
+		// Archive
+		stdout, stderr, err := r.run("notification", "archive", notificationID)
+		if err != nil {
+			t.Fatalf("archive failed: %v\nstderr: %s", err, stderr)
+		}
+		t.Logf("Archived notification: %s", notificationID)
+		_ = stdout
+
+		// Unarchive to restore
+		stdout, stderr, err = r.run("notification", "unarchive", notificationID)
+		if err != nil {
+			t.Fatalf("unarchive failed: %v\nstderr: %s", err, stderr)
+		}
+		t.Logf("Unarchived notification: %s", notificationID)
+		_ = stdout
+	})
+}
+
 // Helper to build CLI binary if needed
 func init() {
 	// Check if binary exists, build if not (path relative to cmd/linear/commands)
@@ -2921,4 +3122,82 @@ func init() {
 		cmd.Dir = repoRoot
 		cmd.Run()
 	}
+}
+
+// --- Template Integration Test ---
+
+func TestCLI_IssueCreateWithTemplate(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// Check if templates exist
+	stdout, _, _ := r.run("template", "list", "--limit=1", "--output=json")
+	var templates []map[string]any
+	json.Unmarshal([]byte(stdout), &templates)
+
+	if len(templates) == 0 {
+		t.Skip("No templates available in workspace")
+	}
+
+	templateName := templates[0]["name"].(string)
+
+	t.Run("create_with_template", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--template="+templateName,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("create with template failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+		issueID := issue["identifier"].(string)
+
+		t.Logf("Created issue %s from template %s", issueID, templateName)
+		r.run("issue", "delete", issueID, "--yes")
+	})
+}
+
+// --- AI Suggestions Test ---
+
+func TestCLI_IssueSuggestions(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	// Find issue with AI suggestions
+	stdout, _, _ := r.run("issue", "list",
+		"--team="+r.teamKey,
+		"--has-suggested-teams",
+		"--limit=1",
+		"--output=json",
+	)
+
+	var result map[string]any
+	json.Unmarshal([]byte(stdout), &result)
+
+	if nodes, ok := result["nodes"].([]any); !ok || len(nodes) == 0 {
+		t.Skip("No issues with AI suggestions in workspace")
+	}
+
+	nodes := result["nodes"].([]any)
+	issue := nodes[0].(map[string]any)
+	issueID := issue["identifier"].(string)
+
+	t.Run("list_suggestions", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "suggestions",
+			issueID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("suggestions failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var suggestResult map[string]any
+		json.Unmarshal([]byte(stdout), &suggestResult)
+
+		if suggestions, ok := suggestResult["suggestions"].([]any); ok {
+			t.Logf("Issue %s has %d AI suggestions", issueID, len(suggestions))
+		}
+	})
 }

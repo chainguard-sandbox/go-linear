@@ -268,6 +268,22 @@ func WithCircuitBreaker(cb *CircuitBreaker) Option {
 	}
 }
 
+// WithMaxBodySize sets the maximum request body size in bytes.
+// Prevents memory exhaustion from oversized GraphQL queries.
+//
+// Default: 10MB (10 << 20)
+//
+// Example:
+//
+//	// Allow larger queries (50MB)
+//	client, _ := linear.NewClient(apiKey,
+//	    linear.WithMaxBodySize(50 << 20))
+func WithMaxBodySize(size int64) Option {
+	return func(c *Client) {
+		c.config.Transport.MaxBodySize = size
+	}
+}
+
 // WithCredentialProvider enables dynamic credential management.
 // Useful for credential rotation, secret managers, or token refresh.
 // When set, the apiKey parameter to NewClient can be empty.

@@ -489,3 +489,25 @@ func (c *Client) IssueRelationDelete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+// IssueSuggestions retrieves AI suggestions for an issue.
+//
+// Parameters:
+//   - issueID: Issue UUID (required)
+//   - first: Number of suggestions to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - Issue with nested suggestions list
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [Issue]
+func (c *Client) IssueSuggestions(ctx context.Context, issueID string, first *int64, after *string) (*intgraphql.GetIssueSuggestionsForIssue_Issue, error) {
+	resp, err := c.gqlClient.GetIssueSuggestionsForIssue(ctx, issueID, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("issue suggestions query", err)
+	}
+	return &resp.Issue, nil
+}

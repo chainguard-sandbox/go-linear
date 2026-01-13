@@ -6,6 +6,46 @@ import (
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 )
 
+// Notifications retrieves a paginated list of notifications (inbox).
+//
+// Parameters:
+//   - first: Number of notifications to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//   - filter: Optional filters (includeArchived, etc.)
+//
+// Returns:
+//   - Notifications.Nodes: Array of notifications (may be empty)
+//   - Notifications.PageInfo.HasNextPage: true if more results available
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [Notification], [NotificationArchive], [NotificationUpdate]
+func (c *Client) Notifications(ctx context.Context, first *int64, after *string, filter *intgraphql.NotificationFilter) (*intgraphql.ListNotifications_Notifications, error) {
+	resp, err := c.gqlClient.ListNotifications(ctx, first, after, filter)
+	if err != nil {
+		return nil, wrapGraphQLError("notifications query", err)
+	}
+	return &resp.Notifications, nil
+}
+
+// Notification retrieves a single notification by ID.
+//
+// Returns:
+//   - Notification with ID, type, dates, and user
+//   - error: Non-nil if notification not found or query fails
+//
+// Permissions Required: Read
+//
+// Related: [Notifications], [NotificationArchive]
+func (c *Client) Notification(ctx context.Context, id string) (*intgraphql.GetNotification_Notification, error) {
+	resp, err := c.gqlClient.GetNotification(ctx, id)
+	if err != nil {
+		return nil, wrapGraphQLError("notification query", err)
+	}
+	return &resp.Notification, nil
+}
+
 // NotificationUpdate marks a notification as read or archives it.
 //
 // Parameters:
@@ -116,6 +156,29 @@ func (c *Client) NotificationSubscriptionDelete(ctx context.Context, id string) 
 	}
 	if !resp.NotificationSubscriptionDelete.Success {
 		return errMutationFailed("NotificationSubscriptionDelete")
+	}
+	return nil
+}
+
+// NotificationUnarchive restores an archived notification to inbox.
+//
+// Parameters:
+//   - id: Notification UUID to unarchive (required)
+//
+// Returns:
+//   - nil: Notification successfully unarchived
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [NotificationArchive], [Notifications]
+func (c *Client) NotificationUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveNotification(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("NotificationUnarchive", err)
+	}
+	if !resp.NotificationUnarchive.Success {
+		return errMutationFailed("NotificationUnarchive")
 	}
 	return nil
 }

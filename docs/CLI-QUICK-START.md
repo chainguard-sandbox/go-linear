@@ -127,11 +127,12 @@ go-linear document delete <uuid>
 
 ## All Available Commands
 
-**Issues (8)**:
+**Issues (9)**:
 - `go-linear issue list` - List with 64 filters, --count mode
 - `go-linear issue get <id>` - Get single issue
 - `go-linear issue search <query>` - Full-text search, --count mode
-- `go-linear issue create` - Create issue
+- `go-linear issue suggestions <id>` - View AI suggestions
+- `go-linear issue create` - Create issue. Supports --template
 - `go-linear issue update <id>` - Update issue
 - `go-linear issue batch-update` - Update multiple (max 50) ⭐
 - `go-linear issue delete <id>` - Delete issue ⚠️
@@ -142,9 +143,10 @@ go-linear document delete <uuid>
 - `go-linear user get <name|email>` - Get user details
 - `go-linear user completed` - Get completed work ⭐
 
-**Teams (3)**:
+**Teams (4)**:
 - `go-linear team list` - List teams
 - `go-linear team members --team=X` - List members
+- `go-linear team add-member` - Add user to team
 - `go-linear team velocity --team=X` - Calculate performance metrics ⭐
 
 **Projects (8)**:
@@ -174,9 +176,10 @@ go-linear document delete <uuid>
 - `go-linear cycle list` - List cycles/sprints
 - `go-linear cycle get <id>` - Get cycle with metrics
 
-**Comments (4)**:
+**Comments (5)**:
 - `go-linear comment list` - List comments
-- `go-linear comment create` - Add comment
+- `go-linear comment get <id>` - Get comment with thread
+- `go-linear comment create` - Add comment. Supports --parent for threading
 - `go-linear comment update <id>` - Update comment
 - `go-linear comment delete <id>` - Delete comment ⚠️
 
@@ -185,6 +188,16 @@ go-linear document delete <uuid>
 - `go-linear label create` - Create label
 
 **Documents (5)**:
+
+**Notifications (7)**:
+- `go-linear notification list` - List inbox notifications
+- `go-linear notification get <id>` - Get notification details
+- `go-linear notification update <id>` - Mark read or snooze
+- `go-linear notification archive <id>` - Archive notification
+- `go-linear notification unarchive <id>` - Restore to inbox
+- `go-linear notification subscribe` - Subscribe to entity updates
+- `go-linear notification unsubscribe <id>` - Remove subscription
+
 - `go-linear document list` - List documents
 - `go-linear document get <id>` - Get document
 - `go-linear document create` - Create document ⭐

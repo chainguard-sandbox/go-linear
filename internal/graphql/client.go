@@ -14,7 +14,7 @@ type LinearGraphQLClient interface {
 	ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error)
 	ListAttachmentsFiltered(ctx context.Context, first *int64, after *string, filter *AttachmentFilter, interceptors ...clientv2.RequestInterceptor) (*ListAttachmentsFiltered, error)
 	BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error)
-	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
+	GetComment(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	ListCommentsFiltered(ctx context.Context, first *int64, after *string, filter *CommentFilter, interceptors ...clientv2.RequestInterceptor) (*ListCommentsFiltered, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
@@ -31,6 +31,7 @@ type LinearGraphQLClient interface {
 	ListInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListInitiatives, error)
 	ListInitiativesFiltered(ctx context.Context, first *int64, after *string, filter *InitiativeFilter, interceptors ...clientv2.RequestInterceptor) (*ListInitiativesFiltered, error)
 	ListSubInitiatives(ctx context.Context, id string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListSubInitiatives, error)
+	GetIssueSuggestionsForIssue(ctx context.Context, issueID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSuggestionsForIssue, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
@@ -75,6 +76,7 @@ type LinearGraphQLClient interface {
 	NotificationArchive(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationArchive, error)
 	NotificationSubscriptionCreate(ctx context.Context, input NotificationSubscriptionCreateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionCreate, error)
 	NotificationSubscriptionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionDelete, error)
+	UnarchiveNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveNotification, error)
 	ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error)
 	ProjectMilestoneUpdate(ctx context.Context, id string, input ProjectMilestoneUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneUpdate, error)
 	ProjectMilestoneDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneDelete, error)
@@ -85,9 +87,13 @@ type LinearGraphQLClient interface {
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
 	ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error)
 	ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error)
+	AddTeamMember(ctx context.Context, input TeamMembershipCreateInput, interceptors ...clientv2.RequestInterceptor) (*AddTeamMember, error)
+	RemoveTeamMember(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*RemoveTeamMember, error)
 	CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error)
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
+	ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error)
+	GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
 	GetProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectUpdate, error)
 	ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectUpdates, error)
@@ -500,14 +506,145 @@ func (t *GetComment_Comment_Issue) GetTitle() string {
 	return t.Title
 }
 
+type GetComment_Comment_Parent_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetComment_Comment_Parent_User) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent_User{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Parent_User) GetName() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent_User{}
+	}
+	return t.Name
+}
+
+type GetComment_Comment_Parent struct {
+	Body string                          "json:\"body\" graphql:\"body\""
+	ID   string                          "json:\"id\" graphql:\"id\""
+	User *GetComment_Comment_Parent_User "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *GetComment_Comment_Parent) GetBody() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent{}
+	}
+	return t.Body
+}
+func (t *GetComment_Comment_Parent) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Parent{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Parent) GetUser() *GetComment_Comment_Parent_User {
+	if t == nil {
+		t = &GetComment_Comment_Parent{}
+	}
+	return t.User
+}
+
+type GetComment_Comment_Children_Nodes_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetComment_Comment_Children_Nodes_User) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Children_Nodes_User) GetName() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes_User{}
+	}
+	return t.Name
+}
+
+type GetComment_Comment_Children_Nodes struct {
+	Body      string                                  "json:\"body\" graphql:\"body\""
+	CreatedAt time.Time                               "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                                  "json:\"id\" graphql:\"id\""
+	User      *GetComment_Comment_Children_Nodes_User "json:\"user,omitempty\" graphql:\"user\""
+}
+
+func (t *GetComment_Comment_Children_Nodes) GetBody() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return t.Body
+}
+func (t *GetComment_Comment_Children_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetComment_Comment_Children_Nodes) GetID() string {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetComment_Comment_Children_Nodes) GetUser() *GetComment_Comment_Children_Nodes_User {
+	if t == nil {
+		t = &GetComment_Comment_Children_Nodes{}
+	}
+	return t.User
+}
+
+type GetComment_Comment_Children_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *GetComment_Comment_Children_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &GetComment_Comment_Children_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *GetComment_Comment_Children_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &GetComment_Comment_Children_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type GetComment_Comment_Children struct {
+	Nodes    []*GetComment_Comment_Children_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo GetComment_Comment_Children_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *GetComment_Comment_Children) GetNodes() []*GetComment_Comment_Children_Nodes {
+	if t == nil {
+		t = &GetComment_Comment_Children{}
+	}
+	return t.Nodes
+}
+func (t *GetComment_Comment_Children) GetPageInfo() *GetComment_Comment_Children_PageInfo {
+	if t == nil {
+		t = &GetComment_Comment_Children{}
+	}
+	return &t.PageInfo
+}
+
 type GetComment_Comment struct {
-	Body      string                    "json:\"body\" graphql:\"body\""
-	CreatedAt time.Time                 "json:\"createdAt\" graphql:\"createdAt\""
-	ID        string                    "json:\"id\" graphql:\"id\""
-	Issue     *GetComment_Comment_Issue "json:\"issue,omitempty\" graphql:\"issue\""
-	UpdatedAt time.Time                 "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL       string                    "json:\"url\" graphql:\"url\""
-	User      *GetComment_Comment_User  "json:\"user,omitempty\" graphql:\"user\""
+	Body      string                      "json:\"body\" graphql:\"body\""
+	Children  GetComment_Comment_Children "json:\"children\" graphql:\"children\""
+	CreatedAt time.Time                   "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                      "json:\"id\" graphql:\"id\""
+	Issue     *GetComment_Comment_Issue   "json:\"issue,omitempty\" graphql:\"issue\""
+	Parent    *GetComment_Comment_Parent  "json:\"parent,omitempty\" graphql:\"parent\""
+	UpdatedAt time.Time                   "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL       string                      "json:\"url\" graphql:\"url\""
+	User      *GetComment_Comment_User    "json:\"user,omitempty\" graphql:\"user\""
 }
 
 func (t *GetComment_Comment) GetBody() string {
@@ -515,6 +652,12 @@ func (t *GetComment_Comment) GetBody() string {
 		t = &GetComment_Comment{}
 	}
 	return t.Body
+}
+func (t *GetComment_Comment) GetChildren() *GetComment_Comment_Children {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return &t.Children
 }
 func (t *GetComment_Comment) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -533,6 +676,12 @@ func (t *GetComment_Comment) GetIssue() *GetComment_Comment_Issue {
 		t = &GetComment_Comment{}
 	}
 	return t.Issue
+}
+func (t *GetComment_Comment) GetParent() *GetComment_Comment_Parent {
+	if t == nil {
+		t = &GetComment_Comment{}
+	}
+	return t.Parent
 }
 func (t *GetComment_Comment) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -2423,6 +2572,252 @@ func (t *ListSubInitiatives_Initiative) GetSubInitiatives() *ListSubInitiatives_
 	return &t.SubInitiatives
 }
 
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam) GetKey() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam{}
+	}
+	return t.Key
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser) GetEmail() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser{}
+	}
+	return t.Email
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject) GetName() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject{}
+	}
+	return t.Name
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+	Title      string "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue) GetIdentifier() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue{}
+	}
+	return t.Identifier
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue) GetTitle() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue{}
+	}
+	return t.Title
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes struct {
+	CreatedAt        time.Time                                                                     "json:\"createdAt\" graphql:\"createdAt\""
+	ID               string                                                                        "json:\"id\" graphql:\"id\""
+	State            IssueSuggestionState                                                          "json:\"state\" graphql:\"state\""
+	SuggestedIssue   *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue   "json:\"suggestedIssue,omitempty\" graphql:\"suggestedIssue\""
+	SuggestedLabel   *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel   "json:\"suggestedLabel,omitempty\" graphql:\"suggestedLabel\""
+	SuggestedProject *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject "json:\"suggestedProject,omitempty\" graphql:\"suggestedProject\""
+	SuggestedTeam    *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam    "json:\"suggestedTeam,omitempty\" graphql:\"suggestedTeam\""
+	SuggestedUser    *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser    "json:\"suggestedUser,omitempty\" graphql:\"suggestedUser\""
+	Type             IssueSuggestionType                                                           "json:\"type\" graphql:\"type\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetState() *IssueSuggestionState {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return &t.State
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedIssue() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedIssue {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedIssue
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedLabel() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedLabel {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedLabel
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedProject() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedProject {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedProject
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedTeam() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedTeam {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedTeam
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetSuggestedUser() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes_SuggestedUser {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return t.SuggestedUser
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes) GetType() *IssueSuggestionType {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes{}
+	}
+	return &t.Type
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type GetIssueSuggestionsForIssue_Issue_IncomingSuggestions struct {
+	Nodes    []*GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions) GetNodes() []*GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_Nodes {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions{}
+	}
+	return t.Nodes
+}
+func (t *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions) GetPageInfo() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions_PageInfo {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue_IncomingSuggestions{}
+	}
+	return &t.PageInfo
+}
+
+type GetIssueSuggestionsForIssue_Issue struct {
+	ID                  string                                                "json:\"id\" graphql:\"id\""
+	Identifier          string                                                "json:\"identifier\" graphql:\"identifier\""
+	IncomingSuggestions GetIssueSuggestionsForIssue_Issue_IncomingSuggestions "json:\"incomingSuggestions\" graphql:\"incomingSuggestions\""
+	Title               string                                                "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetIssueSuggestionsForIssue_Issue) GetID() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return t.ID
+}
+func (t *GetIssueSuggestionsForIssue_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return t.Identifier
+}
+func (t *GetIssueSuggestionsForIssue_Issue) GetIncomingSuggestions() *GetIssueSuggestionsForIssue_Issue_IncomingSuggestions {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return &t.IncomingSuggestions
+}
+func (t *GetIssueSuggestionsForIssue_Issue) GetTitle() string {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue_Issue{}
+	}
+	return t.Title
+}
+
 type GetIssue_Issue_Parent struct {
 	ID         string "json:\"id\" graphql:\"id\""
 	Identifier string "json:\"identifier\" graphql:\"identifier\""
@@ -3413,6 +3808,7 @@ type CreateComment_CommentCreate_Comment struct {
 	Body      string    "json:\"body\" graphql:\"body\""
 	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	ID        string    "json:\"id\" graphql:\"id\""
+	ParentID  *string   "json:\"parentId,omitempty\" graphql:\"parentId\""
 	UpdatedAt time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
 	URL       string    "json:\"url\" graphql:\"url\""
 }
@@ -3434,6 +3830,12 @@ func (t *CreateComment_CommentCreate_Comment) GetID() string {
 		t = &CreateComment_CommentCreate_Comment{}
 	}
 	return t.ID
+}
+func (t *CreateComment_CommentCreate_Comment) GetParentID() *string {
+	if t == nil {
+		t = &CreateComment_CommentCreate_Comment{}
+	}
+	return t.ParentID
 }
 func (t *CreateComment_CommentCreate_Comment) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -5023,6 +5425,17 @@ func (t *NotificationSubscriptionDelete_NotificationSubscriptionDelete) GetSucce
 	return t.Success
 }
 
+type UnarchiveNotification_NotificationUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveNotification_NotificationUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveNotification_NotificationUnarchive{}
+	}
+	return t.Success
+}
+
 type ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -5445,6 +5858,110 @@ func (t *ReactionDelete_ReactionDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type AddTeamMember_TeamMembershipCreate_TeamMembership_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_Team) GetID() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_Team{}
+	}
+	return t.ID
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_Team) GetKey() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_Team{}
+	}
+	return t.Key
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_Team) GetName() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_Team{}
+	}
+	return t.Name
+}
+
+type AddTeamMember_TeamMembershipCreate_TeamMembership_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_User) GetEmail() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_User{}
+	}
+	return t.Email
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_User) GetID() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_User{}
+	}
+	return t.ID
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership_User) GetName() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership_User{}
+	}
+	return t.Name
+}
+
+type AddTeamMember_TeamMembershipCreate_TeamMembership struct {
+	ID   string                                                 "json:\"id\" graphql:\"id\""
+	Team AddTeamMember_TeamMembershipCreate_TeamMembership_Team "json:\"team\" graphql:\"team\""
+	User AddTeamMember_TeamMembershipCreate_TeamMembership_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership) GetID() string {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership{}
+	}
+	return t.ID
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership) GetTeam() *AddTeamMember_TeamMembershipCreate_TeamMembership_Team {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership{}
+	}
+	return &t.Team
+}
+func (t *AddTeamMember_TeamMembershipCreate_TeamMembership) GetUser() *AddTeamMember_TeamMembershipCreate_TeamMembership_User {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate_TeamMembership{}
+	}
+	return &t.User
+}
+
+type AddTeamMember_TeamMembershipCreate struct {
+	Success        bool                                               "json:\"success\" graphql:\"success\""
+	TeamMembership *AddTeamMember_TeamMembershipCreate_TeamMembership "json:\"teamMembership,omitempty\" graphql:\"teamMembership\""
+}
+
+func (t *AddTeamMember_TeamMembershipCreate) GetSuccess() bool {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate{}
+	}
+	return t.Success
+}
+func (t *AddTeamMember_TeamMembershipCreate) GetTeamMembership() *AddTeamMember_TeamMembershipCreate_TeamMembership {
+	if t == nil {
+		t = &AddTeamMember_TeamMembershipCreate{}
+	}
+	return t.TeamMembership
+}
+
+type RemoveTeamMember_TeamMembershipDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *RemoveTeamMember_TeamMembershipDelete) GetSuccess() bool {
+	if t == nil {
+		t = &RemoveTeamMember_TeamMembershipDelete{}
+	}
+	return t.Success
+}
+
 type CreateTeam_TeamCreate_Team struct {
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
@@ -5568,6 +6085,478 @@ func (t *DeleteTeam_TeamDelete) GetSuccess() bool {
 		t = &DeleteTeam_TeamDelete{}
 	}
 	return t.Success
+}
+
+type ListNotifications_Notifications_Nodes_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_User{}
+	}
+	return t.Name
+}
+
+type ListNotifications_Notifications_Nodes_Actor struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_Actor) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_Actor{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_Actor) GetName() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_Actor{}
+	}
+	return t.Name
+}
+
+type ListNotifications_Notifications_Nodes_IssueNotification_Issue struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+	Title      string "json:\"title\" graphql:\"title\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Issue) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Issue{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Issue{}
+	}
+	return t.Identifier
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Issue) GetTitle() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Issue{}
+	}
+	return t.Title
+}
+
+type ListNotifications_Notifications_Nodes_IssueNotification_Comment struct {
+	Body string "json:\"body\" graphql:\"body\""
+	ID   string "json:\"id\" graphql:\"id\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Comment) GetBody() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Comment{}
+	}
+	return t.Body
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification_Comment) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification_Comment{}
+	}
+	return t.ID
+}
+
+type ListNotifications_Notifications_Nodes_IssueNotification struct {
+	Issue   ListNotifications_Notifications_Nodes_IssueNotification_Issue    "json:\"issue\" graphql:\"issue\""
+	Comment *ListNotifications_Notifications_Nodes_IssueNotification_Comment "json:\"comment,omitempty\" graphql:\"comment\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_IssueNotification) GetIssue() *ListNotifications_Notifications_Nodes_IssueNotification_Issue {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification{}
+	}
+	return &t.Issue
+}
+func (t *ListNotifications_Notifications_Nodes_IssueNotification) GetComment() *ListNotifications_Notifications_Nodes_IssueNotification_Comment {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_IssueNotification{}
+	}
+	return t.Comment
+}
+
+type ListNotifications_Notifications_Nodes_ProjectNotification_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_ProjectNotification_Project) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_ProjectNotification_Project{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes_ProjectNotification_Project) GetName() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_ProjectNotification_Project{}
+	}
+	return t.Name
+}
+
+type ListNotifications_Notifications_Nodes_ProjectNotification struct {
+	Project ListNotifications_Notifications_Nodes_ProjectNotification_Project "json:\"project\" graphql:\"project\""
+}
+
+func (t *ListNotifications_Notifications_Nodes_ProjectNotification) GetProject() *ListNotifications_Notifications_Nodes_ProjectNotification_Project {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes_ProjectNotification{}
+	}
+	return &t.Project
+}
+
+type ListNotifications_Notifications_Nodes struct {
+	IssueNotification   ListNotifications_Notifications_Nodes_IssueNotification   "graphql:\"... on IssueNotification\""
+	ProjectNotification ListNotifications_Notifications_Nodes_ProjectNotification "graphql:\"... on ProjectNotification\""
+	Actor               *ListNotifications_Notifications_Nodes_Actor              "json:\"actor,omitempty\" graphql:\"actor\""
+	ArchivedAt          *time.Time                                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	CreatedAt           time.Time                                                 "json:\"createdAt\" graphql:\"createdAt\""
+	ID                  string                                                    "json:\"id\" graphql:\"id\""
+	ReadAt              *time.Time                                                "json:\"readAt,omitempty\" graphql:\"readAt\""
+	SnoozedUntilAt      *time.Time                                                "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
+	Type                string                                                    "json:\"type\" graphql:\"type\""
+	User                ListNotifications_Notifications_Nodes_User                "json:\"user\" graphql:\"user\""
+}
+
+func (t *ListNotifications_Notifications_Nodes) GetIssueNotification() *ListNotifications_Notifications_Nodes_IssueNotification {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.IssueNotification
+}
+func (t *ListNotifications_Notifications_Nodes) GetProjectNotification() *ListNotifications_Notifications_Nodes_ProjectNotification {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.ProjectNotification
+}
+func (t *ListNotifications_Notifications_Nodes) GetActor() *ListNotifications_Notifications_Nodes_Actor {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.Actor
+}
+func (t *ListNotifications_Notifications_Nodes) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.ArchivedAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetID() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListNotifications_Notifications_Nodes) GetReadAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.ReadAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetSnoozedUntilAt() *time.Time {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.SnoozedUntilAt
+}
+func (t *ListNotifications_Notifications_Nodes) GetType() string {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return t.Type
+}
+func (t *ListNotifications_Notifications_Nodes) GetUser() *ListNotifications_Notifications_Nodes_User {
+	if t == nil {
+		t = &ListNotifications_Notifications_Nodes{}
+	}
+	return &t.User
+}
+
+type ListNotifications_Notifications_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListNotifications_Notifications_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListNotifications_Notifications_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListNotifications_Notifications_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListNotifications_Notifications_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListNotifications_Notifications struct {
+	Nodes    []*ListNotifications_Notifications_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListNotifications_Notifications_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListNotifications_Notifications) GetNodes() []*ListNotifications_Notifications_Nodes {
+	if t == nil {
+		t = &ListNotifications_Notifications{}
+	}
+	return t.Nodes
+}
+func (t *ListNotifications_Notifications) GetPageInfo() *ListNotifications_Notifications_PageInfo {
+	if t == nil {
+		t = &ListNotifications_Notifications{}
+	}
+	return &t.PageInfo
+}
+
+type GetNotification_Notification_User struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_User) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_User{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_User) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_User{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_Actor struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_Actor) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_Actor{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_Actor) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_Actor{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_IssueNotification_Issue struct {
+	ID         string "json:\"id\" graphql:\"id\""
+	Identifier string "json:\"identifier\" graphql:\"identifier\""
+	Title      string "json:\"title\" graphql:\"title\""
+}
+
+func (t *GetNotification_Notification_IssueNotification_Issue) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Issue{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_IssueNotification_Issue) GetIdentifier() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Issue{}
+	}
+	return t.Identifier
+}
+func (t *GetNotification_Notification_IssueNotification_Issue) GetTitle() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Issue{}
+	}
+	return t.Title
+}
+
+type GetNotification_Notification_IssueNotification_Comment struct {
+	Body string "json:\"body\" graphql:\"body\""
+	ID   string "json:\"id\" graphql:\"id\""
+}
+
+func (t *GetNotification_Notification_IssueNotification_Comment) GetBody() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Comment{}
+	}
+	return t.Body
+}
+func (t *GetNotification_Notification_IssueNotification_Comment) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification_Comment{}
+	}
+	return t.ID
+}
+
+type GetNotification_Notification_IssueNotification struct {
+	Issue   GetNotification_Notification_IssueNotification_Issue    "json:\"issue\" graphql:\"issue\""
+	Comment *GetNotification_Notification_IssueNotification_Comment "json:\"comment,omitempty\" graphql:\"comment\""
+}
+
+func (t *GetNotification_Notification_IssueNotification) GetIssue() *GetNotification_Notification_IssueNotification_Issue {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification{}
+	}
+	return &t.Issue
+}
+func (t *GetNotification_Notification_IssueNotification) GetComment() *GetNotification_Notification_IssueNotification_Comment {
+	if t == nil {
+		t = &GetNotification_Notification_IssueNotification{}
+	}
+	return t.Comment
+}
+
+type GetNotification_Notification_ProjectNotification_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_ProjectNotification_Project) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_ProjectNotification_Project{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_ProjectNotification_Project) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_ProjectNotification_Project{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_ProjectNotification struct {
+	Project GetNotification_Notification_ProjectNotification_Project "json:\"project\" graphql:\"project\""
+}
+
+func (t *GetNotification_Notification_ProjectNotification) GetProject() *GetNotification_Notification_ProjectNotification_Project {
+	if t == nil {
+		t = &GetNotification_Notification_ProjectNotification{}
+	}
+	return &t.Project
+}
+
+type GetNotification_Notification_InitiativeNotification_Initiative struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetNotification_Notification_InitiativeNotification_Initiative) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification_InitiativeNotification_Initiative{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification_InitiativeNotification_Initiative) GetName() string {
+	if t == nil {
+		t = &GetNotification_Notification_InitiativeNotification_Initiative{}
+	}
+	return t.Name
+}
+
+type GetNotification_Notification_InitiativeNotification struct {
+	Initiative *GetNotification_Notification_InitiativeNotification_Initiative "json:\"initiative,omitempty\" graphql:\"initiative\""
+}
+
+func (t *GetNotification_Notification_InitiativeNotification) GetInitiative() *GetNotification_Notification_InitiativeNotification_Initiative {
+	if t == nil {
+		t = &GetNotification_Notification_InitiativeNotification{}
+	}
+	return t.Initiative
+}
+
+type GetNotification_Notification struct {
+	InitiativeNotification GetNotification_Notification_InitiativeNotification "graphql:\"... on InitiativeNotification\""
+	IssueNotification      GetNotification_Notification_IssueNotification      "graphql:\"... on IssueNotification\""
+	ProjectNotification    GetNotification_Notification_ProjectNotification    "graphql:\"... on ProjectNotification\""
+	Actor                  *GetNotification_Notification_Actor                 "json:\"actor,omitempty\" graphql:\"actor\""
+	ArchivedAt             *time.Time                                          "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	CreatedAt              time.Time                                           "json:\"createdAt\" graphql:\"createdAt\""
+	ID                     string                                              "json:\"id\" graphql:\"id\""
+	ReadAt                 *time.Time                                          "json:\"readAt,omitempty\" graphql:\"readAt\""
+	SnoozedUntilAt         *time.Time                                          "json:\"snoozedUntilAt,omitempty\" graphql:\"snoozedUntilAt\""
+	Type                   string                                              "json:\"type\" graphql:\"type\""
+	User                   GetNotification_Notification_User                   "json:\"user\" graphql:\"user\""
+}
+
+func (t *GetNotification_Notification) GetInitiativeNotification() *GetNotification_Notification_InitiativeNotification {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.InitiativeNotification
+}
+func (t *GetNotification_Notification) GetIssueNotification() *GetNotification_Notification_IssueNotification {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.IssueNotification
+}
+func (t *GetNotification_Notification) GetProjectNotification() *GetNotification_Notification_ProjectNotification {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.ProjectNotification
+}
+func (t *GetNotification_Notification) GetActor() *GetNotification_Notification_Actor {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.Actor
+}
+func (t *GetNotification_Notification) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.ArchivedAt
+}
+func (t *GetNotification_Notification) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetNotification_Notification) GetID() string {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.ID
+}
+func (t *GetNotification_Notification) GetReadAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.ReadAt
+}
+func (t *GetNotification_Notification) GetSnoozedUntilAt() *time.Time {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.SnoozedUntilAt
+}
+func (t *GetNotification_Notification) GetType() string {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return t.Type
+}
+func (t *GetNotification_Notification) GetUser() *GetNotification_Notification_User {
+	if t == nil {
+		t = &GetNotification_Notification{}
+	}
+	return &t.User
 }
 
 type GetOrganization_Organization struct {
@@ -7795,6 +8784,17 @@ func (t *ListSubInitiatives) GetInitiative() *ListSubInitiatives_Initiative {
 	return &t.Initiative
 }
 
+type GetIssueSuggestionsForIssue struct {
+	Issue GetIssueSuggestionsForIssue_Issue "json:\"issue\" graphql:\"issue\""
+}
+
+func (t *GetIssueSuggestionsForIssue) GetIssue() *GetIssueSuggestionsForIssue_Issue {
+	if t == nil {
+		t = &GetIssueSuggestionsForIssue{}
+	}
+	return &t.Issue
+}
+
 type GetIssue struct {
 	Issue GetIssue_Issue "json:\"issue\" graphql:\"issue\""
 }
@@ -8279,6 +9279,17 @@ func (t *NotificationSubscriptionDelete) GetNotificationSubscriptionDelete() *No
 	return &t.NotificationSubscriptionDelete
 }
 
+type UnarchiveNotification struct {
+	NotificationUnarchive UnarchiveNotification_NotificationUnarchive "json:\"notificationUnarchive\" graphql:\"notificationUnarchive\""
+}
+
+func (t *UnarchiveNotification) GetNotificationUnarchive() *UnarchiveNotification_NotificationUnarchive {
+	if t == nil {
+		t = &UnarchiveNotification{}
+	}
+	return &t.NotificationUnarchive
+}
+
 type ProjectMilestoneCreate struct {
 	ProjectMilestoneCreate ProjectMilestoneCreate_ProjectMilestoneCreate "json:\"projectMilestoneCreate\" graphql:\"projectMilestoneCreate\""
 }
@@ -8389,6 +9400,28 @@ func (t *ReactionDelete) GetReactionDelete() *ReactionDelete_ReactionDelete {
 	return &t.ReactionDelete
 }
 
+type AddTeamMember struct {
+	TeamMembershipCreate AddTeamMember_TeamMembershipCreate "json:\"teamMembershipCreate\" graphql:\"teamMembershipCreate\""
+}
+
+func (t *AddTeamMember) GetTeamMembershipCreate() *AddTeamMember_TeamMembershipCreate {
+	if t == nil {
+		t = &AddTeamMember{}
+	}
+	return &t.TeamMembershipCreate
+}
+
+type RemoveTeamMember struct {
+	TeamMembershipDelete RemoveTeamMember_TeamMembershipDelete "json:\"teamMembershipDelete\" graphql:\"teamMembershipDelete\""
+}
+
+func (t *RemoveTeamMember) GetTeamMembershipDelete() *RemoveTeamMember_TeamMembershipDelete {
+	if t == nil {
+		t = &RemoveTeamMember{}
+	}
+	return &t.TeamMembershipDelete
+}
+
 type CreateTeam struct {
 	TeamCreate CreateTeam_TeamCreate "json:\"teamCreate\" graphql:\"teamCreate\""
 }
@@ -8420,6 +9453,28 @@ func (t *DeleteTeam) GetTeamDelete() *DeleteTeam_TeamDelete {
 		t = &DeleteTeam{}
 	}
 	return &t.TeamDelete
+}
+
+type ListNotifications struct {
+	Notifications ListNotifications_Notifications "json:\"notifications\" graphql:\"notifications\""
+}
+
+func (t *ListNotifications) GetNotifications() *ListNotifications_Notifications {
+	if t == nil {
+		t = &ListNotifications{}
+	}
+	return &t.Notifications
+}
+
+type GetNotification struct {
+	Notification GetNotification_Notification "json:\"notification\" graphql:\"notification\""
+}
+
+func (t *GetNotification) GetNotification() *GetNotification_Notification {
+	if t == nil {
+		t = &GetNotification{}
+	}
+	return &t.Notification
 }
 
 type GetOrganization struct {
@@ -8799,7 +9854,7 @@ func (c *Client) BatchUpdateIssues(ctx context.Context, ids []string, input Issu
 	return &res, nil
 }
 
-const GetCommentDocument = `query GetComment ($id: String!) {
+const GetCommentDocument = `query GetComment ($id: String!, $childrenLimit: Int, $childrenAfter: String) {
 	comment(id: $id) {
 		id
 		body
@@ -8814,13 +9869,38 @@ const GetCommentDocument = `query GetComment ($id: String!) {
 			id
 			title
 		}
+		parent {
+			id
+			body
+			user {
+				id
+				name
+			}
+		}
+		children(first: $childrenLimit, after: $childrenAfter) {
+			nodes {
+				id
+				body
+				user {
+					id
+					name
+				}
+				createdAt
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
 	}
 }
 `
 
-func (c *Client) GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error) {
+func (c *Client) GetComment(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error) {
 	vars := map[string]any{
-		"id": id,
+		"id":            id,
+		"childrenLimit": childrenLimit,
+		"childrenAfter": childrenAfter,
 	}
 
 	var res GetComment
@@ -9496,6 +10576,69 @@ func (c *Client) ListSubInitiatives(ctx context.Context, id string, first *int64
 	return &res, nil
 }
 
+const GetIssueSuggestionsForIssueDocument = `query GetIssueSuggestionsForIssue ($issueId: String!, $first: Int, $after: String) {
+	issue(id: $issueId) {
+		id
+		identifier
+		title
+		incomingSuggestions(first: $first, after: $after) {
+			nodes {
+				id
+				type
+				state
+				createdAt
+				suggestedTeam {
+					id
+					name
+					key
+				}
+				suggestedUser {
+					id
+					name
+					email
+				}
+				suggestedLabel {
+					id
+					name
+				}
+				suggestedProject {
+					id
+					name
+				}
+				suggestedIssue {
+					id
+					identifier
+					title
+				}
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
+	}
+}
+`
+
+func (c *Client) GetIssueSuggestionsForIssue(ctx context.Context, issueID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSuggestionsForIssue, error) {
+	vars := map[string]any{
+		"issueId": issueID,
+		"first":   first,
+		"after":   after,
+	}
+
+	var res GetIssueSuggestionsForIssue
+	if err := c.Client.Post(ctx, "GetIssueSuggestionsForIssue", GetIssueSuggestionsForIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetIssueDocument = `query GetIssue ($id: String!) {
 	issue(id: $id) {
 		id
@@ -9912,6 +11055,7 @@ const CreateCommentDocument = `mutation CreateComment ($input: CommentCreateInpu
 			createdAt
 			updatedAt
 			url
+			parentId
 		}
 	}
 }
@@ -10900,6 +12044,30 @@ func (c *Client) NotificationSubscriptionDelete(ctx context.Context, id string, 
 	return &res, nil
 }
 
+const UnarchiveNotificationDocument = `mutation UnarchiveNotification ($id: String!) {
+	notificationUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveNotification, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveNotification
+	if err := c.Client.Post(ctx, "UnarchiveNotification", UnarchiveNotificationDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ProjectMilestoneCreateDocument = `mutation ProjectMilestoneCreate ($input: ProjectMilestoneCreateInput!) {
 	projectMilestoneCreate(input: $input) {
 		success
@@ -11190,6 +12358,67 @@ func (c *Client) ReactionDelete(ctx context.Context, id string, interceptors ...
 	return &res, nil
 }
 
+const AddTeamMemberDocument = `mutation AddTeamMember ($input: TeamMembershipCreateInput!) {
+	teamMembershipCreate(input: $input) {
+		success
+		teamMembership {
+			id
+			team {
+				id
+				name
+				key
+			}
+			user {
+				id
+				name
+				email
+			}
+		}
+	}
+}
+`
+
+func (c *Client) AddTeamMember(ctx context.Context, input TeamMembershipCreateInput, interceptors ...clientv2.RequestInterceptor) (*AddTeamMember, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res AddTeamMember
+	if err := c.Client.Post(ctx, "AddTeamMember", AddTeamMemberDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const RemoveTeamMemberDocument = `mutation RemoveTeamMember ($id: String!) {
+	teamMembershipDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) RemoveTeamMember(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*RemoveTeamMember, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res RemoveTeamMember
+	if err := c.Client.Post(ctx, "RemoveTeamMember", RemoveTeamMemberDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateTeamDocument = `mutation CreateTeam ($input: TeamCreateInput!) {
 	teamCreate(input: $input) {
 		success
@@ -11267,6 +12496,128 @@ func (c *Client) DeleteTeam(ctx context.Context, id string, interceptors ...clie
 
 	var res DeleteTeam
 	if err := c.Client.Post(ctx, "DeleteTeam", DeleteTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListNotificationsDocument = `query ListNotifications ($first: Int, $after: String, $filter: NotificationFilter) {
+	notifications(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			type
+			createdAt
+			readAt
+			snoozedUntilAt
+			archivedAt
+			user {
+				id
+				name
+			}
+			actor {
+				id
+				name
+			}
+			... on IssueNotification {
+				issue {
+					id
+					identifier
+					title
+				}
+				comment {
+					id
+					body
+				}
+			}
+			... on ProjectNotification {
+				project {
+					id
+					name
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListNotifications
+	if err := c.Client.Post(ctx, "ListNotifications", ListNotificationsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetNotificationDocument = `query GetNotification ($id: String!) {
+	notification(id: $id) {
+		id
+		type
+		createdAt
+		readAt
+		snoozedUntilAt
+		archivedAt
+		user {
+			id
+			name
+		}
+		actor {
+			id
+			name
+		}
+		... on IssueNotification {
+			issue {
+				id
+				identifier
+				title
+			}
+			comment {
+				id
+				body
+			}
+		}
+		... on ProjectNotification {
+			project {
+				id
+				name
+			}
+		}
+		... on InitiativeNotification {
+			initiative {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetNotification
+	if err := c.Client.Post(ctx, "GetNotification", GetNotificationDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -12082,6 +13433,7 @@ var DocumentOperationNames = map[string]string{
 	ListInitiativesDocument:                "ListInitiatives",
 	ListInitiativesFilteredDocument:        "ListInitiativesFiltered",
 	ListSubInitiativesDocument:             "ListSubInitiatives",
+	GetIssueSuggestionsForIssueDocument:    "GetIssueSuggestionsForIssue",
 	GetIssueDocument:                       "GetIssue",
 	ListIssuesDocument:                     "ListIssues",
 	ListIssuesFilteredDocument:             "ListIssuesFiltered",
@@ -12126,6 +13478,7 @@ var DocumentOperationNames = map[string]string{
 	NotificationArchiveDocument:            "NotificationArchive",
 	NotificationSubscriptionCreateDocument: "NotificationSubscriptionCreate",
 	NotificationSubscriptionDeleteDocument: "NotificationSubscriptionDelete",
+	UnarchiveNotificationDocument:          "UnarchiveNotification",
 	ProjectMilestoneCreateDocument:         "ProjectMilestoneCreate",
 	ProjectMilestoneUpdateDocument:         "ProjectMilestoneUpdate",
 	ProjectMilestoneDeleteDocument:         "ProjectMilestoneDelete",
@@ -12136,9 +13489,13 @@ var DocumentOperationNames = map[string]string{
 	DeleteProjectDocument:                  "DeleteProject",
 	ReactionCreateDocument:                 "ReactionCreate",
 	ReactionDeleteDocument:                 "ReactionDelete",
+	AddTeamMemberDocument:                  "AddTeamMember",
+	RemoveTeamMemberDocument:               "RemoveTeamMember",
 	CreateTeamDocument:                     "CreateTeam",
 	UpdateTeamDocument:                     "UpdateTeam",
 	DeleteTeamDocument:                     "DeleteTeam",
+	ListNotificationsDocument:              "ListNotifications",
+	GetNotificationDocument:                "GetNotification",
 	GetOrganizationDocument:                "GetOrganization",
 	GetProjectUpdateDocument:               "GetProjectUpdate",
 	ListProjectUpdatesDocument:             "ListProjectUpdates",

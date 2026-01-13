@@ -1,0 +1,24 @@
+mutation AddTeamMember($input: TeamMembershipCreateInput!) {
+  teamMembershipCreate(input: $input) {
+    success
+    teamMembership {
+      id
+      team {
+        id
+        name
+        key
+      }
+      user {
+        id
+        name
+        email
+      }
+    }
+  }
+}
+
+mutation RemoveTeamMember($id: String!) {
+  teamMembershipDelete(id: $id) {
+    success
+  }
+}
