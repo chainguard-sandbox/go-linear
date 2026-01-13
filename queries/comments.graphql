@@ -1,4 +1,4 @@
-query GetComment($id: String!) {
+query GetComment($id: String!, $childrenLimit: Int, $childrenAfter: String) {
   comment(id: $id) {
     id
     body
@@ -21,7 +21,7 @@ query GetComment($id: String!) {
         name
       }
     }
-    children(first: 10) {
+    children(first: $childrenLimit, after: $childrenAfter) {
       nodes {
         id
         body
@@ -30,6 +30,10 @@ query GetComment($id: String!) {
           name
         }
         createdAt
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }

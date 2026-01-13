@@ -22,7 +22,8 @@ import (
 //
 // Related: [Comments], [CommentCreate], [CommentUpdate]
 func (c *Client) Comment(ctx context.Context, id string) (*intgraphql.GetComment_Comment, error) {
-	resp, err := c.gqlClient.GetComment(ctx, id)
+	defaultLimit := int64(50)
+	resp, err := c.gqlClient.GetComment(ctx, id, &defaultLimit, nil)
 	if err != nil {
 		return nil, wrapGraphQLError("comment query", err)
 	}
@@ -125,4 +126,13 @@ func (c *Client) CommentDelete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+// GetCommentWithChildren retrieves a comment with configurable child limit and pagination.
+func (c *Client) GetCommentWithChildren(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string) (*intgraphql.GetComment_Comment, error) {
+	resp, err := c.gqlClient.GetComment(ctx, id, childrenLimit, childrenAfter)
+	if err != nil {
+		return nil, wrapGraphQLError("comment query", err)
+	}
+	return &resp.Comment, nil
 }

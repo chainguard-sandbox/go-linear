@@ -14,7 +14,7 @@ type LinearGraphQLClient interface {
 	ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error)
 	ListAttachmentsFiltered(ctx context.Context, first *int64, after *string, filter *AttachmentFilter, interceptors ...clientv2.RequestInterceptor) (*ListAttachmentsFiltered, error)
 	BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error)
-	GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
+	GetComment(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	ListCommentsFiltered(ctx context.Context, first *int64, after *string, filter *CommentFilter, interceptors ...clientv2.RequestInterceptor) (*ListCommentsFiltered, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
@@ -599,8 +599,27 @@ func (t *GetComment_Comment_Children_Nodes) GetUser() *GetComment_Comment_Childr
 	return t.User
 }
 
+type GetComment_Comment_Children_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *GetComment_Comment_Children_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &GetComment_Comment_Children_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *GetComment_Comment_Children_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &GetComment_Comment_Children_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
 type GetComment_Comment_Children struct {
-	Nodes []*GetComment_Comment_Children_Nodes "json:\"nodes\" graphql:\"nodes\""
+	Nodes    []*GetComment_Comment_Children_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo GetComment_Comment_Children_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
 }
 
 func (t *GetComment_Comment_Children) GetNodes() []*GetComment_Comment_Children_Nodes {
@@ -608,6 +627,12 @@ func (t *GetComment_Comment_Children) GetNodes() []*GetComment_Comment_Children_
 		t = &GetComment_Comment_Children{}
 	}
 	return t.Nodes
+}
+func (t *GetComment_Comment_Children) GetPageInfo() *GetComment_Comment_Children_PageInfo {
+	if t == nil {
+		t = &GetComment_Comment_Children{}
+	}
+	return &t.PageInfo
 }
 
 type GetComment_Comment struct {
@@ -9829,7 +9854,7 @@ func (c *Client) BatchUpdateIssues(ctx context.Context, ids []string, input Issu
 	return &res, nil
 }
 
-const GetCommentDocument = `query GetComment ($id: String!) {
+const GetCommentDocument = `query GetComment ($id: String!, $childrenLimit: Int, $childrenAfter: String) {
 	comment(id: $id) {
 		id
 		body
@@ -9852,7 +9877,7 @@ const GetCommentDocument = `query GetComment ($id: String!) {
 				name
 			}
 		}
-		children(first: 10) {
+		children(first: $childrenLimit, after: $childrenAfter) {
 			nodes {
 				id
 				body
@@ -9862,14 +9887,20 @@ const GetCommentDocument = `query GetComment ($id: String!) {
 				}
 				createdAt
 			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
 		}
 	}
 }
 `
 
-func (c *Client) GetComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error) {
+func (c *Client) GetComment(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error) {
 	vars := map[string]any{
-		"id": id,
+		"id":            id,
+		"childrenLimit": childrenLimit,
+		"childrenAfter": childrenAfter,
 	}
 
 	var res GetComment

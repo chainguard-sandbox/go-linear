@@ -9,6 +9,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/internal/config"
 	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -36,6 +37,7 @@ Related: comment_list, issue_get`,
 		},
 	}
 
+	cmd.Flags().Int64("children-limit", 50, "Max child comments to fetch (0 = fetch all via pagination)")
 	flags.Bind(cmd, "defaults (id,body,createdAt,user.name,url,editedAt) | none | defaults,extra")
 
 	return cmd
@@ -47,9 +49,54 @@ func runGet(cmd *cobra.Command, client *linear.Client, commentID string, flags *
 		return err
 	}
 
-	comment, err := client.Comment(ctx, commentID)
-	if err != nil {
-		return fmt.Errorf("failed to get comment: %w", err)
+	childrenLimit, _ := cmd.Flags().GetInt64("children-limit")
+
+	// If limit is 0, fetch all children via pagination
+	var comment *intgraphql.GetComment_Comment
+	if childrenLimit == 0 {
+		// Fetch all children by paginating
+		const maxIterations = 100 // Safety limit: 100 pages * 50 = 5000 children max
+		allChildren := make([]*intgraphql.GetComment_Comment_Children_Nodes, 0, 50)
+		cursor := (*string)(nil)
+		batchSize := int64(50)
+
+		for range maxIterations {
+			resp, err := client.GetCommentWithChildren(ctx, commentID, &batchSize, cursor)
+			if err != nil {
+				return fmt.Errorf("failed to get comment: %w", err)
+			}
+
+			// First iteration - store the comment
+			if comment == nil {
+				comment = resp
+			}
+
+			allChildren = append(allChildren, resp.Children.Nodes...)
+
+			if !resp.Children.PageInfo.HasNextPage {
+				break
+			}
+
+			cursor = resp.Children.PageInfo.EndCursor
+		}
+
+		if comment == nil {
+			return fmt.Errorf("failed to fetch comment")
+		}
+
+		// Check if we hit the limit
+		if comment.Children.PageInfo.HasNextPage {
+			return fmt.Errorf("thread too large: exceeded %d pages (5000 children). Use --children-limit to fetch partial results", maxIterations)
+		}
+
+		// Replace children with all fetched
+		comment.Children.Nodes = allChildren
+	} else {
+		var err error
+		comment, err = client.GetCommentWithChildren(ctx, commentID, &childrenLimit, nil)
+		if err != nil {
+			return fmt.Errorf("failed to get comment: %w", err)
+		}
 	}
 
 	switch flags.Output {
