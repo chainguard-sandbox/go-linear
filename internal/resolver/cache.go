@@ -4,26 +4,33 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
-	"github.com/codeGROOVE-dev/multicache"
-	"github.com/codeGROOVE-dev/multicache/pkg/store/localfs"
+	"github.com/codeGROOVE-dev/fido"
+	"github.com/codeGROOVE-dev/fido/pkg/store/localfs"
 )
 
 // Cache provides a file-backed TTL cache for name→ID resolution.
-// Uses multicache with local filesystem persistence to survive across
+// Uses fido with local filesystem persistence to survive across
 // MCP subprocess calls (ophis spawns new process per tool invocation).
 type Cache struct {
-	tiered   *multicache.TieredCache[string, string]
-	inmemory *multicache.Cache[string, string]
+	mu       sync.RWMutex
+	tiered   *fido.TieredCache[string, string]
+	inmemory *fido.Cache[string, string]
 	ttl      time.Duration
 }
 
 // NewCache creates a new cache with the specified TTL.
-// Uses multicache with local filesystem persistence.
+// Uses fido with local filesystem persistence.
 func NewCache(ttl time.Duration) *Cache {
+	// Fido's TTL resolution is per-second
+	// Only do this if we specifically set a TTL
+	// to allow the default of 0 to take precedence
+	if ttl != 0 {
+		ttl = max(ttl, 1*time.Second)
+	}
 	c := &Cache{ttl: ttl}
-
 	// Determine cache directory
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
@@ -35,23 +42,23 @@ func NewCache(ttl time.Duration) *Cache {
 	store, err := localfs.New[string, string]("resolver", cacheDir)
 	if err != nil {
 		// Fall back to in-memory only if filesystem fails
-		c.inmemory = multicache.New[string, string](
-			multicache.Size(1000),
-			multicache.TTL(ttl),
+		c.inmemory = fido.New[string, string](
+			fido.Size(1000),
+			fido.TTL(ttl),
 		)
 		return c
 	}
 
 	// Create tiered cache: memory + filesystem
-	c.tiered, err = multicache.NewTiered(store,
-		multicache.Size(1000),
-		multicache.TTL(ttl),
+	c.tiered, err = fido.NewTiered(store,
+		fido.Size(1000),
+		fido.TTL(ttl),
 	)
 	if err != nil {
 		// Fall back to in-memory only
-		c.inmemory = multicache.New[string, string](
-			multicache.Size(1000),
-			multicache.TTL(ttl),
+		c.inmemory = fido.New[string, string](
+			fido.Size(1000),
+			fido.TTL(ttl),
 		)
 	}
 
@@ -61,6 +68,9 @@ func NewCache(ttl time.Duration) *Cache {
 // Get retrieves a value from the cache.
 // Returns empty string if not found or expired.
 func (c *Cache) Get(key string) (string, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	ctx := context.Background()
 
 	if c.tiered != nil {
@@ -81,13 +91,16 @@ func (c *Cache) Get(key string) (string, bool) {
 // Set stores a value in the cache with TTL.
 // Uses synchronous write to ensure reliability for name→ID mappings.
 func (c *Cache) Set(key, value string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	ctx := context.Background()
 
 	if c.tiered != nil {
 		// Use synchronous write - resolver mappings are critical and the
 		// performance impact is minimal since these are small KV pairs
 		_ = c.tiered.Set(ctx, key, value)
-		// Ignore errors - cache is best-effort, multicache handles logging
+		// Ignore errors - cache is best-effort, fido handles logging
 		return
 	}
 
@@ -98,6 +111,9 @@ func (c *Cache) Set(key, value string) {
 
 // Clear removes all entries from the cache.
 func (c *Cache) Clear() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	ctx := context.Background()
 
 	if c.tiered != nil {

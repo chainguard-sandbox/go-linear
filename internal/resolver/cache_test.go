@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/codeGROOVE-dev/multicache"
+	"github.com/codeGROOVE-dev/fido"
 )
 
 // cleanupCacheDir removes the test cache directory to ensure clean tests.
@@ -23,7 +23,7 @@ func cleanupCacheDir(t *testing.T) {
 func TestCacheGetSet(t *testing.T) {
 	cleanupCacheDir(t)
 
-	cache := NewCache(100 * time.Millisecond)
+	cache := NewCache(1 * time.Second)
 
 	// Get from empty cache
 	val, ok := cache.Get("key1")
@@ -37,9 +37,6 @@ func TestCacheGetSet(t *testing.T) {
 	// Set and get
 	cache.Set("key1", "value1")
 
-	// Give async write a moment to complete
-	time.Sleep(10 * time.Millisecond)
-
 	val, ok = cache.Get("key1")
 	if !ok {
 		t.Errorf("Get() after Set() should return true, got false")
@@ -49,7 +46,7 @@ func TestCacheGetSet(t *testing.T) {
 	}
 
 	// Test expiration
-	time.Sleep(150 * time.Millisecond)
+	time.Sleep(2 * time.Second)
 	val, ok = cache.Get("key1")
 	if ok {
 		t.Errorf("Get() after expiration should return false, got true")
@@ -167,10 +164,10 @@ func TestCacheInmemoryOnlyOperations(t *testing.T) {
 	// Create cache with only inmemory (simulating filesystem failure)
 	c := &Cache{
 		tiered: nil,
-		inmemory: func() *multicache.Cache[string, string] {
-			return multicache.New[string, string](
-				multicache.Size(100),
-				multicache.TTL(1*time.Minute),
+		inmemory: func() *fido.Cache[string, string] {
+			return fido.New[string, string](
+				fido.Size(100),
+				fido.TTL(1*time.Minute),
 			)
 		}(),
 		ttl: 1 * time.Minute,

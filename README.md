@@ -204,4 +204,4 @@ make sync-upstream  # Fetch latest schema + regenerate
 - [gqlgenc](https://github.com/Yamashou/gqlgenc) - GraphQL code generation
 - [ophis](https://github.com/njayp/ophis) - Cobra to MCP server
 - [clog](https://github.com/chainguard-dev/clog) - Structured logging
-- [multicache](https://github.com/codeGROOVE-dev/multicache) - Tiered caching (memory + filesystem)
+- [fido](https://github.com/codeGROOVE-dev/fido) - Tiered caching (memory + filesystem)

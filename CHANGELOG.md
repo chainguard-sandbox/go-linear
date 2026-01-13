@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Migrate `multicache` to `fido` (new name)
+
+### Fixed
+
+- Fix broken test related to sub-second TTL
+- Fix concurrent cache race condition(s)
+
 ## [1.3.0] - 2026-01-09
 
 ### Added

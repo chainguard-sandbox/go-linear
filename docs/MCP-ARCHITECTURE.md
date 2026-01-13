@@ -51,7 +51,7 @@ This design has tradeoffs:
 
 ### Caching Strategy
 
-Because each MCP call spawns a new process, we use [multicache](https://github.com/codeGROOVE-dev/multicache) for the resolver:
+Because each MCP call spawns a new process, we use [fido](https://github.com/codeGROOVE-dev/fido) for the resolver:
 
 - **TieredCache**: memory + local filesystem for optimal performance
 - Location: `~/.cache/go-linear/resolver/` (sharded directory structure)
