@@ -386,13 +386,13 @@ func TestResolveLabel_APICall(t *testing.T) {
 func TestResolveIssue_APICall(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		// ResolveIssue now uses direct issue lookup instead of search
 		resp := map[string]any{
 			"data": map[string]any{
-				"searchIssues": map[string]any{
-					"nodes": []map[string]any{
-						{"id": "issue-123", "identifier": "ENG-123", "title": "Test Issue"},
-					},
-					"pageInfo": map[string]any{"hasNextPage": false},
+				"issue": map[string]any{
+					"id":         "issue-123",
+					"identifier": "ENG-123",
+					"title":      "Test Issue",
 				},
 			},
 		}
