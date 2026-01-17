@@ -225,6 +225,28 @@ const (
 			}
 		}
 	}`
+
+	mockProjectsResponse = `{
+		"data": {
+			"projects": {
+				"nodes": [
+					{"id": "project-123", "name": "Test Project", "state": "started"}
+				],
+				"pageInfo": {"hasNextPage": false}
+			}
+		}
+	}`
+
+	mockCyclesResponse = `{
+		"data": {
+			"cycles": {
+				"nodes": [
+					{"id": "cycle-123", "name": "Sprint 1", "startsAt": "2024-01-01T00:00:00.000Z", "endsAt": "2024-01-14T00:00:00.000Z"}
+				],
+				"pageInfo": {"hasNextPage": false}
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -238,6 +260,8 @@ func defaultHandlers() map[string]string {
 		"GetIssue":           mockIssueResponse,
 		"ListIssues":         mockIssuesResponse,
 		"SearchIssues":       mockSearchResponse,
+		"ListProjects":       mockProjectsResponse,
+		"ListCycles":         mockCyclesResponse,
 
 		// Mutations - match by operation name (gqlgenc uses these)
 		"CreateIssue":         mockIssueCreateResponse,

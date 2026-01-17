@@ -78,8 +78,8 @@ Related: issue_list, issue_update`,
 	cmd.Flags().String("set-assignee", "", "New assignee (name, email, or 'me')")
 	cmd.Flags().Int("set-priority", -1, "New priority (0-4)")
 	cmd.Flags().String("set-team", "", "New team name or ID")
-	cmd.Flags().String("set-cycle", "", "New cycle UUID (use 'none' to remove)")
-	cmd.Flags().String("set-project", "", "New project UUID (use 'none' to remove)")
+	cmd.Flags().String("set-cycle", "", "New cycle name or UUID (use 'none' to remove)")
+	cmd.Flags().String("set-project", "", "New project name or UUID (use 'none' to remove)")
 	cmd.Flags().StringArray("add-label", []string{}, "Labels to add (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Labels to remove (repeatable)")
 	cmd.Flags().String("set-description", "", "New description")
@@ -202,7 +202,11 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 			empty := ""
 			input.CycleID = &empty // Empty string removes cycle
 		} else {
-			input.CycleID = &setCycle
+			cycleID, err := res.ResolveCycle(ctx, setCycle)
+			if err != nil {
+				return fmt.Errorf("failed to resolve set-cycle: %w", err)
+			}
+			input.CycleID = &cycleID
 		}
 		updateCount++
 	}
@@ -213,7 +217,11 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 			empty := ""
 			input.ProjectID = &empty // Empty string removes project
 		} else {
-			input.ProjectID = &setProject
+			projectID, err := res.ResolveProject(ctx, setProject)
+			if err != nil {
+				return fmt.Errorf("failed to resolve set-project: %w", err)
+			}
+			input.ProjectID = &projectID
 		}
 		updateCount++
 	}

@@ -158,4 +158,28 @@ func TestRunBatchUpdate(t *testing.T) {
 			t.Fatalf("Execute() error = %v", err)
 		}
 	})
+
+	t.Run("set cycle by name", func(t *testing.T) {
+		cmd := NewBatchUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--team=ENG", "--set-cycle=Sprint 1", "--dry-run"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	t.Run("set project by name", func(t *testing.T) {
+		cmd := NewBatchUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--team=ENG", "--set-project=Test Project", "--dry-run"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+	})
 }

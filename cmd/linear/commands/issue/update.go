@@ -42,8 +42,8 @@ Related: issue_get, issue_create`,
 	cmd.Flags().String("assignee", "", "New assignee name, email, or ID")
 	cmd.Flags().String("state", "", "New state name or ID")
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
-	cmd.Flags().String("cycle", "", "Cycle UUID (use 'none' to remove)")
-	cmd.Flags().String("project", "", "Project UUID (use 'none' to remove)")
+	cmd.Flags().String("cycle", "", "Cycle name or UUID (use 'none' to remove)")
+	cmd.Flags().String("project", "", "Project name or UUID (use 'none' to remove)")
 	cmd.Flags().String("parent", "", "Parent issue ID/identifier (use 'none' to remove)")
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
@@ -57,6 +57,12 @@ Related: issue_get, issue_create`,
 func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
+
+	// Resolve issue ID (converts identifier like ENG-123 to UUID)
+	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve issue: %w", err)
+	}
 
 	// Check if we need nullable support (for removing parent/cycle/project with 'none')
 	needsNullable := false
@@ -77,7 +83,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	if needsNullable {
-		return runUpdateWithNullable(cmd, client, issueID, res)
+		return runUpdateWithNullable(cmd, client, resolvedIssueID, res)
 	}
 
 	// Build standard input
@@ -153,7 +159,12 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			empty := ""
 			input.CycleID = &empty // Set to empty string to remove cycle
 		} else {
-			input.CycleID = &cycle
+			// Resolve cycle name or UUID
+			cycleID, err := res.ResolveCycle(ctx, cycle)
+			if err != nil {
+				return fmt.Errorf("failed to resolve cycle: %w", err)
+			}
+			input.CycleID = &cycleID
 		}
 		updated = true
 	}
@@ -165,7 +176,12 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			empty := ""
 			input.ProjectID = &empty // Set to empty string to remove project
 		} else {
-			input.ProjectID = &project
+			// Resolve project name or UUID
+			projectID, err := res.ResolveProject(ctx, project)
+			if err != nil {
+				return fmt.Errorf("failed to resolve project: %w", err)
+			}
+			input.ProjectID = &projectID
 		}
 		updated = true
 	}
@@ -192,7 +208,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	// Update issue
-	result, err := client.IssueUpdate(ctx, issueID, input)
+	result, err := client.IssueUpdate(ctx, resolvedIssueID, input)
 	if err != nil {
 		return fmt.Errorf("failed to update issue: %w", err)
 	}
@@ -206,7 +222,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			fullURL = "https://github.com/" + prURL
 		}
 
-		_, err := client.AttachmentLinkGitHubPR(ctx, issueID, fullURL)
+		_, err := client.AttachmentLinkGitHubPR(ctx, resolvedIssueID, fullURL)
 		if err != nil {
 			return fmt.Errorf("failed to link GitHub PR: %w", err)
 		}
@@ -307,7 +323,12 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 		if cycle == "none" {
 			input.CycleID = linear.NewNull[string]()
 		} else {
-			input.CycleID = linear.NewValue(cycle)
+			// Resolve cycle name or UUID
+			cycleID, err := res.ResolveCycle(ctx, cycle)
+			if err != nil {
+				return fmt.Errorf("failed to resolve cycle: %w", err)
+			}
+			input.CycleID = linear.NewValue(cycleID)
 		}
 	}
 
@@ -316,7 +337,12 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 		if project == "none" {
 			input.ProjectID = linear.NewNull[string]()
 		} else {
-			input.ProjectID = linear.NewValue(project)
+			// Resolve project name or UUID
+			projectID, err := res.ResolveProject(ctx, project)
+			if err != nil {
+				return fmt.Errorf("failed to resolve project: %w", err)
+			}
+			input.ProjectID = linear.NewValue(projectID)
 		}
 	}
 

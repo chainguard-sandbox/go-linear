@@ -222,20 +222,19 @@ func (r *Resolver) ResolveIssue(ctx context.Context, identifierOrID string) (str
 		return id, nil
 	}
 
-	// Search by identifier (ENG-123) or number
-	first := int64(1)
-	result, err := r.client.SearchIssues(ctx, identifierOrID, &first, nil, nil, nil)
+	// Use direct issue lookup - Linear's issue(id:) query accepts both UUIDs and identifiers
+	result, err := r.client.Issue(ctx, identifierOrID)
 	if err != nil {
-		return "", fmt.Errorf("failed to search for issue %q: %w", identifierOrID, err)
+		return "", fmt.Errorf("failed to get issue %q: %w", identifierOrID, err)
 	}
 
-	if len(result.Nodes) == 0 {
+	if result == nil {
 		return "", fmt.Errorf("issue not found: %s", identifierOrID)
 	}
 
 	// Cache and return
-	r.cache.Set(cacheKey, result.Nodes[0].ID)
-	return result.Nodes[0].ID, nil
+	r.cache.Set(cacheKey, result.ID)
+	return result.ID, nil
 }
 
 // ResolveProject resolves a project name to its ID.

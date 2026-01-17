@@ -137,4 +137,38 @@ func TestRunCreate(t *testing.T) {
 			t.Error("Expected error for invalid output format")
 		}
 	})
+
+	t.Run("create with cycle by name", func(t *testing.T) {
+		cmd := NewCreateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--cycle=Sprint 1", "--output=json"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("create with project by name", func(t *testing.T) {
+		cmd := NewCreateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--project=Test Project", "--output=json"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
 }
