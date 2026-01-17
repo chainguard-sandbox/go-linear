@@ -225,6 +225,17 @@ const (
 			}
 		}
 	}`
+
+	mockProjectsResponse = `{
+		"data": {
+			"projects": {
+				"nodes": [
+					{"id": "project-123", "name": "Test Project", "state": "started"}
+				],
+				"pageInfo": {"hasNextPage": false}
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -238,6 +249,7 @@ func defaultHandlers() map[string]string {
 		"GetIssue":           mockIssueResponse,
 		"ListIssues":         mockIssuesResponse,
 		"SearchIssues":       mockSearchResponse,
+		"ListProjects":       mockProjectsResponse,
 
 		// Mutations - match by operation name (gqlgenc uses these)
 		"CreateIssue":         mockIssueCreateResponse,
