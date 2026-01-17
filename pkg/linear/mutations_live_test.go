@@ -64,7 +64,7 @@ func TestLive_IssueMutations_FullCycle(t *testing.T) {
 	t.Logf("✓ Updated issue")
 
 	// Cleanup
-	if err := client.IssueDelete(ctx, issue.ID); err != nil {
+	if err := client.IssueDelete(ctx, issue.ID, nil); err != nil {
 		t.Errorf("Cleanup failed: %v", err)
 	} else {
 		t.Logf("✓ Cleaned up issue: %s", issue.ID)
@@ -120,7 +120,7 @@ func TestLive_IssueCreate_Minimal(t *testing.T) {
 
 	// Cleanup: Delete the test issue
 	t.Cleanup(func() {
-		if err := client.IssueDelete(ctx, issue.ID); err != nil {
+		if err := client.IssueDelete(ctx, issue.ID, nil); err != nil {
 			t.Errorf("Cleanup failed: %v", err)
 		} else {
 			t.Logf("✓ Cleaned up issue: %s", issue.ID)

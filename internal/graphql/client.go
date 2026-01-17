@@ -68,7 +68,9 @@ type LinearGraphQLClient interface {
 	IssueRelationDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*IssueRelationDelete, error)
 	CreateIssue(ctx context.Context, input IssueCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateIssue, error)
 	UpdateIssue(ctx context.Context, id string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateIssue, error)
-	DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
+	DeleteIssue(ctx context.Context, id string, permanentlyDelete *bool, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
+	ArchiveIssue(ctx context.Context, id string, trash *bool, interceptors ...clientv2.RequestInterceptor) (*ArchiveIssue, error)
+	UnarchiveIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveIssue, error)
 	CreateLabel(ctx context.Context, input IssueLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateLabel, error)
 	UpdateLabel(ctx context.Context, id string, input IssueLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateLabel, error)
 	DeleteLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteLabel, error)
@@ -126,15 +128,15 @@ func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Option
 }
 
 type GetAttachment_Attachment struct {
-	CreatedAt  time.Time              "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string                 "json:\"id\" graphql:\"id\""
-	Metadata   map[string]interface{} "json:\"metadata\" graphql:\"metadata\""
-	Source     map[string]interface{} "json:\"source,omitempty\" graphql:\"source\""
-	SourceType *string                "json:\"sourceType,omitempty\" graphql:\"sourceType\""
-	Subtitle   *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title      string                 "json:\"title\" graphql:\"title\""
-	UpdatedAt  time.Time              "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL        string                 "json:\"url\" graphql:\"url\""
+	CreatedAt  time.Time      "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string         "json:\"id\" graphql:\"id\""
+	Metadata   map[string]any "json:\"metadata\" graphql:\"metadata\""
+	Source     map[string]any "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string        "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string        "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string         "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time      "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string         "json:\"url\" graphql:\"url\""
 }
 
 func (t *GetAttachment_Attachment) GetCreatedAt() *time.Time {
@@ -193,14 +195,14 @@ func (t *GetAttachment_Attachment) GetURL() string {
 }
 
 type ListAttachments_Attachments_Nodes struct {
-	CreatedAt  time.Time              "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string                 "json:\"id\" graphql:\"id\""
-	Source     map[string]interface{} "json:\"source,omitempty\" graphql:\"source\""
-	SourceType *string                "json:\"sourceType,omitempty\" graphql:\"sourceType\""
-	Subtitle   *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title      string                 "json:\"title\" graphql:\"title\""
-	UpdatedAt  time.Time              "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL        string                 "json:\"url\" graphql:\"url\""
+	CreatedAt  time.Time      "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string         "json:\"id\" graphql:\"id\""
+	Source     map[string]any "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string        "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string        "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string         "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time      "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string         "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListAttachments_Attachments_Nodes) GetCreatedAt() *time.Time {
@@ -289,14 +291,14 @@ func (t *ListAttachments_Attachments) GetPageInfo() *ListAttachments_Attachments
 }
 
 type ListAttachmentsFiltered_Attachments_Nodes struct {
-	CreatedAt  time.Time              "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string                 "json:\"id\" graphql:\"id\""
-	Source     map[string]interface{} "json:\"source,omitempty\" graphql:\"source\""
-	SourceType *string                "json:\"sourceType,omitempty\" graphql:\"sourceType\""
-	Subtitle   *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title      string                 "json:\"title\" graphql:\"title\""
-	UpdatedAt  time.Time              "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL        string                 "json:\"url\" graphql:\"url\""
+	CreatedAt  time.Time      "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string         "json:\"id\" graphql:\"id\""
+	Source     map[string]any "json:\"source,omitempty\" graphql:\"source\""
+	SourceType *string        "json:\"sourceType,omitempty\" graphql:\"sourceType\""
+	Subtitle   *string        "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title      string         "json:\"title\" graphql:\"title\""
+	UpdatedAt  time.Time      "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL        string         "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListAttachmentsFiltered_Attachments_Nodes) GetCreatedAt() *time.Time {
@@ -2912,6 +2914,7 @@ func (t *GetIssue_Issue_Assignee) GetName() string {
 }
 
 type GetIssue_Issue struct {
+	ArchivedAt  *time.Time               "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee    *GetIssue_Issue_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
 	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string                  "json:\"description,omitempty\" graphql:\"description\""
@@ -2924,10 +2927,17 @@ type GetIssue_Issue struct {
 	State       GetIssue_Issue_State     "json:\"state\" graphql:\"state\""
 	Team        GetIssue_Issue_Team      "json:\"team\" graphql:\"team\""
 	Title       string                   "json:\"title\" graphql:\"title\""
+	Trashed     *bool                    "json:\"trashed,omitempty\" graphql:\"trashed\""
 	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
 	URL         string                   "json:\"url\" graphql:\"url\""
 }
 
+func (t *GetIssue_Issue) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.ArchivedAt
+}
 func (t *GetIssue_Issue) GetAssignee() *GetIssue_Issue_Assignee {
 	if t == nil {
 		t = &GetIssue_Issue{}
@@ -2999,6 +3009,12 @@ func (t *GetIssue_Issue) GetTitle() string {
 		t = &GetIssue_Issue{}
 	}
 	return t.Title
+}
+func (t *GetIssue_Issue) GetTrashed() *bool {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Trashed
 }
 func (t *GetIssue_Issue) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -3089,6 +3105,7 @@ func (t *ListIssues_Issues_Nodes_Assignee) GetName() string {
 }
 
 type ListIssues_Issues_Nodes struct {
+	ArchivedAt  *time.Time                        "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee    *ListIssues_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
 	CreatedAt   time.Time                         "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string                           "json:\"description,omitempty\" graphql:\"description\""
@@ -3099,10 +3116,17 @@ type ListIssues_Issues_Nodes struct {
 	State       ListIssues_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
 	Team        ListIssues_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
 	Title       string                            "json:\"title\" graphql:\"title\""
+	Trashed     *bool                             "json:\"trashed,omitempty\" graphql:\"trashed\""
 	UpdatedAt   time.Time                         "json:\"updatedAt\" graphql:\"updatedAt\""
 	URL         string                            "json:\"url\" graphql:\"url\""
 }
 
+func (t *ListIssues_Issues_Nodes) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.ArchivedAt
+}
 func (t *ListIssues_Issues_Nodes) GetAssignee() *ListIssues_Issues_Nodes_Assignee {
 	if t == nil {
 		t = &ListIssues_Issues_Nodes{}
@@ -3162,6 +3186,12 @@ func (t *ListIssues_Issues_Nodes) GetTitle() string {
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return t.Title
+}
+func (t *ListIssues_Issues_Nodes) GetTrashed() *bool {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Trashed
 }
 func (t *ListIssues_Issues_Nodes) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -3288,6 +3318,7 @@ func (t *ListIssuesFiltered_Issues_Nodes_Assignee) GetName() string {
 }
 
 type ListIssuesFiltered_Issues_Nodes struct {
+	ArchivedAt  *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee    *ListIssuesFiltered_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
 	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
@@ -3298,10 +3329,17 @@ type ListIssuesFiltered_Issues_Nodes struct {
 	State       ListIssuesFiltered_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
 	Team        ListIssuesFiltered_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
 	Title       string                                    "json:\"title\" graphql:\"title\""
+	Trashed     *bool                                     "json:\"trashed,omitempty\" graphql:\"trashed\""
 	UpdatedAt   time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
 	URL         string                                    "json:\"url\" graphql:\"url\""
 }
 
+func (t *ListIssuesFiltered_Issues_Nodes) GetArchivedAt() *time.Time {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.ArchivedAt
+}
 func (t *ListIssuesFiltered_Issues_Nodes) GetAssignee() *ListIssuesFiltered_Issues_Nodes_Assignee {
 	if t == nil {
 		t = &ListIssuesFiltered_Issues_Nodes{}
@@ -3361,6 +3399,12 @@ func (t *ListIssuesFiltered_Issues_Nodes) GetTitle() string {
 		t = &ListIssuesFiltered_Issues_Nodes{}
 	}
 	return t.Title
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetTrashed() *bool {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Trashed
 }
 func (t *ListIssuesFiltered_Issues_Nodes) GetUpdatedAt() *time.Time {
 	if t == nil {
@@ -3608,11 +3652,11 @@ func (t *ListLabelsFiltered_IssueLabels) GetPageInfo() *ListLabelsFiltered_Issue
 }
 
 type AttachmentCreate_AttachmentCreate_Attachment struct {
-	ID       string                 "json:\"id\" graphql:\"id\""
-	Metadata map[string]interface{} "json:\"metadata\" graphql:\"metadata\""
-	Subtitle *string                "json:\"subtitle,omitempty\" graphql:\"subtitle\""
-	Title    string                 "json:\"title\" graphql:\"title\""
-	URL      string                 "json:\"url\" graphql:\"url\""
+	ID       string         "json:\"id\" graphql:\"id\""
+	Metadata map[string]any "json:\"metadata\" graphql:\"metadata\""
+	Subtitle *string        "json:\"subtitle,omitempty\" graphql:\"subtitle\""
+	Title    string         "json:\"title\" graphql:\"title\""
+	URL      string         "json:\"url\" graphql:\"url\""
 }
 
 func (t *AttachmentCreate_AttachmentCreate_Attachment) GetID() string {
@@ -5188,6 +5232,28 @@ type DeleteIssue_IssueDelete struct {
 func (t *DeleteIssue_IssueDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteIssue_IssueDelete{}
+	}
+	return t.Success
+}
+
+type ArchiveIssue_IssueArchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ArchiveIssue_IssueArchive) GetSuccess() bool {
+	if t == nil {
+		t = &ArchiveIssue_IssueArchive{}
+	}
+	return t.Success
+}
+
+type UnarchiveIssue_IssueUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveIssue_IssueUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveIssue_IssueUnarchive{}
 	}
 	return t.Success
 }
@@ -9202,6 +9268,28 @@ func (t *DeleteIssue) GetIssueDelete() *DeleteIssue_IssueDelete {
 	return &t.IssueDelete
 }
 
+type ArchiveIssue struct {
+	IssueArchive ArchiveIssue_IssueArchive "json:\"issueArchive\" graphql:\"issueArchive\""
+}
+
+func (t *ArchiveIssue) GetIssueArchive() *ArchiveIssue_IssueArchive {
+	if t == nil {
+		t = &ArchiveIssue{}
+	}
+	return &t.IssueArchive
+}
+
+type UnarchiveIssue struct {
+	IssueUnarchive UnarchiveIssue_IssueUnarchive "json:\"issueUnarchive\" graphql:\"issueUnarchive\""
+}
+
+func (t *UnarchiveIssue) GetIssueUnarchive() *UnarchiveIssue_IssueUnarchive {
+	if t == nil {
+		t = &UnarchiveIssue{}
+	}
+	return &t.IssueUnarchive
+}
+
 type CreateLabel struct {
 	IssueLabelCreate CreateLabel_IssueLabelCreate "json:\"issueLabelCreate\" graphql:\"issueLabelCreate\""
 }
@@ -10651,6 +10739,8 @@ const GetIssueDocument = `query GetIssue ($id: String!) {
 		updatedAt
 		number
 		url
+		trashed
+		archivedAt
 		parent {
 			id
 			identifier
@@ -10703,6 +10793,8 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 			updatedAt
 			number
 			url
+			trashed
+			archivedAt
 			state {
 				id
 				name
@@ -10757,6 +10849,8 @@ const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $afte
 			updatedAt
 			number
 			url
+			trashed
+			archivedAt
 			state {
 				id
 				name
@@ -11826,20 +11920,70 @@ func (c *Client) UpdateIssue(ctx context.Context, id string, input IssueUpdateIn
 	return &res, nil
 }
 
-const DeleteIssueDocument = `mutation DeleteIssue ($id: String!) {
-	issueDelete(id: $id) {
+const DeleteIssueDocument = `mutation DeleteIssue ($id: String!, $permanentlyDelete: Boolean) {
+	issueDelete(id: $id, permanentlyDelete: $permanentlyDelete) {
 		success
 	}
 }
 `
 
-func (c *Client) DeleteIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error) {
+func (c *Client) DeleteIssue(ctx context.Context, id string, permanentlyDelete *bool, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error) {
 	vars := map[string]any{
-		"id": id,
+		"id":                id,
+		"permanentlyDelete": permanentlyDelete,
 	}
 
 	var res DeleteIssue
 	if err := c.Client.Post(ctx, "DeleteIssue", DeleteIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ArchiveIssueDocument = `mutation ArchiveIssue ($id: String!, $trash: Boolean) {
+	issueArchive(id: $id, trash: $trash) {
+		success
+	}
+}
+`
+
+func (c *Client) ArchiveIssue(ctx context.Context, id string, trash *bool, interceptors ...clientv2.RequestInterceptor) (*ArchiveIssue, error) {
+	vars := map[string]any{
+		"id":    id,
+		"trash": trash,
+	}
+
+	var res ArchiveIssue
+	if err := c.Client.Post(ctx, "ArchiveIssue", ArchiveIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UnarchiveIssueDocument = `mutation UnarchiveIssue ($id: String!) {
+	issueUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveIssue, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveIssue
+	if err := c.Client.Post(ctx, "UnarchiveIssue", UnarchiveIssueDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -13471,6 +13615,8 @@ var DocumentOperationNames = map[string]string{
 	CreateIssueDocument:                    "CreateIssue",
 	UpdateIssueDocument:                    "UpdateIssue",
 	DeleteIssueDocument:                    "DeleteIssue",
+	ArchiveIssueDocument:                   "ArchiveIssue",
+	UnarchiveIssueDocument:                 "UnarchiveIssue",
 	CreateLabelDocument:                    "CreateLabel",
 	UpdateLabelDocument:                    "UpdateLabel",
 	DeleteLabelDocument:                    "DeleteLabel",

@@ -52,7 +52,7 @@ func TestLive_AttachmentMutations_FullCycle(t *testing.T) {
 
 	// Cleanup issue at end
 	defer func() {
-		if err := client.IssueDelete(ctx, issue.ID); err != nil {
+		if err := client.IssueDelete(ctx, issue.ID, nil); err != nil {
 			t.Errorf("Failed to cleanup issue: %v", err)
 		} else {
 			t.Logf("✓ Cleaned up issue: %s", issue.ID)
@@ -200,7 +200,7 @@ func TestLive_AttachmentLinkTypes(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		client.IssueDelete(ctx, issue.ID)
+		client.IssueDelete(ctx, issue.ID, nil)
 		t.Logf("✓ Cleaned up issue: %s", issue.ID)
 	})
 

@@ -112,7 +112,7 @@ func main() {
 
 	// Step 6: Clean up test data
 	fmt.Println("Cleaning up test data...")
-	if err := client.IssueDelete(ctx, issue.ID); err != nil {
+	if err := client.IssueDelete(ctx, issue.ID, nil); err != nil {
 		log.Printf("Warning: Failed to delete issue: %v", err)
 	}
 	if err := client.IssueLabelDelete(ctx, label.ID); err != nil {

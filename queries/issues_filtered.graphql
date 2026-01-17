@@ -10,6 +10,8 @@ query ListIssuesFiltered($first: Int, $after: String, $filter: IssueFilter) {
       updatedAt
       number
       url
+      trashed
+      archivedAt
       state {
         id
         name

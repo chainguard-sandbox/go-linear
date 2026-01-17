@@ -136,10 +136,10 @@ func main() {
 
 	// Step 6: Clean up test issues
 	fmt.Println("Cleaning up test issues...")
-	if err := client.IssueDelete(ctx, issue1.ID); err != nil {
+	if err := client.IssueDelete(ctx, issue1.ID, nil); err != nil {
 		log.Printf("Warning: Failed to delete issue 1: %v", err)
 	}
-	if err := client.IssueDelete(ctx, issue2.ID); err != nil {
+	if err := client.IssueDelete(ctx, issue2.ID, nil); err != nil {
 		log.Printf("Warning: Failed to delete issue 2: %v", err)
 	}
 	fmt.Println("✓ Test issues deleted")

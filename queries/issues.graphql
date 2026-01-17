@@ -10,6 +10,8 @@ query GetIssue($id: String!) {
     updatedAt
     number
     url
+    trashed
+    archivedAt
     parent {
       id
       identifier
@@ -44,6 +46,8 @@ query ListIssues($first: Int, $after: String) {
       updatedAt
       number
       url
+      trashed
+      archivedAt
       state {
         id
         name
