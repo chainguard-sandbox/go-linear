@@ -150,6 +150,14 @@ const (
 		}
 	}`
 
+	mockIssueUnarchiveResponse = `{
+		"data": {
+			"issueUnarchive": {
+				"success": true
+			}
+		}
+	}`
+
 	mockSearchResponse = `{
 		"data": {
 			"searchIssues": {
@@ -276,6 +284,7 @@ func defaultHandlers() map[string]string {
 		"UpdateIssue":         mockIssueUpdateResponse,
 		"DeleteIssue":         mockIssueDeleteResponse,
 		"ArchiveIssue":        mockIssueArchiveResponse,
+		"UnarchiveIssue":      mockIssueUnarchiveResponse,
 		"IssueAddLabel":       mockIssueLabelResponse,
 		"IssueRemoveLabel":    mockIssueRemoveLabelResponse,
 		"IssueRelationCreate": mockIssueRelationCreateResponse,
