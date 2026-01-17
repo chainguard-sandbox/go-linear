@@ -52,8 +52,8 @@ Related: issue_get, issue_list`,
 	cmd.Flags().String("state", "", "Initial state name or ID")
 	cmd.Flags().Int("priority", -1, "Priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
 	cmd.Flags().StringArray("label", []string{}, "Label names (repeatable)")
-	cmd.Flags().String("cycle", "", "Cycle UUID")
-	cmd.Flags().String("project", "", "Project UUID")
+	cmd.Flags().String("cycle", "", "Cycle name or UUID")
+	cmd.Flags().String("project", "", "Project name or UUID")
 	cmd.Flags().String("parent", "", "Parent issue ID (creates sub-issue)")
 	cmd.Flags().Int("estimate", -1, "Story points/estimate")
 
@@ -153,11 +153,19 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 
 	// Additional optional fields
 	if cycle, _ := cmd.Flags().GetString("cycle"); cycle != "" {
-		input.CycleID = &cycle
+		cycleID, err := res.ResolveCycle(ctx, cycle)
+		if err != nil {
+			return fmt.Errorf("failed to resolve cycle: %w", err)
+		}
+		input.CycleID = &cycleID
 	}
 
 	if project, _ := cmd.Flags().GetString("project"); project != "" {
-		input.ProjectID = &project
+		projectID, err := res.ResolveProject(ctx, project)
+		if err != nil {
+			return fmt.Errorf("failed to resolve project: %w", err)
+		}
+		input.ProjectID = &projectID
 	}
 
 	if parent, _ := cmd.Flags().GetString("parent"); parent != "" {

@@ -42,7 +42,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().String("assignee", "", "New assignee name, email, or ID")
 	cmd.Flags().String("state", "", "New state name or ID")
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
-	cmd.Flags().String("cycle", "", "Cycle UUID (use 'none' to remove)")
+	cmd.Flags().String("cycle", "", "Cycle name or UUID (use 'none' to remove)")
 	cmd.Flags().String("project", "", "Project name or UUID (use 'none' to remove)")
 	cmd.Flags().String("parent", "", "Parent issue ID/identifier (use 'none' to remove)")
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
@@ -159,7 +159,12 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			empty := ""
 			input.CycleID = &empty // Set to empty string to remove cycle
 		} else {
-			input.CycleID = &cycle
+			// Resolve cycle name or UUID
+			cycleID, err := res.ResolveCycle(ctx, cycle)
+			if err != nil {
+				return fmt.Errorf("failed to resolve cycle: %w", err)
+			}
+			input.CycleID = &cycleID
 		}
 		updated = true
 	}
@@ -318,7 +323,12 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 		if cycle == "none" {
 			input.CycleID = linear.NewNull[string]()
 		} else {
-			input.CycleID = linear.NewValue(cycle)
+			// Resolve cycle name or UUID
+			cycleID, err := res.ResolveCycle(ctx, cycle)
+			if err != nil {
+				return fmt.Errorf("failed to resolve cycle: %w", err)
+			}
+			input.CycleID = linear.NewValue(cycleID)
 		}
 	}
 
