@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-01-16
+
+### Fixed
+- **Issue Resolution**: Fixed `ResolveIssue` using fuzzy search instead of direct lookup, which could return wrong issues (e.g., "PSEC-78" returning PSEC-128). Now uses Linear's `issue(id:)` query for exact identifier matching. Fixes #22.
+- **Issue Update**: Fixed `issue update --project` silently failing when using project names instead of UUIDs. The command now properly resolves issue identifiers (e.g., ENG-123) to UUIDs before API calls. Fixes #20.
+- **Name Resolution**: Added consistent cycle and project name resolution across all issue commands (`update`, `create`, `batch-update`). Previously these flags only accepted UUIDs, inconsistent with other fields like `--assignee` and `--state` that accept human-readable names.
+
 ## [1.4.0] - 2026-01-12
 
 ### Added
