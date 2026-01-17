@@ -31,6 +31,11 @@ func TestNewDeleteCommand(t *testing.T) {
 		if outputFlag == nil {
 			t.Fatal("output flag not found")
 		}
+
+		permanentFlag := cmd.Flags().Lookup("permanent")
+		if permanentFlag == nil {
+			t.Fatal("permanent flag not found")
+		}
 	})
 
 	t.Run("requires exactly one arg", func(t *testing.T) {
@@ -81,8 +86,42 @@ func TestRunDelete(t *testing.T) {
 		}
 
 		output := buf.String()
-		if !strings.Contains(output, "deleted") {
-			t.Errorf("Table output should show 'deleted', got: %s", output)
+		if !strings.Contains(output, "moved to trash") {
+			t.Errorf("Table output should show 'moved to trash', got: %s", output)
+		}
+	})
+
+	t.Run("delete with permanent flag json", func(t *testing.T) {
+		cmd := NewDeleteCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--yes", "--permanent", "--output=json"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		output := buf.String()
+		if !strings.Contains(output, "\"permanent\": true") {
+			t.Errorf("Output should contain permanent: true, got: %s", output)
+		}
+	})
+
+	t.Run("delete with permanent flag table", func(t *testing.T) {
+		cmd := NewDeleteCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--yes", "--permanent", "--output=table"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		output := buf.String()
+		if !strings.Contains(output, "permanently deleted") {
+			t.Errorf("Table output should show 'permanently deleted', got: %s", output)
 		}
 	})
 

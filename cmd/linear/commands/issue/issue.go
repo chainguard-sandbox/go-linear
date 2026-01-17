@@ -26,6 +26,8 @@ func NewIssueCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewUpdateCommand(clientFactory))
 	cmd.AddCommand(NewBatchUpdateCommand(clientFactory))
 	cmd.AddCommand(NewDeleteCommand(clientFactory))
+	cmd.AddCommand(NewArchiveCommand(clientFactory))
+	cmd.AddCommand(NewUnarchiveCommand(clientFactory))
 	cmd.AddCommand(NewRelateCommand(clientFactory))
 	cmd.AddCommand(NewUpdateRelationCommand(clientFactory))
 	cmd.AddCommand(NewUnrelateCommand(clientFactory))
