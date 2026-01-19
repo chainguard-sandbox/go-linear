@@ -7,6 +7,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -39,13 +40,20 @@ Related: issue_archive, issue_get`,
 
 func runUnarchive(cmd *cobra.Command, client *linear.Client, issueID string, outputFlags *cli.OutputOnlyFlags) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
 	if err := outputFlags.Validate(); err != nil {
 		return err
 	}
 
+	// Resolve issue ID
+	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve issue: %w", err)
+	}
+
 	// Unarchive issue
-	err := client.IssueUnarchive(ctx, issueID)
+	err = client.IssueUnarchive(ctx, resolvedIssueID)
 	if err != nil {
 		return fmt.Errorf("failed to unarchive issue: %w", err)
 	}

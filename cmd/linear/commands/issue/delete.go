@@ -3,7 +3,6 @@ package issue
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -66,7 +65,7 @@ func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, perman
 		fmt.Fprintf(cmd.OutOrStderr(), "%s\n", warning)
 		fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 
-		reader := bufio.NewReader(os.Stdin)
+		reader := bufio.NewReader(cmd.InOrStdin())
 		response, _ := reader.ReadString('\n')
 		response = strings.TrimSpace(response)
 
