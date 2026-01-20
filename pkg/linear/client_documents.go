@@ -158,3 +158,26 @@ func (c *Client) DocumentDelete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+// DocumentUnarchive restores a deleted document.
+//
+// Parameters:
+//   - id: Document UUID to restore (required)
+//
+// Returns:
+//   - nil: Document successfully restored
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [DocumentDelete], [DocumentCreate]
+func (c *Client) DocumentUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveDocument(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("DocumentUnarchive", err)
+	}
+	if !resp.DocumentUnarchive.Success {
+		return errMutationFailed("DocumentUnarchive")
+	}
+	return nil
+}
