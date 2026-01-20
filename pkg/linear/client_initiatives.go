@@ -212,6 +212,52 @@ func (c *Client) InitiativeDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// InitiativeArchive archives an initiative by ID.
+//
+// Parameters:
+//   - id: Initiative UUID to archive (required)
+//
+// Returns:
+//   - nil: Initiative successfully archived
+//   - error: Non-nil if archive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeUnarchive], [InitiativeDelete]
+func (c *Client) InitiativeArchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.ArchiveInitiative(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("InitiativeArchive", err)
+	}
+	if !resp.InitiativeArchive.Success {
+		return errMutationFailed("InitiativeArchive")
+	}
+	return nil
+}
+
+// InitiativeUnarchive restores an archived initiative by ID.
+//
+// Parameters:
+//   - id: Initiative UUID to restore (required)
+//
+// Returns:
+//   - nil: Initiative successfully restored
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [InitiativeArchive], [InitiativeDelete]
+func (c *Client) InitiativeUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveInitiative(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("InitiativeUnarchive", err)
+	}
+	if !resp.InitiativeUnarchive.Success {
+		return errMutationFailed("InitiativeUnarchive")
+	}
+	return nil
+}
+
 // InitiativeToProjectCreate links a project to an initiative.
 //
 // Parameters:
