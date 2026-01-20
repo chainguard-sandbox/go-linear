@@ -108,6 +108,29 @@ func (c *Client) ProjectDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// ProjectUnarchive restores an archived project by ID.
+//
+// Parameters:
+//   - id: Project UUID to restore (required)
+//
+// Returns:
+//   - nil: Project successfully restored
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [ProjectDelete], [ProjectCreate]
+func (c *Client) ProjectUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveProject(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("ProjectUnarchive", err)
+	}
+	if !resp.ProjectUnarchive.Success {
+		return errMutationFailed("ProjectUnarchive")
+	}
+	return nil
+}
+
 // ProjectMilestoneCreate creates a new milestone within a project.
 //
 // Milestones represent phases or stages within a project (e.g., "Q1 2025", "Beta Launch", "v1.0 Release").
