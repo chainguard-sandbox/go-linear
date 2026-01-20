@@ -52,6 +52,7 @@ type LinearGraphQLClient interface {
 	CreateDocument(ctx context.Context, input DocumentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateDocument, error)
 	UpdateDocument(ctx context.Context, id string, input DocumentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateDocument, error)
 	DeleteDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteDocument, error)
+	UnarchiveDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveDocument, error)
 	FavoriteCreate(ctx context.Context, input FavoriteCreateInput, interceptors ...clientv2.RequestInterceptor) (*FavoriteCreate, error)
 	FavoriteDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*FavoriteDelete, error)
 	CreateInitiativeToProject(ctx context.Context, input InitiativeToProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiativeToProject, error)
@@ -61,6 +62,8 @@ type LinearGraphQLClient interface {
 	CreateInitiative(ctx context.Context, input InitiativeCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateInitiative, error)
 	UpdateInitiative(ctx context.Context, id string, input InitiativeUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateInitiative, error)
 	DeleteInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteInitiative, error)
+	ArchiveInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveInitiative, error)
+	UnarchiveInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveInitiative, error)
 	IssueAddLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueAddLabel, error)
 	IssueRemoveLabel(ctx context.Context, id string, labelID string, interceptors ...clientv2.RequestInterceptor) (*IssueRemoveLabel, error)
 	IssueRelationCreate(ctx context.Context, input IssueRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*IssueRelationCreate, error)
@@ -87,6 +90,7 @@ type LinearGraphQLClient interface {
 	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
 	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
+	UnarchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveProject, error)
 	ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error)
 	ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error)
 	AddTeamMember(ctx context.Context, input TeamMembershipCreateInput, interceptors ...clientv2.RequestInterceptor) (*AddTeamMember, error)
@@ -94,6 +98,7 @@ type LinearGraphQLClient interface {
 	CreateTeam(ctx context.Context, input TeamCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateTeam, error)
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
+	UnarchiveTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveTeam, error)
 	ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error)
 	GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
@@ -4287,6 +4292,17 @@ func (t *DeleteDocument_DocumentDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type UnarchiveDocument_DocumentUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveDocument_DocumentUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveDocument_DocumentUnarchive{}
+	}
+	return t.Success
+}
+
 type FavoriteCreate_FavoriteCreate_Favorite_Issue struct {
 	ID    string "json:\"id\" graphql:\"id\""
 	Title string "json:\"title\" graphql:\"title\""
@@ -4656,6 +4672,28 @@ type DeleteInitiative_InitiativeDelete struct {
 func (t *DeleteInitiative_InitiativeDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteInitiative_InitiativeDelete{}
+	}
+	return t.Success
+}
+
+type ArchiveInitiative_InitiativeArchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ArchiveInitiative_InitiativeArchive) GetSuccess() bool {
+	if t == nil {
+		t = &ArchiveInitiative_InitiativeArchive{}
+	}
+	return t.Success
+}
+
+type UnarchiveInitiative_InitiativeUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveInitiative_InitiativeUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveInitiative_InitiativeUnarchive{}
 	}
 	return t.Success
 }
@@ -5852,6 +5890,17 @@ func (t *DeleteProject_ProjectDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type UnarchiveProject_ProjectUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveProject_ProjectUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveProject_ProjectUnarchive{}
+	}
+	return t.Success
+}
+
 type ReactionCreate_ReactionCreate_Reaction_User struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -6149,6 +6198,17 @@ type DeleteTeam_TeamDelete struct {
 func (t *DeleteTeam_TeamDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteTeam_TeamDelete{}
+	}
+	return t.Success
+}
+
+type UnarchiveTeam_TeamUnarchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *UnarchiveTeam_TeamUnarchive) GetSuccess() bool {
+	if t == nil {
+		t = &UnarchiveTeam_TeamUnarchive{}
 	}
 	return t.Success
 }
@@ -9081,6 +9141,17 @@ func (t *DeleteDocument) GetDocumentDelete() *DeleteDocument_DocumentDelete {
 	return &t.DocumentDelete
 }
 
+type UnarchiveDocument struct {
+	DocumentUnarchive UnarchiveDocument_DocumentUnarchive "json:\"documentUnarchive\" graphql:\"documentUnarchive\""
+}
+
+func (t *UnarchiveDocument) GetDocumentUnarchive() *UnarchiveDocument_DocumentUnarchive {
+	if t == nil {
+		t = &UnarchiveDocument{}
+	}
+	return &t.DocumentUnarchive
+}
+
 type FavoriteCreate struct {
 	FavoriteCreate FavoriteCreate_FavoriteCreate "json:\"favoriteCreate\" graphql:\"favoriteCreate\""
 }
@@ -9178,6 +9249,28 @@ func (t *DeleteInitiative) GetInitiativeDelete() *DeleteInitiative_InitiativeDel
 		t = &DeleteInitiative{}
 	}
 	return &t.InitiativeDelete
+}
+
+type ArchiveInitiative struct {
+	InitiativeArchive ArchiveInitiative_InitiativeArchive "json:\"initiativeArchive\" graphql:\"initiativeArchive\""
+}
+
+func (t *ArchiveInitiative) GetInitiativeArchive() *ArchiveInitiative_InitiativeArchive {
+	if t == nil {
+		t = &ArchiveInitiative{}
+	}
+	return &t.InitiativeArchive
+}
+
+type UnarchiveInitiative struct {
+	InitiativeUnarchive UnarchiveInitiative_InitiativeUnarchive "json:\"initiativeUnarchive\" graphql:\"initiativeUnarchive\""
+}
+
+func (t *UnarchiveInitiative) GetInitiativeUnarchive() *UnarchiveInitiative_InitiativeUnarchive {
+	if t == nil {
+		t = &UnarchiveInitiative{}
+	}
+	return &t.InitiativeUnarchive
 }
 
 type IssueAddLabel struct {
@@ -9466,6 +9559,17 @@ func (t *DeleteProject) GetProjectDelete() *DeleteProject_ProjectDelete {
 	return &t.ProjectDelete
 }
 
+type UnarchiveProject struct {
+	ProjectUnarchive UnarchiveProject_ProjectUnarchive "json:\"projectUnarchive\" graphql:\"projectUnarchive\""
+}
+
+func (t *UnarchiveProject) GetProjectUnarchive() *UnarchiveProject_ProjectUnarchive {
+	if t == nil {
+		t = &UnarchiveProject{}
+	}
+	return &t.ProjectUnarchive
+}
+
 type ReactionCreate struct {
 	ReactionCreate ReactionCreate_ReactionCreate "json:\"reactionCreate\" graphql:\"reactionCreate\""
 }
@@ -9541,6 +9645,17 @@ func (t *DeleteTeam) GetTeamDelete() *DeleteTeam_TeamDelete {
 		t = &DeleteTeam{}
 	}
 	return &t.TeamDelete
+}
+
+type UnarchiveTeam struct {
+	TeamUnarchive UnarchiveTeam_TeamUnarchive "json:\"teamUnarchive\" graphql:\"teamUnarchive\""
+}
+
+func (t *UnarchiveTeam) GetTeamUnarchive() *UnarchiveTeam_TeamUnarchive {
+	if t == nil {
+		t = &UnarchiveTeam{}
+	}
+	return &t.TeamUnarchive
 }
 
 type ListNotifications struct {
@@ -11411,6 +11526,30 @@ func (c *Client) DeleteDocument(ctx context.Context, id string, interceptors ...
 	return &res, nil
 }
 
+const UnarchiveDocumentDocument = `mutation UnarchiveDocument ($id: String!) {
+	documentUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveDocument(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveDocument, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveDocument
+	if err := c.Client.Post(ctx, "UnarchiveDocument", UnarchiveDocumentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const FavoriteCreateDocument = `mutation FavoriteCreate ($input: FavoriteCreateInput!) {
 	favoriteCreate(input: $input) {
 		success
@@ -11661,6 +11800,54 @@ func (c *Client) DeleteInitiative(ctx context.Context, id string, interceptors .
 
 	var res DeleteInitiative
 	if err := c.Client.Post(ctx, "DeleteInitiative", DeleteInitiativeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ArchiveInitiativeDocument = `mutation ArchiveInitiative ($id: String!) {
+	initiativeArchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ArchiveInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveInitiative, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ArchiveInitiative
+	if err := c.Client.Post(ctx, "ArchiveInitiative", ArchiveInitiativeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UnarchiveInitiativeDocument = `mutation UnarchiveInitiative ($id: String!) {
+	initiativeUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveInitiative(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveInitiative, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveInitiative
+	if err := c.Client.Post(ctx, "UnarchiveInitiative", UnarchiveInitiativeDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -12446,6 +12633,30 @@ func (c *Client) DeleteProject(ctx context.Context, id string, interceptors ...c
 	return &res, nil
 }
 
+const UnarchiveProjectDocument = `mutation UnarchiveProject ($id: String!) {
+	projectUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveProject, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveProject
+	if err := c.Client.Post(ctx, "UnarchiveProject", UnarchiveProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ReactionCreateDocument = `mutation ReactionCreate ($input: ReactionCreateInput!) {
 	reactionCreate(input: $input) {
 		success
@@ -12640,6 +12851,30 @@ func (c *Client) DeleteTeam(ctx context.Context, id string, interceptors ...clie
 
 	var res DeleteTeam
 	if err := c.Client.Post(ctx, "DeleteTeam", DeleteTeamDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UnarchiveTeamDocument = `mutation UnarchiveTeam ($id: String!) {
+	teamUnarchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) UnarchiveTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveTeam, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res UnarchiveTeam
+	if err := c.Client.Post(ctx, "UnarchiveTeam", UnarchiveTeamDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -13598,6 +13833,7 @@ var DocumentOperationNames = map[string]string{
 	CreateDocumentDocument:                 "CreateDocument",
 	UpdateDocumentDocument:                 "UpdateDocument",
 	DeleteDocumentDocument:                 "DeleteDocument",
+	UnarchiveDocumentDocument:              "UnarchiveDocument",
 	FavoriteCreateDocument:                 "FavoriteCreate",
 	FavoriteDeleteDocument:                 "FavoriteDelete",
 	CreateInitiativeToProjectDocument:      "CreateInitiativeToProject",
@@ -13607,6 +13843,8 @@ var DocumentOperationNames = map[string]string{
 	CreateInitiativeDocument:               "CreateInitiative",
 	UpdateInitiativeDocument:               "UpdateInitiative",
 	DeleteInitiativeDocument:               "DeleteInitiative",
+	ArchiveInitiativeDocument:              "ArchiveInitiative",
+	UnarchiveInitiativeDocument:            "UnarchiveInitiative",
 	IssueAddLabelDocument:                  "IssueAddLabel",
 	IssueRemoveLabelDocument:               "IssueRemoveLabel",
 	IssueRelationCreateDocument:            "IssueRelationCreate",
@@ -13633,6 +13871,7 @@ var DocumentOperationNames = map[string]string{
 	CreateProjectDocument:                  "CreateProject",
 	UpdateProjectDocument:                  "UpdateProject",
 	DeleteProjectDocument:                  "DeleteProject",
+	UnarchiveProjectDocument:               "UnarchiveProject",
 	ReactionCreateDocument:                 "ReactionCreate",
 	ReactionDeleteDocument:                 "ReactionDelete",
 	AddTeamMemberDocument:                  "AddTeamMember",
@@ -13640,6 +13879,7 @@ var DocumentOperationNames = map[string]string{
 	CreateTeamDocument:                     "CreateTeam",
 	UpdateTeamDocument:                     "UpdateTeam",
 	DeleteTeamDocument:                     "DeleteTeam",
+	UnarchiveTeamDocument:                  "UnarchiveTeam",
 	ListNotificationsDocument:              "ListNotifications",
 	GetNotificationDocument:                "GetNotification",
 	GetOrganizationDocument:                "GetOrganization",

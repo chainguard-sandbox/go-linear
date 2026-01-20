@@ -388,7 +388,7 @@ type AgentActivityWebhookPayload struct {
 	// The time at which the entity was updated.
 	UpdatedAt string `json:"updatedAt"`
 	// The ID of the user who created this agent activity.
-	UserID string `json:"userId"`
+	UserID *string `json:"userId,omitempty"`
 }
 
 func (AgentActivityWebhookPayload) IsDataWebhookPayload() {}
@@ -444,8 +444,6 @@ type AgentSession struct {
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
-	// Agent session URL.
-	URL *string `json:"url,omitempty"`
 }
 
 func (AgentSession) IsNode() {}
@@ -462,7 +460,7 @@ type AgentSessionConnection struct {
 type AgentSessionCreateInput struct {
 	// The app user (agent) to create a session for.
 	AppUserID string `json:"appUserId"`
-	// [Internal] Serialized JSON representing the page contexts this session is related to. Used for direct chat sessions to provide context about the current page (e.g., Issue, Project).
+	// Serialized JSON representing the page contexts this session is related to. Used for direct chat sessions to provide context about the current page (e.g., Issue, Project).
 	Context map[string]any `json:"context,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
@@ -599,15 +597,6 @@ type AgentSessionUpdateInput struct {
 	Plan map[string]any `json:"plan,omitempty"`
 	// URLs to be removed from this session. Only updatable by the OAuth application that owns the session.
 	RemovedExternalUrls []string `json:"removedExternalUrls,omitempty"`
-	// [Internal] User-specific state for the agent session. Only updatable by internal clients.
-	UserState []*AgentSessionUserStateInput `json:"userState,omitempty"`
-}
-
-type AgentSessionUserStateInput struct {
-	// The time at which the user most recently viewed the session.
-	LastReadAt *time.Time `json:"lastReadAt,omitempty"`
-	// The ID of the user this state belongs to.
-	UserID string `json:"userId"`
 }
 
 // Payload for an agent session webhook.
@@ -650,8 +639,6 @@ type AgentSessionWebhookPayload struct {
 	Type string `json:"type"`
 	// The time at which the entity was updated.
 	UpdatedAt string `json:"updatedAt"`
-	// The URL of the agent session.
-	URL *string `json:"url,omitempty"`
 }
 
 func (AgentSessionWebhookPayload) IsDataWebhookPayload() {}
@@ -3285,8 +3272,6 @@ type Cycle struct {
 	CurrentProgress map[string]any `json:"currentProgress"`
 	// The cycle's description.
 	Description *string `json:"description,omitempty"`
-	// [Internal] Documents associated with the cycle.
-	Documents *DocumentConnection `json:"documents"`
 	// The end time of the cycle.
 	EndsAt time.Time `json:"endsAt"`
 	// The unique identifier of the entity.
@@ -3309,8 +3294,6 @@ type Cycle struct {
 	IssueCountHistory []float64 `json:"issueCountHistory"`
 	// Issues associated with the cycle.
 	Issues *IssueConnection `json:"issues"`
-	// [Internal] Links associated with the cycle.
-	Links *EntityExternalLinkConnection `json:"links"`
 	// The custom name of the cycle.
 	Name *string `json:"name,omitempty"`
 	// The number of the cycle.
@@ -3761,8 +3744,6 @@ type Document struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// The user who created the document.
 	Creator *User `json:"creator,omitempty"`
-	// [Internal] The cycle that the document is associated with.
-	Cycle *Cycle `json:"cycle,omitempty"`
 	// The ID of the document content associated with the document.
 	DocumentContentID *string `json:"documentContentId,omitempty"`
 	// The time at which the document was hidden. Null if the entity has not been hidden.
@@ -3779,8 +3760,6 @@ type Document struct {
 	LastAppliedTemplate *Template `json:"lastAppliedTemplate,omitempty"`
 	// The project that the document is associated with.
 	Project *Project `json:"project,omitempty"`
-	// [Internal] The release that the document is associated with.
-	Release *Release `json:"release,omitempty"`
 	// The document's unique URL slug.
 	SlugID string `json:"slugId"`
 	// The order of the item in the resources list.
@@ -3914,8 +3893,6 @@ type DocumentCreateInput struct {
 	Color *string `json:"color,omitempty"`
 	// The document content as markdown.
 	Content *string `json:"content,omitempty"`
-	// [Internal] Related cycle for the document.
-	CycleID *string `json:"cycleId,omitempty"`
 	// The icon of the document.
 	Icon *string `json:"icon,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
@@ -3928,8 +3905,6 @@ type DocumentCreateInput struct {
 	LastAppliedTemplateID *string `json:"lastAppliedTemplateId,omitempty"`
 	// Related project for the document.
 	ProjectID *string `json:"projectId,omitempty"`
-	// [Internal] Related release for the document.
-	ReleaseID *string `json:"releaseId,omitempty"`
 	// [Internal] The resource folder containing the document.
 	ResourceFolderID *string `json:"resourceFolderId,omitempty"`
 	// The order of the item in the resources list.
@@ -4180,8 +4155,6 @@ type DocumentSearchResult struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// The user who created the document.
 	Creator *User `json:"creator,omitempty"`
-	// [Internal] The cycle that the document is associated with.
-	Cycle *Cycle `json:"cycle,omitempty"`
 	// The ID of the document content associated with the document.
 	DocumentContentID *string `json:"documentContentId,omitempty"`
 	// The time at which the document was hidden. Null if the entity has not been hidden.
@@ -4200,8 +4173,6 @@ type DocumentSearchResult struct {
 	Metadata map[string]any `json:"metadata"`
 	// The project that the document is associated with.
 	Project *Project `json:"project,omitempty"`
-	// [Internal] The release that the document is associated with.
-	Release *Release `json:"release,omitempty"`
 	// The document's unique URL slug.
 	SlugID string `json:"slugId"`
 	// The order of the item in the resources list.
@@ -4237,8 +4208,6 @@ type DocumentUpdateInput struct {
 	Color *string `json:"color,omitempty"`
 	// The document content as markdown.
 	Content *string `json:"content,omitempty"`
-	// [Internal] Related cycle for the document.
-	CycleID *string `json:"cycleId,omitempty"`
 	// The time at which the document was hidden.
 	HiddenAt *time.Time `json:"hiddenAt,omitempty"`
 	// The icon of the document.
@@ -4251,8 +4220,6 @@ type DocumentUpdateInput struct {
 	LastAppliedTemplateID *string `json:"lastAppliedTemplateId,omitempty"`
 	// Related project for the document.
 	ProjectID *string `json:"projectId,omitempty"`
-	// [Internal] Related release for the document.
-	ReleaseID *string `json:"releaseId,omitempty"`
 	// [Internal] The resource folder containing the document.
 	ResourceFolderID *string `json:"resourceFolderId,omitempty"`
 	// The order of the item in the resources list.
@@ -4639,8 +4606,6 @@ type EntityExternalLinkConnection struct {
 }
 
 type EntityExternalLinkCreateInput struct {
-	// [Internal] The cycle associated with the link.
-	CycleID *string `json:"cycleId,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// The initiative associated with the link.
@@ -4649,8 +4614,6 @@ type EntityExternalLinkCreateInput struct {
 	Label string `json:"label"`
 	// The project associated with the link.
 	ProjectID *string `json:"projectId,omitempty"`
-	// [Internal] The release associated with the link.
-	ReleaseID *string `json:"releaseId,omitempty"`
 	// [Internal] The resource folder containing the link.
 	ResourceFolderID *string `json:"resourceFolderId,omitempty"`
 	// The order of the item in the entities resources list.
@@ -7257,8 +7220,6 @@ type IssueCollectionFilter struct {
 	HasDuplicateRelations *RelationExistsComparator `json:"hasDuplicateRelations,omitempty"`
 	// Comparator for filtering issues with relations.
 	HasRelatedRelations *RelationExistsComparator `json:"hasRelatedRelations,omitempty"`
-	// Comparator for filtering issues which have been shared with users outside of the team.
-	HasSharedUsers *RelationExistsComparator `json:"hasSharedUsers,omitempty"`
 	// [Internal] Comparator for filtering issues which have suggested assignees.
 	HasSuggestedAssignees *RelationExistsComparator `json:"hasSuggestedAssignees,omitempty"`
 	// [Internal] Comparator for filtering issues which have suggested labels.
@@ -7301,8 +7262,6 @@ type IssueCollectionFilter struct {
 	RecurringIssueTemplate *NullableTemplateFilter `json:"recurringIssueTemplate,omitempty"`
 	// [Internal] Comparator for the issues content.
 	SearchableContent *ContentComparator `json:"searchableContent,omitempty"`
-	// Filters that users the issue has been shared with must satisfy.
-	SharedWith *UserCollectionFilter `json:"sharedWith,omitempty"`
 	// Comparator for the issues sla status.
 	SLAStatus *SLAStatusComparator `json:"slaStatus,omitempty"`
 	// Filters that the issues snoozer must satisfy.
@@ -7658,8 +7617,6 @@ type IssueFilter struct {
 	HasDuplicateRelations *RelationExistsComparator `json:"hasDuplicateRelations,omitempty"`
 	// Comparator for filtering issues with relations.
 	HasRelatedRelations *RelationExistsComparator `json:"hasRelatedRelations,omitempty"`
-	// Comparator for filtering issues which have been shared with users outside of the team.
-	HasSharedUsers *RelationExistsComparator `json:"hasSharedUsers,omitempty"`
 	// [Internal] Comparator for filtering issues which have suggested assignees.
 	HasSuggestedAssignees *RelationExistsComparator `json:"hasSuggestedAssignees,omitempty"`
 	// [Internal] Comparator for filtering issues which have suggested labels.
@@ -7700,8 +7657,6 @@ type IssueFilter struct {
 	RecurringIssueTemplate *NullableTemplateFilter `json:"recurringIssueTemplate,omitempty"`
 	// [Internal] Comparator for the issues content.
 	SearchableContent *ContentComparator `json:"searchableContent,omitempty"`
-	// Filters that users the issue has been shared with must satisfy.
-	SharedWith *UserCollectionFilter `json:"sharedWith,omitempty"`
 	// Comparator for the issues sla status.
 	SLAStatus *SLAStatusComparator `json:"slaStatus,omitempty"`
 	// Filters that the issues snoozer must satisfy.
@@ -10053,8 +10008,6 @@ type NullableIssueFilter struct {
 	HasDuplicateRelations *RelationExistsComparator `json:"hasDuplicateRelations,omitempty"`
 	// Comparator for filtering issues with relations.
 	HasRelatedRelations *RelationExistsComparator `json:"hasRelatedRelations,omitempty"`
-	// Comparator for filtering issues which have been shared with users outside of the team.
-	HasSharedUsers *RelationExistsComparator `json:"hasSharedUsers,omitempty"`
 	// [Internal] Comparator for filtering issues which have suggested assignees.
 	HasSuggestedAssignees *RelationExistsComparator `json:"hasSuggestedAssignees,omitempty"`
 	// [Internal] Comparator for filtering issues which have suggested labels.
@@ -10097,8 +10050,6 @@ type NullableIssueFilter struct {
 	RecurringIssueTemplate *NullableTemplateFilter `json:"recurringIssueTemplate,omitempty"`
 	// [Internal] Comparator for the issues content.
 	SearchableContent *ContentComparator `json:"searchableContent,omitempty"`
-	// Filters that users the issue has been shared with must satisfy.
-	SharedWith *UserCollectionFilter `json:"sharedWith,omitempty"`
 	// Comparator for the issues sla status.
 	SLAStatus *SLAStatusComparator `json:"slaStatus,omitempty"`
 	// Filters that the issues snoozer must satisfy.
@@ -10747,7 +10698,7 @@ type Organization struct {
 	AiThreadSummariesEnabled bool `json:"aiThreadSummariesEnabled"`
 	// [DEPRECATED] Whether member users are allowed to send invites.
 	AllowMembersToInvite *bool `json:"allowMembersToInvite,omitempty"`
-	// [INTERNAL] Permitted AI providers.
+	// [INTERNAL] Permitted AI providers in order of preference. Empty array means all providers are allowed.
 	AllowedAiProviders []string `json:"allowedAiProviders"`
 	// Allowed authentication providers, empty array means all are allowed.
 	AllowedAuthServices []string `json:"allowedAuthServices"`
@@ -11169,6 +11120,8 @@ type OrganizationUpdateInput struct {
 	AiTelemetryEnabled *bool `json:"aiTelemetryEnabled,omitempty"`
 	// Whether the organization has enabled resolved thread AI summaries.
 	AiThreadSummariesEnabled *bool `json:"aiThreadSummariesEnabled,omitempty"`
+	// [INTERNAL] Permitted AI providers in order of preference. Empty array means all providers are allowed.
+	AllowedAiProviders []string `json:"allowedAiProviders,omitempty"`
 	// List of services that are allowed to be used for login.
 	AllowedAuthServices []string `json:"allowedAuthServices,omitempty"`
 	// Allowed file upload content types.
@@ -14166,14 +14119,8 @@ type Release struct {
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
-	// The release's description.
-	Description *string `json:"description,omitempty"`
-	// [Internal] Documents associated with the release.
-	Documents *DocumentConnection `json:"documents"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
-	// [Internal] Links associated with the release.
-	Links *EntityExternalLinkConnection `json:"links"`
 	// The name of the release.
 	Name string `json:"name"`
 	// The pipeline this release belongs to.
@@ -14218,11 +14165,6 @@ func (this ReleaseArchivePayload) GetLastSyncID() float64 { return this.LastSync
 // Whether the operation was successful.
 func (this ReleaseArchivePayload) GetSuccess() bool { return this.Success }
 
-type ReleaseCompleteInput struct {
-	// The identifier of the pipeline to mark the latest started release as completed.
-	PipelineID string `json:"pipelineId"`
-}
-
 type ReleaseConnection struct {
 	Edges    []*ReleaseEdge `json:"edges"`
 	Nodes    []*Release     `json:"nodes"`
@@ -14234,8 +14176,6 @@ type ReleaseCreateInput struct {
 	CommitSha *string `json:"commitSha,omitempty"`
 	// Debug information for release creation diagnostics.
 	DebugSink *ReleaseDebugSinkInput `json:"debugSink,omitempty"`
-	// The description of the release.
-	Description *string `json:"description,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// Issue identifiers (e.g. ENG-123) to associate with this release.
@@ -14466,8 +14406,6 @@ type ReleaseStageUpdateInput struct {
 type ReleaseUpdateInput struct {
 	// The commit SHA associated with this release.
 	CommitSha *string `json:"commitSha,omitempty"`
-	// The description of the release.
-	Description *string `json:"description,omitempty"`
 	// The name of the release.
 	Name *string `json:"name,omitempty"`
 	// The identifier of the pipeline this release belongs to.
@@ -15840,8 +15778,6 @@ type TeamUpdateInput struct {
 	Description *string `json:"description,omitempty"`
 	// Whether to group recent issue history entries.
 	GroupIssueHistory *bool `json:"groupIssueHistory,omitempty"`
-	// [Internal] How to handle sub-teams when retiring. Required if the team has active sub-teams.
-	HandleSubTeamsOnRetirement *TeamRetirementSubTeamHandling `json:"handleSubTeamsOnRetirement,omitempty"`
 	// The icon of the team.
 	Icon *string `json:"icon,omitempty"`
 	// Whether the team should inherit estimation settings from its parent. Only applies to sub-teams.
@@ -20681,62 +20617,6 @@ func (e SlackChannelType) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// [Internal] How to handle sub-teams when retiring a parent team.
-type TeamRetirementSubTeamHandling string
-
-const (
-	TeamRetirementSubTeamHandlingRetire TeamRetirementSubTeamHandling = "retire"
-	TeamRetirementSubTeamHandlingUnnest TeamRetirementSubTeamHandling = "unnest"
-)
-
-var AllTeamRetirementSubTeamHandling = []TeamRetirementSubTeamHandling{
-	TeamRetirementSubTeamHandlingRetire,
-	TeamRetirementSubTeamHandlingUnnest,
-}
-
-func (e TeamRetirementSubTeamHandling) IsValid() bool {
-	switch e {
-	case TeamRetirementSubTeamHandlingRetire, TeamRetirementSubTeamHandlingUnnest:
-		return true
-	}
-	return false
-}
-
-func (e TeamRetirementSubTeamHandling) String() string {
-	return string(e)
-}
-
-func (e *TeamRetirementSubTeamHandling) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TeamRetirementSubTeamHandling(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TeamRetirementSubTeamHandling", str)
-	}
-	return nil
-}
-
-func (e TeamRetirementSubTeamHandling) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *TeamRetirementSubTeamHandling) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e TeamRetirementSubTeamHandling) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
 // All possible roles within a team in terms of access to team settings and operations.
 type TeamRoleType string
 
@@ -21417,7 +21297,6 @@ const (
 	ViewTypeBacklog                          ViewType = "backlog"
 	ViewTypeBoard                            ViewType = "board"
 	ViewTypeCompletedCycle                   ViewType = "completedCycle"
-	ViewTypeCreatedReviews                   ViewType = "createdReviews"
 	ViewTypeCustomView                       ViewType = "customView"
 	ViewTypeCustomViews                      ViewType = "customViews"
 	ViewTypeCustomer                         ViewType = "customer"
@@ -21441,7 +21320,6 @@ const (
 	ViewTypeMyIssues                         ViewType = "myIssues"
 	ViewTypeMyIssuesActivity                 ViewType = "myIssuesActivity"
 	ViewTypeMyIssuesCreatedByMe              ViewType = "myIssuesCreatedByMe"
-	ViewTypeMyIssuesSharedWithMe             ViewType = "myIssuesSharedWithMe"
 	ViewTypeMyIssuesSubscribedTo             ViewType = "myIssuesSubscribedTo"
 	ViewTypeMyReviews                        ViewType = "myReviews"
 	ViewTypeProject                          ViewType = "project"
@@ -21478,7 +21356,6 @@ var AllViewType = []ViewType{
 	ViewTypeBacklog,
 	ViewTypeBoard,
 	ViewTypeCompletedCycle,
-	ViewTypeCreatedReviews,
 	ViewTypeCustomView,
 	ViewTypeCustomViews,
 	ViewTypeCustomer,
@@ -21502,7 +21379,6 @@ var AllViewType = []ViewType{
 	ViewTypeMyIssues,
 	ViewTypeMyIssuesActivity,
 	ViewTypeMyIssuesCreatedByMe,
-	ViewTypeMyIssuesSharedWithMe,
 	ViewTypeMyIssuesSubscribedTo,
 	ViewTypeMyReviews,
 	ViewTypeProject,
@@ -21533,7 +21409,7 @@ var AllViewType = []ViewType{
 
 func (e ViewType) IsValid() bool {
 	switch e {
-	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
+	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
 		return true
 	}
 	return false

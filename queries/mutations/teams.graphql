@@ -29,3 +29,9 @@ mutation DeleteTeam($id: String!) {
     success
   }
 }
+
+mutation UnarchiveTeam($id: String!) {
+  teamUnarchive(id: $id) {
+    success
+  }
+}
