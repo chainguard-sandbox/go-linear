@@ -9,6 +9,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -49,9 +50,16 @@ Related: issue_archive, issue_unarchive, issue_list, issue_get`,
 
 func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, permanent bool, confirmFlags *cli.ConfirmationFlags, outputFlags *cli.OutputOnlyFlags) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
 	if err := outputFlags.Validate(); err != nil {
 		return err
+	}
+
+	// Resolve issue ID
+	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve issue: %w", err)
 	}
 
 	// Confirmation prompt unless --yes
@@ -80,7 +88,7 @@ func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, perman
 	if permanent {
 		permanentPtr = &permanent
 	}
-	err := client.IssueDelete(ctx, issueID, permanentPtr)
+	err = client.IssueDelete(ctx, resolvedIssueID, permanentPtr)
 	if err != nil {
 		return fmt.Errorf("failed to delete issue: %w", err)
 	}
