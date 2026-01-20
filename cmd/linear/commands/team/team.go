@@ -25,6 +25,7 @@ func NewTeamCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewCreateCommand(clientFactory))
 	cmd.AddCommand(NewUpdateCommand(clientFactory))
 	cmd.AddCommand(NewDeleteCommand(clientFactory))
+	cmd.AddCommand(NewUnarchiveCommand(clientFactory))
 	cmd.AddCommand(NewVelocityCommand(clientFactory))
 
 	return cmd

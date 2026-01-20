@@ -106,6 +106,29 @@ func (c *Client) TeamDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// TeamUnarchive restores an archived team by ID.
+//
+// Parameters:
+//   - id: Team UUID to restore (required)
+//
+// Returns:
+//   - nil: Team successfully restored
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [TeamDelete], [TeamCreate]
+func (c *Client) TeamUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveTeam(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("TeamUnarchive", err)
+	}
+	if !resp.TeamUnarchive.Success {
+		return errMutationFailed("TeamUnarchive")
+	}
+	return nil
+}
+
 // TeamMembershipCreate adds a user to a team.
 //
 // Parameters:
