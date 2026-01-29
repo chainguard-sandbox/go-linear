@@ -315,9 +315,9 @@ func TestResolveState_APICall(t *testing.T) {
 			"data": map[string]any{
 				"workflowStates": map[string]any{
 					"nodes": []map[string]any{
-						{"id": "state-1", "name": "Backlog", "type": "backlog", "color": "#bbb"},
-						{"id": "state-2", "name": "In Progress", "type": "started", "color": "#f00"},
-						{"id": "state-3", "name": "Done", "type": "completed", "color": "#0f0"},
+						{"id": "state-1", "name": "Backlog", "type": "backlog", "color": "#bbb", "position": 1.0},
+						{"id": "state-2", "name": "In Progress", "type": "started", "color": "#f00", "position": 2.0},
+						{"id": "state-3", "name": "Done", "type": "completed", "color": "#0f0", "position": 3.0},
 					},
 					"pageInfo": map[string]any{"hasNextPage": false},
 				},
@@ -349,6 +349,165 @@ func TestResolveState_APICall(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("ResolveState() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestResolveState_SingleTeamAliases tests that aliases work in single-team scenarios
+func TestResolveState_SingleTeamAliases(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		resp := map[string]any{
+			"data": map[string]any{
+				"workflowStates": map[string]any{
+					"nodes": []map[string]any{
+						{"id": "state-1", "name": "Backlog", "type": "backlog", "color": "#bbb", "position": 1.0},
+						{"id": "state-2", "name": "In Progress", "type": "started", "color": "#f00", "position": 2.0},
+						{"id": "state-3", "name": "Done", "type": "completed", "color": "#0f0", "position": 3.0},
+					},
+					"pageInfo": map[string]any{"hasNextPage": false},
+				},
+			},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+	}
+
+	resolver := newMockResolver(t, handler)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		input   string
+		want    string
+		wantErr bool
+	}{
+		{"todo resolves to backlog", "todo", "state-1", false},
+		{"done resolves to completed", "done", "state-3", false},
+		{"wip resolves to started", "wip", "state-2", false},
+		{"direct type backlog", "backlog", "state-1", false},
+		{"direct type completed", "completed", "state-3", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Clear cache between tests
+			resolver.cache = NewCache(5 * time.Minute)
+			got, err := resolver.ResolveState(ctx, tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResolveState(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ResolveState(%q) = %v, want %v", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestResolveState_MultiTeamAmbiguous tests that aliases fail safely in multi-team scenarios
+func TestResolveState_MultiTeamAmbiguous(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// Simulate multi-team: two teams each with their own backlog state
+		resp := map[string]any{
+			"data": map[string]any{
+				"workflowStates": map[string]any{
+					"nodes": []map[string]any{
+						{"id": "team1-backlog", "name": "Backlog", "type": "backlog", "color": "#bbb", "position": 1.0},
+						{"id": "team1-done", "name": "Done", "type": "completed", "color": "#0f0", "position": 2.0},
+						{"id": "team2-backlog", "name": "Backlog", "type": "backlog", "color": "#ccc", "position": 1.0},
+						{"id": "team2-done", "name": "Done", "type": "completed", "color": "#0f0", "position": 2.0},
+					},
+					"pageInfo": map[string]any{"hasNextPage": false},
+				},
+			},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+	}
+
+	resolver := newMockResolver(t, handler)
+	ctx := context.Background()
+
+	tests := []struct {
+		name        string
+		input       string
+		wantErr     bool
+		errContains string
+	}{
+		{"todo ambiguous", "todo", true, "ambiguous"},
+		{"done ambiguous", "done", true, "ambiguous"},
+		{"direct type backlog ambiguous", "backlog", true, "ambiguous"},
+		{"exact name Backlog ambiguous", "Backlog", true, "ambiguous"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Clear cache between tests
+			resolver.cache = NewCache(5 * time.Minute)
+			_, err := resolver.ResolveState(ctx, tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResolveState(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil {
+				if resErr, ok := err.(*ResolutionError); ok {
+					if len(resErr.Suggestions) == 0 {
+						t.Errorf("ResolveState(%q) error has no suggestions", tt.input)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestResolveState_MultiTeamUniqueNames tests that unique names still work in multi-team
+func TestResolveState_MultiTeamUniqueNames(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// Simulate multi-team with some unique state names
+		resp := map[string]any{
+			"data": map[string]any{
+				"workflowStates": map[string]any{
+					"nodes": []map[string]any{
+						{"id": "team1-backlog", "name": "Backlog", "type": "backlog", "color": "#bbb", "position": 1.0},
+						{"id": "team1-review", "name": "In Review", "type": "started", "color": "#f00", "position": 2.0},
+						{"id": "team2-backlog", "name": "To Do", "type": "backlog", "color": "#ccc", "position": 1.0},
+						{"id": "team2-wip", "name": "Working", "type": "started", "color": "#f00", "position": 2.0},
+					},
+					"pageInfo": map[string]any{"hasNextPage": false},
+				},
+			},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+	}
+
+	resolver := newMockResolver(t, handler)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		input   string
+		want    string
+		wantErr bool
+	}{
+		{"unique name In Review", "In Review", "team1-review", false},
+		{"unique name Working", "Working", "team2-wip", false},
+		{"unique name To Do", "To Do", "team2-backlog", false},
+		{"unique name Backlog", "Backlog", "team1-backlog", false}, // Only one "Backlog" now
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Clear cache between tests
+			resolver.cache = NewCache(5 * time.Minute)
+			got, err := resolver.ResolveState(ctx, tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ResolveState(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ResolveState(%q) = %v, want %v", tt.input, got, tt.want)
 			}
 		})
 	}
