@@ -10,27 +10,39 @@ import (
 // ResolutionError represents a name-to-ID resolution failure.
 // Provides user-friendly messages while preserving internal context.
 type ResolutionError struct {
-	EntityType string // "team", "user", "label", etc.
-	Input      string // What the user provided (safe to expose)
-	Reason     string // User-facing reason
-	Internal   error  // Underlying error (for logging)
+	EntityType  string   // "team", "user", "label", etc.
+	Input       string   // What the user provided (safe to expose)
+	Reason      string   // User-facing reason
+	Suggestions []string // Actionable suggestions for the user
+	Internal    error    // Underlying error (for logging)
 }
 
 // Error implements the error interface.
 func (e *ResolutionError) Error() string {
+	var msg string
 	switch e.Reason {
 	case "fetch failed":
-		return fmt.Sprintf("failed to fetch %s", e.EntityType)
+		msg = fmt.Sprintf("failed to fetch %s", e.EntityType)
 	case "empty input":
-		return fmt.Sprintf("%s name/ID cannot be empty", e.EntityType)
+		msg = fmt.Sprintf("%s name/ID cannot be empty", e.EntityType)
 	case "not found":
-		return fmt.Sprintf("%s not found: %s", e.EntityType, e.Input)
+		msg = fmt.Sprintf("%s not found: %s", e.EntityType, e.Input)
 	default:
 		if e.Input != "" {
-			return fmt.Sprintf("%s %s: %s", e.EntityType, e.Reason, e.Input)
+			msg = fmt.Sprintf("%s %s: %s", e.EntityType, e.Reason, e.Input)
+		} else {
+			msg = fmt.Sprintf("%s %s", e.EntityType, e.Reason)
 		}
-		return fmt.Sprintf("%s %s", e.EntityType, e.Reason)
 	}
+
+	// Append suggestions if present
+	if len(e.Suggestions) > 0 {
+		msg += "\nSuggestions:\n"
+		for _, s := range e.Suggestions {
+			msg += "  - " + s + "\n"
+		}
+	}
+	return msg
 }
 
 // Unwrap returns the wrapped error.
@@ -77,6 +89,8 @@ func (e *ResolutionError) suggestion() string {
 		return "List available initiatives with: linear initiative list"
 	case "document":
 		return "List available documents with: linear document list"
+	case "milestone":
+		return "Use milestone UUID. Find with: linear project get <project> --output=json"
 	default:
 		return fmt.Sprintf("Verify the %s exists", e.EntityType)
 	}

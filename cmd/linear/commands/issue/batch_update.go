@@ -85,6 +85,8 @@ Related: issue_list, issue_update`,
 	cmd.Flags().String("set-description", "", "New description")
 	cmd.Flags().String("set-title", "", "New title")
 	cmd.Flags().Int("set-estimate", -1, "New estimate")
+	cmd.Flags().String("set-due-date", "", "New due date (YYYY-MM-DD, use 'none' to remove)")
+	cmd.Flags().String("set-milestone", "", "New milestone UUID (use 'none' to remove)")
 
 	// Safety flags
 	cmd.Flags().Bool("dry-run", false, "Show what would change without applying")
@@ -267,6 +269,32 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	if setEstimate, _ := cmd.Flags().GetInt("set-estimate"); setEstimate >= 0 {
 		e := int64(setEstimate)
 		input.Estimate = &e
+		updateCount++
+	}
+
+	if cmd.Flags().Changed("set-due-date") {
+		setDueDate, _ := cmd.Flags().GetString("set-due-date")
+		if setDueDate == "none" {
+			empty := ""
+			input.DueDate = &empty
+		} else {
+			input.DueDate = &setDueDate
+		}
+		updateCount++
+	}
+
+	if cmd.Flags().Changed("set-milestone") {
+		setMilestone, _ := cmd.Flags().GetString("set-milestone")
+		if setMilestone == "none" {
+			empty := ""
+			input.ProjectMilestoneID = &empty
+		} else {
+			milestoneID, err := res.ResolveMilestone(ctx, setMilestone)
+			if err != nil {
+				return fmt.Errorf("failed to resolve milestone: %w", err)
+			}
+			input.ProjectMilestoneID = &milestoneID
+		}
 		updateCount++
 	}
 

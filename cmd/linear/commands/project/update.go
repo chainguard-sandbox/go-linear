@@ -8,6 +8,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -37,6 +38,8 @@ Related: project_get, project_list`,
 
 	cmd.Flags().String("name", "", "New project name")
 	cmd.Flags().String("description", "", "New description")
+	cmd.Flags().String("lead", "", "New project lead (user name, email, or ID)")
+	cmd.Flags().StringArray("member", []string{}, "Set project members (replaces all current members)")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
@@ -44,6 +47,7 @@ Related: project_get, project_list`,
 
 func runUpdate(cmd *cobra.Command, client *linear.Client, projectID string) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
 	input := intgraphql.ProjectUpdateInput{}
 	updated := false
@@ -55,6 +59,29 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, projectID string) erro
 
 	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
 		input.Description = &desc
+		updated = true
+	}
+
+	if lead, _ := cmd.Flags().GetString("lead"); lead != "" {
+		leadID, err := res.ResolveUser(ctx, lead)
+		if err != nil {
+			return fmt.Errorf("failed to resolve lead: %w", err)
+		}
+		input.LeadID = &leadID
+		updated = true
+	}
+
+	members, _ := cmd.Flags().GetStringArray("member")
+	if len(members) > 0 {
+		memberIDs := make([]string, 0, len(members))
+		for _, member := range members {
+			memberID, err := res.ResolveUser(ctx, member)
+			if err != nil {
+				return fmt.Errorf("failed to resolve member %q: %w", member, err)
+			}
+			memberIDs = append(memberIDs, memberID)
+		}
+		input.MemberIds = memberIDs
 		updated = true
 	}
 

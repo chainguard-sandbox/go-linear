@@ -167,26 +167,140 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 	})
 }
 
+// stateTypeAliases maps common user-friendly names to workflow state types.
+// State types are: triage, backlog, unstarted, started, completed, canceled
+// Each alias maps to a single type to avoid ambiguity.
+var stateTypeAliases = map[string]string{
+	"todo":        "backlog",   // Most common "todo" interpretation
+	"to do":       "backlog",
+	"to-do":       "backlog",
+	"done":        "completed",
+	"complete":    "completed",
+	"finished":    "completed",
+	"closed":      "completed",
+	"cancelled":   "canceled",
+	"in progress": "started",
+	"in-progress": "started",
+	"wip":         "started",
+	"active":      "started",
+}
+
 // ResolveState resolves a workflow state name to its ID.
-// Accepts: state name or UUID.
+// Accepts: state name, state type, common aliases (todo, done, etc.), or UUID.
+// For aliases/types, only resolves if there's exactly one matching state.
+// In multi-team workspaces with multiple matching states, returns an error
+// with suggestions for disambiguation.
 func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, error) {
-	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListWorkflowStates_WorkflowStates_Nodes]{
-		cachePrefix: "state:",
-		entityName:  "workflow state",
-		fetch: func(ctx context.Context) ([]*intgraphql.ListWorkflowStates_WorkflowStates_Nodes, error) {
-			first := int64(100)
-			resp, err := r.client.WorkflowStates(ctx, &first, nil)
-			if err != nil {
-				return nil, err
+	if nameOrID == "" {
+		return "", &ResolutionError{
+			EntityType: "workflow state",
+			Input:      nameOrID,
+			Reason:     "empty input",
+			Internal:   fmt.Errorf("empty workflow state name/ID"),
+		}
+	}
+
+	// UUID passthrough
+	if uuidRegex.MatchString(nameOrID) {
+		return nameOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "state:" + strings.ToLower(nameOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Fetch all states
+	first := int64(100)
+	resp, err := r.client.WorkflowStates(ctx, &first, nil)
+	if err != nil {
+		return "", newFetchError("workflow state", err)
+	}
+
+	queryLower := strings.ToLower(nameOrID)
+
+	// Check for exact name match first (case-insensitive)
+	// Collect all matches in case of duplicates across teams
+	var nameMatches []*intgraphql.ListWorkflowStates_WorkflowStates_Nodes
+	for _, state := range resp.Nodes {
+		if strings.EqualFold(state.Name, nameOrID) {
+			nameMatches = append(nameMatches, state)
+		}
+	}
+
+	if len(nameMatches) == 1 {
+		r.cache.Set(cacheKey, nameMatches[0].ID)
+		return nameMatches[0].ID, nil
+	}
+	if len(nameMatches) > 1 {
+		// Multiple states with same name across teams
+		return "", &ResolutionError{
+			EntityType: "workflow state",
+			Input:      nameOrID,
+			Reason:     fmt.Sprintf("ambiguous (%d teams have state '%s')", len(nameMatches), nameOrID),
+			Suggestions: []string{
+				"Use the state UUID directly",
+				"Specify --team to disambiguate",
+			},
+			Internal: fmt.Errorf("state name %q exists in %d teams", nameOrID, len(nameMatches)),
+		}
+	}
+
+	// Determine target type for alias/type-based lookup
+	targetType := ""
+	if t, ok := stateTypeAliases[queryLower]; ok {
+		targetType = t
+	} else {
+		// Check if query is a valid state type directly
+		validTypes := []string{"triage", "backlog", "unstarted", "started", "completed", "canceled"}
+		for _, vt := range validTypes {
+			if strings.EqualFold(nameOrID, vt) {
+				targetType = vt
+				break
 			}
-			return resp.Nodes, nil
-		},
-		matches: func(state *intgraphql.ListWorkflowStates_WorkflowStates_Nodes, query string) bool {
-			return strings.EqualFold(state.Name, query)
-		},
-		getID:      func(state *intgraphql.ListWorkflowStates_WorkflowStates_Nodes) string { return state.ID },
-		formatName: func(state *intgraphql.ListWorkflowStates_WorkflowStates_Nodes) string { return state.Name },
-	})
+		}
+	}
+
+	// If we have a target type, find all matching states
+	if targetType != "" {
+		var typeMatches []*intgraphql.ListWorkflowStates_WorkflowStates_Nodes
+		for _, state := range resp.Nodes {
+			if strings.EqualFold(state.Type, targetType) {
+				typeMatches = append(typeMatches, state)
+			}
+		}
+
+		if len(typeMatches) == 1 {
+			// Unambiguous - single team or unique state
+			r.cache.Set(cacheKey, typeMatches[0].ID)
+			return typeMatches[0].ID, nil
+		}
+		if len(typeMatches) > 1 {
+			// Multiple states of same type - collect unique names for suggestions
+			stateNames := make([]string, 0, len(typeMatches))
+			seen := make(map[string]bool)
+			for _, s := range typeMatches {
+				if !seen[s.Name] {
+					stateNames = append(stateNames, fmt.Sprintf("'%s'", s.Name))
+					seen[s.Name] = true
+				}
+			}
+			suggestions := []string{
+				fmt.Sprintf("Use exact state name: %s", strings.Join(stateNames, ", ")),
+				"Use the state UUID directly",
+			}
+			return "", &ResolutionError{
+				EntityType:  "workflow state",
+				Input:       nameOrID,
+				Reason:      fmt.Sprintf("ambiguous (%d states of type '%s')", len(typeMatches), targetType),
+				Suggestions: suggestions,
+				Internal:    fmt.Errorf("alias %q matches %d states", nameOrID, len(typeMatches)),
+			}
+		}
+	}
+
+	return "", newNotFoundError("workflow state", nameOrID, nil)
 }
 
 // ResolveLabel resolves a label name to its ID.
@@ -340,6 +454,33 @@ func (r *Resolver) ResolveDocument(ctx context.Context, titleOrID string) (strin
 		getID:      func(doc *intgraphql.ListDocuments_Documents_Nodes) string { return doc.ID },
 		formatName: func(doc *intgraphql.ListDocuments_Documents_Nodes) string { return doc.Title },
 	})
+}
+
+// ResolveMilestone resolves a milestone ID.
+// Currently only accepts UUIDs. Name-based resolution requires knowing the project.
+// Use: go-linear project milestone-list <project> to find milestone UUIDs.
+func (r *Resolver) ResolveMilestone(ctx context.Context, idOrName string) (string, error) {
+	if idOrName == "" {
+		return "", &ResolutionError{
+			EntityType: "milestone",
+			Input:      idOrName,
+			Reason:     "empty input",
+			Internal:   fmt.Errorf("empty milestone ID"),
+		}
+	}
+
+	// UUID passthrough
+	if uuidRegex.MatchString(idOrName) {
+		return idOrName, nil
+	}
+
+	// Name-based resolution not yet supported
+	return "", &ResolutionError{
+		EntityType: "milestone",
+		Input:      idOrName,
+		Reason:     "name resolution not supported",
+		Internal:   fmt.Errorf("milestone name resolution requires project context"),
+	}
 }
 
 // ResolveTemplate resolves a template name to its ID.

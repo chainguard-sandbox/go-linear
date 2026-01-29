@@ -2918,23 +2918,43 @@ func (t *GetIssue_Issue_Assignee) GetName() string {
 	return t.Name
 }
 
+type GetIssue_Issue_ProjectMilestone struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssue_Issue_ProjectMilestone) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue_ProjectMilestone{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_ProjectMilestone) GetName() string {
+	if t == nil {
+		t = &GetIssue_Issue_ProjectMilestone{}
+	}
+	return t.Name
+}
+
 type GetIssue_Issue struct {
-	ArchivedAt  *time.Time               "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
-	Assignee    *GetIssue_Issue_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
-	CreatedAt   time.Time                "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string                  "json:\"description,omitempty\" graphql:\"description\""
-	Estimate    *float64                 "json:\"estimate,omitempty\" graphql:\"estimate\""
-	ID          string                   "json:\"id\" graphql:\"id\""
-	Identifier  string                   "json:\"identifier\" graphql:\"identifier\""
-	Number      float64                  "json:\"number\" graphql:\"number\""
-	Parent      *GetIssue_Issue_Parent   "json:\"parent,omitempty\" graphql:\"parent\""
-	Priority    float64                  "json:\"priority\" graphql:\"priority\""
-	State       GetIssue_Issue_State     "json:\"state\" graphql:\"state\""
-	Team        GetIssue_Issue_Team      "json:\"team\" graphql:\"team\""
-	Title       string                   "json:\"title\" graphql:\"title\""
-	Trashed     *bool                    "json:\"trashed,omitempty\" graphql:\"trashed\""
-	UpdatedAt   time.Time                "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL         string                   "json:\"url\" graphql:\"url\""
+	ArchivedAt       *time.Time                       "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	Assignee         *GetIssue_Issue_Assignee         "json:\"assignee,omitempty\" graphql:\"assignee\""
+	CreatedAt        time.Time                        "json:\"createdAt\" graphql:\"createdAt\""
+	Description      *string                          "json:\"description,omitempty\" graphql:\"description\""
+	DueDate          *string                          "json:\"dueDate,omitempty\" graphql:\"dueDate\""
+	Estimate         *float64                         "json:\"estimate,omitempty\" graphql:\"estimate\""
+	ID               string                           "json:\"id\" graphql:\"id\""
+	Identifier       string                           "json:\"identifier\" graphql:\"identifier\""
+	Number           float64                          "json:\"number\" graphql:\"number\""
+	Parent           *GetIssue_Issue_Parent           "json:\"parent,omitempty\" graphql:\"parent\""
+	Priority         float64                          "json:\"priority\" graphql:\"priority\""
+	ProjectMilestone *GetIssue_Issue_ProjectMilestone "json:\"projectMilestone,omitempty\" graphql:\"projectMilestone\""
+	State            GetIssue_Issue_State             "json:\"state\" graphql:\"state\""
+	Team             GetIssue_Issue_Team              "json:\"team\" graphql:\"team\""
+	Title            string                           "json:\"title\" graphql:\"title\""
+	Trashed          *bool                            "json:\"trashed,omitempty\" graphql:\"trashed\""
+	UpdatedAt        time.Time                        "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL              string                           "json:\"url\" graphql:\"url\""
 }
 
 func (t *GetIssue_Issue) GetArchivedAt() *time.Time {
@@ -2960,6 +2980,12 @@ func (t *GetIssue_Issue) GetDescription() *string {
 		t = &GetIssue_Issue{}
 	}
 	return t.Description
+}
+func (t *GetIssue_Issue) GetDueDate() *string {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.DueDate
 }
 func (t *GetIssue_Issue) GetEstimate() *float64 {
 	if t == nil {
@@ -2996,6 +3022,12 @@ func (t *GetIssue_Issue) GetPriority() float64 {
 		t = &GetIssue_Issue{}
 	}
 	return t.Priority
+}
+func (t *GetIssue_Issue) GetProjectMilestone() *GetIssue_Issue_ProjectMilestone {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.ProjectMilestone
 }
 func (t *GetIssue_Issue) GetState() *GetIssue_Issue_State {
 	if t == nil {
@@ -3109,21 +3141,41 @@ func (t *ListIssues_Issues_Nodes_Assignee) GetName() string {
 	return t.Name
 }
 
+type ListIssues_Issues_Nodes_ProjectMilestone struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssues_Issues_Nodes_ProjectMilestone) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_ProjectMilestone{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_ProjectMilestone) GetName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_ProjectMilestone{}
+	}
+	return t.Name
+}
+
 type ListIssues_Issues_Nodes struct {
-	ArchivedAt  *time.Time                        "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
-	Assignee    *ListIssues_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
-	CreatedAt   time.Time                         "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string                           "json:\"description,omitempty\" graphql:\"description\""
-	ID          string                            "json:\"id\" graphql:\"id\""
-	Identifier  string                            "json:\"identifier\" graphql:\"identifier\""
-	Number      float64                           "json:\"number\" graphql:\"number\""
-	Priority    float64                           "json:\"priority\" graphql:\"priority\""
-	State       ListIssues_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
-	Team        ListIssues_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
-	Title       string                            "json:\"title\" graphql:\"title\""
-	Trashed     *bool                             "json:\"trashed,omitempty\" graphql:\"trashed\""
-	UpdatedAt   time.Time                         "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL         string                            "json:\"url\" graphql:\"url\""
+	ArchivedAt       *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	Assignee         *ListIssues_Issues_Nodes_Assignee         "json:\"assignee,omitempty\" graphql:\"assignee\""
+	CreatedAt        time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Description      *string                                   "json:\"description,omitempty\" graphql:\"description\""
+	DueDate          *string                                   "json:\"dueDate,omitempty\" graphql:\"dueDate\""
+	ID               string                                    "json:\"id\" graphql:\"id\""
+	Identifier       string                                    "json:\"identifier\" graphql:\"identifier\""
+	Number           float64                                   "json:\"number\" graphql:\"number\""
+	Priority         float64                                   "json:\"priority\" graphql:\"priority\""
+	ProjectMilestone *ListIssues_Issues_Nodes_ProjectMilestone "json:\"projectMilestone,omitempty\" graphql:\"projectMilestone\""
+	State            ListIssues_Issues_Nodes_State             "json:\"state\" graphql:\"state\""
+	Team             ListIssues_Issues_Nodes_Team              "json:\"team\" graphql:\"team\""
+	Title            string                                    "json:\"title\" graphql:\"title\""
+	Trashed          *bool                                     "json:\"trashed,omitempty\" graphql:\"trashed\""
+	UpdatedAt        time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL              string                                    "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListIssues_Issues_Nodes) GetArchivedAt() *time.Time {
@@ -3150,6 +3202,12 @@ func (t *ListIssues_Issues_Nodes) GetDescription() *string {
 	}
 	return t.Description
 }
+func (t *ListIssues_Issues_Nodes) GetDueDate() *string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.DueDate
+}
 func (t *ListIssues_Issues_Nodes) GetID() string {
 	if t == nil {
 		t = &ListIssues_Issues_Nodes{}
@@ -3173,6 +3231,12 @@ func (t *ListIssues_Issues_Nodes) GetPriority() float64 {
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return t.Priority
+}
+func (t *ListIssues_Issues_Nodes) GetProjectMilestone() *ListIssues_Issues_Nodes_ProjectMilestone {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.ProjectMilestone
 }
 func (t *ListIssues_Issues_Nodes) GetState() *ListIssues_Issues_Nodes_State {
 	if t == nil {
@@ -6959,6 +7023,42 @@ func (t *GetProject_Project_Lead) GetName() string {
 	return t.Name
 }
 
+type GetProject_Project_Members_Nodes struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetProject_Project_Members_Nodes) GetEmail() string {
+	if t == nil {
+		t = &GetProject_Project_Members_Nodes{}
+	}
+	return t.Email
+}
+func (t *GetProject_Project_Members_Nodes) GetID() string {
+	if t == nil {
+		t = &GetProject_Project_Members_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetProject_Project_Members_Nodes) GetName() string {
+	if t == nil {
+		t = &GetProject_Project_Members_Nodes{}
+	}
+	return t.Name
+}
+
+type GetProject_Project_Members struct {
+	Nodes []*GetProject_Project_Members_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetProject_Project_Members) GetNodes() []*GetProject_Project_Members_Nodes {
+	if t == nil {
+		t = &GetProject_Project_Members{}
+	}
+	return t.Nodes
+}
+
 type GetProject_Project_Teams_Nodes struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Key  string "json:\"key\" graphql:\"key\""
@@ -7043,6 +7143,7 @@ type GetProject_Project struct {
 	ID              string                         "json:\"id\" graphql:\"id\""
 	Initiatives     GetProject_Project_Initiatives "json:\"initiatives\" graphql:\"initiatives\""
 	Lead            *GetProject_Project_Lead       "json:\"lead,omitempty\" graphql:\"lead\""
+	Members         GetProject_Project_Members     "json:\"members\" graphql:\"members\""
 	Name            string                         "json:\"name\" graphql:\"name\""
 	Progress        float64                        "json:\"progress\" graphql:\"progress\""
 	StartedAt       *time.Time                     "json:\"startedAt,omitempty\" graphql:\"startedAt\""
@@ -7118,6 +7219,12 @@ func (t *GetProject_Project) GetLead() *GetProject_Project_Lead {
 		t = &GetProject_Project{}
 	}
 	return t.Lead
+}
+func (t *GetProject_Project) GetMembers() *GetProject_Project_Members {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return &t.Members
 }
 func (t *GetProject_Project) GetName() string {
 	if t == nil {
@@ -10850,6 +10957,7 @@ const GetIssueDocument = `query GetIssue ($id: String!) {
 		description
 		priority
 		estimate
+		dueDate
 		createdAt
 		updatedAt
 		number
@@ -10874,6 +10982,10 @@ const GetIssueDocument = `query GetIssue ($id: String!) {
 			id
 			name
 			displayName
+		}
+		projectMilestone {
+			id
+			name
 		}
 	}
 }
@@ -10904,6 +11016,7 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 			title
 			description
 			priority
+			dueDate
 			createdAt
 			updatedAt
 			number
@@ -10924,6 +11037,10 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 				name
 				displayName
 				email
+			}
+			projectMilestone {
+				id
+				name
 			}
 		}
 		pageInfo {
@@ -13134,6 +13251,13 @@ const GetProjectDocument = `query GetProject ($id: String!) {
 			id
 			name
 			email
+		}
+		members(first: 50) {
+			nodes {
+				id
+				name
+				email
+			}
 		}
 		teams(first: 10) {
 			nodes {

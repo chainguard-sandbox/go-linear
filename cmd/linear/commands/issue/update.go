@@ -48,6 +48,8 @@ Related: issue_get, issue_create`,
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
+	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD, use 'none' to remove)")
+	cmd.Flags().String("milestone", "", "Project milestone UUID (use 'none' to remove)")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -78,6 +80,16 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 	if cmd.Flags().Changed("project") {
 		if project, _ := cmd.Flags().GetString("project"); project == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("due-date") {
+		if dueDate, _ := cmd.Flags().GetString("due-date"); dueDate == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("milestone") {
+		if milestone, _ := cmd.Flags().GetString("milestone"); milestone == "none" {
 			needsNullable = true
 		}
 	}
@@ -199,6 +211,34 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 				return fmt.Errorf("failed to resolve parent issue: %w", err)
 			}
 			input.ParentID = &parentID
+		}
+		updated = true
+	}
+
+	// Due date assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("due-date") {
+		dueDate, _ := cmd.Flags().GetString("due-date")
+		if dueDate == "none" {
+			empty := ""
+			input.DueDate = &empty
+		} else {
+			input.DueDate = &dueDate
+		}
+		updated = true
+	}
+
+	// Milestone assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("milestone") {
+		milestone, _ := cmd.Flags().GetString("milestone")
+		if milestone == "none" {
+			empty := ""
+			input.ProjectMilestoneID = &empty
+		} else {
+			milestoneID, err := res.ResolveMilestone(ctx, milestone)
+			if err != nil {
+				return fmt.Errorf("failed to resolve milestone: %w", err)
+			}
+			input.ProjectMilestoneID = &milestoneID
 		}
 		updated = true
 	}
@@ -356,6 +396,28 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 				return fmt.Errorf("failed to resolve parent issue: %w", err)
 			}
 			input.ParentID = linear.NewValue(parentID)
+		}
+	}
+
+	if cmd.Flags().Changed("due-date") {
+		dueDate, _ := cmd.Flags().GetString("due-date")
+		if dueDate == "none" {
+			input.DueDate = linear.NewNull[string]()
+		} else {
+			input.DueDate = linear.NewValue(dueDate)
+		}
+	}
+
+	if cmd.Flags().Changed("milestone") {
+		milestone, _ := cmd.Flags().GetString("milestone")
+		if milestone == "none" {
+			input.ProjectMilestoneID = linear.NewNull[string]()
+		} else {
+			milestoneID, err := res.ResolveMilestone(ctx, milestone)
+			if err != nil {
+				return fmt.Errorf("failed to resolve milestone: %w", err)
+			}
+			input.ProjectMilestoneID = linear.NewValue(milestoneID)
 		}
 	}
 

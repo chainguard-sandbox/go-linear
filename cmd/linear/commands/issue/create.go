@@ -56,6 +56,8 @@ Related: issue_get, issue_list`,
 	cmd.Flags().String("project", "", "Project name or UUID")
 	cmd.Flags().String("parent", "", "Parent issue ID (creates sub-issue)")
 	cmd.Flags().Int("estimate", -1, "Story points/estimate")
+	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD)")
+	cmd.Flags().String("milestone", "", "Project milestone name or UUID")
 
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
@@ -179,6 +181,18 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
 		e := int64(estimate)
 		input.Estimate = &e
+	}
+
+	if dueDate, _ := cmd.Flags().GetString("due-date"); dueDate != "" {
+		input.DueDate = &dueDate
+	}
+
+	if milestone, _ := cmd.Flags().GetString("milestone"); milestone != "" {
+		milestoneID, err := res.ResolveMilestone(ctx, milestone)
+		if err != nil {
+			return fmt.Errorf("failed to resolve milestone: %w", err)
+		}
+		input.ProjectMilestoneID = &milestoneID
 	}
 
 	// Create issue

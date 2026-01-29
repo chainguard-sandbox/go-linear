@@ -116,9 +116,11 @@ type IssueUpdateNullableInput struct {
 	RemovedLabelIds []string
 
 	// Nullable fields - support explicit null for removal
-	CycleID   Nullable[string]
-	ParentID  Nullable[string]
-	ProjectID Nullable[string]
+	CycleID            Nullable[string]
+	ParentID           Nullable[string]
+	ProjectID          Nullable[string]
+	DueDate            Nullable[string]
+	ProjectMilestoneID Nullable[string]
 }
 
 // ToMap converts to map for JSON encoding with explicit null support.
@@ -174,6 +176,26 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 				m["projectId"] = nil // Explicit null
 			} else {
 				m["projectId"] = *val
+			}
+		}
+	}
+
+	if i.DueDate.IsSet() {
+		if val, ok := i.DueDate.Get(); ok {
+			if val == nil {
+				m["dueDate"] = nil // Explicit null
+			} else {
+				m["dueDate"] = *val
+			}
+		}
+	}
+
+	if i.ProjectMilestoneID.IsSet() {
+		if val, ok := i.ProjectMilestoneID.Get(); ok {
+			if val == nil {
+				m["projectMilestoneId"] = nil // Explicit null
+			} else {
+				m["projectMilestoneId"] = *val
 			}
 		}
 	}

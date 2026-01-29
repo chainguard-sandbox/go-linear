@@ -6,6 +6,7 @@ query GetIssue($id: String!) {
     description
     priority
     estimate
+    dueDate
     createdAt
     updatedAt
     number
@@ -31,6 +32,10 @@ query GetIssue($id: String!) {
       name
       displayName
     }
+    projectMilestone {
+      id
+      name
+    }
   }
 }
 
@@ -42,6 +47,7 @@ query ListIssues($first: Int, $after: String) {
       title
       description
       priority
+      dueDate
       createdAt
       updatedAt
       number
@@ -62,6 +68,10 @@ query ListIssues($first: Int, $after: String) {
         name
         displayName
         email
+      }
+      projectMilestone {
+        id
+        name
       }
     }
     pageInfo {

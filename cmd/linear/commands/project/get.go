@@ -100,6 +100,13 @@ func runGet(cmd *cobra.Command, client *linear.Client, projectID string, flags *
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "Teams:    %s\n", strings.Join(teamNames, ", "))
 		}
+		if len(project.Members.Nodes) > 0 {
+			memberNames := make([]string, len(project.Members.Nodes))
+			for i, member := range project.Members.Nodes {
+				memberNames[i] = member.Name
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Members:  %s\n", strings.Join(memberNames, ", "))
+		}
 
 		// Timeline
 		if project.TargetDate != nil {

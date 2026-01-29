@@ -43,6 +43,8 @@ Related: project_list, project_get, team_list`,
 	_ = cmd.MarkFlagRequired("team")
 
 	cmd.Flags().String("description", "", "Project description")
+	cmd.Flags().String("lead", "", "Project lead (user name, email, or ID)")
+	cmd.Flags().StringArray("member", []string{}, "Project members (user name, email, or ID - repeatable)")
 	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
@@ -67,6 +69,27 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 
 	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
 		input.Description = &desc
+	}
+
+	if lead, _ := cmd.Flags().GetString("lead"); lead != "" {
+		leadID, err := res.ResolveUser(ctx, lead)
+		if err != nil {
+			return fmt.Errorf("failed to resolve lead: %w", err)
+		}
+		input.LeadID = &leadID
+	}
+
+	members, _ := cmd.Flags().GetStringArray("member")
+	if len(members) > 0 {
+		memberIDs := make([]string, 0, len(members))
+		for _, member := range members {
+			memberID, err := res.ResolveUser(ctx, member)
+			if err != nil {
+				return fmt.Errorf("failed to resolve member %q: %w", member, err)
+			}
+			memberIDs = append(memberIDs, memberID)
+		}
+		input.MemberIds = memberIDs
 	}
 
 	result, err := client.ProjectCreate(ctx, input)
