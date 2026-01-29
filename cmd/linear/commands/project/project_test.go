@@ -144,9 +144,15 @@ func TestNewCreateCommand(t *testing.T) {
 	if cmd.Use != "create" {
 		t.Errorf("Use = %q, want %q", cmd.Use, "create")
 	}
-	if cmd.Flags().Lookup("name") == nil {
-		t.Error("Expected name flag")
-	}
+
+	t.Run("flags exist", func(t *testing.T) {
+		expectedFlags := []string{"name", "team", "description", "lead", "member", "output"}
+		for _, flag := range expectedFlags {
+			if cmd.Flags().Lookup(flag) == nil {
+				t.Errorf("Expected flag %q not found", flag)
+			}
+		}
+	})
 }
 
 func TestRunCreate(t *testing.T) {
@@ -174,6 +180,15 @@ func TestNewUpdateCommand(t *testing.T) {
 	if !strings.HasPrefix(cmd.Use, "update") {
 		t.Errorf("Use = %q, want prefix update", cmd.Use)
 	}
+
+	t.Run("flags exist", func(t *testing.T) {
+		expectedFlags := []string{"name", "description", "lead", "member", "output"}
+		for _, flag := range expectedFlags {
+			if cmd.Flags().Lookup(flag) == nil {
+				t.Errorf("Expected flag %q not found", flag)
+			}
+		}
+	})
 }
 
 func TestRunUpdate(t *testing.T) {

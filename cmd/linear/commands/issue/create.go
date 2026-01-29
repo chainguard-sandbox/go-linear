@@ -21,9 +21,9 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Long: `Create issue. Safe operation. Uses config defaults for team/labels.
 
 Required: --title
-Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label (from config)
+Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label, --due-date=YYYY-MM-DD, --milestone=<uuid>
 
-Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --output=json
+Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --due-date=2025-03-01 --output=json
 
 Related: issue_get, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

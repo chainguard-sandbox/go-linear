@@ -19,9 +19,9 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --parent, --add-label, --remove-label, --link-pr (owner/repo#123)
+Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
 
-Example: go-linear issue update ENG-123 --state=Done --parent=ENG-100 --link-pr=org/repo#123 --output=json
+Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01 --output=json
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),

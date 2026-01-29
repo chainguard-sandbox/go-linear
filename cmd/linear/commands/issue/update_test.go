@@ -27,6 +27,7 @@ func TestNewUpdateCommand(t *testing.T) {
 			"title", "description", "assignee", "state",
 			"priority", "cycle", "project", "parent",
 			"add-label", "remove-label", "output",
+			"due-date", "milestone",
 		}
 		for _, flag := range expectedFlags {
 			if cmd.Flags().Lookup(flag) == nil {

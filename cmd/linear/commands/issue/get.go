@@ -85,6 +85,12 @@ func runGet(cmd *cobra.Command, client *linear.Client, issueID string, flags *cl
 			fmt.Fprintf(cmd.OutOrStdout(), "Assignee:    %s\n", issue.Assignee.Name)
 		}
 		fmt.Fprintf(cmd.OutOrStdout(), "Priority:    %.0f\n", issue.Priority)
+		if issue.DueDate != nil && *issue.DueDate != "" {
+			fmt.Fprintf(cmd.OutOrStdout(), "Due Date:    %s\n", *issue.DueDate)
+		}
+		if issue.ProjectMilestone != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Milestone:   %s\n", issue.ProjectMilestone.Name)
+		}
 		fmt.Fprintf(cmd.OutOrStdout(), "Updated:     %s\n", issue.UpdatedAt)
 		return nil
 	default:

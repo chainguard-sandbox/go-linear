@@ -20,9 +20,9 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Long: `Create project. Safe operation.
 
 Required: --name, --team (from team_list)
-Optional: --description
+Optional: --description, --lead (user), --member (user, repeatable)
 
-Example: go-linear project create --name="Q1 Platform" --team=ENG --description="Platform improvements" --output=json
+Example: go-linear project create --name="Q1 Platform" --team=ENG --lead=me --member=john@co.com --output=json
 
 Related: project_list, project_get, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {

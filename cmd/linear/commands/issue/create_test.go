@@ -37,6 +37,7 @@ func TestNewCreateCommand(t *testing.T) {
 			"team", "description", "assignee", "state",
 			"priority", "label", "cycle", "project",
 			"parent", "estimate", "output",
+			"due-date", "milestone",
 		}
 		for _, flag := range expectedFlags {
 			if cmd.Flags().Lookup(flag) == nil {
