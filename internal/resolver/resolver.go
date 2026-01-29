@@ -49,10 +49,17 @@ type entityMatcher[T any] struct {
 // 5. Find matches
 // 6. Handle ambiguity
 // 7. Cache and return
+//
+// Returns ResolutionError for user-facing errors with suggestions.
 func resolve[T any](r *Resolver, ctx context.Context, nameOrID string, matcher entityMatcher[T]) (string, error) {
 	// Empty check
 	if nameOrID == "" {
-		return "", fmt.Errorf("%s name/ID cannot be empty", matcher.entityName)
+		return "", &ResolutionError{
+			EntityType: matcher.entityName,
+			Input:      nameOrID,
+			Reason:     "empty input",
+			Internal:   fmt.Errorf("empty %s name/ID", matcher.entityName),
+		}
 	}
 
 	// UUID passthrough
@@ -66,10 +73,10 @@ func resolve[T any](r *Resolver, ctx context.Context, nameOrID string, matcher e
 		return id, nil
 	}
 
-	// Fetch entities
+	// Fetch entities - wrap errors without exposing internal details
 	entities, err := matcher.fetch(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch %ss: %w", matcher.entityName, err)
+		return "", newFetchError(matcher.entityName, err)
 	}
 
 	// Find matches
@@ -84,16 +91,16 @@ func resolve[T any](r *Resolver, ctx context.Context, nameOrID string, matcher e
 
 	// Handle no matches
 	if len(matchedIDs) == 0 {
-		return "", fmt.Errorf("%s not found: %s", matcher.entityName, nameOrID)
+		return "", newNotFoundError(matcher.entityName, nameOrID, nil)
 	}
 
-	// Handle ambiguity
+	// Handle ambiguity - collect names for internal logging only
 	if len(matchedIDs) > 1 {
 		names := make([]string, len(matchedEntities))
 		for i, entity := range matchedEntities {
 			names[i] = matcher.formatName(entity)
 		}
-		return "", fmt.Errorf("ambiguous %s name %q, matches: %s", matcher.entityName, nameOrID, strings.Join(names, ", "))
+		return "", newAmbiguousError(matcher.entityName, nameOrID, names)
 	}
 
 	// Cache and return
@@ -132,7 +139,7 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 	if strings.EqualFold(nameOrEmailOrID, "me") {
 		viewer, err := r.client.Viewer(ctx)
 		if err != nil {
-			return "", fmt.Errorf("failed to get current user: %w", err)
+			return "", newFetchError("user", err)
 		}
 		return viewer.ID, nil
 	}
@@ -208,7 +215,12 @@ func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, e
 // Accepts: issue identifier (e.g., "ENG-123"), issue number, or UUID.
 func (r *Resolver) ResolveIssue(ctx context.Context, identifierOrID string) (string, error) {
 	if identifierOrID == "" {
-		return "", fmt.Errorf("issue identifier/ID cannot be empty")
+		return "", &ResolutionError{
+			EntityType: "issue",
+			Input:      identifierOrID,
+			Reason:     "empty input",
+			Internal:   fmt.Errorf("empty issue identifier/ID"),
+		}
 	}
 
 	// Check if already a UUID
@@ -225,11 +237,11 @@ func (r *Resolver) ResolveIssue(ctx context.Context, identifierOrID string) (str
 	// Use direct issue lookup - Linear's issue(id:) query accepts both UUIDs and identifiers
 	result, err := r.client.Issue(ctx, identifierOrID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get issue %q: %w", identifierOrID, err)
+		return "", newFetchError("issue", err)
 	}
 
 	if result == nil {
-		return "", fmt.Errorf("issue not found: %s", identifierOrID)
+		return "", newNotFoundError("issue", identifierOrID, nil)
 	}
 
 	// Cache and return
