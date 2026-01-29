@@ -18,7 +18,19 @@ type ResolutionError struct {
 
 // Error implements the error interface.
 func (e *ResolutionError) Error() string {
-	return fmt.Sprintf("%s not found: %s", e.EntityType, e.Input)
+	switch e.Reason {
+	case "fetch failed":
+		return fmt.Sprintf("failed to fetch %s", e.EntityType)
+	case "empty input":
+		return fmt.Sprintf("%s name/ID cannot be empty", e.EntityType)
+	case "not found":
+		return fmt.Sprintf("%s not found: %s", e.EntityType, e.Input)
+	default:
+		if e.Input != "" {
+			return fmt.Sprintf("%s %s: %s", e.EntityType, e.Reason, e.Input)
+		}
+		return fmt.Sprintf("%s %s", e.EntityType, e.Reason)
+	}
 }
 
 // Unwrap returns the wrapped error.
@@ -41,6 +53,11 @@ func (e *ResolutionError) ToErrorContext(operation string) *linear.ErrorContext 
 
 // suggestion provides actionable guidance based on error type.
 func (e *ResolutionError) suggestion() string {
+	// For fetch errors, suggest checking connectivity
+	if e.Reason == "fetch failed" {
+		return "Check your network connection and API key"
+	}
+
 	switch e.EntityType {
 	case "team":
 		return "List available teams with: linear team list"
@@ -54,6 +71,12 @@ func (e *ResolutionError) suggestion() string {
 		return "List available states with: linear state list"
 	case "cycle":
 		return "List available cycles with: linear cycle list"
+	case "issue":
+		return "Check the issue identifier (e.g., ENG-123)"
+	case "initiative":
+		return "List available initiatives with: linear initiative list"
+	case "document":
+		return "List available documents with: linear document list"
 	default:
 		return fmt.Sprintf("Verify the %s exists", e.EntityType)
 	}
