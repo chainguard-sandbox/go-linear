@@ -60,12 +60,16 @@ func runArchive(cmd *cobra.Command, client *linear.Client, initiativeID string, 
 		return fmt.Errorf("failed to archive initiative: %w", err)
 	}
 
-	if outputFlags.Output == "json" {
+	switch outputFlags.Output {
+	case "json":
 		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
 			"success":      true,
 			"initiativeId": initiativeID,
 		}, true)
+	case "table":
+		fmt.Fprintf(cmd.OutOrStdout(), "Initiative %s archived successfully\n", initiativeID)
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Initiative %s archived successfully\n", initiativeID)
-	return nil
 }

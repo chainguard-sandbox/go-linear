@@ -60,12 +60,16 @@ func runUnarchive(cmd *cobra.Command, client *linear.Client, teamID string, outp
 		return fmt.Errorf("failed to unarchive team: %w", err)
 	}
 
-	if outputFlags.Output == "json" {
+	switch outputFlags.Output {
+	case "json":
 		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
 			"success": true,
 			"teamId":  teamID,
 		}, true)
+	case "table":
+		fmt.Fprintf(cmd.OutOrStdout(), "Team %s unarchived successfully\n", teamID)
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Team %s unarchived successfully\n", teamID)
-	return nil
 }

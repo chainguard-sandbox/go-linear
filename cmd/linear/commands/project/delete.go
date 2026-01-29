@@ -54,11 +54,15 @@ Related: project_list, project_get`,
 				return fmt.Errorf("failed to delete project: %w", err)
 			}
 
-			if outputFlags.Output == "json" {
+			switch outputFlags.Output {
+			case "json":
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
+			case "table":
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Project deleted\n")
+				return nil
+			default:
+				return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Project deleted\n")
-			return nil
 		},
 	}
 

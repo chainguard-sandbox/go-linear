@@ -68,9 +68,13 @@ func runStatusUpdateArchive(cmd *cobra.Command, client *linear.Client, updateID 
 		return fmt.Errorf("failed to archive initiative status update: %w", err)
 	}
 
-	if outputFlags.Output == "json" {
+	switch outputFlags.Output {
+	case "json":
 		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
+	case "table":
+		fmt.Fprintf(cmd.OutOrStdout(), "✓ Initiative status update archived\n")
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "✓ Initiative status update archived\n")
-	return nil
 }

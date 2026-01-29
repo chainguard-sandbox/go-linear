@@ -54,11 +54,15 @@ Related: initiative_list, initiative_get`,
 				return fmt.Errorf("failed to delete initiative: %w", err)
 			}
 
-			if outputFlags.Output == "json" {
+			switch outputFlags.Output {
+			case "json":
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
+			case "table":
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Initiative deleted\n")
+				return nil
+			default:
+				return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Initiative deleted\n")
-			return nil
 		},
 	}
 

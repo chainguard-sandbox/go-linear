@@ -68,9 +68,13 @@ func runDelete(cmd *cobra.Command, client *linear.Client, documentID string, con
 		return fmt.Errorf("failed to delete document: %w", err)
 	}
 
-	if outputFlags.Output == "json" {
+	switch outputFlags.Output {
+	case "json":
 		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
+	case "table":
+		fmt.Fprintf(cmd.OutOrStdout(), "✓ Document deleted\n")
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "✓ Document deleted\n")
-	return nil
 }

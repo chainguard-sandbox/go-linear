@@ -51,9 +51,16 @@ func runUnarchive(cmd *cobra.Command, client *linear.Client, documentID string, 
 		return fmt.Errorf("failed to unarchive document: %w", err)
 	}
 
-	if outputFlags.Output == "json" {
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
+	switch outputFlags.Output {
+	case "json":
+		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+			"success":    true,
+			"documentId": documentID,
+		}, true)
+	case "table":
+		fmt.Fprintf(cmd.OutOrStdout(), "Document %s unarchived successfully\n", documentID)
+		return nil
+	default:
+		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Document unarchived successfully\n")
-	return nil
 }

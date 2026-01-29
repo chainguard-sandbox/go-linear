@@ -38,11 +38,15 @@ Related: cycle_list, cycle_get`,
 				return fmt.Errorf("failed to archive cycle: %w", err)
 			}
 
-			if outputFlags.Output == "json" {
+			switch outputFlags.Output {
+			case "json":
 				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
+			case "table":
+				fmt.Fprintf(cmd.OutOrStdout(), "✓ Archived cycle\n")
+				return nil
+			default:
+				return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Archived cycle\n")
-			return nil
 		},
 	}
 
