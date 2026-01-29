@@ -87,6 +87,14 @@ const (
 			}
 		}
 	}`
+
+	mockDocumentUnarchiveResponse = `{
+		"data": {
+			"documentUnarchive": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -96,5 +104,6 @@ func defaultHandlers() map[string]string {
 	handlers["CreateDocument"] = mockDocumentCreateResponse
 	handlers["UpdateDocument"] = mockDocumentUpdateResponse
 	handlers["DeleteDocument"] = mockDocumentDeleteResponse
+	handlers["UnarchiveDocument"] = mockDocumentUnarchiveResponse
 	return handlers
 }
