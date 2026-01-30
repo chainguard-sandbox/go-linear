@@ -25,6 +25,7 @@ func NewProjectCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewDeleteCommand(clientFactory))
 	cmd.AddCommand(NewArchiveCommand(clientFactory))
 	cmd.AddCommand(NewUnarchiveCommand(clientFactory))
+	cmd.AddCommand(NewStatusListCommand(clientFactory))
 	cmd.AddCommand(NewMilestoneListCommand(clientFactory))
 	cmd.AddCommand(NewMilestoneCreateCommand(clientFactory))
 	cmd.AddCommand(NewMilestoneUpdateCommand(clientFactory))
