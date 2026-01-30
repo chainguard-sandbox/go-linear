@@ -156,6 +156,9 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, projectID string) erro
 	}
 
 	if priority, _ := cmd.Flags().GetInt("priority"); priority >= 0 {
+		if priority > 4 {
+			return fmt.Errorf("invalid priority %d: must be 0-4 (0=none, 1=urgent, 2=high, 3=normal, 4=low)", priority)
+		}
 		p := int64(priority)
 		input.Priority = &p
 		updated = true

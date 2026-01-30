@@ -184,6 +184,9 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if setPriority, _ := cmd.Flags().GetInt("set-priority"); setPriority >= 0 {
+		if setPriority > 4 {
+			return fmt.Errorf("invalid priority %d: must be 0-4 (0=none, 1=urgent, 2=high, 3=normal, 4=low)", setPriority)
+		}
 		p := int64(setPriority)
 		input.Priority = &p
 		updateCount++
