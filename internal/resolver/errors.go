@@ -111,13 +111,15 @@ func sanitizeInput(input string) string {
 	return fmt.Sprintf("%s... (%d chars)", input[:3], len(input))
 }
 
-// newResolutionError creates a ResolutionError for "not found" cases.
-func newNotFoundError(entityType, input string, fetchErr error) error {
+// newNotFoundError creates a ResolutionError for "not found" cases.
+// If available is provided, shows suggestions to the user.
+func newNotFoundError(entityType, input string, available []string) error {
 	return &ResolutionError{
-		EntityType: entityType,
-		Input:      input,
-		Reason:     "not found",
-		Internal:   fetchErr,
+		EntityType:  entityType,
+		Input:       input,
+		Reason:      "not found",
+		Suggestions: available,
+		Internal:    fmt.Errorf("%s %q not found", entityType, input),
 	}
 }
 

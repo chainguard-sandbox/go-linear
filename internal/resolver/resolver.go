@@ -89,9 +89,13 @@ func resolve[T any](r *Resolver, ctx context.Context, nameOrID string, matcher e
 		}
 	}
 
-	// Handle no matches
+	// Handle no matches - collect available names for suggestions
 	if len(matchedIDs) == 0 {
-		return "", newNotFoundError(matcher.entityName, nameOrID, nil)
+		available := make([]string, len(entities))
+		for i, entity := range entities {
+			available[i] = matcher.formatName(entity)
+		}
+		return "", newNotFoundError(matcher.entityName, nameOrID, available)
 	}
 
 	// Handle ambiguity - collect names for internal logging only
@@ -300,7 +304,16 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 		}
 	}
 
-	return "", newNotFoundError("workflow state", nameOrID, nil)
+	// Collect available state names for helpful error
+	available := make([]string, 0, len(resp.Nodes))
+	seen := make(map[string]bool)
+	for _, state := range resp.Nodes {
+		if !seen[state.Name] {
+			available = append(available, state.Name)
+			seen[state.Name] = true
+		}
+	}
+	return "", newNotFoundError("workflow state", nameOrID, available)
 }
 
 // ResolveLabel resolves a label name to its ID.
@@ -542,17 +555,10 @@ func (r *Resolver) ResolveProjectStatus(ctx context.Context, nameOrID string) (s
 		}
 	}
 
-	// Not found - collect available names for helpful error
+	// Collect available names for helpful error
 	available := make([]string, 0, len(statuses))
 	for _, status := range statuses {
 		available = append(available, status.Name)
 	}
-
-	return "", &ResolutionError{
-		EntityType:  "project status",
-		Input:       nameOrID,
-		Reason:      "not found",
-		Suggestions: available,
-		Internal:    fmt.Errorf("project status %q not found", nameOrID),
-	}
+	return "", newNotFoundError("project status", nameOrID, available)
 }
