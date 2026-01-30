@@ -139,6 +139,18 @@ func runGet(cmd *cobra.Command, client *linear.Client, projectID string, flags *
 			}
 		}
 
+		// Milestones
+		if len(project.ProjectMilestones.Nodes) > 0 {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nMilestones: %d\n", len(project.ProjectMilestones.Nodes))
+			for _, m := range project.ProjectMilestones.Nodes {
+				if m.TargetDate != nil && *m.TargetDate != "" {
+					fmt.Fprintf(cmd.OutOrStdout(), "  - %s (target: %s) [%s]\n", m.Name, *m.TargetDate, m.ID)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "  - %s [%s]\n", m.Name, m.ID)
+				}
+			}
+		}
+
 		// Additional info
 		if project.Description != "" {
 			fmt.Fprintf(cmd.OutOrStdout(), "\nDescription:\n%s\n", project.Description)

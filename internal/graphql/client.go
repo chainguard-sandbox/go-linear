@@ -7131,27 +7131,78 @@ func (t *GetProject_Project_Initiatives) GetNodes() []*GetProject_Project_Initia
 	return t.Nodes
 }
 
+type GetProject_Project_ProjectMilestones_Nodes struct {
+	Description *string "json:\"description,omitempty\" graphql:\"description\""
+	ID          string  "json:\"id\" graphql:\"id\""
+	Name        string  "json:\"name\" graphql:\"name\""
+	SortOrder   float64 "json:\"sortOrder\" graphql:\"sortOrder\""
+	TargetDate  *string "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+}
+
+func (t *GetProject_Project_ProjectMilestones_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &GetProject_Project_ProjectMilestones_Nodes{}
+	}
+	return t.Description
+}
+func (t *GetProject_Project_ProjectMilestones_Nodes) GetID() string {
+	if t == nil {
+		t = &GetProject_Project_ProjectMilestones_Nodes{}
+	}
+	return t.ID
+}
+func (t *GetProject_Project_ProjectMilestones_Nodes) GetName() string {
+	if t == nil {
+		t = &GetProject_Project_ProjectMilestones_Nodes{}
+	}
+	return t.Name
+}
+func (t *GetProject_Project_ProjectMilestones_Nodes) GetSortOrder() float64 {
+	if t == nil {
+		t = &GetProject_Project_ProjectMilestones_Nodes{}
+	}
+	return t.SortOrder
+}
+func (t *GetProject_Project_ProjectMilestones_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &GetProject_Project_ProjectMilestones_Nodes{}
+	}
+	return t.TargetDate
+}
+
+type GetProject_Project_ProjectMilestones struct {
+	Nodes []*GetProject_Project_ProjectMilestones_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetProject_Project_ProjectMilestones) GetNodes() []*GetProject_Project_ProjectMilestones_Nodes {
+	if t == nil {
+		t = &GetProject_Project_ProjectMilestones{}
+	}
+	return t.Nodes
+}
+
 type GetProject_Project struct {
-	CanceledAt      *time.Time                     "json:\"canceledAt,omitempty\" graphql:\"canceledAt\""
-	Color           string                         "json:\"color\" graphql:\"color\""
-	CompletedAt     *time.Time                     "json:\"completedAt,omitempty\" graphql:\"completedAt\""
-	CreatedAt       time.Time                      "json:\"createdAt\" graphql:\"createdAt\""
-	Description     string                         "json:\"description\" graphql:\"description\""
-	Health          *ProjectUpdateHealthType       "json:\"health,omitempty\" graphql:\"health\""
-	HealthUpdatedAt *time.Time                     "json:\"healthUpdatedAt,omitempty\" graphql:\"healthUpdatedAt\""
-	Icon            *string                        "json:\"icon,omitempty\" graphql:\"icon\""
-	ID              string                         "json:\"id\" graphql:\"id\""
-	Initiatives     GetProject_Project_Initiatives "json:\"initiatives\" graphql:\"initiatives\""
-	Lead            *GetProject_Project_Lead       "json:\"lead,omitempty\" graphql:\"lead\""
-	Members         GetProject_Project_Members     "json:\"members\" graphql:\"members\""
-	Name            string                         "json:\"name\" graphql:\"name\""
-	Progress        float64                        "json:\"progress\" graphql:\"progress\""
-	StartedAt       *time.Time                     "json:\"startedAt,omitempty\" graphql:\"startedAt\""
-	State           string                         "json:\"state\" graphql:\"state\""
-	TargetDate      *string                        "json:\"targetDate,omitempty\" graphql:\"targetDate\""
-	Teams           GetProject_Project_Teams       "json:\"teams\" graphql:\"teams\""
-	UpdatedAt       time.Time                      "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL             string                         "json:\"url\" graphql:\"url\""
+	CanceledAt        *time.Time                           "json:\"canceledAt,omitempty\" graphql:\"canceledAt\""
+	Color             string                               "json:\"color\" graphql:\"color\""
+	CompletedAt       *time.Time                           "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CreatedAt         time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
+	Description       string                               "json:\"description\" graphql:\"description\""
+	Health            *ProjectUpdateHealthType             "json:\"health,omitempty\" graphql:\"health\""
+	HealthUpdatedAt   *time.Time                           "json:\"healthUpdatedAt,omitempty\" graphql:\"healthUpdatedAt\""
+	Icon              *string                              "json:\"icon,omitempty\" graphql:\"icon\""
+	ID                string                               "json:\"id\" graphql:\"id\""
+	Initiatives       GetProject_Project_Initiatives       "json:\"initiatives\" graphql:\"initiatives\""
+	Lead              *GetProject_Project_Lead             "json:\"lead,omitempty\" graphql:\"lead\""
+	Members           GetProject_Project_Members           "json:\"members\" graphql:\"members\""
+	Name              string                               "json:\"name\" graphql:\"name\""
+	Progress          float64                              "json:\"progress\" graphql:\"progress\""
+	ProjectMilestones GetProject_Project_ProjectMilestones "json:\"projectMilestones\" graphql:\"projectMilestones\""
+	StartedAt         *time.Time                           "json:\"startedAt,omitempty\" graphql:\"startedAt\""
+	State             string                               "json:\"state\" graphql:\"state\""
+	TargetDate        *string                              "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	Teams             GetProject_Project_Teams             "json:\"teams\" graphql:\"teams\""
+	UpdatedAt         time.Time                            "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL               string                               "json:\"url\" graphql:\"url\""
 }
 
 func (t *GetProject_Project) GetCanceledAt() *time.Time {
@@ -7237,6 +7288,12 @@ func (t *GetProject_Project) GetProgress() float64 {
 		t = &GetProject_Project{}
 	}
 	return t.Progress
+}
+func (t *GetProject_Project) GetProjectMilestones() *GetProject_Project_ProjectMilestones {
+	if t == nil {
+		t = &GetProject_Project{}
+	}
+	return &t.ProjectMilestones
 }
 func (t *GetProject_Project) GetStartedAt() *time.Time {
 	if t == nil {
@@ -13271,6 +13328,15 @@ const GetProjectDocument = `query GetProject ($id: String!) {
 				id
 				name
 				status
+			}
+		}
+		projectMilestones(first: 50) {
+			nodes {
+				id
+				name
+				description
+				targetDate
+				sortOrder
 			}
 		}
 	}

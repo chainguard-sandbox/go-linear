@@ -237,6 +237,54 @@ func TestRunDelete(t *testing.T) {
 	})
 }
 
+func TestNewMilestoneListCommand(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+	cmd := NewMilestoneListCommand(factory)
+
+	if cmd.Use != "milestone-list <project>" {
+		t.Errorf("Use = %q, want %q", cmd.Use, "milestone-list <project>")
+	}
+	if cmd.Flags().Lookup("output") == nil {
+		t.Error("Expected output flag")
+	}
+}
+
+func TestRunMilestoneList(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	t.Run("json output", func(t *testing.T) {
+		cmd := NewMilestoneListCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"Test Project", "--output=json"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		output := buf.String()
+		if !strings.Contains(output, "Q1 2025") {
+			t.Errorf("Expected milestone name in output, got: %s", output)
+		}
+	})
+
+	t.Run("table output", func(t *testing.T) {
+		cmd := NewMilestoneListCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"Test Project", "--output=table"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		output := buf.String()
+		if !strings.Contains(output, "Q1 2025") {
+			t.Errorf("Expected milestone name in output, got: %s", output)
+		}
+	})
+}
+
 func TestNewMilestoneCreateCommand(t *testing.T) {
 	server := testutil.MockServer(t, defaultHandlers())
 	defer server.Close()

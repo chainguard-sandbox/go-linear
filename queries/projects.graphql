@@ -42,6 +42,15 @@ query GetProject($id: String!) {
         status
       }
     }
+    projectMilestones(first: 50) {
+      nodes {
+        id
+        name
+        description
+        targetDate
+        sortOrder
+      }
+    }
   }
 }
 
