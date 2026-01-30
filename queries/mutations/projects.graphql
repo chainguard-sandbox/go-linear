@@ -31,6 +31,12 @@ mutation DeleteProject($id: String!) {
   }
 }
 
+mutation ArchiveProject($id: String!) {
+  projectArchive(id: $id) {
+    success
+  }
+}
+
 mutation UnarchiveProject($id: String!) {
   projectUnarchive(id: $id) {
     success

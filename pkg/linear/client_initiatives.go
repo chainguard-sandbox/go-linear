@@ -73,6 +73,30 @@ func (c *Client) InitiativesFiltered(ctx context.Context, first *int64, after *s
 	return &resp.Initiatives, nil
 }
 
+// SubInitiatives retrieves a paginated list of sub-initiatives for a parent initiative.
+//
+// Parameters:
+//   - id: Parent initiative UUID (required)
+//   - first: Number of sub-initiatives to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - SubInitiatives.Nodes: Array of sub-initiatives (may be empty)
+//   - SubInitiatives.PageInfo.HasNextPage: true if more results available
+//   - SubInitiatives.PageInfo.EndCursor: Cursor for next page
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [Initiative], [Initiatives]
+func (c *Client) SubInitiatives(ctx context.Context, id string, first *int64, after *string) (*intgraphql.ListSubInitiatives_Initiative_SubInitiatives, error) {
+	resp, err := c.gqlClient.ListSubInitiatives(ctx, id, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("sub-initiatives query", err)
+	}
+	return &resp.Initiative.SubInitiatives, nil
+}
+
 // InitiativeCreate creates a new initiative.
 func (c *Client) InitiativeCreate(ctx context.Context, input intgraphql.InitiativeCreateInput) (*intgraphql.CreateInitiative_InitiativeCreate_Initiative, error) {
 	resp, err := c.gqlClient.CreateInitiative(ctx, input)

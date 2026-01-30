@@ -90,6 +90,7 @@ type LinearGraphQLClient interface {
 	CreateProject(ctx context.Context, input ProjectCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateProject, error)
 	UpdateProject(ctx context.Context, id string, input ProjectUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateProject, error)
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
+	ArchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveProject, error)
 	UnarchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveProject, error)
 	ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error)
 	ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error)
@@ -113,6 +114,7 @@ type LinearGraphQLClient interface {
 	GetTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTeam, error)
 	ListTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeams, error)
 	ListTeamsFiltered(ctx context.Context, first *int64, after *string, filter *TeamFilter, interceptors ...clientv2.RequestInterceptor) (*ListTeamsFiltered, error)
+	ListTeamMemberships(ctx context.Context, teamID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeamMemberships, error)
 	GetTemplate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetTemplate, error)
 	ListTemplates(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListTemplates, error)
 	GetUser(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetUser, error)
@@ -5954,6 +5956,17 @@ func (t *DeleteProject_ProjectDelete) GetSuccess() bool {
 	return t.Success
 }
 
+type ArchiveProject_ProjectArchive struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ArchiveProject_ProjectArchive) GetSuccess() bool {
+	if t == nil {
+		t = &ArchiveProject_ProjectArchive{}
+	}
+	return t.Success
+}
+
 type UnarchiveProject_ProjectUnarchive struct {
 	Success bool "json:\"success\" graphql:\"success\""
 }
@@ -8201,6 +8214,131 @@ func (t *ListTeamsFiltered_Teams) GetPageInfo() *ListTeamsFiltered_Teams_PageInf
 	return &t.PageInfo
 }
 
+type ListTeamMemberships_Team_Memberships_Nodes_User struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListTeamMemberships_Team_Memberships_Nodes_User) GetEmail() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes_User{}
+	}
+	return t.Email
+}
+func (t *ListTeamMemberships_Team_Memberships_Nodes_User) GetID() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes_User{}
+	}
+	return t.ID
+}
+func (t *ListTeamMemberships_Team_Memberships_Nodes_User) GetName() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes_User{}
+	}
+	return t.Name
+}
+
+type ListTeamMemberships_Team_Memberships_Nodes struct {
+	CreatedAt time.Time                                       "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string                                          "json:\"id\" graphql:\"id\""
+	Owner     bool                                            "json:\"owner\" graphql:\"owner\""
+	User      ListTeamMemberships_Team_Memberships_Nodes_User "json:\"user\" graphql:\"user\""
+}
+
+func (t *ListTeamMemberships_Team_Memberships_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListTeamMemberships_Team_Memberships_Nodes) GetID() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListTeamMemberships_Team_Memberships_Nodes) GetOwner() bool {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes{}
+	}
+	return t.Owner
+}
+func (t *ListTeamMemberships_Team_Memberships_Nodes) GetUser() *ListTeamMemberships_Team_Memberships_Nodes_User {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_Nodes{}
+	}
+	return &t.User
+}
+
+type ListTeamMemberships_Team_Memberships_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListTeamMemberships_Team_Memberships_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListTeamMemberships_Team_Memberships_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListTeamMemberships_Team_Memberships struct {
+	Nodes    []*ListTeamMemberships_Team_Memberships_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListTeamMemberships_Team_Memberships_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListTeamMemberships_Team_Memberships) GetNodes() []*ListTeamMemberships_Team_Memberships_Nodes {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships{}
+	}
+	return t.Nodes
+}
+func (t *ListTeamMemberships_Team_Memberships) GetPageInfo() *ListTeamMemberships_Team_Memberships_PageInfo {
+	if t == nil {
+		t = &ListTeamMemberships_Team_Memberships{}
+	}
+	return &t.PageInfo
+}
+
+type ListTeamMemberships_Team struct {
+	ID          string                               "json:\"id\" graphql:\"id\""
+	Key         string                               "json:\"key\" graphql:\"key\""
+	Memberships ListTeamMemberships_Team_Memberships "json:\"memberships\" graphql:\"memberships\""
+	Name        string                               "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListTeamMemberships_Team) GetID() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team{}
+	}
+	return t.ID
+}
+func (t *ListTeamMemberships_Team) GetKey() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team{}
+	}
+	return t.Key
+}
+func (t *ListTeamMemberships_Team) GetMemberships() *ListTeamMemberships_Team_Memberships {
+	if t == nil {
+		t = &ListTeamMemberships_Team{}
+	}
+	return &t.Memberships
+}
+func (t *ListTeamMemberships_Team) GetName() string {
+	if t == nil {
+		t = &ListTeamMemberships_Team{}
+	}
+	return t.Name
+}
+
 type GetTemplate_Template struct {
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	Description *string   "json:\"description,omitempty\" graphql:\"description\""
@@ -9723,6 +9861,17 @@ func (t *DeleteProject) GetProjectDelete() *DeleteProject_ProjectDelete {
 	return &t.ProjectDelete
 }
 
+type ArchiveProject struct {
+	ProjectArchive ArchiveProject_ProjectArchive "json:\"projectArchive\" graphql:\"projectArchive\""
+}
+
+func (t *ArchiveProject) GetProjectArchive() *ArchiveProject_ProjectArchive {
+	if t == nil {
+		t = &ArchiveProject{}
+	}
+	return &t.ProjectArchive
+}
+
 type UnarchiveProject struct {
 	ProjectUnarchive UnarchiveProject_ProjectUnarchive "json:\"projectUnarchive\" graphql:\"projectUnarchive\""
 }
@@ -9974,6 +10123,17 @@ func (t *ListTeamsFiltered) GetTeams() *ListTeamsFiltered_Teams {
 		t = &ListTeamsFiltered{}
 	}
 	return &t.Teams
+}
+
+type ListTeamMemberships struct {
+	Team ListTeamMemberships_Team "json:\"team\" graphql:\"team\""
+}
+
+func (t *ListTeamMemberships) GetTeam() *ListTeamMemberships_Team {
+	if t == nil {
+		t = &ListTeamMemberships{}
+	}
+	return &t.Team
 }
 
 type GetTemplate struct {
@@ -12807,6 +12967,30 @@ func (c *Client) DeleteProject(ctx context.Context, id string, interceptors ...c
 	return &res, nil
 }
 
+const ArchiveProjectDocument = `mutation ArchiveProject ($id: String!) {
+	projectArchive(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ArchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveProject, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ArchiveProject
+	if err := c.Client.Post(ctx, "ArchiveProject", ArchiveProjectDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const UnarchiveProjectDocument = `mutation UnarchiveProject ($id: String!) {
 	projectUnarchive(id: $id) {
 		success
@@ -13681,6 +13865,50 @@ func (c *Client) ListTeamsFiltered(ctx context.Context, first *int64, after *str
 	return &res, nil
 }
 
+const ListTeamMembershipsDocument = `query ListTeamMemberships ($teamId: String!, $first: Int, $after: String) {
+	team(id: $teamId) {
+		id
+		name
+		key
+		memberships(first: $first, after: $after) {
+			nodes {
+				id
+				owner
+				createdAt
+				user {
+					id
+					name
+					email
+				}
+			}
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ListTeamMemberships(ctx context.Context, teamID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListTeamMemberships, error) {
+	vars := map[string]any{
+		"teamId": teamID,
+		"first":  first,
+		"after":  after,
+	}
+
+	var res ListTeamMemberships
+	if err := c.Client.Post(ctx, "ListTeamMemberships", ListTeamMembershipsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetTemplateDocument = `query GetTemplate ($id: String!) {
 	template(id: $id) {
 		id
@@ -14061,6 +14289,7 @@ var DocumentOperationNames = map[string]string{
 	CreateProjectDocument:                  "CreateProject",
 	UpdateProjectDocument:                  "UpdateProject",
 	DeleteProjectDocument:                  "DeleteProject",
+	ArchiveProjectDocument:                 "ArchiveProject",
 	UnarchiveProjectDocument:               "UnarchiveProject",
 	ReactionCreateDocument:                 "ReactionCreate",
 	ReactionDeleteDocument:                 "ReactionDelete",
@@ -14084,6 +14313,7 @@ var DocumentOperationNames = map[string]string{
 	GetTeamDocument:                        "GetTeam",
 	ListTeamsDocument:                      "ListTeams",
 	ListTeamsFilteredDocument:              "ListTeamsFiltered",
+	ListTeamMembershipsDocument:            "ListTeamMemberships",
 	GetTemplateDocument:                    "GetTemplate",
 	ListTemplatesDocument:                  "ListTemplates",
 	GetUserDocument:                        "GetUser",

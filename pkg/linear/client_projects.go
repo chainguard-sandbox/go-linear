@@ -108,6 +108,31 @@ func (c *Client) ProjectDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// ProjectArchive archives a project by ID.
+//
+// Note: Linear recommends using ProjectDelete instead of archive.
+//
+// Parameters:
+//   - id: Project UUID to archive (required)
+//
+// Returns:
+//   - nil: Project successfully archived
+//   - error: Non-nil if archive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [ProjectUnarchive], [ProjectDelete]
+func (c *Client) ProjectArchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.ArchiveProject(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("ProjectArchive", err)
+	}
+	if !resp.ProjectArchive.Success {
+		return errMutationFailed("ProjectArchive")
+	}
+	return nil
+}
+
 // ProjectUnarchive restores an archived project by ID.
 //
 // Parameters:
