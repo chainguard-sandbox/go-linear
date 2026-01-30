@@ -28,7 +28,7 @@ Each layer adds value:
 |-------|------------------|
 | **SDK** | Type safety, retries, circuit breakers, metrics (for Go developers) |
 | **CLI** | Name resolution, field defaults, filtering, batching (for humans and agents) |
-| **MCP** | Exposes CLI as 94 tools for AI agents |
+| **MCP** | Exposes CLI as 106 tools for AI agents |
 
 ---
 
@@ -100,7 +100,7 @@ go-linear issue create --team=ENG --title="Fix bug" --priority=2
 | Filter by multiple criteria | `issue list --team=ENG --priority=1 --state="In Progress"` |
 | List with AI suggestions | `issue list --has-suggested-teams` |
 
-See [CLI Quick Start](docs/CLI-QUICK-START.md) for all 94 commands and [Filters Guide](docs/FILTERS.md) for 44 filter options.
+See [CLI Quick Start](docs/CLI-QUICK-START.md) for all 106 commands and [Filters Guide](docs/FILTERS.md) for 44 filter options.
 
 ### SDK (Go Developers)
 
@@ -191,7 +191,7 @@ make sync-upstream  # Fetch latest schema + regenerate
 
 ## Project Info
 
-**Status**: v1.x stable. Semantic versioning.
+**Status**: v2.x stable. Semantic versioning.
 
 **Not official**: This is a third-party client. Official Linear SDKs at https://github.com/linear
 

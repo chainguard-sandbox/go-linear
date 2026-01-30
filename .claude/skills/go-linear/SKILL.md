@@ -5,7 +5,7 @@ description: Linear issue tracking CLI with smart filtering and aggregation (pro
 
 # go-linear MCP Skill
 
-Linear CLI for AI agents. 74 tools across 17 entities. Requires `LINEAR_API_KEY` env var.
+Linear CLI for AI agents. 106 tools across 17 entities. Requires `LINEAR_API_KEY` env var.
 
 ## Decision Guide
 
@@ -19,6 +19,10 @@ Linear CLI for AI agents. 74 tools across 17 entities. Requires `LINEAR_API_KEY`
 | Who completed work? | `user completed` | `--team=ENG --completed-after=7d` |
 | Team workload | `team get` | `ENG` (returns issueCount) |
 | Rate limits | `status` | |
+| Archive issue | `issue archive` | `ENG-123` or `--trash` |
+| Restore archived | `issue unarchive` | `ENG-123` |
+| List sub-initiatives | `initiative list-sub` | `<parent-initiative>` |
+| Remove team member | `team remove-member` | `--team=ENG --user=alice@co.com` |
 
 ## Core Patterns
 
@@ -335,8 +339,20 @@ go-linear notification subscribe --team=ENG --output=json
 ### Updates - Modifies data
 `*_update`, `*_remove-label`, `*_archive`, `*_unsubscribe`
 
+### Archive/Restore - Reversible
+`*_archive`, `*_unarchive` (issues, initiatives, projects, teams, documents)
+
 ### Deletes - Permanent, confirm with user
 `*_delete`, `*_unrelate`
+
+## Archive vs Delete
+
+| Action | Command | Reversible | Notes |
+|--------|---------|------------|-------|
+| Hide from views | `issue archive` | Yes | Use `unarchive` to restore |
+| Trash (30-day) | `issue archive --trash` | Yes | Auto-deletes after 30 days |
+| Permanent | `issue delete --permanent` | No | Immediate, no grace period |
+| Default delete | `issue delete` | Yes (30 days) | Goes to trash first |
 
 ## Output Structures
 
