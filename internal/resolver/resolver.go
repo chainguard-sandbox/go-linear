@@ -506,21 +506,53 @@ func (r *Resolver) ResolveTemplate(ctx context.Context, nameOrID string) (string
 
 // ResolveProjectStatus resolves a project status name to its ID.
 // Accepts: status name (e.g., "Backlog", "In Progress", "Completed") or UUID.
+// Shows available statuses in error message since they're organization-specific.
 func (r *Resolver) ResolveProjectStatus(ctx context.Context, nameOrID string) (string, error) {
-	return resolve(r, ctx, nameOrID, entityMatcher[*intgraphql.ListProjectStatuses_Organization_ProjectStatuses]{
-		cachePrefix: "project_status:",
-		entityName:  "project status",
-		fetch: func(ctx context.Context) ([]*intgraphql.ListProjectStatuses_Organization_ProjectStatuses, error) {
-			statuses, err := r.client.ProjectStatuses(ctx)
-			if err != nil {
-				return nil, err
-			}
-			return statuses, nil
-		},
-		matches: func(status *intgraphql.ListProjectStatuses_Organization_ProjectStatuses, query string) bool {
-			return strings.EqualFold(status.Name, query)
-		},
-		getID:      func(status *intgraphql.ListProjectStatuses_Organization_ProjectStatuses) string { return status.ID },
-		formatName: func(status *intgraphql.ListProjectStatuses_Organization_ProjectStatuses) string { return status.Name },
-	})
+	if nameOrID == "" {
+		return "", &ResolutionError{
+			EntityType: "project status",
+			Input:      nameOrID,
+			Reason:     "empty input",
+			Internal:   fmt.Errorf("empty project status name/ID"),
+		}
+	}
+
+	// UUID passthrough
+	if uuidRegex.MatchString(nameOrID) {
+		return nameOrID, nil
+	}
+
+	// Check cache
+	cacheKey := "project_status:" + strings.ToLower(nameOrID)
+	if id, ok := r.cache.Get(cacheKey); ok {
+		return id, nil
+	}
+
+	// Fetch statuses
+	statuses, err := r.client.ProjectStatuses(ctx)
+	if err != nil {
+		return "", newFetchError("project status", err)
+	}
+
+	// Find match
+	for _, status := range statuses {
+		if strings.EqualFold(status.Name, nameOrID) {
+			r.cache.Set(cacheKey, status.ID)
+			return status.ID, nil
+		}
+	}
+
+	// Not found - collect available names for helpful error
+	available := make([]string, 0, len(statuses))
+	for _, status := range statuses {
+		available = append(available, status.Name)
+	}
+
+	return "", &ResolutionError{
+		EntityType:  "project status",
+		Input:       nameOrID,
+		Reason:      "not found",
+		Suggestions: available,
+		Internal:    fmt.Errorf("project status %q not found", nameOrID),
+	}
 }
