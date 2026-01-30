@@ -3201,3 +3201,435 @@ func TestCLI_IssueSuggestions(t *testing.T) {
 		}
 	})
 }
+
+// --- v2.0.0 Feature Tests ---
+
+// TestCLI_IssueDueDate tests issue due-date create/update/clear
+func TestCLI_IssueDueDate(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	title := fmt.Sprintf("Due Date Test Issue %s", timestamp)
+
+	var issueIdentifier string
+
+	// CREATE with due-date
+	t.Run("create_with_due_date", func(t *testing.T) {
+		dueDate := time.Now().AddDate(0, 0, 14).Format("2006-01-02") // 2 weeks from now
+
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--title="+title,
+			"--due-date="+dueDate,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue create with due-date failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+
+		issueIdentifier = issue["identifier"].(string)
+		// Note: dueDate may not be in create response, verify via get command instead
+		t.Logf("Created issue %s", issueIdentifier)
+	})
+
+	// UPDATE due-date
+	t.Run("update_due_date", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		newDueDate := time.Now().AddDate(0, 1, 0).Format("2006-01-02") // 1 month from now
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--due-date="+newDueDate,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue update due-date failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated issue %s due date", issueIdentifier)
+		_ = stdout
+	})
+
+	// CLEAR due-date
+	t.Run("clear_due_date", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--due-date=none",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue clear due-date failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Cleared issue %s due date", issueIdentifier)
+		_ = stdout
+	})
+
+	// DELETE issue
+	t.Run("delete", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to delete")
+		}
+
+		_, _, err := r.run("issue", "delete", issueIdentifier, "--yes")
+		if err != nil {
+			t.Fatalf("issue delete failed: %v", err)
+		}
+		t.Logf("Deleted issue: %s", issueIdentifier)
+	})
+}
+
+// TestCLI_IssueMilestoneAssignment tests assigning issues to project milestones
+func TestCLI_IssueMilestoneAssignment(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("Milestone Assignment Test %s", timestamp)
+
+	// Create project first
+	stdout, stderr, err := r.run("project", "create",
+		"--team="+r.teamKey,
+		"--name="+projectName,
+		"--output=json",
+	)
+	if err != nil {
+		t.Fatalf("Failed to create project: %v\nstderr: %s", err, stderr)
+	}
+
+	var projectResult map[string]any
+	json.Unmarshal([]byte(stdout), &projectResult)
+	project := extractEntity(projectResult, "project")
+	projectID := project["id"].(string)
+
+	defer func() {
+		r.run("project", "delete", projectID, "--yes")
+	}()
+
+	// Create milestone
+	stdout, stderr, err = r.run("project", "milestone-create",
+		"--project="+projectID,
+		"--name=v1.0 Release",
+		"--output=json",
+	)
+	if err != nil {
+		t.Fatalf("Failed to create milestone: %v\nstderr: %s", err, stderr)
+	}
+
+	var milestoneResult map[string]any
+	json.Unmarshal([]byte(stdout), &milestoneResult)
+	milestone := extractEntity(milestoneResult, "projectMilestone")
+	milestoneID := milestone["id"].(string)
+
+	var issueIdentifier string
+
+	// CREATE issue with milestone
+	t.Run("create_with_milestone", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--title=Issue with milestone "+timestamp,
+			"--project="+projectID,
+			"--milestone="+milestoneID,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue create with milestone failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+
+		issueIdentifier = issue["identifier"].(string)
+		t.Logf("Created issue %s with milestone", issueIdentifier)
+	})
+
+	// CLEAR milestone
+	t.Run("clear_milestone", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--milestone=none",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue clear milestone failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Cleared milestone from issue %s", issueIdentifier)
+		_ = stdout
+	})
+
+	// DELETE issue
+	t.Run("delete_issue", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to delete")
+		}
+
+		_, _, err := r.run("issue", "delete", issueIdentifier, "--yes")
+		if err != nil {
+			t.Fatalf("issue delete failed: %v", err)
+		}
+		t.Logf("Deleted issue: %s", issueIdentifier)
+	})
+
+	// Milestone deletion handled by project deletion in defer
+}
+
+// TestCLI_ProjectLeadAndMembers tests project lead and member assignment
+func TestCLI_ProjectLeadAndMembers(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("Lead/Member Test %s", timestamp)
+
+	var projectID string
+
+	// CREATE project with lead
+	t.Run("create_with_lead", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "create",
+			"--team="+r.teamKey,
+			"--name="+projectName,
+			"--lead=me",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("project create with lead failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		project := extractEntity(result, "project")
+
+		projectID = project["id"].(string)
+		t.Logf("Created project %s with lead=me", projectID)
+	})
+
+	// UPDATE project with member
+	t.Run("update_with_member", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project to update")
+		}
+
+		stdout, stderr, err := r.run("project", "update", projectID,
+			"--member=me",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("project update with member failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated project %s with member=me", projectID)
+		_ = stdout
+	})
+
+	// GET project and verify lead/members
+	t.Run("get_shows_lead_members", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project to get")
+		}
+
+		stdout, stderr, err := r.run("project", "get", projectID, "--output=json")
+		if err != nil {
+			t.Fatalf("project get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if result["lead"] == nil {
+			t.Error("Expected lead in project response")
+		}
+		if result["members"] == nil {
+			t.Error("Expected members in project response")
+		}
+
+		t.Logf("Project has lead and members fields")
+	})
+
+	// DELETE project
+	t.Run("delete", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project to delete")
+		}
+
+		_, _, err := r.run("project", "delete", projectID, "--yes")
+		if err != nil {
+			t.Fatalf("project delete failed: %v", err)
+		}
+		t.Logf("Deleted project: %s", projectID)
+	})
+}
+
+// TestCLI_MilestoneList tests the milestone-list command
+func TestCLI_MilestoneList(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("Milestone List Test %s", timestamp)
+
+	// Create project
+	stdout, stderr, err := r.run("project", "create",
+		"--team="+r.teamKey,
+		"--name="+projectName,
+		"--output=json",
+	)
+	if err != nil {
+		t.Fatalf("Failed to create project: %v\nstderr: %s", err, stderr)
+	}
+
+	var projectResult map[string]any
+	json.Unmarshal([]byte(stdout), &projectResult)
+	project := extractEntity(projectResult, "project")
+	projectID := project["id"].(string)
+
+	defer func() {
+		r.run("project", "delete", projectID, "--yes")
+	}()
+
+	// Create multiple milestones
+	milestoneNames := []string{"Alpha", "Beta", "GA"}
+	for _, name := range milestoneNames {
+		_, stderr, err := r.run("project", "milestone-create",
+			"--project="+projectID,
+			"--name="+name,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("Failed to create milestone %s: %v\nstderr: %s", name, err, stderr)
+		}
+	}
+
+	// LIST milestones (table)
+	t.Run("list_table", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "milestone-list", projectID, "--output=table")
+		if err != nil {
+			t.Fatalf("milestone-list table failed: %v\nstderr: %s", err, stderr)
+		}
+
+		for _, name := range milestoneNames {
+			if !strings.Contains(stdout, name) {
+				t.Errorf("Expected milestone %q in table output", name)
+			}
+		}
+		t.Logf("milestone-list table shows all milestones")
+	})
+
+	// LIST milestones (json)
+	t.Run("list_json", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "milestone-list", projectID, "--output=json")
+		if err != nil {
+			t.Fatalf("milestone-list json failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var milestones []map[string]any
+		if err := json.Unmarshal([]byte(stdout), &milestones); err != nil {
+			t.Fatalf("Failed to parse milestone-list JSON: %v", err)
+		}
+
+		if len(milestones) != len(milestoneNames) {
+			t.Errorf("Expected %d milestones, got %d", len(milestoneNames), len(milestones))
+		}
+		t.Logf("milestone-list JSON returned %d milestones", len(milestones))
+	})
+
+	// GET project shows milestones
+	t.Run("project_get_shows_milestones", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "get", projectID, "--output=table")
+		if err != nil {
+			t.Fatalf("project get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		if !strings.Contains(stdout, "Milestones:") {
+			t.Error("Expected 'Milestones:' section in project get output")
+		}
+		t.Logf("project get shows milestones section")
+	})
+}
+
+// TestCLI_StateAliases tests state resolution with aliases (todo, done, etc.)
+func TestCLI_StateAliases(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	title := fmt.Sprintf("State Alias Test %s", timestamp)
+
+	var issueIdentifier string
+
+	// CREATE issue
+	t.Run("create", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--title="+title,
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+		issueIdentifier = issue["identifier"].(string)
+		t.Logf("Created issue: %s", issueIdentifier)
+	})
+
+	// UPDATE with state alias "done"
+	t.Run("update_state_done", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--state=done",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue update --state=done failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated issue %s state to 'done'", issueIdentifier)
+		_ = stdout
+	})
+
+	// UPDATE with state alias "todo"
+	t.Run("update_state_todo", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--state=todo",
+			"--output=json",
+		)
+		if err != nil {
+			t.Fatalf("issue update --state=todo failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated issue %s state to 'todo'", issueIdentifier)
+		_ = stdout
+	})
+
+	// DELETE issue
+	t.Run("delete", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to delete")
+		}
+
+		_, _, err := r.run("issue", "delete", issueIdentifier, "--yes")
+		if err != nil {
+			t.Fatalf("issue delete failed: %v", err)
+		}
+		t.Logf("Deleted issue: %s", issueIdentifier)
+	})
+}

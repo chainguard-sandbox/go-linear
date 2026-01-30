@@ -20,7 +20,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Long: `Create initiative. Safe operation.
 
 Required: --name
-Optional: --description, --parent, --target-date, --owner, --status
+Optional: --description, --target-date, --owner, --status
 
 Example: go-linear initiative create --name="Security Policy" --description="Improve security" --status=Active --output=json
 
