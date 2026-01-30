@@ -234,6 +234,8 @@ type AgentActivityActionContent struct {
 	Parameter string `json:"parameter"`
 	// The result of the action in Markdown format.
 	Result *string `json:"result,omitempty"`
+	// [Internal] The result content as ProseMirror document.
+	ResultData map[string]any `json:"resultData,omitempty"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -292,6 +294,8 @@ type AgentActivityEdge struct {
 type AgentActivityElicitationContent struct {
 	// The elicitation message in Markdown format.
 	Body string `json:"body"`
+	// [Internal] The elicitation content as ProseMirror document.
+	BodyData map[string]any `json:"bodyData"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -302,6 +306,8 @@ func (AgentActivityElicitationContent) IsAgentActivityContent() {}
 type AgentActivityErrorContent struct {
 	// The error message in Markdown format.
 	Body string `json:"body"`
+	// [Internal] The error content as ProseMirror document.
+	BodyData map[string]any `json:"bodyData"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -341,6 +347,8 @@ type AgentActivityPayload struct {
 type AgentActivityPromptContent struct {
 	// A message requesting additional information or action from user.
 	Body string `json:"body"`
+	// [Internal] The prompt content as ProseMirror document.
+	BodyData map[string]any `json:"bodyData"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -351,6 +359,8 @@ func (AgentActivityPromptContent) IsAgentActivityContent() {}
 type AgentActivityResponseContent struct {
 	// The response content in Markdown format.
 	Body string `json:"body"`
+	// [Internal] The response content as ProseMirror document.
+	BodyData map[string]any `json:"bodyData"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -361,6 +371,8 @@ func (AgentActivityResponseContent) IsAgentActivityContent() {}
 type AgentActivityThoughtContent struct {
 	// The thought content in Markdown format.
 	Body string `json:"body"`
+	// [Internal] The thought content as ProseMirror document.
+	BodyData map[string]any `json:"bodyData"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -419,6 +431,8 @@ type AgentSession struct {
 	EndedAt *time.Time `json:"endedAt,omitempty"`
 	// The URL of an external agent-hosted page associated with this session.
 	ExternalLink *string `json:"externalLink,omitempty"`
+	// External links associated with this session.
+	ExternalLinks []*AgentSessionExternalLink `json:"externalLinks"`
 	// URLs of external resources associated with this session.
 	ExternalUrls string `json:"externalUrls"`
 	// The unique identifier of the entity.
@@ -524,6 +538,14 @@ type AgentSessionEventWebhookPayload struct {
 	WebhookID string `json:"webhookId"`
 	// Unix timestamp in milliseconds when the webhook was sent.
 	WebhookTimestamp float64 `json:"webhookTimestamp"`
+}
+
+// An external link associated with an agent session.
+type AgentSessionExternalLink struct {
+	// Label for the link.
+	Label string `json:"label"`
+	// The URL of the external resource.
+	URL string `json:"url"`
 }
 
 // Input for an external URL associated with an agent session.
@@ -1196,6 +1218,8 @@ type AuthResolverResponse struct {
 	LockedOrganizations []*AuthOrganization `json:"lockedOrganizations,omitempty"`
 	// List of locked users that are locked by login restrictions
 	LockedUsers []*AuthUser `json:"lockedUsers"`
+	// The authentication service used for the current session (e.g., google, email, saml).
+	Service *string `json:"service,omitempty"`
 	// Application token.
 	Token *string `json:"token,omitempty"`
 	// List of active users that belong to the user account.
@@ -1333,6 +1357,8 @@ type Comment struct {
 	InitiativeUpdate *InitiativeUpdate `json:"initiativeUpdate,omitempty"`
 	// The ID of the initiative update that the comment is associated with.
 	InitiativeUpdateID *string `json:"initiativeUpdateId,omitempty"`
+	// [Internal] Whether the comment is an artificial placeholder for an agent session thread created without a comment mention.
+	IsArtificialAgentSessionRoot bool `json:"isArtificialAgentSessionRoot"`
 	// The issue that the comment is associated with.
 	Issue *Issue `json:"issue,omitempty"`
 	// The ID of the issue that the comment is associated with.
@@ -6765,6 +6791,7 @@ type IntegrationSettingsInput struct {
 	Jira                          *JiraSettingsInput           `json:"jira,omitempty"`
 	JiraPersonal                  *JiraPersonalSettingsInput   `json:"jiraPersonal,omitempty"`
 	LaunchDarkly                  *LaunchDarklySettingsInput   `json:"launchDarkly,omitempty"`
+	MicrosoftTeams                *MicrosoftTeamsSettingsInput `json:"microsoftTeams,omitempty"`
 	Notion                        *NotionSettingsInput         `json:"notion,omitempty"`
 	Opsgenie                      *OpsgenieInput               `json:"opsgenie,omitempty"`
 	PagerDuty                     *PagerDutyInput              `json:"pagerDuty,omitempty"`
@@ -7131,7 +7158,7 @@ type Issue struct {
 	StartedTriageAt *time.Time `json:"startedTriageAt,omitempty"`
 	// The workflow state that the issue is associated with.
 	State *WorkflowState `json:"state"`
-	// [ALPHA] The issue's workflow states over time.
+	// The issue's workflow states over time.
 	StateHistory *IssueStateSpanConnection `json:"stateHistory"`
 	// The order of the item in the sub-issue list. Only set if the issue has a parent.
 	SubIssueSortOrder *float64 `json:"subIssueSortOrder,omitempty"`
@@ -7141,6 +7168,8 @@ type Issue struct {
 	Suggestions *IssueSuggestionConnection `json:"suggestions"`
 	// [Internal] The time at which the most recent suggestions for this issue were generated.
 	SuggestionsGeneratedAt *time.Time `json:"suggestionsGeneratedAt,omitempty"`
+	// [Internal] AI-generated activity summary for this issue.
+	Summary *Summary `json:"summary,omitempty"`
 	// The external services the issue is synced with.
 	SyncedWith []*ExternalEntityInfo `json:"syncedWith,omitempty"`
 	// The team that the issue is associated with.
@@ -8741,7 +8770,7 @@ type IssueSearchResult struct {
 	StartedTriageAt *time.Time `json:"startedTriageAt,omitempty"`
 	// The workflow state that the issue is associated with.
 	State *WorkflowState `json:"state"`
-	// [ALPHA] The issue's workflow states over time.
+	// The issue's workflow states over time.
 	StateHistory *IssueStateSpanConnection `json:"stateHistory"`
 	// The order of the item in the sub-issue list. Only set if the issue has a parent.
 	SubIssueSortOrder *float64 `json:"subIssueSortOrder,omitempty"`
@@ -8751,6 +8780,8 @@ type IssueSearchResult struct {
 	Suggestions *IssueSuggestionConnection `json:"suggestions"`
 	// [Internal] The time at which the most recent suggestions for this issue were generated.
 	SuggestionsGeneratedAt *time.Time `json:"suggestionsGeneratedAt,omitempty"`
+	// [Internal] AI-generated activity summary for this issue.
+	Summary *Summary `json:"summary,omitempty"`
 	// The external services the issue is synced with.
 	SyncedWith []*ExternalEntityInfo `json:"syncedWith,omitempty"`
 	// The team that the issue is associated with.
@@ -9554,6 +9585,11 @@ type ManualSort struct {
 	Nulls *PaginationNulls `json:"nulls,omitempty"`
 	// The order for the individual sort
 	Order *PaginationSortOrder `json:"order,omitempty"`
+}
+
+type MicrosoftTeamsSettingsInput struct {
+	// The display name of the Azure AD tenant.
+	TenantName *string `json:"tenantName,omitempty"`
 }
 
 // Issue project milestone options.
@@ -10881,6 +10917,8 @@ type Organization struct {
 	IPRestrictions []*OrganizationIPRestriction `json:"ipRestrictions,omitempty"`
 	// Labels associated with the organization.
 	Labels *IssueLabelConnection `json:"labels"`
+	// [Internal] Whether the organization has enabled Linear Agent.
+	LinearAgentEnabled bool `json:"linearAgentEnabled"`
 	// The organization's logo URL.
 	LogoURL *string `json:"logoUrl,omitempty"`
 	// The organization's name.
@@ -11275,6 +11313,8 @@ type OrganizationUpdateInput struct {
 	GitLinkbackMessagesEnabled *bool `json:"gitLinkbackMessagesEnabled,omitempty"`
 	// Whether the Git integration linkback messages should be sent for public repositories.
 	GitPublicLinkbackMessagesEnabled *bool `json:"gitPublicLinkbackMessagesEnabled,omitempty"`
+	// Whether to hide other workspaces for new users signing up with email domains claimed by this organization.
+	HideNonPrimaryOrganizations *bool `json:"hideNonPrimaryOrganizations,omitempty"`
 	// Whether HIPAA compliance is enabled for organization.
 	HipaaComplianceEnabled *bool `json:"hipaaComplianceEnabled,omitempty"`
 	// [ALPHA] The n-weekly frequency at which to prompt for initiative updates.
@@ -11285,6 +11325,8 @@ type OrganizationUpdateInput struct {
 	InitiativeUpdateRemindersHour *float64 `json:"initiativeUpdateRemindersHour,omitempty"`
 	// IP restriction configurations controlling allowed access the workspace.
 	IPRestrictions []*OrganizationIPRestrictionInput `json:"ipRestrictions,omitempty"`
+	// [Internal] Whether the organization has enabled Linear Agent.
+	LinearAgentEnabled *bool `json:"linearAgentEnabled,omitempty"`
 	// The logo of the organization.
 	LogoURL *string `json:"logoUrl,omitempty"`
 	// The name of the organization.
@@ -13774,6 +13816,8 @@ type PullRequest struct {
 	MergeSettings *PullRequestMergeSettings `json:"mergeSettings,omitempty"`
 	// The number of the pull request in the version control system.
 	Number float64 `json:"number"`
+	// The pull request's unique URL slug.
+	SlugID string `json:"slugId"`
 	// The source branch of the pull request.
 	SourceBranch string `json:"sourceBranch"`
 	// The status of the pull request.
@@ -14314,13 +14358,24 @@ type ReleaseCollectionFilter struct {
 	Pipeline *ReleasePipelineFilter `json:"pipeline,omitempty"`
 	// Filters that needs to be matched by some releases.
 	Some *ReleaseFilter `json:"some,omitempty"`
+	// Filters that the release's stage must satisfy.
+	Stage *ReleaseStageFilter `json:"stage,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
 
 type ReleaseCompleteInput struct {
+	// The commit SHA associated with this completion. If a completed release with this SHA already exists, it will be returned instead of completing a new release.
+	CommitSha *string `json:"commitSha,omitempty"`
 	// The identifier of the pipeline to mark a release as completed.
 	PipelineID string `json:"pipelineId"`
+	// The version of the release to complete. If not provided, the latest started release will be completed.
+	Version *string `json:"version,omitempty"`
+}
+
+type ReleaseCompleteInputBase struct {
+	// The commit SHA associated with this completion. If a completed release with this SHA already exists, it will be returned instead of completing a new release.
+	CommitSha *string `json:"commitSha,omitempty"`
 	// The version of the release to complete. If not provided, the latest started release will be completed.
 	Version *string `json:"version,omitempty"`
 }
@@ -14383,6 +14438,8 @@ type ReleaseFilter struct {
 	Or []*ReleaseFilter `json:"or,omitempty"`
 	// Filters that the release's pipeline must satisfy.
 	Pipeline *ReleasePipelineFilter `json:"pipeline,omitempty"`
+	// Filters that the release's stage must satisfy.
+	Stage *ReleaseStageFilter `json:"stage,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
@@ -14578,6 +14635,24 @@ type ReleaseStageEdge struct {
 	Node   *ReleaseStage `json:"node"`
 }
 
+// [ALPHA] Release stage filtering options.
+type ReleaseStageFilter struct {
+	// Compound filters, all of which need to be matched by the stage.
+	And []*ReleaseStageFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Comparator for the stage name.
+	Name *StringComparator `json:"name,omitempty"`
+	// Compound filters, one of which need to be matched by the stage.
+	Or []*ReleaseStageFilter `json:"or,omitempty"`
+	// Comparator for the stage type.
+	Type *ReleaseStageTypeComparator `json:"type,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+}
+
 type ReleaseStagePayload struct {
 	// The identifier of the last sync operation.
 	LastSyncID float64 `json:"lastSyncId"`
@@ -14585,6 +14660,20 @@ type ReleaseStagePayload struct {
 	ReleaseStage *ReleaseStage `json:"releaseStage"`
 	// Whether the operation was successful.
 	Success bool `json:"success"`
+}
+
+// [ALPHA] Comparator for release stage type.
+type ReleaseStageTypeComparator struct {
+	// Equals constraint.
+	Eq *ReleaseStageType `json:"eq,omitempty"`
+	// In-array constraint.
+	In []ReleaseStageType `json:"in,omitempty"`
+	// Not-equals constraint.
+	Neq *ReleaseStageType `json:"neq,omitempty"`
+	// Not-in-array constraint.
+	Nin []ReleaseStageType `json:"nin,omitempty"`
+	// Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
+	Null *bool `json:"null,omitempty"`
 }
 
 type ReleaseStageUpdateInput struct {
@@ -14601,7 +14690,7 @@ type ReleaseStageUpdateInput struct {
 // The release data to sync.
 type ReleaseSyncInput struct {
 	// The commit SHA associated with this release.
-	CommitSha *string `json:"commitSha,omitempty"`
+	CommitSha string `json:"commitSha"`
 	// Debug information for release creation diagnostics.
 	DebugSink *ReleaseDebugSinkInput `json:"debugSink,omitempty"`
 	// The description of the release.
@@ -14611,9 +14700,35 @@ type ReleaseSyncInput struct {
 	// Issue identifiers (e.g. ENG-123) to associate with this release.
 	IssueIdentifiers []string `json:"issueIdentifiers,omitempty"`
 	// The name of the release.
-	Name string `json:"name"`
+	Name *string `json:"name,omitempty"`
 	// The identifier of the pipeline this release belongs to.
 	PipelineID string `json:"pipelineId"`
+	// Pull request references to look up. Issues linked to found PRs will be associated with this release.
+	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
+	// The current stage of the release. Defaults to the first 'completed' stage.
+	StageID *string `json:"stageId,omitempty"`
+	// The estimated start date of the release.
+	StartDate *string `json:"startDate,omitempty"`
+	// The estimated completion date of the release.
+	TargetDate *string `json:"targetDate,omitempty"`
+	// The version of the release.
+	Version *string `json:"version,omitempty"`
+}
+
+// Base release sync data without pipeline specification.
+type ReleaseSyncInputBase struct {
+	// The commit SHA associated with this release.
+	CommitSha string `json:"commitSha"`
+	// Debug information for release creation diagnostics.
+	DebugSink *ReleaseDebugSinkInput `json:"debugSink,omitempty"`
+	// The description of the release.
+	Description *string `json:"description,omitempty"`
+	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
+	ID *string `json:"id,omitempty"`
+	// Issue identifiers (e.g. ENG-123) to associate with this release.
+	IssueIdentifiers []string `json:"issueIdentifiers,omitempty"`
+	// The name of the release.
+	Name *string `json:"name,omitempty"`
 	// Pull request references to look up. Issues linked to found PRs will be associated with this release.
 	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
 	// The current stage of the release. Defaults to the first 'completed' stage.
@@ -14630,6 +14745,13 @@ type ReleaseSyncInput struct {
 type ReleaseUpdateByPipelineInput struct {
 	// The identifier of the pipeline.
 	PipelineID string `json:"pipelineId"`
+	// The stage name to set. First tries exact match, then falls back to case-insensitive matching with dashes/underscores treated as spaces.
+	Stage *string `json:"stage,omitempty"`
+	// The version of the release to update. If not provided, the latest started release will be updated.
+	Version *string `json:"version,omitempty"`
+}
+
+type ReleaseUpdateByPipelineInputBase struct {
 	// The stage name to set. First tries exact match, then falls back to case-insensitive matching with dashes/underscores treated as spaces.
 	Stage *string `json:"stage,omitempty"`
 	// The version of the release to update. If not provided, the latest started release will be updated.
@@ -15382,6 +15504,34 @@ type SuccessPayload struct {
 	// Whether the operation was successful.
 	Success bool `json:"success"`
 }
+
+// An AI-generated summary.
+type Summary struct {
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The summary content as a Prosemirror document.
+	Content map[string]any `json:"content"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The evaluation log id for this summary generation.
+	EvalLogID *string `json:"evalLogId,omitempty"`
+	// The time at which the summary was generated.
+	GeneratedAt time.Time `json:"generatedAt"`
+	// The generation status of the summary.
+	GenerationStatus SummaryGenerationStatus `json:"generationStatus"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// The issue this summary belongs to.
+	Issue *Issue `json:"issue"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (Summary) IsNode() {}
+
+// The unique identifier of the entity.
+func (this Summary) GetID() string { return this.ID }
 
 // A comment thread that is synced with an external source.
 type SyncedExternalThread struct {
@@ -18800,6 +18950,7 @@ const (
 	IntegrationServiceLoom                          IntegrationService = "loom"
 	IntegrationServiceMcpServer                     IntegrationService = "mcpServer"
 	IntegrationServiceMcpServerPersonal             IntegrationService = "mcpServerPersonal"
+	IntegrationServiceMicrosoftTeams                IntegrationService = "microsoftTeams"
 	IntegrationServiceNotion                        IntegrationService = "notion"
 	IntegrationServiceOpsgenie                      IntegrationService = "opsgenie"
 	IntegrationServicePagerDuty                     IntegrationService = "pagerDuty"
@@ -18843,6 +18994,7 @@ var AllIntegrationService = []IntegrationService{
 	IntegrationServiceLoom,
 	IntegrationServiceMcpServer,
 	IntegrationServiceMcpServerPersonal,
+	IntegrationServiceMicrosoftTeams,
 	IntegrationServiceNotion,
 	IntegrationServiceOpsgenie,
 	IntegrationServicePagerDuty,
@@ -18863,7 +19015,7 @@ var AllIntegrationService = []IntegrationService{
 
 func (e IntegrationService) IsValid() bool {
 	switch e {
-	case IntegrationServiceAirbyte, IntegrationServiceDiscord, IntegrationServiceEmail, IntegrationServiceFigma, IntegrationServiceFigmaPlugin, IntegrationServiceFront, IntegrationServiceGithub, IntegrationServiceGithubCodeAccessPersonal, IntegrationServiceGithubCommit, IntegrationServiceGithubEnterpriseServer, IntegrationServiceGithubImport, IntegrationServiceGithubPersonal, IntegrationServiceGitlab, IntegrationServiceGong, IntegrationServiceGoogleCalendarPersonal, IntegrationServiceGoogleSheets, IntegrationServiceIntercom, IntegrationServiceJira, IntegrationServiceJiraPersonal, IntegrationServiceLaunchDarkly, IntegrationServiceLaunchDarklyPersonal, IntegrationServiceLoom, IntegrationServiceMcpServer, IntegrationServiceMcpServerPersonal, IntegrationServiceNotion, IntegrationServiceOpsgenie, IntegrationServicePagerDuty, IntegrationServiceSalesforce, IntegrationServiceSentry, IntegrationServiceSlack, IntegrationServiceSlackAsks, IntegrationServiceSlackCustomViewNotifications, IntegrationServiceSlackInitiativePost, IntegrationServiceSlackOrgInitiativeUpdatesPost, IntegrationServiceSlackOrgProjectUpdatesPost, IntegrationServiceSlackPersonal, IntegrationServiceSlackPost, IntegrationServiceSlackProjectPost, IntegrationServiceSlackProjectUpdatesPost, IntegrationServiceZendesk:
+	case IntegrationServiceAirbyte, IntegrationServiceDiscord, IntegrationServiceEmail, IntegrationServiceFigma, IntegrationServiceFigmaPlugin, IntegrationServiceFront, IntegrationServiceGithub, IntegrationServiceGithubCodeAccessPersonal, IntegrationServiceGithubCommit, IntegrationServiceGithubEnterpriseServer, IntegrationServiceGithubImport, IntegrationServiceGithubPersonal, IntegrationServiceGitlab, IntegrationServiceGong, IntegrationServiceGoogleCalendarPersonal, IntegrationServiceGoogleSheets, IntegrationServiceIntercom, IntegrationServiceJira, IntegrationServiceJiraPersonal, IntegrationServiceLaunchDarkly, IntegrationServiceLaunchDarklyPersonal, IntegrationServiceLoom, IntegrationServiceMcpServer, IntegrationServiceMcpServerPersonal, IntegrationServiceMicrosoftTeams, IntegrationServiceNotion, IntegrationServiceOpsgenie, IntegrationServicePagerDuty, IntegrationServiceSalesforce, IntegrationServiceSentry, IntegrationServiceSlack, IntegrationServiceSlackAsks, IntegrationServiceSlackCustomViewNotifications, IntegrationServiceSlackInitiativePost, IntegrationServiceSlackOrgInitiativeUpdatesPost, IntegrationServiceSlackOrgProjectUpdatesPost, IntegrationServiceSlackPersonal, IntegrationServiceSlackPost, IntegrationServiceSlackProjectPost, IntegrationServiceSlackProjectUpdatesPost, IntegrationServiceZendesk:
 		return true
 	}
 	return false
@@ -20927,6 +21079,64 @@ func (e SlackChannelType) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// The generation status of a summary.
+type SummaryGenerationStatus string
+
+const (
+	SummaryGenerationStatusCompleted SummaryGenerationStatus = "completed"
+	SummaryGenerationStatusFailed    SummaryGenerationStatus = "failed"
+	SummaryGenerationStatusPending   SummaryGenerationStatus = "pending"
+)
+
+var AllSummaryGenerationStatus = []SummaryGenerationStatus{
+	SummaryGenerationStatusCompleted,
+	SummaryGenerationStatusFailed,
+	SummaryGenerationStatusPending,
+}
+
+func (e SummaryGenerationStatus) IsValid() bool {
+	switch e {
+	case SummaryGenerationStatusCompleted, SummaryGenerationStatusFailed, SummaryGenerationStatusPending:
+		return true
+	}
+	return false
+}
+
+func (e SummaryGenerationStatus) String() string {
+	return string(e)
+}
+
+func (e *SummaryGenerationStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SummaryGenerationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SummaryGenerationStatus", str)
+	}
+	return nil
+}
+
+func (e SummaryGenerationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SummaryGenerationStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SummaryGenerationStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 // [Internal] How to handle sub-teams when retiring a parent team.
 type TeamRetirementSubTeamHandling string
 
@@ -21758,6 +21968,7 @@ const (
 	ViewTypeProjectsClosed                   ViewType = "projectsClosed"
 	ViewTypeQuickView                        ViewType = "quickView"
 	ViewTypeRelease                          ViewType = "release"
+	ViewTypeReleasePipelines                 ViewType = "releasePipelines"
 	ViewTypeReviews                          ViewType = "reviews"
 	ViewTypeRoadmap                          ViewType = "roadmap"
 	ViewTypeRoadmapAll                       ViewType = "roadmapAll"
@@ -21819,6 +22030,7 @@ var AllViewType = []ViewType{
 	ViewTypeProjectsClosed,
 	ViewTypeQuickView,
 	ViewTypeRelease,
+	ViewTypeReleasePipelines,
 	ViewTypeReviews,
 	ViewTypeRoadmap,
 	ViewTypeRoadmapAll,
@@ -21837,7 +22049,7 @@ var AllViewType = []ViewType{
 
 func (e ViewType) IsValid() bool {
 	switch e {
-	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
+	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReleasePipelines, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
 		return true
 	}
 	return false
