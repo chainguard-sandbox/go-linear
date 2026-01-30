@@ -360,3 +360,22 @@ func (c *Client) ProjectUpdateDelete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+// ProjectStatuses retrieves all project statuses for the organization.
+//
+// Project statuses represent workflow states like "Backlog", "In Progress", "Completed".
+//
+// Returns:
+//   - []ProjectStatus: Array of project statuses with ID, Name, Type, Color
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [ProjectUpdate]
+func (c *Client) ProjectStatuses(ctx context.Context) ([]*intgraphql.ListProjectStatuses_Organization_ProjectStatuses, error) {
+	resp, err := c.gqlClient.ListProjectStatuses(ctx)
+	if err != nil {
+		return nil, wrapGraphQLError("list project statuses query", err)
+	}
+	return resp.Organization.ProjectStatuses, nil
+}

@@ -103,6 +103,7 @@ type LinearGraphQLClient interface {
 	ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error)
 	GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
+	ListProjectStatuses(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListProjectStatuses, error)
 	GetProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectUpdate, error)
 	ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectUpdates, error)
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
@@ -6815,6 +6816,77 @@ func (t *GetOrganization_Organization) GetURLKey() string {
 	return t.URLKey
 }
 
+type ListProjectStatuses_Organization_ProjectStatuses struct {
+	Color       string            "json:\"color\" graphql:\"color\""
+	CreatedAt   time.Time         "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string           "json:\"description,omitempty\" graphql:\"description\""
+	ID          string            "json:\"id\" graphql:\"id\""
+	Indefinite  bool              "json:\"indefinite\" graphql:\"indefinite\""
+	Name        string            "json:\"name\" graphql:\"name\""
+	Position    float64           "json:\"position\" graphql:\"position\""
+	Type        ProjectStatusType "json:\"type\" graphql:\"type\""
+}
+
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetColor() string {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return t.Color
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetDescription() *string {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return t.Description
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetID() string {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return t.ID
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetIndefinite() bool {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return t.Indefinite
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetName() string {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return t.Name
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetPosition() float64 {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return t.Position
+}
+func (t *ListProjectStatuses_Organization_ProjectStatuses) GetType() *ProjectStatusType {
+	if t == nil {
+		t = &ListProjectStatuses_Organization_ProjectStatuses{}
+	}
+	return &t.Type
+}
+
+type ListProjectStatuses_Organization struct {
+	ProjectStatuses []*ListProjectStatuses_Organization_ProjectStatuses "json:\"projectStatuses\" graphql:\"projectStatuses\""
+}
+
+func (t *ListProjectStatuses_Organization) GetProjectStatuses() []*ListProjectStatuses_Organization_ProjectStatuses {
+	if t == nil {
+		t = &ListProjectStatuses_Organization{}
+	}
+	return t.ProjectStatuses
+}
+
 type GetProjectUpdate_ProjectUpdate_User struct {
 	Email string "json:\"email\" graphql:\"email\""
 	ID    string "json:\"id\" graphql:\"id\""
@@ -10000,6 +10072,17 @@ type GetOrganization struct {
 func (t *GetOrganization) GetOrganization() *GetOrganization_Organization {
 	if t == nil {
 		t = &GetOrganization{}
+	}
+	return &t.Organization
+}
+
+type ListProjectStatuses struct {
+	Organization ListProjectStatuses_Organization "json:\"organization\" graphql:\"organization\""
+}
+
+func (t *ListProjectStatuses) GetOrganization() *ListProjectStatuses_Organization {
+	if t == nil {
+		t = &ListProjectStatuses{}
 	}
 	return &t.Organization
 }
@@ -13393,6 +13476,37 @@ func (c *Client) GetOrganization(ctx context.Context, interceptors ...clientv2.R
 	return &res, nil
 }
 
+const ListProjectStatusesDocument = `query ListProjectStatuses {
+	organization {
+		projectStatuses {
+			id
+			name
+			description
+			type
+			color
+			position
+			indefinite
+			createdAt
+		}
+	}
+}
+`
+
+func (c *Client) ListProjectStatuses(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListProjectStatuses, error) {
+	vars := map[string]any{}
+
+	var res ListProjectStatuses
+	if err := c.Client.Post(ctx, "ListProjectStatuses", ListProjectStatusesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetProjectUpdateDocument = `query GetProjectUpdate ($id: String!) {
 	projectUpdate(id: $id) {
 		id
@@ -14302,6 +14416,7 @@ var DocumentOperationNames = map[string]string{
 	ListNotificationsDocument:              "ListNotifications",
 	GetNotificationDocument:                "GetNotification",
 	GetOrganizationDocument:                "GetOrganization",
+	ListProjectStatusesDocument:            "ListProjectStatuses",
 	GetProjectUpdateDocument:               "GetProjectUpdate",
 	ListProjectUpdatesDocument:             "ListProjectUpdates",
 	GetProjectDocument:                     "GetProject",
