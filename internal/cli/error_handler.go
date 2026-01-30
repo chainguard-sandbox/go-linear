@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/chainguard-dev/clog"
@@ -62,8 +63,7 @@ func (h *ErrorHandler) Handle(ctx context.Context, operation string, err error) 
 func (h *ErrorHandler) toErrorContext(operation string, err error) *linear.ErrorContext {
 	// Handle resolver errors specially
 	var resErr *resolver.ResolutionError
-	if e, ok := err.(*resolver.ResolutionError); ok {
-		resErr = e
+	if errors.As(err, &resErr) {
 		return resErr.ToErrorContext(operation)
 	}
 
@@ -84,6 +84,8 @@ func (h *ErrorHandler) logError(ctx context.Context, errCtx *linear.ErrorContext
 		logFunc = h.logger.InfoContext
 	case linear.SeverityWarning:
 		logFunc = h.logger.WarnContext
+	case linear.SeverityError, linear.SeverityCritical:
+		// Use default ErrorContext
 	}
 
 	// Log with full context
@@ -96,6 +98,8 @@ func (h *ErrorHandler) cliError(errCtx *linear.ErrorContext) error {
 
 	// Add emoji indicators for severity (optional, can be disabled)
 	switch errCtx.Severity {
+	case linear.SeverityInfo:
+		// No emoji for info
 	case linear.SeverityWarning:
 		msg = "⚠️  " + msg
 	case linear.SeverityError, linear.SeverityCritical:
@@ -122,7 +126,7 @@ func (h *ErrorHandler) mcpError(errCtx *linear.ErrorContext) error {
 		msg = "[RETRY_ERROR] " + msg
 	case linear.ErrorClassConfiguration:
 		msg = "[CONFIG_ERROR] " + msg
-	default:
+	case linear.ErrorClassInternal:
 		msg = "[ERROR] " + msg
 	}
 

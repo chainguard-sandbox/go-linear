@@ -171,14 +171,14 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 // State types are: triage, backlog, unstarted, started, completed, canceled
 // Each alias maps to a single type to avoid ambiguity.
 var stateTypeAliases = map[string]string{
-	"todo":        "backlog",   // Most common "todo" interpretation
+	"todo":        "backlog", // Most common "todo" interpretation
 	"to do":       "backlog",
 	"to-do":       "backlog",
 	"done":        "completed",
 	"complete":    "completed",
 	"finished":    "completed",
 	"closed":      "completed",
-	"cancelled":   "canceled",
+	"canceled":    "canceled",
 	"in progress": "started",
 	"in-progress": "started",
 	"wip":         "started",

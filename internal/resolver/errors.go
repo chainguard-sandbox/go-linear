@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -100,7 +101,7 @@ func (e *ResolutionError) suggestion() string {
 // Preserves structure for debugging while protecting privacy.
 func sanitizeInput(input string) string {
 	// If input looks like email, redact domain but keep structure
-	if len(input) > 0 && strings.Contains(input, "@") {
+	if input != "" && strings.Contains(input, "@") {
 		return "***@***"
 	}
 	// For non-email, show first 3 chars + length
@@ -137,14 +138,19 @@ func newAmbiguousError(entityType, input string, matches []string) error {
 func newFetchError(entityType string, fetchErr error) error {
 	// Check if it's already a Linear API error
 	var linearErr *linear.LinearError
-	if err, ok := fetchErr.(*linear.LinearError); ok {
-		linearErr = err
+	if errors.As(fetchErr, &linearErr) {
+		return &ResolutionError{
+			EntityType: entityType,
+			Input:      "",
+			Reason:     "fetch failed",
+			Internal:   linearErr,
+		}
 	}
 
 	return &ResolutionError{
 		EntityType: entityType,
 		Input:      "",
 		Reason:     "fetch failed",
-		Internal:   linearErr,
+		Internal:   fetchErr,
 	}
 }

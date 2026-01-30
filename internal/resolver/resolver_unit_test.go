@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -451,7 +452,8 @@ func TestResolveState_MultiTeamAmbiguous(t *testing.T) {
 				return
 			}
 			if tt.wantErr && err != nil {
-				if resErr, ok := err.(*ResolutionError); ok {
+				var resErr *ResolutionError
+				if errors.As(err, &resErr) {
 					if len(resErr.Suggestions) == 0 {
 						t.Errorf("ResolveState(%q) error has no suggestions", tt.input)
 					}

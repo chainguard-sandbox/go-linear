@@ -56,6 +56,8 @@ const (
 
 // ErrorContext holds rich context for internal logging while
 // providing sanitized messages for external consumption.
+//
+//nolint:errname // ErrorContext is a context-holder that implements error, not a simple error type
 type ErrorContext struct {
 	// User-facing fields (safe to expose)
 	Class    ErrorClass
@@ -134,7 +136,7 @@ func sanitizeErrorForLogging(errStr string) string {
 
 	// Pattern: Bearer tokens in Authorization headers
 	if strings.Contains(errStr, "Bearer ") {
-		re := regexp.MustCompile(`Bearer [a-zA-Z0-9\-_\.]+`)
+		re := regexp.MustCompile(`Bearer [a-zA-Z0-9\-_.]+`)
 		errStr = re.ReplaceAllString(errStr, "Bearer [REDACTED_TOKEN]")
 	}
 
@@ -293,7 +295,7 @@ func sanitizeLinearError(operation string, err *LinearError) *ErrorContext {
 		ctx.Message = "Network error"
 		ctx.Suggestion = "Check your connection and retry"
 
-	default:
+	case ErrorTypeGraphQLError, ErrorTypeUnknown, ErrorTypeInternalError:
 		ctx.Class = ErrorClassInternal
 		ctx.Severity = SeverityError
 		ctx.Message = "Request failed"
@@ -349,6 +351,8 @@ func LogAndReturn(ctx context.Context, logger *clog.Logger, operation string, er
 			logFunc = logger.InfoContext
 		case SeverityWarning:
 			logFunc = logger.WarnContext
+		case SeverityError, SeverityCritical:
+			// Use default ErrorContext
 		}
 
 		logFunc(ctx, errCtx.Message, errCtx.LogFields()...)
