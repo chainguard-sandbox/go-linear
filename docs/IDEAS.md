@@ -272,16 +272,3 @@ go-linear sla dashboard --output=json
 **Status:** Not blocked - client-side aggregation over filtered issue lists
 **Value:** Significant token reduction vs manual aggregation
 
----
-
-## Sources
-
-Ideas synthesized from:
-- AGGREGATION.md - Aggregation design proposals
-- CONTEXT-SAVERS.md - Token optimization analysis
-- TRIAGE-AUTOMATION.md - Triage workflow proposals
-- Session discussions
-
----
-
-*Document created: 2025-12-17*

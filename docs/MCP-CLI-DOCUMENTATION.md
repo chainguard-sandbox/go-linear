@@ -2,7 +2,7 @@
 
 ## Core Insight
 
-MCP servers load ALL tool descriptions once per session and keep them in the AI agent's context permanently. With 94 tools, verbose documentation consumes thousands of tokens that could be used for actual conversation.
+MCP servers load ALL tool descriptions once per session and keep them in the AI agent's context permanently. With many tools, verbose documentation consumes thousands of tokens that could be used for actual conversation.
 
 **Our approach:** System-wide coherence and minimal error output.
 
@@ -397,10 +397,8 @@ Filters: --team (name/key from team_list), --assignee=me or email
 - After: ~213 chars (~53 tokens)
 - Reduction: 68%
 
-**Total (71 tools):**
-- Before: 47,673 chars (~11,918 tokens)
-- After: 15,121 chars (~3,780 tokens)
-- Reduction: 69% (~8,138 tokens saved)
+**Total (all tools):**
+- Reduction: ~69% token savings from concise documentation
 
 ### Quality Metrics
 
@@ -420,16 +418,14 @@ If yes to all: Documentation is sufficient.
 **Example query:** "How many urgent bugs in Engineering?"
 
 **Without optimization:**
-- MCP context: ~12,000 tokens (all 71 tool descriptions)
+- MCP context: thousands of tokens (all tool descriptions)
 - Query result: ~500 tokens (50 issues with details)
-- Total: ~12,500 tokens
 
 **With optimization:**
-- MCP context: ~3,780 tokens (optimized descriptions)
+- MCP context: ~70% fewer tokens (optimized descriptions)
 - Query result: ~4 tokens (`{"count": 5}`)
-- Total: ~3,784 tokens
 
-**Savings: 70% (~8,716 tokens)**
+**Savings: ~70% token reduction**
 
 ---
 
