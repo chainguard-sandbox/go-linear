@@ -25,10 +25,10 @@ func NewBatchUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Safety: --dry-run shows what would change, --yes skips confirmation
 
-Filters: All 64 issue list filters (--team, --state, --creator, --has-suggested-teams, etc.)
-Updates: --set-state, --set-assignee, --set-priority, --add-label, --remove-label, etc.
+Filters: All issue list filters (--team, --state, --assignee, --priority, --label, --created-after, etc.)
+Updates: --set-state, --set-assignee, --set-priority, --set-team, --set-cycle, --set-project, --set-milestone, --set-due-date, --set-title, --set-description, --set-estimate, --add-label, --remove-label
 
-Example: go-linear issue batch-update --state=Triage --has-suggested-teams --set-state=Backlog --dry-run
+Example: go-linear issue batch-update --state=Triage --set-state=Backlog --set-milestone=<uuid> --dry-run
 
 Related: issue_list, issue_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {
