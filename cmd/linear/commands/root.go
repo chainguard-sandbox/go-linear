@@ -218,8 +218,9 @@ func NewRootCommand() *cobra.Command {
 	cfg := loadClientConfig()
 
 	rootCmd := &cobra.Command{
-		Use:   "go-linear",
-		Short: "Linear MCP server for AI agents",
+		Use:     "go-linear",
+		Version: linear.Version,
+		Short:   "Linear MCP server for AI agents",
 		Long: `Linear MCP server provides AI agents with command-line access to Linear.
 
 Optimized for both human users and AI agents via MCP (Model Context Protocol).
