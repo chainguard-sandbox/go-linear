@@ -4,7 +4,7 @@
 # Usage: make <target>
 # Run 'make' or 'make help' to see available commands
 
-.PHONY: help build build-cli build-mcp
+.PHONY: help build build-cli
 
 # Project configuration
 BINARY_NAME := go-linear
@@ -62,17 +62,10 @@ build-cli:  ## Build go-linear (CLI + MCP server in one binary)
 	@echo "  CLI mode: ./bin/go-linear issue list"
 	@echo "  MCP mode: ./bin/go-linear mcp start"
 
-build-mcp: build-cli  ## Alias for build-cli (same binary, different mode)
-
 install: build-cli  ## Install go-linear to $GOPATH/bin
 	@echo "Installing go-linear..."
 	@cp $(BINDIR)/go-linear $(GOPATH)/bin/go-linear
 	@echo "✓ Installed go-linear to $(GOPATH)/bin/"
-
-clean-mcp:  ## Remove binaries
-	@echo "Cleaning binaries..."
-	@rm -f $(BINDIR)/go-linear
-	@echo "✓ Cleaned"
 
 #
 # Code generation
@@ -302,7 +295,7 @@ schema:  ## Download Linear GraphQL schema
 #
 
 check-sync-mode:  ## Check if sync mode is enabled
-	@if [ ! -d "upstream/.git" ]; then \
+	@if [ ! -e "upstream/.git" ]; then \
 		echo "❌ Not in sync mode. Upstream submodule not initialized."; \
 		echo "To enable sync mode: git submodule update --init upstream"; \
 		exit 1; \
@@ -337,15 +330,6 @@ clean:  ## Clean build artifacts
 # Release targets
 #
 
-snapshot:  ## Create a snapshot release with goreleaser
-	@echo "Creating snapshot release..."
-	@goreleaser release --snapshot --clean
-	@echo "✓ Snapshot created in dist/"
-
-release:  ## Create a release with goreleaser (requires tag)
-	@echo "Creating release..."
-	@goreleaser release --clean
-
 #
 # Setup targets
 #
@@ -364,11 +348,6 @@ setup-genqlient:  ## Install genqlient
 	@echo "Installing genqlient..."
 	@go install github.com/Khan/genqlient@latest
 	@echo "✓ genqlient installed"
-
-setup-goreleaser:  ## Install goreleaser
-	@echo "Installing goreleaser..."
-	@go install github.com/goreleaser/goreleaser@latest
-	@echo "✓ goreleaser installed"
 
 setup-govulncheck:  ## Install govulncheck
 	@echo "Installing govulncheck..."
@@ -389,7 +368,7 @@ setup-zizmor:  ## Install zizmor
 	@go install github.com/woodruffw/zizmor/cmd/zizmor@latest
 	@echo "✓ zizmor installed"
 
-setup: setup-golangci-lint setup-goimports setup-genqlient setup-goreleaser setup-govulncheck setup-nilaway  ## Install all development tools
+setup: setup-golangci-lint setup-goimports setup-genqlient setup-govulncheck setup-nilaway  ## Install all development tools
 	@echo "✓ All tools installed"
 	@echo "Optional: Run 'make setup-trivy' and 'make setup-zizmor' for additional security tools"
 
@@ -409,7 +388,7 @@ dev: setup  ## Complete developer onboarding (setup tools + deps + verify)
 #
 
 run:  ## Run the application (use ARGS="..." to pass arguments)
-	@go run . $(ARGS)
+	@go run ./cmd/linear $(ARGS)
 
 #
 # Information targets
