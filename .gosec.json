@@ -9,7 +9,8 @@
   "exclude-dirs": [
     "vendor",
     "testdata",
-    "examples"
+    "examples",
+    "internal/graphql"
   ],
   "tests": true
 }

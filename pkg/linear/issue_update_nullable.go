@@ -66,7 +66,7 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	req.Header.Set("Authorization", c.config.APIKey)
 
 	// Use the client's HTTP client (has retry/circuit breaker logic)
-	resp, err := c.config.HTTPClient.Do(req)
+	resp, err := c.config.HTTPClient.Do(req) // #nosec G704 - BaseURL from trusted config, not user input
 	if err != nil {
 		return nil, err
 	}
