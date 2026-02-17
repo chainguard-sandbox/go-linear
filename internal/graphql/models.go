@@ -175,6 +175,44 @@ type OrganizationInviteDetailsPayload interface {
 	IsOrganizationInviteDetailsPayload()
 }
 
+// Activity collection filtering options.
+type ActivityCollectionFilter struct {
+	// Compound filters, all of which need to be matched by the activity.
+	And []*ActivityCollectionFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Filters that needs to be matched by all activities.
+	Every *ActivityFilter `json:"every,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Comparator for the collection length.
+	Length *NumberComparator `json:"length,omitempty"`
+	// Compound filters, one of which need to be matched by the activity.
+	Or []*ActivityCollectionFilter `json:"or,omitempty"`
+	// Filters that needs to be matched by some activities.
+	Some *ActivityFilter `json:"some,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// Filters that the activity's user must satisfy.
+	User *UserFilter `json:"user,omitempty"`
+}
+
+// Activity filtering options.
+type ActivityFilter struct {
+	// Compound filters, all of which need to be matched by the activity.
+	And []*ActivityFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Compound filters, one of which need to be matched by the activity.
+	Or []*ActivityFilter `json:"or,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// Filters that the activity's user must satisfy.
+	User *UserFilter `json:"user,omitempty"`
+}
+
 // A bot actor is an actor that is not a user, but an application or integration.
 type ActorBot struct {
 	// A url pointing to the avatar representing this bot.
@@ -831,6 +869,34 @@ func (AsksWebSettings) IsNode() {}
 
 // The unique identifier of the entity.
 func (this AsksWebSettings) GetID() string { return this.ID }
+
+type AsksWebSettingsCreateInput struct {
+	// The custom domain for the Asks web form. If null, the default Linear-hosted domain will be used.
+	Domain *string `json:"domain,omitempty"`
+	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
+	ID *string `json:"id,omitempty"`
+}
+
+type AsksWebSettingsEmailIntakeAddressInput struct {
+	// The email address for forwarding.
+	ForwardingEmailAddress *string `json:"forwardingEmailAddress,omitempty"`
+	// The sender name for outgoing emails.
+	SenderName *string `json:"senderName,omitempty"`
+}
+
+type AsksWebSettingsPayload struct {
+	// The Asks web settings that were created or updated.
+	AsksWebSettings *AsksWebSettings `json:"asksWebSettings"`
+	// The identifier of the last sync operation.
+	LastSyncID float64 `json:"lastSyncId"`
+	// Whether the operation was successful.
+	Success bool `json:"success"`
+}
+
+type AsksWebSettingsUpdateInput struct {
+	// The custom domain for the Asks web form. If null, the default Linear-hosted domain will be used.
+	Domain *string `json:"domain,omitempty"`
+}
 
 // Issue assignee sorting options.
 type AssigneeSort struct {
@@ -1666,6 +1732,8 @@ type ContactSalesCreateInput struct {
 	Message *string `json:"message,omitempty"`
 	// Name of the person requesting information.
 	Name string `json:"name"`
+	// Session ID for analytics correlation.
+	SessionID *string `json:"sessionId,omitempty"`
 	// The URL this request was sent from.
 	URL *string `json:"url,omitempty"`
 }
@@ -3927,6 +3995,8 @@ type DocumentContent struct {
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// The welcome message that the content is associated with.
+	WelcomeMessage *WelcomeMessage `json:"welcomeMessage,omitempty"`
 }
 
 func (DocumentContent) IsNode() {}
@@ -5431,6 +5501,12 @@ type GitHubSettingsInput struct {
 }
 
 type GitLabIntegrationCreatePayload struct {
+	// Error message if the connection failed.
+	Error *string `json:"error,omitempty"`
+	// Response body from GitLab for debugging.
+	ErrorResponseBody *string `json:"errorResponseBody,omitempty"`
+	// Response headers from GitLab for debugging (JSON stringified).
+	ErrorResponseHeaders *string `json:"errorResponseHeaders,omitempty"`
 	// The integration that was created or updated.
 	Integration *Integration `json:"integration,omitempty"`
 	// The identifier of the last sync operation.
@@ -7272,6 +7348,8 @@ type IssueChildWebhookPayload struct {
 type IssueCollectionFilter struct {
 	// [Internal] Comparator for the issue's accumulatedStateUpdatedAt date.
 	AccumulatedStateUpdatedAt *NullableDateComparator `json:"accumulatedStateUpdatedAt,omitempty"`
+	// Filters that the issue's activities must satisfy.
+	Activity *ActivityCollectionFilter `json:"activity,omitempty"`
 	// Comparator for the issues added to cycle at date.
 	AddedToCycleAt *NullableDateComparator `json:"addedToCycleAt,omitempty"`
 	// Comparator for the period when issue was added to a cycle.
@@ -7677,6 +7755,8 @@ func (IssueEmojiReactionNotificationWebhookPayload) IsNotificationWebhookPayload
 type IssueFilter struct {
 	// [Internal] Comparator for the issue's accumulatedStateUpdatedAt date.
 	AccumulatedStateUpdatedAt *NullableDateComparator `json:"accumulatedStateUpdatedAt,omitempty"`
+	// Filters that the issue's activities must satisfy.
+	Activity *ActivityCollectionFilter `json:"activity,omitempty"`
 	// Comparator for the issues added to cycle at date.
 	AddedToCycleAt *NullableDateComparator `json:"addedToCycleAt,omitempty"`
 	// Comparator for the period when issue was added to a cycle.
@@ -7874,6 +7954,16 @@ type IssueHistory struct {
 	FromProject *Project `json:"fromProject,omitempty"`
 	// The id of previous project of the issue.
 	FromProjectID *string `json:"fromProjectId,omitempty"`
+	// The project milestone that the issue was moved from.
+	FromProjectMilestone *ProjectMilestone `json:"fromProjectMilestone,omitempty"`
+	// Whether the issue had previously breached its SLA.
+	FromSLABreached *bool `json:"fromSlaBreached,omitempty"`
+	// The SLA breach time that was previously set on the issue.
+	FromSLABreachesAt *time.Time `json:"fromSlaBreachesAt,omitempty"`
+	// The time at which the issue's SLA was previously started.
+	FromSLAStartedAt *time.Time `json:"fromSlaStartedAt,omitempty"`
+	// The type of SLA that was previously set on the issue.
+	FromSLAType *string `json:"fromSlaType,omitempty"`
 	// The state that the issue was moved from.
 	FromState *WorkflowState `json:"fromState,omitempty"`
 	// The id of previous workflow state of the issue.
@@ -7928,6 +8018,16 @@ type IssueHistory struct {
 	ToProject *Project `json:"toProject,omitempty"`
 	// The id of new project of the issue.
 	ToProjectID *string `json:"toProjectId,omitempty"`
+	// The project milestone that the issue was moved to.
+	ToProjectMilestone *ProjectMilestone `json:"toProjectMilestone,omitempty"`
+	// Whether the issue has now breached its SLA.
+	ToSLABreached *bool `json:"toSlaBreached,omitempty"`
+	// The SLA breach time that is now set on the issue.
+	ToSLABreachesAt *time.Time `json:"toSlaBreachesAt,omitempty"`
+	// The time at which the issue's SLA is now started.
+	ToSLAStartedAt *time.Time `json:"toSlaStartedAt,omitempty"`
+	// The type of SLA that is now set on the issue.
+	ToSLAType *string `json:"toSlaType,omitempty"`
 	// The state that the issue was moved to.
 	ToState *WorkflowState `json:"toState,omitempty"`
 	// The id of new workflow state of the issue.
@@ -7944,6 +8044,8 @@ type IssueHistory struct {
 	TriageResponsibilityAutoAssigned *bool `json:"triageResponsibilityAutoAssigned,omitempty"`
 	// The users that were notified of the issue.
 	TriageResponsibilityNotifiedUsers []*User `json:"triageResponsibilityNotifiedUsers,omitempty"`
+	// The team that triggered the triage responsibility action.
+	TriageResponsibilityTeam *Team `json:"triageResponsibilityTeam,omitempty"`
 	// [INTERNAL] Metadata about the triage rule that made changes to the issue.
 	TriageRuleMetadata *IssueHistoryTriageRuleMetadata `json:"triageRuleMetadata,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
@@ -8550,6 +8652,14 @@ type IssuePriorityValue struct {
 	Priority int64 `json:"priority"`
 }
 
+// A reference to an issue found during release creation.
+type IssueReferenceInput struct {
+	// The commit SHA where this issue reference was found.
+	CommitSha string `json:"commitSha"`
+	// The issue identifier (e.g. ENG-123).
+	Identifier string `json:"identifier"`
+}
+
 // A relation between two issues.
 type IssueRelation struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
@@ -9069,6 +9179,8 @@ type IssueToRelease struct {
 	ID string `json:"id"`
 	// The issue associated with the release.
 	Issue *Issue `json:"issue"`
+	// The pull request that linked this issue to the release.
+	PullRequest *PullRequest `json:"pullRequest,omitempty"`
 	// The release associated with the issue.
 	Release *Release `json:"release"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
@@ -9403,6 +9515,8 @@ type JiraSettingsInput struct {
 	Projects []*JiraProjectDataInput `json:"projects"`
 	// Whether the user needs to provide setup information about the webhook to complete the integration setup. Only relevant for integrations that use a manual setup flow
 	SetupPending *bool `json:"setupPending,omitempty"`
+	// The status names per issue type, per project.
+	StatusNamesPerIssueType map[string]any `json:"statusNamesPerIssueType,omitempty"`
 }
 
 type JiraUpdateInput struct {
@@ -10107,6 +10221,8 @@ type NullableDurationComparator struct {
 type NullableIssueFilter struct {
 	// [Internal] Comparator for the issue's accumulatedStateUpdatedAt date.
 	AccumulatedStateUpdatedAt *NullableDateComparator `json:"accumulatedStateUpdatedAt,omitempty"`
+	// Filters that the issue's activities must satisfy.
+	Activity *ActivityCollectionFilter `json:"activity,omitempty"`
 	// Comparator for the issues added to cycle at date.
 	AddedToCycleAt *NullableDateComparator `json:"addedToCycleAt,omitempty"`
 	// Comparator for the period when issue was added to a cycle.
@@ -10533,7 +10649,7 @@ type NullableUserFilter struct {
 	Null *bool `json:"null,omitempty"`
 	// Compound filters, one of which need to be matched by the user.
 	Or []*NullableUserFilter `json:"or,omitempty"`
-	// [Internal] Comparator for the user's owner status.
+	// Comparator for the user's owner status.
 	Owner *BooleanComparator `json:"owner,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
@@ -10959,6 +11075,10 @@ type Organization struct {
 	SecuritySettings map[string]any `json:"securitySettings"`
 	// [DEPRECATED] Which day count to use for SLA calculations.
 	SLADayCount SLADayCountType `json:"slaDayCount"`
+	// The Slack integration used for auto-creating project channels.
+	SlackProjectChannelIntegration *Integration `json:"slackProjectChannelIntegration,omitempty"`
+	// The prefix used for auto-created Slack project channels.
+	SlackProjectChannelPrefix string `json:"slackProjectChannelPrefix"`
 	// The organization's subscription to a paid plan.
 	Subscription *PaidSubscription `json:"subscription,omitempty"`
 	// Teams associated with the organization.
@@ -11349,6 +11469,10 @@ type OrganizationUpdateInput struct {
 	SecuritySettings *OrganizationSecuritySettingsInput `json:"securitySettings,omitempty"`
 	// Internal. Whether SLAs have been enabled for the organization.
 	SLAEnabled *bool `json:"slaEnabled,omitempty"`
+	// The ID of the Slack integration to use for auto-creating project channels.
+	SlackProjectChannelIntegrationID *string `json:"slackProjectChannelIntegrationId,omitempty"`
+	// The prefix to use for auto-created Slack project channels (p-, proj-, or project-).
+	SlackProjectChannelPrefix *string `json:"slackProjectChannelPrefix,omitempty"`
 	// [ALPHA] Theme settings for the organization.
 	ThemeSettings map[string]any `json:"themeSettings,omitempty"`
 	// The URL key of the organization.
@@ -11719,6 +11843,8 @@ type PrioritySort struct {
 type Project struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// Attachments associated with the project.
+	Attachments *ProjectAttachmentConnection `json:"attachments"`
 	// The time at which the project was automatically archived by the auto pruning process.
 	AutoArchivedAt *time.Time `json:"autoArchivedAt,omitempty"`
 	// The time at which the project was moved into canceled state.
@@ -11918,6 +12044,18 @@ func (ProjectAttachment) IsNode() {}
 
 // The unique identifier of the entity.
 func (this ProjectAttachment) GetID() string { return this.ID }
+
+type ProjectAttachmentConnection struct {
+	Edges    []*ProjectAttachmentEdge `json:"edges"`
+	Nodes    []*ProjectAttachment     `json:"nodes"`
+	PageInfo *PageInfo                `json:"pageInfo"`
+}
+
+type ProjectAttachmentEdge struct {
+	// Used in `before` and `after` args
+	Cursor string             `json:"cursor"`
+	Node   *ProjectAttachment `json:"node"`
+}
 
 // Certain properties of a project.
 type ProjectChildWebhookPayload struct {
@@ -13057,6 +13195,8 @@ type ProjectSearchPayload struct {
 type ProjectSearchResult struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// Attachments associated with the project.
+	Attachments *ProjectAttachmentConnection `json:"attachments"`
 	// The time at which the project was automatically archived by the auto pruning process.
 	AutoArchivedAt *time.Time `json:"autoArchivedAt,omitempty"`
 	// The time at which the project was moved into canceled state.
@@ -14313,6 +14453,8 @@ type Release struct {
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Release URL.
+	URL string `json:"url"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
 }
@@ -14697,14 +14839,18 @@ type ReleaseSyncInput struct {
 	Description *string `json:"description,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// Issue identifiers (e.g. ENG-123) to associate with this release.
+	// [DEPRECATED] Issue identifiers (e.g. ENG-123) to associate with this release.
 	IssueIdentifiers []string `json:"issueIdentifiers,omitempty"`
+	// Issue references (e.g. ENG-123) to associate with this release.
+	IssueReferences []*IssueReferenceInput `json:"issueReferences,omitempty"`
 	// The name of the release.
 	Name *string `json:"name,omitempty"`
 	// The identifier of the pipeline this release belongs to.
 	PipelineID string `json:"pipelineId"`
 	// Pull request references to look up. Issues linked to found PRs will be associated with this release.
 	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
+	// Information about the source repository.
+	Repository *RepositoryDataInput `json:"repository,omitempty"`
 	// The current stage of the release. Defaults to the first 'completed' stage.
 	StageID *string `json:"stageId,omitempty"`
 	// The estimated start date of the release.
@@ -14725,12 +14871,14 @@ type ReleaseSyncInputBase struct {
 	Description *string `json:"description,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// Issue identifiers (e.g. ENG-123) to associate with this release.
-	IssueIdentifiers []string `json:"issueIdentifiers,omitempty"`
+	// Issue references (e.g. ENG-123) to associate with this release.
+	IssueReferences []*IssueReferenceInput `json:"issueReferences,omitempty"`
 	// The name of the release.
 	Name *string `json:"name,omitempty"`
 	// Pull request references to look up. Issues linked to found PRs will be associated with this release.
 	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
+	// Information about the source repository.
+	Repository *RepositoryDataInput `json:"repository,omitempty"`
 	// The current stage of the release. Defaults to the first 'completed' stage.
 	StageID *string `json:"stageId,omitempty"`
 	// The estimated start date of the release.
@@ -14747,14 +14895,14 @@ type ReleaseUpdateByPipelineInput struct {
 	PipelineID string `json:"pipelineId"`
 	// The stage name to set. First tries exact match, then falls back to case-insensitive matching with dashes/underscores treated as spaces.
 	Stage *string `json:"stage,omitempty"`
-	// The version of the release to update. If not provided, the latest started release will be updated.
+	// The version of the release to update. If not provided, the latest started or latest planned release will be updated.
 	Version *string `json:"version,omitempty"`
 }
 
 type ReleaseUpdateByPipelineInputBase struct {
 	// The stage name to set. First tries exact match, then falls back to case-insensitive matching with dashes/underscores treated as spaces.
 	Stage *string `json:"stage,omitempty"`
-	// The version of the release to update. If not provided, the latest started release will be updated.
+	// The version of the release to update. If not provided, the latest started or latest planned release will be updated.
 	Version *string `json:"version,omitempty"`
 }
 
@@ -14775,6 +14923,18 @@ type ReleaseUpdateInput struct {
 	TargetDate *string `json:"targetDate,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
+}
+
+// Information about the source repository.
+type RepositoryDataInput struct {
+	// The name of the repository.
+	Name string `json:"name"`
+	// The owner of the repository (e.g., organization or user name).
+	Owner string `json:"owner"`
+	// The VCS provider hosting the repository (e.g., 'github', 'gitlab').
+	Provider string `json:"provider"`
+	// The base URL of the repository on the hosting provider (e.g., 'https://github.com/linear/linear-app').
+	URL string `json:"url"`
 }
 
 type RepositorySuggestion struct {
@@ -15696,6 +15856,8 @@ type Team struct {
 	Projects *ProjectConnection `json:"projects"`
 	// Whether an issue needs to have a priority set before leaving triage.
 	RequirePriorityToLeaveTriage bool `json:"requirePriorityToLeaveTriage"`
+	// The time at which the team was retired. Null if the team has not been retired.
+	RetiredAt *time.Time `json:"retiredAt,omitempty"`
 	// The workflow state into which issues are moved when a review has been requested for the PR.
 	ReviewWorkflowState *WorkflowState `json:"reviewWorkflowState,omitempty"`
 	// The SCIM group name for the team.
@@ -16199,7 +16361,7 @@ type TeamUpdateInput struct {
 	ProductIntelligenceScope *ProductIntelligenceScope `json:"productIntelligenceScope,omitempty"`
 	// Whether an issue needs to have a priority set before leaving triage.
 	RequirePriorityToLeaveTriage *bool `json:"requirePriorityToLeaveTriage,omitempty"`
-	// [Internal] When the team was retired.
+	// When the team was retired.
 	RetiredAt *time.Time `json:"retiredAt,omitempty"`
 	// Whether the team is managed by SCIM integration. Mutation restricted to workspace admins or owners and only unsetting is allowed!
 	ScimManaged *bool `json:"scimManaged,omitempty"`
@@ -16749,7 +16911,7 @@ type UserCollectionFilter struct {
 	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the user.
 	Or []*UserCollectionFilter `json:"or,omitempty"`
-	// [Internal] Comparator for the user's owner status.
+	// Comparator for the user's owner status.
 	Owner *BooleanComparator `json:"owner,omitempty"`
 	// Filters that needs to be matched by some users.
 	Some *UserFilter `json:"some,omitempty"`
@@ -16807,7 +16969,7 @@ type UserFilter struct {
 	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the user.
 	Or []*UserFilter `json:"or,omitempty"`
-	// [Internal] Comparator for the user's owner status.
+	// Comparator for the user's owner status.
 	Owner *BooleanComparator `json:"owner,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
@@ -17331,6 +17493,200 @@ type WebhookUpdateInput struct {
 	// The URL that will be called on data changes.
 	URL *string `json:"url,omitempty"`
 }
+
+// A welcome message for new users joining the workspace.
+type WelcomeMessage struct {
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// Whether the welcome message is enabled.
+	Enabled bool `json:"enabled"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// The title of the welcome message notification.
+	Title *string `json:"title,omitempty"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The user who last updated the welcome message.
+	UpdatedBy *User `json:"updatedBy,omitempty"`
+}
+
+func (WelcomeMessage) IsNode() {}
+
+// The unique identifier of the entity.
+func (this WelcomeMessage) GetID() string { return this.ID }
+
+// A welcome message related notification.
+type WelcomeMessageNotification struct {
+	// The user that caused the notification.
+	Actor *User `json:"actor,omitempty"`
+	// [Internal] Notification actor initials if avatar is not available.
+	ActorAvatarColor string `json:"actorAvatarColor"`
+	// [Internal] Notification avatar URL.
+	ActorAvatarURL *string `json:"actorAvatarUrl,omitempty"`
+	// [Internal] Notification actor initials if avatar is not available.
+	ActorInitials *string `json:"actorInitials,omitempty"`
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The bot that caused the notification.
+	BotActor *ActorBot `json:"botActor,omitempty"`
+	// The category of the notification.
+	Category NotificationCategory `json:"category"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The time at when an email reminder for this notification was sent to the user. Null, if no email
+	//     reminder has been sent.
+	EmailedAt *time.Time `json:"emailedAt,omitempty"`
+	// The external user that caused the notification.
+	ExternalUserActor *ExternalUser `json:"externalUserActor,omitempty"`
+	// [Internal] Notifications with the same grouping key will be grouped together in the UI.
+	GroupingKey string `json:"groupingKey"`
+	// [Internal] Priority of the notification with the same grouping key. Higher number means higher priority. If priority is the same, notifications should be sorted by `createdAt`.
+	GroupingPriority float64 `json:"groupingPriority"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// [Internal] Inbox URL for the notification.
+	InboxURL string `json:"inboxUrl"`
+	// [Internal] Initiative update health for new updates.
+	InitiativeUpdateHealth *string `json:"initiativeUpdateHealth,omitempty"`
+	// [Internal] If notification actor was Linear.
+	IsLinearActor bool `json:"isLinearActor"`
+	// [Internal] Issue's status type for issue notifications.
+	IssueStatusType *string `json:"issueStatusType,omitempty"`
+	// [Internal] Project update health for new updates.
+	ProjectUpdateHealth *string `json:"projectUpdateHealth,omitempty"`
+	// The time at when the user marked the notification as read. Null, if the the user hasn't read the notification
+	ReadAt *time.Time `json:"readAt,omitempty"`
+	// The time until a notification will be snoozed. After that it will appear in the inbox again.
+	SnoozedUntilAt *time.Time `json:"snoozedUntilAt,omitempty"`
+	// [Internal] Notification subtitle.
+	Subtitle string `json:"subtitle"`
+	// [Internal] Notification title.
+	Title string `json:"title"`
+	// Notification type.
+	Type string `json:"type"`
+	// The time at which a notification was unsnoozed..
+	UnsnoozedAt *time.Time `json:"unsnoozedAt,omitempty"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+	// [Internal] URL to the target of the notification.
+	URL string `json:"url"`
+	// The user that received the notification.
+	User *User `json:"user"`
+	// Related welcome message.
+	WelcomeMessageID string `json:"welcomeMessageId"`
+}
+
+func (WelcomeMessageNotification) IsEntity() {}
+
+// The time at which the entity was archived. Null if the entity has not been archived.
+func (this WelcomeMessageNotification) GetArchivedAt() *time.Time { return this.ArchivedAt }
+
+// The time at which the entity was created.
+func (this WelcomeMessageNotification) GetCreatedAt() time.Time { return this.CreatedAt }
+
+// The unique identifier of the entity.
+func (this WelcomeMessageNotification) GetID() string { return this.ID }
+
+// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+//
+//	been updated after creation.
+func (this WelcomeMessageNotification) GetUpdatedAt() time.Time { return this.UpdatedAt }
+
+func (WelcomeMessageNotification) IsNode() {}
+
+// The unique identifier of the entity.
+
+func (WelcomeMessageNotification) IsNotification() {}
+
+// The user that caused the notification.
+func (this WelcomeMessageNotification) GetActor() *User { return this.Actor }
+
+// [Internal] Notification actor initials if avatar is not available.
+func (this WelcomeMessageNotification) GetActorAvatarColor() string { return this.ActorAvatarColor }
+
+// [Internal] Notification avatar URL.
+func (this WelcomeMessageNotification) GetActorAvatarURL() *string { return this.ActorAvatarURL }
+
+// [Internal] Notification actor initials if avatar is not available.
+func (this WelcomeMessageNotification) GetActorInitials() *string { return this.ActorInitials }
+
+// The time at which the entity was archived. Null if the entity has not been archived.
+
+// The bot that caused the notification.
+func (this WelcomeMessageNotification) GetBotActor() *ActorBot { return this.BotActor }
+
+// The category of the notification.
+func (this WelcomeMessageNotification) GetCategory() NotificationCategory { return this.Category }
+
+// The time at which the entity was created.
+
+// The time at when an email reminder for this notification was sent to the user. Null, if no email
+//
+//	reminder has been sent.
+func (this WelcomeMessageNotification) GetEmailedAt() *time.Time { return this.EmailedAt }
+
+// The external user that caused the notification.
+func (this WelcomeMessageNotification) GetExternalUserActor() *ExternalUser {
+	return this.ExternalUserActor
+}
+
+// [Internal] Notifications with the same grouping key will be grouped together in the UI.
+func (this WelcomeMessageNotification) GetGroupingKey() string { return this.GroupingKey }
+
+// [Internal] Priority of the notification with the same grouping key. Higher number means higher priority. If priority is the same, notifications should be sorted by `createdAt`.
+func (this WelcomeMessageNotification) GetGroupingPriority() float64 { return this.GroupingPriority }
+
+// The unique identifier of the entity.
+
+// [Internal] Inbox URL for the notification.
+func (this WelcomeMessageNotification) GetInboxURL() string { return this.InboxURL }
+
+// [Internal] Initiative update health for new updates.
+func (this WelcomeMessageNotification) GetInitiativeUpdateHealth() *string {
+	return this.InitiativeUpdateHealth
+}
+
+// [Internal] If notification actor was Linear.
+func (this WelcomeMessageNotification) GetIsLinearActor() bool { return this.IsLinearActor }
+
+// [Internal] Issue's status type for issue notifications.
+func (this WelcomeMessageNotification) GetIssueStatusType() *string { return this.IssueStatusType }
+
+// [Internal] Project update health for new updates.
+func (this WelcomeMessageNotification) GetProjectUpdateHealth() *string {
+	return this.ProjectUpdateHealth
+}
+
+// The time at when the user marked the notification as read. Null, if the the user hasn't read the notification
+func (this WelcomeMessageNotification) GetReadAt() *time.Time { return this.ReadAt }
+
+// The time until a notification will be snoozed. After that it will appear in the inbox again.
+func (this WelcomeMessageNotification) GetSnoozedUntilAt() *time.Time { return this.SnoozedUntilAt }
+
+// [Internal] Notification subtitle.
+func (this WelcomeMessageNotification) GetSubtitle() string { return this.Subtitle }
+
+// [Internal] Notification title.
+func (this WelcomeMessageNotification) GetTitle() string { return this.Title }
+
+// Notification type.
+func (this WelcomeMessageNotification) GetType() string { return this.Type }
+
+// The time at which a notification was unsnoozed..
+func (this WelcomeMessageNotification) GetUnsnoozedAt() *time.Time { return this.UnsnoozedAt }
+
+// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+//     been updated after creation.
+
+// [Internal] URL to the target of the notification.
+func (this WelcomeMessageNotification) GetURL() string { return this.URL }
+
+// The user that received the notification.
+func (this WelcomeMessageNotification) GetUser() *User { return this.User }
 
 type WorkflowDefinition struct {
 	// An array of activities that will be executed as part of the workflow.
@@ -18236,19 +18592,21 @@ type EmailIntakeAddressType string
 
 const (
 	EmailIntakeAddressTypeAsks     EmailIntakeAddressType = "asks"
+	EmailIntakeAddressTypeAsksWeb  EmailIntakeAddressType = "asksWeb"
 	EmailIntakeAddressTypeTeam     EmailIntakeAddressType = "team"
 	EmailIntakeAddressTypeTemplate EmailIntakeAddressType = "template"
 )
 
 var AllEmailIntakeAddressType = []EmailIntakeAddressType{
 	EmailIntakeAddressTypeAsks,
+	EmailIntakeAddressTypeAsksWeb,
 	EmailIntakeAddressTypeTeam,
 	EmailIntakeAddressTypeTemplate,
 }
 
 func (e EmailIntakeAddressType) IsValid() bool {
 	switch e {
-	case EmailIntakeAddressTypeAsks, EmailIntakeAddressTypeTeam, EmailIntakeAddressTypeTemplate:
+	case EmailIntakeAddressTypeAsks, EmailIntakeAddressTypeAsksWeb, EmailIntakeAddressTypeTeam, EmailIntakeAddressTypeTemplate:
 		return true
 	}
 	return false
