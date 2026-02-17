@@ -93,8 +93,6 @@ Related: issue_list, issue_update`,
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt")
 	cmd.Flags().Int("batch-limit", 50, "Max issues per batch (API max: 50)")
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-
 	return cmd
 }
 
@@ -341,14 +339,5 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to batch update: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated %d issues\n", len(result.Issues))
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

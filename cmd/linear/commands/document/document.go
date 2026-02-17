@@ -42,7 +42,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Filters: --title, --creator, --project, --initiative, --issue, --slug-id
 Date filters: --created-after, --updated-after, etc. (date formats: see issue_list)
 
-Example: go-linear document list --created-after=30d --output=json
+Example: go-linear document list --created-after=30d
 
 Related: document_get, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -77,7 +77,6 @@ Related: document_get, issue_list`,
 	cmd.Flags().String("slug-id", "", "Document slug ID (exact match)")
 
 	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,title,content,createdAt) | none | defaults,extra")
 
 	return cmd
@@ -97,7 +96,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	limit, _ := cmd.Flags().GetInt("limit")
 	first := int64(limit)
 
-	output, _ := cmd.Flags().GetString("output")
 	fieldsSpec, _ := cmd.Flags().GetString("fields")
 
 	// Use filtered or unfiltered query based on whether filters were set
@@ -107,41 +105,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			return fmt.Errorf("failed to list documents: %w", err)
 		}
 
-		switch output {
-		case "json":
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
-			defaults := fieldfilter.GetDefaults("document.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), documents, true, fieldSelector)
-		case "table":
-			if len(documents.Nodes) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "No documents found")
-				return nil
-			}
-			for _, doc := range documents.Nodes {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s\n", doc.Title)
-			}
-			return nil
-		default:
-			return fmt.Errorf("unsupported output format: %s", output)
-		}
-	}
-
-	// No filters: use regular query
-	documents, err := client.Documents(ctx, &first, nil)
-	if err != nil {
-		return fmt.Errorf("failed to list documents: %w", err)
-	}
-
-	switch output {
-	case "json":
 		cfg, _ := config.Load()
 		var configOverrides map[string]string
 		if cfg != nil {
@@ -153,18 +116,25 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), documents, true, fieldSelector)
-	case "table":
-		if len(documents.Nodes) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No documents found")
-			return nil
-		}
-		for _, doc := range documents.Nodes {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", doc.Title)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
 	}
+
+	// No filters: use regular query
+	documents, err := client.Documents(ctx, &first, nil)
+	if err != nil {
+		return fmt.Errorf("failed to list documents: %w", err)
+	}
+
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
+	}
+	defaults := fieldfilter.GetDefaults("document.list", configOverrides)
+	fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), documents, true, fieldSelector)
 }
 
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
@@ -173,7 +143,7 @@ func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Get a single document by ID",
 		Long: `Get document by UUID. Returns 4 default fields.
 
-Example: go-linear document get <uuid> --output=json
+Example: go-linear document get <uuid>
 
 Related: document_list`,
 		Args: cobra.ExactArgs(1),
@@ -190,32 +160,22 @@ Related: document_list`,
 				return fmt.Errorf("failed to get document: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
 			fieldsSpec, _ := cmd.Flags().GetString("fields")
 
-			switch output {
-			case "json":
-				cfg, _ := config.Load()
-				var configOverrides map[string]string
-				if cfg != nil {
-					configOverrides = cfg.FieldDefaults
-				}
-				defaults := fieldfilter.GetDefaults("document.get", configOverrides)
-				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
-				if err != nil {
-					return fmt.Errorf("invalid --fields: %w", err)
-				}
-				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), document, true, fieldSelector)
-			case "table":
-				fmt.Fprintf(cmd.OutOrStdout(), "Title: %s\n", document.Title)
-				return nil
-			default:
-				return fmt.Errorf("unsupported output format: %s", output)
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
 			}
+			defaults := fieldfilter.GetDefaults("document.get", configOverrides)
+			fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), document, true, fieldSelector)
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,title,content,createdAt) | none | defaults,extra")
 	return cmd
 }

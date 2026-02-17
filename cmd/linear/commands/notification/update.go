@@ -22,7 +22,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Flags: --read (mark as read) | --snooze-until=tomorrow|3d (date formats: see issue_list)
 
-Example: go-linear notification update <uuid> --snooze-until=tomorrow --output=json
+Example: go-linear notification update <uuid> --snooze-until=tomorrow
 
 Related: notification_archive, notification_subscribe`,
 		Args: cobra.ExactArgs(1),
@@ -39,7 +39,6 @@ Related: notification_archive, notification_subscribe`,
 
 	cmd.Flags().Bool("read", false, "Mark notification as read")
 	cmd.Flags().String("snooze-until", "", "Snooze until date/time (ISO8601 or relative)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -71,14 +70,5 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, notificationID string)
 		return fmt.Errorf("failed to update notification: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated notification\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

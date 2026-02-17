@@ -17,7 +17,7 @@ func NewStatusListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "List project statuses",
 		Long: `List organization's project statuses. Returns name and type per status.
 
-Example: go-linear project status-list --output=json
+Example: go-linear project status-list
 
 Related: project_update, project_get`,
 		Args: cobra.NoArgs,
@@ -32,8 +32,6 @@ Related: project_update, project_get`,
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-
 	return cmd
 }
 
@@ -45,20 +43,5 @@ func runStatusList(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to list project statuses: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), statuses, true)
-	case "table":
-		if len(statuses) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No project statuses found")
-			return nil
-		}
-		for _, s := range statuses {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s (%s)\n", s.Name, s.Type)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), statuses, true)
 }

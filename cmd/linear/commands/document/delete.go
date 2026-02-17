@@ -16,12 +16,11 @@ import (
 // NewDeleteCommand creates the document delete command.
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete a document",
-		Long: `⚠️ Delete knowledge base document. Cannot be undone. Prompts unless --yes.
+		Long: `Delete knowledge base document. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear document delete <uuid>
 
@@ -34,26 +33,21 @@ Related: document_list, document_get`,
 			}
 			defer client.Close()
 
-			return runDelete(cmd, client, args[0], confirmFlags, outputFlags)
+			return runDelete(cmd, client, args[0], confirmFlags)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runDelete(cmd *cobra.Command, client *linear.Client, documentID string, confirmFlags *cli.ConfirmationFlags, outputFlags *cli.OutputOnlyFlags) error {
+func runDelete(cmd *cobra.Command, client *linear.Client, documentID string, confirmFlags *cli.ConfirmationFlags) error {
 	ctx := cmd.Context()
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Confirmation
 	if !confirmFlags.Yes {
-		fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete document %s? This cannot be undone.\n", documentID)
+		fmt.Fprintf(cmd.OutOrStderr(), "Delete document %s? This cannot be undone.\n", documentID)
 		fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
@@ -68,13 +62,5 @@ func runDelete(cmd *cobra.Command, client *linear.Client, documentID string, con
 		return fmt.Errorf("failed to delete document: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Document deleted\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 }

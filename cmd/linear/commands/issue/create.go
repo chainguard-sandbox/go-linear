@@ -23,7 +23,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --title
 Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label, --due-date=YYYY-MM-DD, --milestone=<uuid>
 
-Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --due-date=2025-03-01 --output=json
+Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --due-date=2025-03-01
 
 Related: issue_get, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -58,8 +58,6 @@ Related: issue_get, issue_list`,
 	cmd.Flags().Int("estimate", -1, "Story points/estimate")
 	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD)")
 	cmd.Flags().String("milestone", "", "Project milestone name or UUID")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -205,14 +203,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Created issue: %s\n", result.Identifier)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

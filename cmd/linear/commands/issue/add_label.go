@@ -18,7 +18,7 @@ func NewAddLabelCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Add a label to an issue",
 		Long: `Add label to issue. Safe operation.
 
-Example: go-linear issue add-label ENG-123 bug --output=json
+Example: go-linear issue add-label ENG-123 bug
 
 Related: issue_remove-label, label_list`,
 		Args: cobra.ExactArgs(2),
@@ -32,8 +32,6 @@ Related: issue_remove-label, label_list`,
 			return runAddLabel(cmd, client, args[0], args[1])
 		},
 	}
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -61,14 +59,5 @@ func runAddLabel(cmd *cobra.Command, client *linear.Client, issueID, labelName s
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), issue, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Added label '%s' to issue %s\n", labelName, issueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), issue, true)
 }

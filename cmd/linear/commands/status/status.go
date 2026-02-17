@@ -85,17 +85,11 @@ Output shows:
   - Reset times
 
 Examples:
-  # Show status in table format
-  go-linear status
-
-  # JSON format for scripting
-  go-linear status --output=json`,
+  go-linear status`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runStatus(cmd)
 		},
 	}
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -128,53 +122,11 @@ func runStatus(cmd *cobra.Command) error {
 	}
 
 	// Get captured info
-	info, timestamp := capture.get()
+	info, _ := capture.get()
 	if info == nil {
 		return fmt.Errorf("no rate limit information available")
 	}
 
-	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		// Use JSON-safe struct to handle zero time values
-		return formatter.FormatJSON(cmd.OutOrStdout(), toStatusOutput(info), true)
-	case "table":
-		displayTable(cmd, info, timestamp)
-		return nil
-	default:
-		return fmt.Errorf("unknown output format: %s", output)
-	}
-}
-
-func displayTable(cmd *cobra.Command, info *linear.RateLimitInfo, timestamp time.Time) {
-	fmt.Fprintln(cmd.OutOrStdout(), "LINEAR API RATE LIMIT STATUS")
-	fmt.Fprintln(cmd.OutOrStdout(), "")
-
-	// Request-based limits
-	reqPercent := float64(info.RequestsRemaining) / float64(info.RequestsLimit) * 100
-	fmt.Fprintln(cmd.OutOrStdout(), "REQUEST-BASED LIMITS")
-	fmt.Fprintf(cmd.OutOrStdout(), "  Remaining: %d / %d (%.1f%%)\n",
-		info.RequestsRemaining, info.RequestsLimit, reqPercent)
-	if !info.RequestsReset.IsZero() {
-		resetIn := time.Until(info.RequestsReset)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Resets in: %s (at %s)\n",
-			resetIn.Round(time.Second), info.RequestsReset.Format(time.RFC3339))
-	}
-	fmt.Fprintln(cmd.OutOrStdout(), "")
-
-	// Complexity-based limits
-	complexPercent := float64(info.ComplexityRemaining) / float64(info.ComplexityLimit) * 100
-	fmt.Fprintln(cmd.OutOrStdout(), "COMPLEXITY-BASED LIMITS")
-	fmt.Fprintf(cmd.OutOrStdout(), "  Remaining: %d / %d (%.1f%%)\n",
-		info.ComplexityRemaining, info.ComplexityLimit, complexPercent)
-	if !info.ComplexityReset.IsZero() {
-		resetIn := time.Until(info.ComplexityReset)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Resets in: %s (at %s)\n",
-			resetIn.Round(time.Second), info.ComplexityReset.Format(time.RFC3339))
-	}
-	fmt.Fprintln(cmd.OutOrStdout(), "")
-
-	// Metadata
-	fmt.Fprintf(cmd.OutOrStdout(), "Last updated: %s\n", timestamp.Format(time.RFC3339))
+	// Use JSON-safe struct to handle zero time values
+	return formatter.FormatJSON(cmd.OutOrStdout(), toStatusOutput(info), true)
 }

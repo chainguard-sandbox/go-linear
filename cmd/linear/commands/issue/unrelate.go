@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -35,7 +36,6 @@ Related: issue_relate, issue_get`,
 	}
 
 	cmd.Flags().Bool("yes", false, "Skip confirmation prompt")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -65,6 +65,8 @@ func runUnrelate(cmd *cobra.Command, client *linear.Client, relationID string) e
 		return fmt.Errorf("failed to delete issue relation: %w", err)
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "✓ Deleted issue relation\n")
-	return nil
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success":    true,
+		"relationId": relationID,
+	}, true)
 }

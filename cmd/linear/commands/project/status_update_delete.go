@@ -16,12 +16,11 @@ import (
 // NewStatusUpdateDeleteCommand creates the project status-update-delete command.
 func NewStatusUpdateDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "status-update-delete <id>",
 		Short: "Delete a project status update",
-		Long: `⚠️ Delete project status update. Cannot be undone. Prompts unless --yes.
+		Long: `Delete project status update. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear project status-update-delete <uuid>
 
@@ -34,26 +33,21 @@ Related: project_status-update-list, project_status-update-get`,
 			}
 			defer client.Close()
 
-			return runStatusUpdateDelete(cmd, client, args[0], confirmFlags, outputFlags)
+			return runStatusUpdateDelete(cmd, client, args[0], confirmFlags)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runStatusUpdateDelete(cmd *cobra.Command, client *linear.Client, updateID string, confirmFlags *cli.ConfirmationFlags, outputFlags *cli.OutputOnlyFlags) error {
+func runStatusUpdateDelete(cmd *cobra.Command, client *linear.Client, updateID string, confirmFlags *cli.ConfirmationFlags) error {
 	ctx := cmd.Context()
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Confirmation
 	if !confirmFlags.Yes {
-		fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete project status update %s? This cannot be undone.\n", updateID)
+		fmt.Fprintf(cmd.OutOrStderr(), "Delete project status update %s? This cannot be undone.\n", updateID)
 		fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
@@ -68,13 +62,5 @@ func runStatusUpdateDelete(cmd *cobra.Command, client *linear.Client, updateID s
 		return fmt.Errorf("failed to delete project status update: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Project status update deleted\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 }

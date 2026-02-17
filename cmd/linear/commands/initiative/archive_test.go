@@ -19,13 +19,6 @@ func TestNewArchiveCommand(t *testing.T) {
 		}
 	})
 
-	t.Run("flags exist", func(t *testing.T) {
-		outputFlag := cmd.Flags().Lookup("output")
-		if outputFlag == nil {
-			t.Fatal("output flag not found")
-		}
-	})
-
 	t.Run("requires exactly one arg", func(t *testing.T) {
 		err := cmd.Args(cmd, []string{})
 		if err == nil {
@@ -49,7 +42,7 @@ func TestRunArchive(t *testing.T) {
 		cmd := NewArchiveCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--output=json"})
+		cmd.SetArgs([]string{"Security Initiative"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -62,23 +55,6 @@ func TestRunArchive(t *testing.T) {
 		}
 		if !strings.Contains(output, `"initiativeId"`) {
 			t.Errorf("Output should contain initiativeId, got: %s", output)
-		}
-	})
-
-	t.Run("archive table output", func(t *testing.T) {
-		cmd := NewArchiveCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "archived successfully") {
-			t.Errorf("Output should contain 'archived successfully', got: %s", output)
 		}
 	})
 }

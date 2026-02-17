@@ -30,14 +30,6 @@ func TestNewGetCommand(t *testing.T) {
 	})
 
 	t.Run("flags", func(t *testing.T) {
-		outputFlag := cmd.Flags().Lookup("output")
-		if outputFlag == nil {
-			t.Fatal("output flag not found")
-		}
-		if outputFlag.DefValue != "table" {
-			t.Errorf("output default = %q, want %q", outputFlag.DefValue, "table")
-		}
-
 		fieldsFlag := cmd.Flags().Lookup("fields")
 		if fieldsFlag == nil {
 			t.Fatal("fields flag not found")
@@ -94,7 +86,7 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -110,42 +102,6 @@ func TestRunGet(t *testing.T) {
 		var result map[string]any
 		if err := json.Unmarshal([]byte(output), &result); err != nil {
 			t.Errorf("Output should be valid JSON: %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "ID:") {
-			t.Errorf("Table output should contain ID label, got: %s", output)
-		}
-		if !strings.Contains(output, "Test Issue") {
-			t.Errorf("Table output should contain title, got: %s", output)
-		}
-	})
-
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
-		}
-		if !strings.Contains(err.Error(), "unsupported output format") {
-			t.Errorf("Error should mention unsupported format: %v", err)
 		}
 	})
 }
@@ -208,7 +164,7 @@ func TestRunGet_FieldsFiltering(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=json", "--fields=id,title"})
+		cmd.SetArgs([]string{"ENG-123", "--fields=id,title"})
 
 		err := cmd.Execute()
 		if err != nil {

@@ -13,8 +13,6 @@ import (
 
 // NewUnarchiveCommand creates the project unarchive command.
 func NewUnarchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputOnlyFlags{}
-
 	cmd := &cobra.Command{
 		Use:   "unarchive <name-or-id>",
 		Short: "Unarchive a project",
@@ -32,22 +30,16 @@ Related: project_delete, project_get`,
 			}
 			defer client.Close()
 
-			return runUnarchive(cmd, client, args[0], outputFlags)
+			return runUnarchive(cmd, client, args[0])
 		},
 	}
-
-	outputFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runUnarchive(cmd *cobra.Command, client *linear.Client, projectID string, outputFlags *cli.OutputOnlyFlags) error {
+func runUnarchive(cmd *cobra.Command, client *linear.Client, projectID string) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Resolve project ID
 	resolvedID, err := res.ResolveProject(ctx, projectID)
@@ -60,16 +52,8 @@ func runUnarchive(cmd *cobra.Command, client *linear.Client, projectID string, o
 		return fmt.Errorf("failed to unarchive project: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"success":   true,
-			"projectId": projectID,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Project %s unarchived successfully\n", projectID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success":   true,
+		"projectId": projectID,
+	}, true)
 }

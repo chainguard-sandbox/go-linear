@@ -21,7 +21,7 @@ func NewRelateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Types: blocks | blocked-by | duplicate | related (default)
 
-Example: go-linear issue relate ENG-123 ENG-124 --type=blocks --output=json
+Example: go-linear issue relate ENG-123 ENG-124 --type=blocks
 
 Related: issue_unrelate, issue_update-relation`,
 		Args: cobra.ExactArgs(2),
@@ -37,7 +37,6 @@ Related: issue_unrelate, issue_update-relation`,
 	}
 
 	cmd.Flags().String("type", "related", "Relation type: blocks|blocked-by|duplicate|related")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -85,14 +84,5 @@ func runRelate(cmd *cobra.Command, client *linear.Client, issueID, relatedIssueI
 		return fmt.Errorf("failed to create issue relation: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created %s relation between %s and %s\n", relationType, issueID, relatedIssueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -42,17 +42,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -79,7 +69,7 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"att-123", "--output=json"})
+		cmd.SetArgs([]string{"att-123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -110,7 +100,7 @@ func TestRunCreate(t *testing.T) {
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		// Use UUID format to skip resolver
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--title=Test", "--url=https://example.com", "--output=json"})
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--title=Test", "--url=https://example.com"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -137,7 +127,7 @@ func TestRunLinkURL(t *testing.T) {
 		cmd := NewLinkURLCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--issue=issue-123", "--url=https://example.com", "--output=json"})
+		cmd.SetArgs([]string{"--issue=issue-123", "--url=https://example.com"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -164,7 +154,7 @@ func TestRunLinkGitHub(t *testing.T) {
 		cmd := NewLinkGitHubCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--issue=issue-123", "--url=https://github.com/owner/repo/pull/123", "--output=json"})
+		cmd.SetArgs([]string{"--issue=issue-123", "--url=https://github.com/owner/repo/pull/123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -191,7 +181,7 @@ func TestRunLinkSlack(t *testing.T) {
 		cmd := NewLinkSlackCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--issue=issue-123", "--url=https://slack.com/archives/C123/p456", "--output=json"})
+		cmd.SetArgs([]string{"--issue=issue-123", "--url=https://slack.com/archives/C123/p456"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

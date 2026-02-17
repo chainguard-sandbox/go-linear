@@ -42,7 +42,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Filters: --title, --url, --source-type, --creator
 Date filters: --created-after, --created-before, --updated-after, --updated-before
 
-Example: go-linear attachment list --source-type=github --limit=30 --output=json
+Example: go-linear attachment list --source-type=github --limit=30
 
 Related: attachment_get, attachment_create, attachment_link-url`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -76,7 +76,6 @@ Related: attachment_get, attachment_create, attachment_link-url`,
 	cmd.Flags().String("url", "", "URL contains (case-insensitive)")
 
 	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,title,url,source,createdAt) | none | defaults,extra")
 
 	return cmd
@@ -96,7 +95,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 	limit, _ := cmd.Flags().GetInt("limit")
 	first := int64(limit)
 
-	output, _ := cmd.Flags().GetString("output")
 	fieldsSpec, _ := cmd.Flags().GetString("fields")
 
 	// Use filtered or unfiltered query based on whether filters were set
@@ -106,41 +104,6 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			return fmt.Errorf("failed to list attachments: %w", err)
 		}
 
-		switch output {
-		case "json":
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
-			defaults := fieldfilter.GetDefaults("attachment.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachments, true, fieldSelector)
-		case "table":
-			if len(attachments.Nodes) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "No attachments found")
-				return nil
-			}
-			for _, att := range attachments.Nodes {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s: %s\n", att.Title, att.URL)
-			}
-			return nil
-		default:
-			return fmt.Errorf("unsupported output format: %s", output)
-		}
-	}
-
-	// No filters: use regular query
-	attachments, err := client.Attachments(ctx, &first, nil)
-	if err != nil {
-		return fmt.Errorf("failed to list attachments: %w", err)
-	}
-
-	switch output {
-	case "json":
 		cfg, _ := config.Load()
 		var configOverrides map[string]string
 		if cfg != nil {
@@ -152,18 +115,25 @@ func runList(cmd *cobra.Command, client *linear.Client) error {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachments, true, fieldSelector)
-	case "table":
-		if len(attachments.Nodes) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No attachments found")
-			return nil
-		}
-		for _, att := range attachments.Nodes {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s: %s\n", att.Title, att.URL)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
 	}
+
+	// No filters: use regular query
+	attachments, err := client.Attachments(ctx, &first, nil)
+	if err != nil {
+		return fmt.Errorf("failed to list attachments: %w", err)
+	}
+
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
+	}
+	defaults := fieldfilter.GetDefaults("attachment.list", configOverrides)
+	fieldSelector, err := fieldfilter.NewForList(fieldsSpec, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachments, true, fieldSelector)
 }
 
 func NewLinkURLCommand(clientFactory cli.ClientFactory) *cobra.Command {
@@ -175,7 +145,7 @@ func NewLinkURLCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --issue (ID from issue_list), --url
 Optional: --title
 
-Example: go-linear attachment link-url --issue=ENG-123 --url=https://example.com/design --output=json
+Example: go-linear attachment link-url --issue=ENG-123 --url=https://example.com/design
 
 Related: attachment_link-github, attachment_link-slack, attachment_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -200,12 +170,7 @@ Related: attachment_link-github, attachment_link-slack, attachment_create`,
 				return fmt.Errorf("failed to link URL: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Linked URL to issue\n")
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
@@ -214,7 +179,6 @@ Related: attachment_link-github, attachment_link-slack, attachment_create`,
 	cmd.Flags().String("url", "", "URL to link (required)")
 	_ = cmd.MarkFlagRequired("url")
 	cmd.Flags().String("title", "", "Link title")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -227,7 +191,7 @@ func NewLinkGitHubCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: --issue (ID from issue_list), --url (GitHub PR URL like https://github.com/owner/repo/pull/123)
 
-Example: go-linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123 --output=json
+Example: go-linear attachment link-github --issue=ENG-123 --url=https://github.com/owner/repo/pull/123
 
 Related: attachment_link-url, attachment_link-slack, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -246,12 +210,7 @@ Related: attachment_link-url, attachment_link-slack, issue_get`,
 				return fmt.Errorf("failed to link GitHub PR: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Linked GitHub PR to issue\n")
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
@@ -259,7 +218,6 @@ Related: attachment_link-url, attachment_link-slack, issue_get`,
 	_ = cmd.MarkFlagRequired("issue")
 	cmd.Flags().String("url", "", "GitHub PR URL (required)")
 	_ = cmd.MarkFlagRequired("url")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }

@@ -6,23 +6,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestOutputFlags_Bind(t *testing.T) {
+func TestFieldFlags_Bind(t *testing.T) {
 	cmd := &cobra.Command{Use: "test"}
-	flags := &OutputFlags{}
+	flags := &FieldFlags{}
 
 	flags.Bind(cmd, "Field selector help text")
-
-	// Check output flag exists with correct default
-	outputFlag := cmd.Flags().Lookup("output")
-	if outputFlag == nil {
-		t.Fatal("output flag not found")
-	}
-	if outputFlag.DefValue != "table" {
-		t.Errorf("output default = %q, want %q", outputFlag.DefValue, "table")
-	}
-	if outputFlag.Shorthand != "o" {
-		t.Errorf("output shorthand = %q, want %q", outputFlag.Shorthand, "o")
-	}
 
 	// Check fields flag exists
 	fieldsFlag := cmd.Flags().Lookup("fields")
@@ -32,80 +20,11 @@ func TestOutputFlags_Bind(t *testing.T) {
 	if fieldsFlag.Usage != "Field selector help text" {
 		t.Errorf("fields usage = %q, want custom help text", fieldsFlag.Usage)
 	}
-}
 
-func TestOutputFlags_Validate(t *testing.T) {
-	tests := []struct {
-		name    string
-		output  string
-		wantErr bool
-	}{
-		{"json is valid", "json", false},
-		{"table is valid", "table", false},
-		{"empty is invalid", "", true},
-		{"yaml is invalid", "yaml", true},
-		{"csv is invalid", "csv", true},
-		{"JSON uppercase is invalid", "JSON", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &OutputFlags{Output: tt.output}
-			err := f.Validate()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOutputOnlyFlags_Bind(t *testing.T) {
-	cmd := &cobra.Command{Use: "test"}
-	flags := &OutputOnlyFlags{}
-
-	flags.Bind(cmd)
-
-	// Check output flag exists with correct default
+	// Output flag should not exist
 	outputFlag := cmd.Flags().Lookup("output")
-	if outputFlag == nil {
-		t.Fatal("output flag not found")
-	}
-	if outputFlag.DefValue != "table" {
-		t.Errorf("output default = %q, want %q", outputFlag.DefValue, "table")
-	}
-	if outputFlag.Shorthand != "o" {
-		t.Errorf("output shorthand = %q, want %q", outputFlag.Shorthand, "o")
-	}
-
-	// Check fields flag does NOT exist (that's the point of OutputOnlyFlags)
-	fieldsFlag := cmd.Flags().Lookup("fields")
-	if fieldsFlag != nil {
-		t.Error("fields flag should not exist for OutputOnlyFlags")
-	}
-}
-
-func TestOutputOnlyFlags_Validate(t *testing.T) {
-	tests := []struct {
-		name    string
-		output  string
-		wantErr bool
-	}{
-		{"json is valid", "json", false},
-		{"table is valid", "table", false},
-		{"empty is invalid", "", true},
-		{"yaml is invalid", "yaml", true},
-		{"csv is invalid", "csv", true},
-		{"JSON uppercase is invalid", "JSON", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f := &OutputOnlyFlags{Output: tt.output}
-			err := f.Validate()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+	if outputFlag != nil {
+		t.Error("output flag should not exist")
 	}
 }
 
@@ -213,24 +132,21 @@ func TestFlags_Integration(t *testing.T) {
 		RunE: func(cmd *cobra.Command, args []string) error { return nil },
 	}
 
-	output := &OutputFlags{}
+	fields := &FieldFlags{}
 	pagination := &PaginationFlags{}
 	confirm := &ConfirmationFlags{}
 
-	output.Bind(cmd, "Select fields")
+	fields.Bind(cmd, "Select fields")
 	pagination.Bind(cmd, 50)
 	confirm.Bind(cmd)
 
 	// Simulate parsing flags
-	cmd.SetArgs([]string{"--output=json", "--limit=25", "--after=abc123", "--yes"})
+	cmd.SetArgs([]string{"--limit=25", "--after=abc123", "--yes"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
 	}
 
 	// Verify flag values were captured
-	if output.Output != "json" {
-		t.Errorf("output = %q, want %q", output.Output, "json")
-	}
 	if pagination.Limit != 25 {
 		t.Errorf("limit = %d, want %d", pagination.Limit, 25)
 	}
@@ -242,9 +158,6 @@ func TestFlags_Integration(t *testing.T) {
 	}
 
 	// Verify helper methods
-	if err := output.Validate(); err != nil {
-		t.Errorf("Validate() error = %v", err)
-	}
 	if *pagination.LimitPtr() != 25 {
 		t.Errorf("LimitPtr() = %d, want %d", *pagination.LimitPtr(), 25)
 	}

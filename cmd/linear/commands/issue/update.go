@@ -21,7 +21,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
 
-Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01 --output=json
+Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -50,8 +50,6 @@ Related: issue_get, issue_create`,
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
 	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD, use 'none' to remove)")
 	cmd.Flags().String("milestone", "", "Project milestone UUID (use 'none' to remove)")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -272,16 +270,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Updated issue: %s\n", result.Identifier)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }
 
 // contains checks if a string contains a substring
@@ -431,14 +420,5 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Updated issue: %s\n", result.Identifier)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

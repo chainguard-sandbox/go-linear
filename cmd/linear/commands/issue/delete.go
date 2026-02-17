@@ -16,7 +16,6 @@ import (
 // NewDeleteCommand creates the issue delete command.
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 	var permanent bool
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
@@ -38,23 +37,18 @@ Related: issue_archive, issue_unarchive, issue_list, issue_get`,
 			}
 			defer client.Close()
 
-			return runDelete(cmd, client, args[0], permanent, confirmFlags, outputFlags)
+			return runDelete(cmd, client, args[0], permanent, confirmFlags)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	cmd.Flags().BoolVar(&permanent, "permanent", false, "Permanently delete (cannot be undone, no grace period)")
 	return cmd
 }
 
-func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, permanent bool, confirmFlags *cli.ConfirmationFlags, outputFlags *cli.OutputOnlyFlags) error {
+func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, permanent bool, confirmFlags *cli.ConfirmationFlags) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Resolve issue ID
 	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
@@ -94,22 +88,9 @@ func runDelete(cmd *cobra.Command, client *linear.Client, issueID string, perman
 	}
 
 	// Format output
-	action := "moved to trash"
-	if permanent {
-		action = "permanently deleted"
-	}
-
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"success":   true,
-			"issueId":   issueID,
-			"permanent": permanent,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Issue %s %s successfully\n", issueID, action)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success":   true,
+		"issueId":   issueID,
+		"permanent": permanent,
+	}, true)
 }

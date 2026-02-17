@@ -14,14 +14,14 @@ import (
 
 // NewGetCommand creates the workflow state get command.
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	flags := &cli.OutputFlags{}
+	flags := &cli.FieldFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "get <state-id>",
 		Short: "Get a single workflow state by ID",
 		Long: `Get workflow state by UUID. Returns 5 default fields.
 
-Example: go-linear state get <state-uuid> --output=json
+Example: go-linear state get <state-uuid>
 
 Related: state_list, issue_update`,
 		Args: cobra.ExactArgs(1),
@@ -40,42 +40,23 @@ Related: state_list, issue_update`,
 
 	return cmd
 }
-func runGet(cmd *cobra.Command, client *linear.Client, stateID string, flags *cli.OutputFlags) error {
+func runGet(cmd *cobra.Command, client *linear.Client, stateID string, flags *cli.FieldFlags) error {
 	ctx := cmd.Context()
-
-	if err := flags.Validate(); err != nil {
-		return err
-	}
 
 	state, err := client.WorkflowState(ctx, stateID)
 	if err != nil {
 		return fmt.Errorf("failed to get workflow state: %w", err)
 	}
 
-	switch flags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("state.get", configOverrides)
-		fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), state, true, fieldSelector)
-	case "table":
-		// Simple table output for single state
-		fmt.Fprintf(cmd.OutOrStdout(), "ID:          %s\n", state.ID)
-		fmt.Fprintf(cmd.OutOrStdout(), "Name:        %s\n", state.Name)
-		fmt.Fprintf(cmd.OutOrStdout(), "Type:        %s\n", state.Type)
-		if state.Color != "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "Color:       %s\n", state.Color)
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Position:    %.0f\n", state.Position)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", flags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("state.get", configOverrides)
+	fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), state, true, fieldSelector)
 }

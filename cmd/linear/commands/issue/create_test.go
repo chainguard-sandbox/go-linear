@@ -36,7 +36,7 @@ func TestNewCreateCommand(t *testing.T) {
 		expectedFlags := []string{
 			"team", "description", "assignee", "state",
 			"priority", "label", "cycle", "project",
-			"parent", "estimate", "output",
+			"parent", "estimate",
 			"due-date", "milestone",
 		}
 		for _, flag := range expectedFlags {
@@ -57,7 +57,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--output=json"})
+		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -82,7 +82,6 @@ func TestRunCreate(t *testing.T) {
 			"--state=Todo",
 			"--priority=1",
 			"--label=bug",
-			"--output=json",
 		})
 
 		err := cmd.Execute()
@@ -93,23 +92,6 @@ func TestRunCreate(t *testing.T) {
 		var result map[string]any
 		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
 			t.Errorf("Output should be valid JSON: %v", err)
-		}
-	})
-
-	t.Run("create table output", func(t *testing.T) {
-		cmd := NewCreateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Created issue") {
-			t.Errorf("Table output should show 'Created issue', got: %s", output)
 		}
 	})
 
@@ -126,24 +108,11 @@ func TestRunCreate(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewCreateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"--title=Test", "--team=ENG", "--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
-		}
-	})
-
 	t.Run("create with cycle by name", func(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--cycle=Sprint 1", "--output=json"})
+		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--cycle=Sprint 1"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -160,7 +129,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--project=Test Project", "--output=json"})
+		cmd.SetArgs([]string{"--title=Test Issue", "--team=ENG", "--project=Test Project"})
 
 		err := cmd.Execute()
 		if err != nil {

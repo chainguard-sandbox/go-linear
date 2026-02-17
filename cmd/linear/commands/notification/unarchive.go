@@ -17,7 +17,7 @@ func NewUnarchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Unarchive a notification",
 		Long: `Restore archived notification to inbox. Safe operation.
 
-Example: go-linear notification unarchive <uuid> --output=json
+Example: go-linear notification unarchive <uuid>
 
 Related: notification_archive, notification_list`,
 		Args: cobra.ExactArgs(1),
@@ -32,8 +32,6 @@ Related: notification_archive, notification_list`,
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-
 	return cmd
 }
 
@@ -45,14 +43,5 @@ func runUnarchive(cmd *cobra.Command, client *linear.Client, notificationID stri
 		return fmt.Errorf("failed to unarchive notification: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Notification unarchived\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 }

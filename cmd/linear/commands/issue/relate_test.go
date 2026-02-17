@@ -54,7 +54,7 @@ func TestRunRelate(t *testing.T) {
 		cmd := NewRelateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "ENG-456", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "ENG-456"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -71,28 +71,11 @@ func TestRunRelate(t *testing.T) {
 		cmd := NewRelateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "ENG-456", "--type=blocks", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "ENG-456", "--type=blocks"})
 
 		err := cmd.Execute()
 		if err != nil {
 			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("relate table output", func(t *testing.T) {
-		cmd := NewRelateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "ENG-456", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Created") || !strings.Contains(output, "relation") {
-			t.Errorf("Table output should show relation created, got: %s", output)
 		}
 	})
 }
@@ -133,7 +116,7 @@ func TestRunUnrelate(t *testing.T) {
 		cmd := NewUnrelateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"relation-123", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"relation-123", "--yes"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -141,26 +124,8 @@ func TestRunUnrelate(t *testing.T) {
 		}
 
 		output := buf.String()
-		// JSON output should contain success field or be a message
-		if !strings.Contains(output, "success") && !strings.Contains(output, "Deleted") {
-			t.Errorf("Output should contain success or Deleted, got: %s", output)
-		}
-	})
-
-	t.Run("unrelate table output", func(t *testing.T) {
-		cmd := NewUnrelateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"relation-123", "--yes", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Deleted") {
-			t.Errorf("Table output should show 'Deleted', got: %s", output)
+		if !strings.Contains(output, "success") {
+			t.Errorf("Output should contain success, got: %s", output)
 		}
 	})
 }
@@ -208,7 +173,7 @@ func TestRunUpdateRelation(t *testing.T) {
 		cmd := NewUpdateRelationCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"relation-123", "--type=blocks", "--output=json"})
+		cmd.SetArgs([]string{"relation-123", "--type=blocks"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -218,23 +183,6 @@ func TestRunUpdateRelation(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "relation-123") {
 			t.Errorf("Output should contain relation id, got: %s", output)
-		}
-	})
-
-	t.Run("update relation table output", func(t *testing.T) {
-		cmd := NewUpdateRelationCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"relation-123", "--type=related", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Updated") {
-			t.Errorf("Table output should show 'Updated', got: %s", output)
 		}
 	})
 }

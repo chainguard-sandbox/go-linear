@@ -15,14 +15,14 @@ import (
 
 // NewGetCommand creates the user get command.
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	flags := &cli.OutputFlags{}
+	flags := &cli.FieldFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "get <name|email|id>",
 		Short: "Get a single user",
 		Long: `Get user by name, email, 'me', or UUID. Returns 7 default fields.
 
-Example: go-linear user get me --output=json
+Example: go-linear user get me
 
 Related: user_list, user_completed`,
 		Args: cobra.ExactArgs(1),
@@ -41,12 +41,9 @@ Related: user_list, user_completed`,
 
 	return cmd
 }
-func runGet(cmd *cobra.Command, client *linear.Client, nameOrEmailOrID string, flags *cli.OutputFlags) error {
+func runGet(cmd *cobra.Command, client *linear.Client, nameOrEmailOrID string, flags *cli.FieldFlags) error {
 	ctx := cmd.Context()
 
-	if err := flags.Validate(); err != nil {
-		return err
-	}
 	res := resolver.New(client)
 
 	// Resolve to user ID
@@ -60,28 +57,15 @@ func runGet(cmd *cobra.Command, client *linear.Client, nameOrEmailOrID string, f
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 
-	switch flags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("user.get", configOverrides)
-		fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), user, true, fieldSelector)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Name:   %s\n", user.Name)
-		fmt.Fprintf(cmd.OutOrStdout(), "Email:  %s\n", user.Email)
-		fmt.Fprintf(cmd.OutOrStdout(), "Active: %v\n", user.Active)
-		if user.Admin {
-			fmt.Fprintf(cmd.OutOrStdout(), "Admin:  Yes\n")
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", flags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("user.get", configOverrides)
+	fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), user, true, fieldSelector)
 }

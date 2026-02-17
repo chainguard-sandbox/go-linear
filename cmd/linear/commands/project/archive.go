@@ -13,8 +13,6 @@ import (
 
 // NewArchiveCommand creates the project archive command.
 func NewArchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputOnlyFlags{}
-
 	cmd := &cobra.Command{
 		Use:   "archive <name-or-id>",
 		Short: "Archive a project",
@@ -22,7 +20,7 @@ func NewArchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Note: Linear recommends delete instead of archive.
 
-Example: go-linear project archive "Q1 Platform" --output=json
+Example: go-linear project archive "Q1 Platform"
 
 Related: project_unarchive, project_delete, project_get`,
 		Args: cobra.ExactArgs(1),
@@ -33,22 +31,16 @@ Related: project_unarchive, project_delete, project_get`,
 			}
 			defer client.Close()
 
-			return runArchive(cmd, client, args[0], outputFlags)
+			return runArchive(cmd, client, args[0])
 		},
 	}
-
-	outputFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runArchive(cmd *cobra.Command, client *linear.Client, projectID string, outputFlags *cli.OutputOnlyFlags) error {
+func runArchive(cmd *cobra.Command, client *linear.Client, projectID string) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Resolve project ID
 	resolvedID, err := res.ResolveProject(ctx, projectID)
@@ -61,16 +53,8 @@ func runArchive(cmd *cobra.Command, client *linear.Client, projectID string, out
 		return fmt.Errorf("failed to archive project: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"success":   true,
-			"projectId": projectID,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Project %s archived successfully\n", projectID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success":   true,
+		"projectId": projectID,
+	}, true)
 }

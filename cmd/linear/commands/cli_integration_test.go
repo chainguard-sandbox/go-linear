@@ -65,9 +65,8 @@ func (r *cliRunner) run(args ...string) (stdout, stderr string, err error) {
 	return outBuf.String(), errBuf.String(), err
 }
 
-// runJSON executes a command with --output=json and parses the result
+// runJSON executes a command and parses the JSON result
 func (r *cliRunner) runJSON(args ...string) (map[string]any, error) {
-	args = append(args, "--output=json")
 	stdout, stderr, err := r.run(args...)
 	if err != nil {
 		r.t.Logf("Command failed: %v\nstderr: %s", err, stderr)
@@ -123,7 +122,7 @@ func TestCLI_Organization(t *testing.T) {
 func TestCLI_TeamList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("team", "list", "--output=json")
+	stdout, stderr, err := r.run("team", "list")
 	if err != nil {
 		t.Fatalf("team list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -160,7 +159,7 @@ func TestCLI_TeamGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list teams to get an ID
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No teams available")
 	}
@@ -191,7 +190,7 @@ func TestCLI_TeamGet(t *testing.T) {
 func TestCLI_IssueList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("issue", "list", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -228,7 +227,7 @@ func TestCLI_IssueGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list issues to get an identifier
-	stdout, _, err := r.run("issue", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("issue", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No issues available")
 	}
@@ -260,7 +259,7 @@ func TestCLI_IssueSearch(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// Search for a common term
-	stdout, stderr, err := r.run("issue", "search", "test", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "search", "test", "--limit=5")
 	if err != nil {
 		// Search might return no results, which is ok
 		if strings.Contains(stderr, "no issues found") {
@@ -285,7 +284,7 @@ func TestCLI_IssueSearch(t *testing.T) {
 func TestCLI_LabelList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("label", "list", "--output=json")
+	stdout, stderr, err := r.run("label", "list")
 	if err != nil {
 		t.Fatalf("label list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -306,7 +305,7 @@ func TestCLI_LabelList(t *testing.T) {
 func TestCLI_StateList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("state", "list", "--output=json")
+	stdout, stderr, err := r.run("state", "list")
 	if err != nil {
 		t.Fatalf("state list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -327,7 +326,7 @@ func TestCLI_StateList(t *testing.T) {
 func TestCLI_UserList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("user", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("user", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("user list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -348,7 +347,7 @@ func TestCLI_UserList(t *testing.T) {
 func TestCLI_ProjectList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("project", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("project", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("project list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -369,7 +368,7 @@ func TestCLI_ProjectList(t *testing.T) {
 func TestCLI_CycleList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("cycle", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("cycle", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("cycle list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -390,7 +389,7 @@ func TestCLI_CycleList(t *testing.T) {
 func TestCLI_Status(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("status", "--output=json")
+	stdout, stderr, err := r.run("status")
 	if err != nil {
 		t.Fatalf("status failed: %v\nstderr: %s", err, stderr)
 	}
@@ -415,7 +414,7 @@ func TestCLI_Status(t *testing.T) {
 func TestCLI_DocumentList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("document", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("document", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("document list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -436,7 +435,7 @@ func TestCLI_DocumentList(t *testing.T) {
 func TestCLI_RoadmapList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("roadmap", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("roadmap", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("roadmap list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -457,7 +456,7 @@ func TestCLI_RoadmapList(t *testing.T) {
 func TestCLI_TemplateList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("template", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("template", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("template list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -484,7 +483,7 @@ func TestCLI_TemplateList(t *testing.T) {
 func TestCLI_InitiativeList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("initiative", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("initiative", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("initiative list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -505,7 +504,7 @@ func TestCLI_InitiativeList(t *testing.T) {
 func TestCLI_AttachmentList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("attachment", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("attachment", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("attachment list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -526,7 +525,7 @@ func TestCLI_AttachmentList(t *testing.T) {
 func TestCLI_CommentList(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("comment", "list", "--output=json", "--limit=10")
+	stdout, stderr, err := r.run("comment", "list", "--limit=10")
 	if err != nil {
 		t.Fatalf("comment list failed: %v\nstderr: %s", err, stderr)
 	}
@@ -566,7 +565,7 @@ func TestCLI_UserGet(t *testing.T) {
 func TestCLI_IssueCount(t *testing.T) {
 	r := newCLIRunner(t)
 
-	stdout, stderr, err := r.run("issue", "list", "--count", "--output=json")
+	stdout, stderr, err := r.run("issue", "list", "--count")
 	if err != nil {
 		t.Fatalf("issue list --count failed: %v\nstderr: %s", err, stderr)
 	}
@@ -587,7 +586,7 @@ func TestCLI_TeamMembers(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First get a team
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No teams available")
 	}
@@ -603,7 +602,7 @@ func TestCLI_TeamMembers(t *testing.T) {
 	teamKey := team["key"].(string)
 
 	// Get team members
-	stdout, stderr, err := r.run("team", "members", "--team="+teamKey, "--output=json")
+	stdout, stderr, err := r.run("team", "members", "--team="+teamKey)
 	if err != nil {
 		t.Fatalf("team members failed: %v\nstderr: %s", err, stderr)
 	}
@@ -632,7 +631,7 @@ func TestCLI_IssueListWithTeamFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First get a team
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No teams available")
 	}
@@ -648,7 +647,7 @@ func TestCLI_IssueListWithTeamFilter(t *testing.T) {
 	teamKey := team["key"].(string)
 
 	// List issues filtered by team
-	stdout, stderr, err := r.run("issue", "list", "--team="+teamKey, "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--team="+teamKey, "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with team filter failed: %v\nstderr: %s", err, stderr)
 	}
@@ -681,7 +680,7 @@ func TestCLI_IssueListWithStateFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List issues with state filter
-	stdout, stderr, err := r.run("issue", "list", "--state=In Progress", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--state=In Progress", "--limit=5")
 	if err != nil {
 		// State might not exist
 		if strings.Contains(stderr, "not found") || strings.Contains(stderr, "state") {
@@ -707,7 +706,7 @@ func TestCLI_IssueListWithAssigneeFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List issues assigned to current user
-	stdout, stderr, err := r.run("issue", "list", "--assignee=me", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--assignee=me", "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with assignee filter failed: %v\nstderr: %s", err, stderr)
 	}
@@ -729,7 +728,7 @@ func TestCLI_IssueListWithPriorityFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List high priority issues (priority=2)
-	stdout, stderr, err := r.run("issue", "list", "--priority=2", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--priority=2", "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with priority filter failed: %v\nstderr: %s", err, stderr)
 	}
@@ -762,7 +761,7 @@ func TestCLI_IssueListWithDateFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List issues created in the last 7 days
-	stdout, stderr, err := r.run("issue", "list", "--created-after=7d", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--created-after=7d", "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with date filter failed: %v\nstderr: %s", err, stderr)
 	}
@@ -786,7 +785,7 @@ func TestCLI_ProjectGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list projects to get an ID
-	stdout, _, err := r.run("project", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("project", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No projects available")
 	}
@@ -818,7 +817,7 @@ func TestCLI_CycleGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list cycles to get an ID
-	stdout, _, err := r.run("cycle", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("cycle", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No cycles available")
 	}
@@ -850,7 +849,7 @@ func TestCLI_LabelGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list labels to get an ID
-	stdout, _, err := r.run("label", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("label", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No labels available")
 	}
@@ -882,7 +881,7 @@ func TestCLI_StateGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list states to get an ID
-	stdout, _, err := r.run("state", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("state", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No states available")
 	}
@@ -916,7 +915,7 @@ func TestCLI_IssueListWithFields(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List issues with custom fields
-	stdout, stderr, err := r.run("issue", "list", "--fields=id,title,identifier", "--output=json", "--limit=3")
+	stdout, stderr, err := r.run("issue", "list", "--fields=id,title,identifier", "--limit=3")
 	if err != nil {
 		t.Fatalf("issue list with fields failed: %v\nstderr: %s", err, stderr)
 	}
@@ -954,7 +953,7 @@ func TestCLI_TeamListWithFields(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List teams with custom fields
-	stdout, stderr, err := r.run("team", "list", "--fields=id,name,key", "--output=json", "--limit=3")
+	stdout, stderr, err := r.run("team", "list", "--fields=id,name,key", "--limit=3")
 	if err != nil {
 		t.Fatalf("team list with fields failed: %v\nstderr: %s", err, stderr)
 	}
@@ -994,7 +993,7 @@ func TestCLI_UserCompleted(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// Get completed issues for current user in last 7 days
-	stdout, stderr, err := r.run("user", "completed", "--user=me", "--completed-after=7d", "--output=json")
+	stdout, stderr, err := r.run("user", "completed", "--user=me", "--completed-after=7d")
 	if err != nil {
 		t.Fatalf("user completed failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1016,40 +1015,6 @@ func TestCLI_UserCompleted(t *testing.T) {
 	}
 
 	t.Logf("User completed returned %d entries", len(results))
-}
-
-// --- Table Output Tests ---
-
-func TestCLI_IssueListTable(t *testing.T) {
-	r := newCLIRunner(t)
-
-	stdout, stderr, err := r.run("issue", "list", "--output=table", "--limit=5")
-	if err != nil {
-		t.Fatalf("issue list table failed: %v\nstderr: %s", err, stderr)
-	}
-
-	// Table output should have headers and rows
-	if !strings.Contains(stdout, "IDENTIFIER") && !strings.Contains(stdout, "ID") {
-		t.Error("Table output missing expected headers")
-	}
-
-	t.Logf("Table output:\n%s", stdout[:min(500, len(stdout))])
-}
-
-func TestCLI_TeamListTable(t *testing.T) {
-	r := newCLIRunner(t)
-
-	stdout, stderr, err := r.run("team", "list", "--output=table", "--limit=5")
-	if err != nil {
-		t.Fatalf("team list table failed: %v\nstderr: %s", err, stderr)
-	}
-
-	// Table output should have headers
-	if !strings.Contains(stdout, "NAME") && !strings.Contains(stdout, "KEY") {
-		t.Error("Table output missing expected headers")
-	}
-
-	t.Logf("Table output:\n%s", stdout[:min(500, len(stdout))])
 }
 
 // --- Error Handling Tests ---
@@ -1080,26 +1045,13 @@ func TestCLI_InvalidTeamKey(t *testing.T) {
 	}
 }
 
-func TestCLI_InvalidOutputFormat(t *testing.T) {
-	r := newCLIRunner(t)
-
-	_, stderr, err := r.run("team", "list", "--output=invalid")
-	if err == nil {
-		t.Error("Expected error for invalid output format")
-	}
-
-	if !strings.Contains(stderr, "unknown") && !strings.Contains(stderr, "invalid") && !strings.Contains(stderr, "format") {
-		t.Logf("Error output: %s", stderr)
-	}
-}
-
 // --- Get Commands for More Entities ---
 
 func TestCLI_DocumentGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list documents to get an ID
-	stdout, _, err := r.run("document", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("document", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No documents available")
 	}
@@ -1131,7 +1083,7 @@ func TestCLI_RoadmapGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list roadmaps to get an ID
-	stdout, _, err := r.run("roadmap", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("roadmap", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No roadmaps available")
 	}
@@ -1163,7 +1115,7 @@ func TestCLI_InitiativeGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list initiatives to get an ID
-	stdout, _, err := r.run("initiative", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("initiative", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No initiatives available")
 	}
@@ -1195,7 +1147,7 @@ func TestCLI_TemplateGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list templates to get an ID
-	stdout, _, err := r.run("template", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("template", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No templates available")
 	}
@@ -1238,7 +1190,7 @@ func TestCLI_CommentGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list comments to get an ID
-	stdout, _, err := r.run("comment", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("comment", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No comments available")
 	}
@@ -1270,7 +1222,7 @@ func TestCLI_AttachmentGet(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First list attachments to get an ID
-	stdout, _, err := r.run("attachment", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("attachment", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No attachments available")
 	}
@@ -1304,7 +1256,7 @@ func TestCLI_IssueListWithMultipleFilters(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// Get a team first
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No teams available")
 	}
@@ -1323,7 +1275,6 @@ func TestCLI_IssueListWithMultipleFilters(t *testing.T) {
 	stdout, stderr, err := r.run("issue", "list",
 		"--team="+teamKey,
 		"--created-after=30d",
-		"--output=json",
 		"--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with multiple filters failed: %v\nstderr: %s", err, stderr)
@@ -1346,7 +1297,7 @@ func TestCLI_IssueListWithLabelFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First get a label
-	stdout, _, err := r.run("label", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("label", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No labels available")
 	}
@@ -1362,7 +1313,7 @@ func TestCLI_IssueListWithLabelFilter(t *testing.T) {
 	labelName := label["name"].(string)
 
 	// List issues with label filter
-	stdout, stderr, err := r.run("issue", "list", "--label="+labelName, "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--label="+labelName, "--limit=5")
 	if err != nil {
 		// Label might not have any issues
 		t.Logf("issue list with label filter: %v\nstderr: %s", err, stderr)
@@ -1386,7 +1337,7 @@ func TestCLI_IssueListWithCreatorFilter(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List issues created by current user
-	stdout, stderr, err := r.run("issue", "list", "--creator=me", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--creator=me", "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with creator filter failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1410,7 +1361,7 @@ func TestCLI_IssueListPagination(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First request with limit=2
-	stdout, stderr, err := r.run("issue", "list", "--output=json", "--limit=2")
+	stdout, stderr, err := r.run("issue", "list", "--limit=2")
 	if err != nil {
 		t.Fatalf("first page failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1442,7 +1393,7 @@ func TestCLI_IssueListPagination(t *testing.T) {
 	}
 
 	// Second request using cursor
-	stdout, stderr, err = r.run("issue", "list", "--output=json", "--limit=2", "--after="+endCursor)
+	stdout, stderr, err = r.run("issue", "list", "--limit=2", "--after="+endCursor)
 	if err != nil {
 		t.Fatalf("second page failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1470,7 +1421,7 @@ func TestCLI_TeamListPagination(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First request
-	stdout, stderr, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, stderr, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Fatalf("first page failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1495,7 +1446,7 @@ func TestCLI_TeamListPagination(t *testing.T) {
 	endCursor := pageInfo["endCursor"].(string)
 
 	// Second request
-	stdout, stderr, err = r.run("team", "list", "--output=json", "--limit=1", "--after="+endCursor)
+	stdout, stderr, err = r.run("team", "list", "--limit=1", "--after="+endCursor)
 	if err != nil {
 		t.Fatalf("second page failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1514,7 +1465,7 @@ func TestCLI_IssueSearchCount(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// Search with count flag
-	stdout, stderr, err := r.run("issue", "search", "test", "--count", "--output=json")
+	stdout, stderr, err := r.run("issue", "search", "test", "--count")
 	if err != nil {
 		if strings.Contains(stderr, "no issues") {
 			t.Skip("No issues matching search")
@@ -1538,7 +1489,7 @@ func TestCLI_IssueSearchWithArchived(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// Search including archived issues
-	stdout, stderr, err := r.run("issue", "search", "test", "--include-archived", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "search", "test", "--include-archived", "--limit=5")
 	if err != nil {
 		if strings.Contains(stderr, "no issues") {
 			t.Skip("No issues matching search")
@@ -1599,7 +1550,7 @@ func TestCLI_TeamMembersCount(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First get a team
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No teams available")
 	}
@@ -1615,7 +1566,7 @@ func TestCLI_TeamMembersCount(t *testing.T) {
 	teamKey := team["key"].(string)
 
 	// Get team members count
-	stdout, stderr, err := r.run("team", "members", "--team="+teamKey, "--count", "--output=json")
+	stdout, stderr, err := r.run("team", "members", "--team="+teamKey, "--count")
 	if err != nil {
 		t.Fatalf("team members count failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1638,7 +1589,7 @@ func TestCLI_IssueListWithHasChildren(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// List issues that have sub-issues
-	stdout, stderr, err := r.run("issue", "list", "--has-children", "--output=json", "--limit=5")
+	stdout, stderr, err := r.run("issue", "list", "--has-children", "--limit=5")
 	if err != nil {
 		t.Fatalf("issue list with has-children failed: %v\nstderr: %s", err, stderr)
 	}
@@ -1662,7 +1613,7 @@ func TestCLI_UserCompletedByTeam(t *testing.T) {
 	r := newCLIRunner(t)
 
 	// First get a team
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No teams available")
 	}
@@ -1680,8 +1631,7 @@ func TestCLI_UserCompletedByTeam(t *testing.T) {
 	// Get completed issues for team
 	stdout, stderr, err := r.run("user", "completed",
 		"--team="+teamKey,
-		"--completed-after=7d",
-		"--output=json")
+		"--completed-after=7d")
 	if err != nil {
 		t.Fatalf("user completed by team failed: %v\nstderr: %s", err, stderr)
 	}

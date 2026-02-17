@@ -20,7 +20,7 @@ func NewMilestoneListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: project name or ID
 
-Example: go-linear project milestone-list "Q1 Platform" --output=json
+Example: go-linear project milestone-list "Q1 Platform"
 
 Related: project_milestone-create, project_milestone-update, project_get`,
 		Args: cobra.ExactArgs(1),
@@ -34,8 +34,6 @@ Related: project_milestone-create, project_milestone-update, project_get`,
 			return runMilestoneList(cmd, client, args[0])
 		},
 	}
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -56,25 +54,5 @@ func runMilestoneList(cmd *cobra.Command, client *linear.Client, projectArg stri
 
 	milestones := project.ProjectMilestones.Nodes
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), milestones, true)
-	case "table":
-		if len(milestones) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No milestones found")
-			return nil
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Milestones for %s:\n\n", project.Name)
-		for _, m := range milestones {
-			if m.TargetDate != nil && *m.TargetDate != "" {
-				fmt.Fprintf(cmd.OutOrStdout(), "  %s\n    Target: %s\n    ID: %s\n\n", m.Name, *m.TargetDate, m.ID)
-			} else {
-				fmt.Fprintf(cmd.OutOrStdout(), "  %s\n    ID: %s\n\n", m.Name, m.ID)
-			}
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), milestones, true)
 }

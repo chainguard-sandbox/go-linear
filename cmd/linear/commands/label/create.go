@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --name, --color (hex like #ff0000)
 Optional: --description
 
-Example: go-linear label create --name=bug --color="#ff0000" --description="Bug reports" --output=json
+Example: go-linear label create --name=bug --color="#ff0000" --description="Bug reports"
 
 Related: label_list, label_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,7 +42,6 @@ Related: label_list, label_get`,
 	_ = cmd.MarkFlagRequired("color")
 
 	cmd.Flags().String("description", "", "Label description")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -67,14 +66,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create label: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created label: %s (%s)\n", result.Name, result.Color)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

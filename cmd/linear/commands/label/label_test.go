@@ -31,7 +31,7 @@ func TestNewListCommand(t *testing.T) {
 	if cmd.Use != "list" {
 		t.Errorf("Use = %q, want %q", cmd.Use, "list")
 	}
-	for _, flag := range []string{"limit", "output"} {
+	for _, flag := range []string{"limit", "fields"} {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("Expected flag %q", flag)
 		}
@@ -47,17 +47,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -84,7 +74,7 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"label-123", "--output=json"})
+		cmd.SetArgs([]string{"label-123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -119,7 +109,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--name=new-label", "--color=#0000ff", "--output=json"})
+		cmd.SetArgs([]string{"--name=new-label", "--color=#0000ff"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -146,7 +136,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"bug", "--name=updated-bug", "--output=json"})
+		cmd.SetArgs([]string{"bug", "--name=updated-bug"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -176,7 +166,7 @@ func TestRunDelete(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"bug", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"bug", "--yes"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

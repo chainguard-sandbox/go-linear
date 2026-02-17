@@ -13,7 +13,6 @@ import (
 
 // NewUnarchiveCommand creates the issue unarchive command.
 func NewUnarchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "unarchive <id>",
 		Short: "Unarchive an issue",
@@ -30,21 +29,16 @@ Related: issue_archive, issue_get`,
 			}
 			defer client.Close()
 
-			return runUnarchive(cmd, client, args[0], outputFlags)
+			return runUnarchive(cmd, client, args[0])
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	return cmd
 }
 
-func runUnarchive(cmd *cobra.Command, client *linear.Client, issueID string, outputFlags *cli.OutputOnlyFlags) error {
+func runUnarchive(cmd *cobra.Command, client *linear.Client, issueID string) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Resolve issue ID
 	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
@@ -59,16 +53,8 @@ func runUnarchive(cmd *cobra.Command, client *linear.Client, issueID string, out
 	}
 
 	// Format output
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"success": true,
-			"issueId": issueID,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Issue %s unarchived successfully\n", issueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success": true,
+		"issueId": issueID,
+	}, true)
 }

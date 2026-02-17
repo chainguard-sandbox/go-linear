@@ -22,7 +22,7 @@ func NewStatusUpdateCreateCommand(clientFactory cli.ClientFactory) *cobra.Comman
 Required: --project (UUID or name), --body
 Optional: --health (onTrack, atRisk, offTrack)
 
-Example: go-linear project status-update-create --project=<uuid> --body="On track for Q1 release" --health=onTrack --output=json
+Example: go-linear project status-update-create --project=<uuid> --body="On track for Q1 release" --health=onTrack
 
 Related: project_status-update-list, project_status-update-get, project_status-update-delete`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -41,7 +41,6 @@ Related: project_status-update-list, project_status-update-get, project_status-u
 	cmd.Flags().String("body", "", "Status update body (markdown) (required)")
 	_ = cmd.MarkFlagRequired("body")
 	cmd.Flags().String("health", "", "Project health: onTrack, atRisk, offTrack")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -73,14 +72,5 @@ func runStatusUpdateCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create project status update: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created project status update\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

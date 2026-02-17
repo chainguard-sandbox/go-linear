@@ -3,7 +3,6 @@ package issue
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/chainguard-sandbox/go-linear/internal/testutil"
@@ -23,7 +22,7 @@ func TestNewSearchCommand(t *testing.T) {
 	})
 
 	t.Run("flags exist", func(t *testing.T) {
-		expectedFlags := []string{"limit", "output", "fields", "count", "include-archived"}
+		expectedFlags := []string{"limit", "fields", "count", "include-archived"}
 		for _, flag := range expectedFlags {
 			if cmd.Flags().Lookup(flag) == nil {
 				t.Errorf("Expected flag %q not found", flag)
@@ -54,7 +53,7 @@ func TestRunSearch(t *testing.T) {
 		cmd := NewSearchCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"test", "--output=json"})
+		cmd.SetArgs([]string{"test"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -71,28 +70,11 @@ func TestRunSearch(t *testing.T) {
 		}
 	})
 
-	t.Run("search table output", func(t *testing.T) {
-		cmd := NewSearchCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"test", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "ENG-123") {
-			t.Errorf("Table output should contain issue identifier, got: %s", output)
-		}
-	})
-
 	t.Run("search with limit", func(t *testing.T) {
 		cmd := NewSearchCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"test", "--limit=10", "--output=json"})
+		cmd.SetArgs([]string{"test", "--limit=10"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -104,24 +86,11 @@ func TestRunSearch(t *testing.T) {
 		cmd := NewSearchCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"test", "--fields=id,title", "--output=json"})
+		cmd.SetArgs([]string{"test", "--fields=id,title"})
 
 		err := cmd.Execute()
 		if err != nil {
 			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewSearchCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"test", "--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
 		}
 	})
 }

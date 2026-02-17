@@ -61,9 +61,6 @@ Related: project_get, project_list, project_create`,
 	cmd.Flags().Bool("slack-issue-comments", false, "Send comment notifications to Slack")
 	cmd.Flags().Bool("slack-issue-statuses", false, "Send status update notifications to Slack")
 
-	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-
 	return cmd
 }
 
@@ -217,14 +214,5 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, projectID string) erro
 		return fmt.Errorf("failed to update project: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated project: %s\n", result.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -20,9 +20,9 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Add an emoji reaction to an issue or comment",
 		Long: `Add emoji reaction. Safe operation. Must specify exactly one of: --issue, --comment.
 
-Required: --emoji (single emoji like 👍)
+Required: --emoji (single emoji like thumbs-up)
 
-Example: go-linear reaction create --issue=ENG-123 --emoji=👍 --output=json
+Example: go-linear reaction create --issue=ENG-123 --emoji=thumbs-up
 
 Related: reaction_delete, comment_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -40,7 +40,6 @@ Related: reaction_delete, comment_create`,
 	cmd.Flags().String("emoji", "", "Single emoji character (required)")
 	cmd.Flags().String("issue", "", "Issue identifier or UUID")
 	cmd.Flags().String("comment", "", "Comment UUID")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -91,18 +90,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create reaction: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		resourceType := "issue"
-		if commentID != "" {
-			resourceType = "comment"
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Added %s reaction to %s\n", emoji, resourceType)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

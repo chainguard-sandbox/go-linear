@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --name, --description
 
-Example: go-linear team update ENG --name="Platform Engineering" --description="Updated" --output=json
+Example: go-linear team update ENG --name="Platform Engineering" --description="Updated"
 
 Related: team_get, team_list`,
 		Args: cobra.ExactArgs(1),
@@ -59,18 +59,12 @@ Related: team_get, team_list`,
 				return fmt.Errorf("failed to update team: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated team: %s\n", result.Name)
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
 	cmd.Flags().String("name", "", "New team name")
 	cmd.Flags().String("description", "", "New description")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }

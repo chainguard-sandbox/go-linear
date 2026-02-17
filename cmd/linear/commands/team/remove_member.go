@@ -2,7 +2,6 @@ package team
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -21,7 +20,7 @@ func NewRemoveMemberCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: --team (name/key/UUID), --user (name/email/UUID)
 
-Example: go-linear team remove-member --team=ENG --user=alice@example.com --output=json
+Example: go-linear team remove-member --team=ENG --user=alice@example.com
 
 Related: team_add-member, team_members`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -40,8 +39,6 @@ Related: team_add-member, team_members`,
 
 	cmd.Flags().String("user", "", "User name, email, or UUID (required)")
 	_ = cmd.MarkFlagRequired("user")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -92,22 +89,12 @@ func runRemoveMember(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to remove team member: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"success":      true,
-			"membershipId": membershipID,
-			"userId":       userID,
-			"teamId":       teamID,
-			"teamName":     teamWithMemberships.Name,
-			"userName":     userName,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Removed %s from team %s\n",
-			strings.TrimSpace(userName), teamWithMemberships.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success":      true,
+		"membershipId": membershipID,
+		"userId":       userID,
+		"teamId":       teamID,
+		"teamName":     teamWithMemberships.Name,
+		"userName":     userName,
+	}, true)
 }

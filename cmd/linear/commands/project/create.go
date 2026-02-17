@@ -22,7 +22,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --name, --team (from team_list)
 Optional: --description, --lead (user), --member (user, repeatable)
 
-Example: go-linear project create --name="Q1 Platform" --team=ENG --lead=me --member=john@co.com --output=json
+Example: go-linear project create --name="Q1 Platform" --team=ENG --lead=me --member=john@co.com
 
 Related: project_list, project_get, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,7 +45,6 @@ Related: project_list, project_get, team_list`,
 	cmd.Flags().String("description", "", "Project description")
 	cmd.Flags().String("lead", "", "Project lead (user name, email, or ID)")
 	cmd.Flags().StringArray("member", []string{}, "Project members (user name, email, or ID - repeatable)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -97,14 +96,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create project: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created project: %s\n", result.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

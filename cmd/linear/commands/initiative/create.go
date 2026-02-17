@@ -22,7 +22,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --name
 Optional: --description, --target-date, --owner, --status
 
-Example: go-linear initiative create --name="Security Policy" --description="Improve security" --status=Active --output=json
+Example: go-linear initiative create --name="Security Policy" --description="Improve security" --status=Active
 
 Related: initiative_get, initiative_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,8 +43,6 @@ Related: initiative_get, initiative_list`,
 	cmd.Flags().String("target-date", "", "Target completion date (ISO8601 format: YYYY-MM-DD)")
 	cmd.Flags().String("owner", "", "Owner name, email, or 'me'")
 	cmd.Flags().String("status", "", "Status: planned, active, completed")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -87,14 +85,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create initiative: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created initiative: %s\n", result.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

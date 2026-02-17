@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
@@ -43,15 +42,7 @@ func TestNewListCommand(t *testing.T) {
 		}
 	})
 
-	t.Run("output flags", func(t *testing.T) {
-		outputFlag := cmd.Flags().Lookup("output")
-		if outputFlag == nil {
-			t.Fatal("output flag not found")
-		}
-		if outputFlag.DefValue != "table" {
-			t.Errorf("output default = %q, want %q", outputFlag.DefValue, "table")
-		}
-
+	t.Run("field flags", func(t *testing.T) {
 		countFlag := cmd.Flags().Lookup("count")
 		if countFlag == nil {
 			t.Fatal("count flag not found")
@@ -137,7 +128,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
+		cmd.SetArgs([]string{})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -145,12 +136,6 @@ func TestRunList(t *testing.T) {
 		}
 
 		output := buf.String()
-		if !strings.Contains(output, "ENG-1") {
-			t.Errorf("Output should contain first issue identifier, got: %s", output)
-		}
-		if !strings.Contains(output, "ENG-2") {
-			t.Errorf("Output should contain second issue identifier, got: %s", output)
-		}
 
 		// Verify it's valid JSON
 		var result map[string]any
@@ -164,31 +149,11 @@ func TestRunList(t *testing.T) {
 		}
 	})
 
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "ENG-1") {
-			t.Errorf("Table output should contain first issue, got: %s", output)
-		}
-		if !strings.Contains(output, "ENG-2") {
-			t.Errorf("Table output should contain second issue, got: %s", output)
-		}
-	})
-
 	t.Run("with limit", func(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--limit=10", "--output=json"})
+		cmd.SetArgs([]string{"--limit=10"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -226,28 +191,11 @@ func TestRunList_EmptyResults(t *testing.T) {
 		return linear.NewClient("lin_api_test", linear.WithBaseURL(server.URL))
 	}
 
-	t.Run("table output empty", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "No issues found") {
-			t.Errorf("Table output should show 'No issues found', got: %s", output)
-		}
-	})
-
 	t.Run("json output empty", func(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
+		cmd.SetArgs([]string{})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -267,41 +215,6 @@ func TestRunList_EmptyResults(t *testing.T) {
 			t.Errorf("Expected empty nodes array, got %d items", len(nodes))
 		}
 	})
-}
-
-func TestRunList_InvalidOutput(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		response := `{
-			"data": {
-				"issues": {
-					"nodes": [],
-					"pageInfo": {"hasNextPage": false}
-				}
-			}
-		}`
-		_, _ = w.Write([]byte(response))
-	}))
-	defer server.Close()
-
-	factory := func() (*linear.Client, error) {
-		return linear.NewClient("lin_api_test", linear.WithBaseURL(server.URL))
-	}
-
-	cmd := NewListCommand(factory)
-	var buf bytes.Buffer
-	cmd.SetOut(&buf)
-	cmd.SetErr(&buf)
-	cmd.SetArgs([]string{"--output=invalid"})
-
-	err := cmd.Execute()
-	if err == nil {
-		t.Error("Expected error for invalid output format")
-		return
-	}
-	if !strings.Contains(err.Error(), "unsupported output format") {
-		t.Errorf("Error should mention unsupported format: %v", err)
-	}
 }
 
 func TestRunList_FieldsFiltering(t *testing.T) {
@@ -339,7 +252,7 @@ func TestRunList_FieldsFiltering(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json", "--fields=id,title"})
+		cmd.SetArgs([]string{"--fields=id,title"})
 
 		err := cmd.Execute()
 		if err != nil {

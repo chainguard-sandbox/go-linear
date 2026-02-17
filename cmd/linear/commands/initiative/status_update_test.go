@@ -40,7 +40,6 @@ func TestRunStatusUpdateCreate(t *testing.T) {
 		cmd.SetArgs([]string{
 			"--initiative=Security Initiative",
 			"--body=Test update body",
-			"--output=json",
 		})
 
 		if err := cmd.Execute(); err != nil {
@@ -61,7 +60,6 @@ func TestRunStatusUpdateCreate(t *testing.T) {
 			"--initiative=Security Initiative",
 			"--body=Test update body",
 			"--health=onTrack",
-			"--output=json",
 		})
 
 		if err := cmd.Execute(); err != nil {
@@ -71,26 +69,6 @@ func TestRunStatusUpdateCreate(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "update-123") {
 			t.Errorf("Expected update-123 in output, got: %s", output)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewStatusUpdateCreateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{
-			"--initiative=Security Initiative",
-			"--body=Test update body",
-			"--output=table",
-		})
-
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Created initiative status update") {
-			t.Errorf("Expected success message in output, got: %s", output)
 		}
 	})
 }
@@ -122,26 +100,6 @@ func TestRunStatusUpdateList(t *testing.T) {
 		cmd.SetOut(&buf)
 		cmd.SetArgs([]string{
 			"--initiative=Security Initiative",
-			"--output=json",
-		})
-
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "update-123") {
-			t.Errorf("Expected update-123 in output, got: %s", output)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewStatusUpdateListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{
-			"--initiative=Security Initiative",
-			"--output=table",
 		})
 
 		if err := cmd.Execute(); err != nil {
@@ -175,7 +133,7 @@ func TestRunStatusUpdateGet(t *testing.T) {
 		cmd := NewStatusUpdateGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"update-123", "--output=json"})
+		cmd.SetArgs([]string{"update-123"})
 
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
@@ -187,22 +145,6 @@ func TestRunStatusUpdateGet(t *testing.T) {
 		}
 		if !strings.Contains(output, "Test update body") {
 			t.Errorf("Expected body in output, got: %s", output)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewStatusUpdateGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"update-123", "--output=table"})
-
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "update-123") {
-			t.Errorf("Expected update-123 in output, got: %s", output)
 		}
 	})
 }
@@ -227,7 +169,7 @@ func TestRunStatusUpdateArchive(t *testing.T) {
 		cmd := NewStatusUpdateArchiveCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"update-123", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"update-123", "--yes"})
 
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
@@ -236,22 +178,6 @@ func TestRunStatusUpdateArchive(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "success") {
 			t.Errorf("Expected success in output, got: %s", output)
-		}
-	})
-
-	t.Run("table output with yes flag", func(t *testing.T) {
-		cmd := NewStatusUpdateArchiveCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"update-123", "--yes", "--output=table"})
-
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "archived") {
-			t.Errorf("Expected archived confirmation in output, got: %s", output)
 		}
 	})
 }

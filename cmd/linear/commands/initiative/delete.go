@@ -14,11 +14,10 @@ import (
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an initiative permanently",
-		Long: `⚠️ Delete initiative. Cannot be undone. Prompts unless --yes.
+		Long: `Delete initiative. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear initiative delete <uuid>
 
@@ -33,13 +32,9 @@ Related: initiative_list, initiative_get`,
 
 			ctx := cmd.Context()
 
-			if err := outputFlags.Validate(); err != nil {
-				return err
-			}
-
 			// Confirmation
 			if !confirmFlags.Yes {
-				fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete initiative %s? This cannot be undone.\n", args[0])
+				fmt.Fprintf(cmd.OutOrStderr(), "Delete initiative %s? This cannot be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
 				response, _ := reader.ReadString('\n')
@@ -54,19 +49,10 @@ Related: initiative_list, initiative_get`,
 				return fmt.Errorf("failed to delete initiative: %w", err)
 			}
 
-			switch outputFlags.Output {
-			case "json":
-				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-			case "table":
-				fmt.Fprintf(cmd.OutOrStdout(), "✓ Initiative deleted\n")
-				return nil
-			default:
-				return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-			}
+			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	return cmd
 }

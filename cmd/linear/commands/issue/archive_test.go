@@ -26,11 +26,6 @@ func TestNewArchiveCommand(t *testing.T) {
 		if trashFlag == nil {
 			t.Fatal("trash flag not found")
 		}
-
-		outputFlag := cmd.Flags().Lookup("output")
-		if outputFlag == nil {
-			t.Fatal("output flag not found")
-		}
 	})
 
 	t.Run("requires exactly one arg", func(t *testing.T) {
@@ -56,7 +51,7 @@ func TestRunArchive(t *testing.T) {
 		cmd := NewArchiveCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -76,7 +71,7 @@ func TestRunArchive(t *testing.T) {
 		cmd := NewArchiveCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--trash", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--trash"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -86,53 +81,6 @@ func TestRunArchive(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "\"trashed\": true") {
 			t.Errorf("Output should contain trashed: true, got: %s", output)
-		}
-	})
-
-	t.Run("archive table output", func(t *testing.T) {
-		cmd := NewArchiveCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "archived") {
-			t.Errorf("Table output should contain 'archived', got: %s", output)
-		}
-	})
-
-	t.Run("archive with trash table output", func(t *testing.T) {
-		cmd := NewArchiveCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--trash", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "moved to trash") {
-			t.Errorf("Table output should contain 'moved to trash', got: %s", output)
-		}
-	})
-
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewArchiveCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
 		}
 	})
 }

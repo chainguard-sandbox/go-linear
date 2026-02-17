@@ -22,7 +22,7 @@ func NewListSubCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: initiative (name or UUID)
 
-Example: go-linear initiative list-sub "Company OKRs" --output=json
+Example: go-linear initiative list-sub "Company OKRs"
 
 Related: initiative_list, initiative_get`,
 		Args: cobra.ExactArgs(1),
@@ -38,7 +38,6 @@ Related: initiative_list, initiative_get`,
 	}
 
 	paginationFlags.Bind(cmd, 50)
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -64,37 +63,12 @@ func runListSub(cmd *cobra.Command, client *linear.Client, initiativeArg string,
 		return fmt.Errorf("failed to list sub-initiatives: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"parentInitiative": map[string]any{
-				"id":   parentInit.ID,
-				"name": parentInit.Name,
-			},
-			"subInitiatives": subInits.Nodes,
-			"pageInfo":       subInits.PageInfo,
-		}, true)
-	case "table":
-		if len(subInits.Nodes) == 0 {
-			fmt.Fprintf(cmd.OutOrStdout(), "No sub-initiatives found for %s\n", parentInit.Name)
-			return nil
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Sub-initiatives of %s:\n\n", parentInit.Name)
-		for _, sub := range subInits.Nodes {
-			health := ""
-			if sub.Health != nil {
-				health = fmt.Sprintf(" [%s]", *sub.Health)
-			}
-			targetDate := ""
-			if sub.TargetDate != nil && *sub.TargetDate != "" {
-				targetDate = fmt.Sprintf(" (target: %s)", *sub.TargetDate)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "  %s%s%s\n    Status: %s | ID: %s\n\n",
-				sub.Name, health, targetDate, sub.Status, sub.ID)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"parentInitiative": map[string]any{
+			"id":   parentInit.ID,
+			"name": parentInit.Name,
+		},
+		"subInitiatives": subInits.Nodes,
+		"pageInfo":       subInits.PageInfo,
+	}, true)
 }

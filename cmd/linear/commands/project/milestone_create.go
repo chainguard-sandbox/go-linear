@@ -23,7 +23,7 @@ func NewMilestoneCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --project (UUID from project_list), --name
 Optional: --description, --target-date (date formats: see issue_list)
 
-Example: go-linear project milestone-create --project=<uuid> --name="Q1 2025" --target-date=2025-03-31 --output=json
+Example: go-linear project milestone-create --project=<uuid> --name="Q1 2025" --target-date=2025-03-31
 
 Related: project_milestone-update, project_milestone-delete, project_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,7 +43,6 @@ Related: project_milestone-update, project_milestone-delete, project_get`,
 	cmd.Flags().String("name", "", "Milestone name (required)")
 	cmd.Flags().String("description", "", "Milestone description (markdown)")
 	cmd.Flags().String("target-date", "", "Target completion date (ISO8601 or relative)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -84,14 +83,5 @@ func runMilestoneCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create milestone: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created milestone '%s' in project %s\n", name, projectName)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -2,55 +2,17 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
-// OutputFlags holds common output-related flags.
-// Used to reduce duplication across list/get commands.
-type OutputFlags struct {
-	Output string // Output format: json|table
+// FieldFlags holds the field selector flag for list/get commands.
+type FieldFlags struct {
 	Fields string // Field selector: defaults|none|defaults,extra|field1,field2
 }
 
-// Bind adds output flags to the command.
-// Default output format is "table".
-func (f *OutputFlags) Bind(cmd *cobra.Command, fieldsHelp string) {
-	cmd.Flags().StringVarP(&f.Output, "output", "o", "table", "Output format: json|table")
+// Bind adds the fields flag to the command.
+func (f *FieldFlags) Bind(cmd *cobra.Command, fieldsHelp string) {
 	cmd.Flags().StringVar(&f.Fields, "fields", "", fieldsHelp)
-}
-
-// Validate checks that output format is valid.
-func (f *OutputFlags) Validate() error {
-	switch f.Output {
-	case "json", "table":
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s (supported: json, table)", f.Output)
-	}
-}
-
-// OutputOnlyFlags holds just the output format flag.
-// Used for delete/archive commands that don't need field filtering.
-type OutputOnlyFlags struct {
-	Output string // Output format: json|table
-}
-
-// Bind adds output flag to the command.
-// Default output format is "table".
-func (f *OutputOnlyFlags) Bind(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&f.Output, "output", "o", "table", "Output format: json|table")
-}
-
-// Validate checks that output format is valid.
-func (f *OutputOnlyFlags) Validate() error {
-	switch f.Output {
-	case "json", "table":
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s (supported: json, table)", f.Output)
-	}
 }
 
 // PaginationFlags holds common pagination flags.

@@ -19,13 +19,6 @@ func TestNewUnarchiveCommand(t *testing.T) {
 		}
 	})
 
-	t.Run("flags exist", func(t *testing.T) {
-		outputFlag := cmd.Flags().Lookup("output")
-		if outputFlag == nil {
-			t.Fatal("output flag not found")
-		}
-	})
-
 	t.Run("requires exactly one arg", func(t *testing.T) {
 		err := cmd.Args(cmd, []string{})
 		if err == nil {
@@ -49,7 +42,7 @@ func TestRunProjectUnarchive(t *testing.T) {
 		cmd := NewUnarchiveCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Test Project", "--output=json"})
+		cmd.SetArgs([]string{"Test Project"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -62,23 +55,6 @@ func TestRunProjectUnarchive(t *testing.T) {
 		}
 		if !strings.Contains(output, `"projectId"`) {
 			t.Errorf("Output should contain projectId, got: %s", output)
-		}
-	})
-
-	t.Run("unarchive table output", func(t *testing.T) {
-		cmd := NewUnarchiveCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Test Project", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "unarchived successfully") {
-			t.Errorf("Output should contain 'unarchived successfully', got: %s", output)
 		}
 	})
 }

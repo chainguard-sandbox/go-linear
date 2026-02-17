@@ -16,7 +16,7 @@ import (
 // NewStatusUpdateListCommand creates the initiative status-update-list command.
 func NewStatusUpdateListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	paginationFlags := &cli.PaginationFlags{}
-	outputFlags := &cli.OutputFlags{}
+	fieldFlags := &cli.FieldFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "status-update-list",
@@ -25,7 +25,7 @@ func NewStatusUpdateListCommand(clientFactory cli.ClientFactory) *cobra.Command 
 
 Required: --initiative (UUID or name)
 
-Example: go-linear initiative status-update-list --initiative=<uuid> --output=json
+Example: go-linear initiative status-update-list --initiative=<uuid>
 
 Related: initiative_status-update-create, initiative_status-update-get, initiative_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +35,7 @@ Related: initiative_status-update-create, initiative_status-update-get, initiati
 			}
 			defer client.Close()
 
-			return runStatusUpdateList(cmd, client, outputFlags, paginationFlags)
+			return runStatusUpdateList(cmd, client, fieldFlags, paginationFlags)
 		},
 	}
 
@@ -43,17 +43,13 @@ Related: initiative_status-update-create, initiative_status-update-get, initiati
 	_ = cmd.MarkFlagRequired("initiative")
 
 	paginationFlags.Bind(cmd, 50)
-	outputFlags.Bind(cmd, "defaults (id,body,health,createdAt,user.name) | none | defaults,extra")
+	fieldFlags.Bind(cmd, "defaults (id,body,health,createdAt,user.name) | none | defaults,extra")
 
 	return cmd
 }
 
-func runStatusUpdateList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
+func runStatusUpdateList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	res := resolver.New(client)
 
@@ -71,33 +67,15 @@ func runStatusUpdateList(cmd *cobra.Command, client *linear.Client, outputFlags 
 		return fmt.Errorf("failed to list initiative status updates: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("initiative.status-update-list", configOverrides)
-		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), updates, true, fieldSelector)
-	case "table":
-		if len(updates.InitiativeUpdates.Nodes) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No status updates found")
-			return nil
-		}
-		for _, update := range updates.InitiativeUpdates.Nodes {
-			health := ""
-			if update.Health != "" {
-				health = fmt.Sprintf(" [%s]", update.Health)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%s%s\n", update.ID, health)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("initiative.status-update-list", configOverrides)
+	fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), updates, true, fieldSelector)
 }

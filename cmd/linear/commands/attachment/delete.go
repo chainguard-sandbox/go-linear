@@ -14,11 +14,10 @@ import (
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
 		Short: "Delete an attachment permanently",
-		Long: `⚠️ Delete attachment. Cannot be undone. Prompts unless --yes.
+		Long: `Delete attachment. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear attachment delete <uuid>
 
@@ -33,13 +32,9 @@ Related: attachment_get, issue_get`,
 
 			ctx := cmd.Context()
 
-			if err := outputFlags.Validate(); err != nil {
-				return err
-			}
-
 			// Confirmation
 			if !confirmFlags.Yes {
-				fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete attachment %s? This cannot be undone.\n", args[0])
+				fmt.Fprintf(cmd.OutOrStderr(), "Delete attachment %s? This cannot be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
 				response, _ := reader.ReadString('\n')
@@ -54,19 +49,10 @@ Related: attachment_get, issue_get`,
 				return fmt.Errorf("failed to delete attachment: %w", err)
 			}
 
-			switch outputFlags.Output {
-			case "json":
-				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-			case "table":
-				fmt.Fprintf(cmd.OutOrStdout(), "✓ Attachment deleted\n")
-				return nil
-			default:
-				return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-			}
+			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	return cmd
 }

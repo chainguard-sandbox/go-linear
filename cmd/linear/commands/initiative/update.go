@@ -21,7 +21,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --name, --description, --parent, --target-date, --owner, --status
 
-Example: go-linear initiative update <uuid> --name="Updated Security Policy" --status=Completed --output=json
+Example: go-linear initiative update <uuid> --name="Updated Security Policy" --status=Completed
 
 Related: initiative_get, initiative_create`,
 		Args: cobra.ExactArgs(1),
@@ -41,8 +41,6 @@ Related: initiative_get, initiative_create`,
 	cmd.Flags().String("target-date", "", "New target completion date (ISO8601 format: YYYY-MM-DD)")
 	cmd.Flags().String("owner", "", "New owner name, email, or 'me'")
 	cmd.Flags().String("status", "", "New status: planned, active, completed")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -96,14 +94,5 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, initiativeID string) e
 		return fmt.Errorf("failed to update initiative: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated initiative: %s\n", result.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

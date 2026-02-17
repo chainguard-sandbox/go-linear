@@ -23,7 +23,7 @@ themselves are not deleted, only the link between them.
 
 Required: --initiative (UUID or name), --project (UUID or name)
 
-Example: go-linear initiative remove-project --initiative=<uuid> --project=<uuid> --output=json
+Example: go-linear initiative remove-project --initiative=<uuid> --project=<uuid>
 
 Related: initiative_add-project, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -41,7 +41,6 @@ Related: initiative_add-project, project_list`,
 	_ = cmd.MarkFlagRequired("initiative")
 	cmd.Flags().String("project", "", "Project name or UUID (required)")
 	_ = cmd.MarkFlagRequired("project")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -105,14 +104,5 @@ func runRemoveProject(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to unlink project from initiative: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Unlinked project from initiative\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 }

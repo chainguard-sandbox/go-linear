@@ -21,8 +21,8 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --issue (ID from issue_list), --body
 Optional: --parent (comment ID to create a threaded reply)
 
-Example: go-linear comment create --issue=ENG-123 --body="Fixed in PR #42" --output=json
-Example: go-linear comment create --issue=ENG-123 --body="Good point!" --parent=<comment-id> --output=json
+Example: go-linear comment create --issue=ENG-123 --body="Fixed in PR #42"
+Example: go-linear comment create --issue=ENG-123 --body="Good point!" --parent=<comment-id>
 
 Related: comment_list, comment_get, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,8 +43,6 @@ Related: comment_list, comment_get, issue_get`,
 	_ = cmd.MarkFlagRequired("body")
 
 	cmd.Flags().String("parent", "", "Parent comment ID to create a threaded reply")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -70,14 +68,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create comment: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Comment created on issue %s\n", issueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -22,7 +22,7 @@ func NewStatusUpdateCreateCommand(clientFactory cli.ClientFactory) *cobra.Comman
 Required: --initiative (UUID or name), --body
 Optional: --health (onTrack, atRisk, offTrack)
 
-Example: go-linear initiative status-update-create --initiative=<uuid> --body="On track for Q1 release" --health=onTrack --output=json
+Example: go-linear initiative status-update-create --initiative=<uuid> --body="On track for Q1 release" --health=onTrack
 
 Related: initiative_status-update-list, initiative_status-update-get, initiative_status-update-archive`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -41,7 +41,6 @@ Related: initiative_status-update-list, initiative_status-update-get, initiative
 	cmd.Flags().String("body", "", "Status update body (markdown) (required)")
 	_ = cmd.MarkFlagRequired("body")
 	cmd.Flags().String("health", "", "Initiative health: onTrack, atRisk, offTrack")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -73,14 +72,5 @@ func runStatusUpdateCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create initiative status update: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created initiative status update\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -40,7 +40,7 @@ func TestNewBatchUpdateCommand(t *testing.T) {
 	})
 
 	t.Run("control flags exist", func(t *testing.T) {
-		controlFlags := []string{"dry-run", "yes", "batch-limit", "output"}
+		controlFlags := []string{"dry-run", "yes", "batch-limit"}
 		for _, flag := range controlFlags {
 			if cmd.Flags().Lookup(flag) == nil {
 				t.Errorf("Expected control flag %q not found", flag)

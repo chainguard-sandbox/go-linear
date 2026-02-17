@@ -21,7 +21,7 @@ func NewSubscribeCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Note: Linear API does not support subscribing to individual issues.
 To follow an issue, subscribe to its project or use project-level notifications.
 
-Example: go-linear notification subscribe --project=<uuid> --output=json
+Example: go-linear notification subscribe --project=<uuid>
 
 Related: notification_unsubscribe, notification_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -40,7 +40,6 @@ Related: notification_unsubscribe, notification_update`,
 	cmd.Flags().String("team", "", "Team name or UUID")
 	cmd.Flags().String("initiative", "", "Initiative name or UUID")
 	cmd.Flags().String("user", "", "User name, email, or UUID")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -105,14 +104,5 @@ func runSubscribe(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create subscription: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Subscribed to %s updates\n", resourceType)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

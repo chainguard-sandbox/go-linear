@@ -31,10 +31,8 @@ func TestNewListCommand(t *testing.T) {
 	if cmd.Use != "list" {
 		t.Errorf("Use = %q, want %q", cmd.Use, "list")
 	}
-	for _, flag := range []string{"limit", "output"} {
-		if cmd.Flags().Lookup(flag) == nil {
-			t.Errorf("Expected flag %q", flag)
-		}
+	if cmd.Flags().Lookup("limit") == nil {
+		t.Error("Expected flag \"limit\"")
 	}
 }
 
@@ -47,17 +45,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -84,7 +72,7 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"cycle-123", "--output=json"})
+		cmd.SetArgs([]string{"cycle-123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -119,7 +107,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--team=ENG", "--starts-at=2024-01-15", "--ends-at=2024-01-28", "--output=json"})
+		cmd.SetArgs([]string{"--team=ENG", "--starts-at=2024-01-15", "--ends-at=2024-01-28"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -146,7 +134,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"cycle-123", "--name=Updated Sprint", "--output=json"})
+		cmd.SetArgs([]string{"cycle-123", "--name=Updated Sprint"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -173,7 +161,7 @@ func TestRunArchive(t *testing.T) {
 		cmd := NewArchiveCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"cycle-123", "--output=json"})
+		cmd.SetArgs([]string{"cycle-123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

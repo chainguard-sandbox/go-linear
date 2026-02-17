@@ -18,7 +18,7 @@ import (
 
 // NewListCommand creates the issue list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputFlags{}
+	fieldFlags := &cli.FieldFlags{}
 	paginationFlags := &cli.PaginationFlags{}
 
 	cmd := &cobra.Command{
@@ -32,7 +32,7 @@ Advanced: --creator, --cycle, --project, --comment-by, --has-suggested-teams (64
 Pagination: --limit (default 50), --after (cursor from pageInfo.endCursor)
 Count: --count returns {"count": N} instead of full results
 
-Example: go-linear issue list --team=ENG --assignee=me --priority=1 --output=json
+Example: go-linear issue list --team=ENG --assignee=me --priority=1
 
 Returns: {nodes: [{8 issue fields}...], pageInfo} or {"count": N} with --count
 Related: issue_get, issue_create, team_list, user_list`,
@@ -43,7 +43,7 @@ Related: issue_get, issue_create, team_list, user_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client, outputFlags, paginationFlags)
+			return runList(cmd, client, fieldFlags, paginationFlags)
 		},
 	}
 
@@ -129,18 +129,14 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().Bool("count", false, "Return only count, not results (99% token reduction)")
 
 	paginationFlags.Bind(cmd, 50)
-	outputFlags.Bind(cmd, "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,...")
+	fieldFlags.Bind(cmd, "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra | id,title,...")
 
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
+func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Build filter from flags
 	filterBuilder := issuefilter.NewIssueFilterBuilder(res)
@@ -190,18 +186,10 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 		}
 
 		// Return count
-		switch outputFlags.Output {
-		case "json":
-			result := map[string]any{
-				"count": count,
-			}
-			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-		case "table":
-			fmt.Fprintf(cmd.OutOrStdout(), "%d\n", count)
-			return nil
-		default:
-			return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
+		result := map[string]any{
+			"count": count,
 		}
+		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 	}
 
 	// Normal list mode: Get pagination parameters
@@ -213,9 +201,6 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 	}
 
 	// Query issues - use IssuesFiltered if we have filters, otherwise use Issues
-	var nodes []any
-	var _ any // pageInfo unused for now
-
 	if issueFilter != nil {
 		// Use IssuesFiltered with filters (no search term required)
 		filteredResult, err := client.IssuesFiltered(ctx, first, afterPtr, issueFilter)
@@ -223,83 +208,48 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 			return fmt.Errorf("failed to filter issues: %w", err)
 		}
 
-		// Convert filtered nodes to generic format
-		nodes = make([]any, len(filteredResult.Nodes))
-		for i, n := range filteredResult.Nodes {
-			nodes[i] = n
+		// Load config for field defaults
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
 		}
 
-		// Format output
-		switch outputFlags.Output {
-		case "json":
-			// Load config for field defaults
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
+		// Get command defaults
+		defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
 
-			// Get command defaults
-			defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
-
-			// Parse field selector with defaults
-			// For list commands, fields apply to items in nodes array, not the wrapper
-			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), filteredResult, true, fieldSelector)
-		case "table":
-			// Display filtered results
-			if len(filteredResult.Nodes) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "No issues found")
-				return nil
-			}
-			for _, node := range filteredResult.Nodes {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s: %s\n", node.Identifier, node.Title)
-			}
-			return nil
-		default:
-			return fmt.Errorf("unsupported output format: %s (supported: json, table)", outputFlags.Output)
-		}
-	} else {
-		// No filters - use regular Issues query
-		issues, err := client.Issues(ctx, first, afterPtr)
+		// Parse field selector with defaults
+		// For list commands, fields apply to items in nodes array, not the wrapper
+		fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
 		if err != nil {
-			return fmt.Errorf("failed to list issues: %w", err)
+			return fmt.Errorf("invalid --fields: %w", err)
 		}
-		nodes = make([]any, len(issues.Nodes))
-		for i, n := range issues.Nodes {
-			nodes[i] = n
-		}
-		_ = issues.PageInfo // Unused for now
 
-		// Format output
-		switch outputFlags.Output {
-		case "json":
-			// Load config for field defaults
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
-
-			// Get command defaults
-			defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
-
-			// Parse field selector with defaults
-			// For list commands, fields apply to items in nodes array, not the wrapper
-			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), issues, true, fieldSelector)
-		case "table":
-			return formatter.FormatIssuesTable(cmd.OutOrStdout(), issues.Nodes)
-		default:
-			return fmt.Errorf("unsupported output format: %s (supported: json, table)", outputFlags.Output)
-		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), filteredResult, true, fieldSelector)
 	}
+
+	// No filters - use regular Issues query
+	issues, err := client.Issues(ctx, first, afterPtr)
+	if err != nil {
+		return fmt.Errorf("failed to list issues: %w", err)
+	}
+
+	// Load config for field defaults
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
+	}
+
+	// Get command defaults
+	defaults := fieldfilter.GetDefaults("issue.list", configOverrides)
+
+	// Parse field selector with defaults
+	// For list commands, fields apply to items in nodes array, not the wrapper
+	fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), issues, true, fieldSelector)
 }

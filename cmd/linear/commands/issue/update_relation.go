@@ -20,7 +20,7 @@ func NewUpdateRelationCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: --type (blocks|blocked-by|duplicate|related, see issue_relate)
 
-Example: go-linear issue update-relation <relation-uuid> --type=blocks --output=json
+Example: go-linear issue update-relation <relation-uuid> --type=blocks
 
 Related: issue_relate, issue_unrelate, issue_get`,
 		Args: cobra.ExactArgs(1),
@@ -37,7 +37,6 @@ Related: issue_relate, issue_unrelate, issue_get`,
 
 	_ = cmd.MarkFlagRequired("type")
 	cmd.Flags().String("type", "", "New relation type: blocks|blocked-by|duplicate|related (required)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -71,14 +70,5 @@ func runUpdateRelation(cmd *cobra.Command, client *linear.Client, relationID str
 		return fmt.Errorf("failed to update issue relation: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated relation to type: %s\n", relationType)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -13,8 +13,6 @@ import (
 
 // NewUnarchiveCommand creates the initiative unarchive command.
 func NewUnarchiveCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputOnlyFlags{}
-
 	cmd := &cobra.Command{
 		Use:   "unarchive <name-or-id>",
 		Short: "Unarchive an initiative",
@@ -32,22 +30,16 @@ Related: initiative_archive, initiative_get`,
 			}
 			defer client.Close()
 
-			return runUnarchive(cmd, client, args[0], outputFlags)
+			return runUnarchive(cmd, client, args[0])
 		},
 	}
-
-	outputFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runUnarchive(cmd *cobra.Command, client *linear.Client, initiativeID string, outputFlags *cli.OutputOnlyFlags) error {
+func runUnarchive(cmd *cobra.Command, client *linear.Client, initiativeID string) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Resolve initiative ID
 	resolvedID, err := res.ResolveInitiative(ctx, initiativeID)
@@ -60,16 +52,8 @@ func runUnarchive(cmd *cobra.Command, client *linear.Client, initiativeID string
 		return fmt.Errorf("failed to unarchive initiative: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"success":      true,
-			"initiativeId": initiativeID,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Initiative %s unarchived successfully\n", initiativeID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"success":      true,
+		"initiativeId": initiativeID,
+	}, true)
 }

@@ -18,7 +18,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --name, --description
 
-Example: go-linear cycle update <uuid> --name="Sprint 43" --description="Extended" --output=json
+Example: go-linear cycle update <uuid> --name="Sprint 43" --description="Extended"
 
 Related: cycle_get, cycle_list`,
 		Args: cobra.ExactArgs(1),
@@ -52,22 +52,12 @@ Related: cycle_get, cycle_list`,
 				return fmt.Errorf("failed to update cycle: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-			}
-			name := "cycle"
-			if result.Name != nil {
-				name = *result.Name
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated cycle: %s\n", name)
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
 	cmd.Flags().String("name", "", "New cycle name")
 	cmd.Flags().String("description", "", "New description")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
