@@ -174,7 +174,7 @@ Once configured, Claude can:
 - **Completed work** - "What did Alice complete yesterday?"
 - **Count and filter** - "How many P1 bugs are there?"
 
-See [FILTERS.md](FILTERS.md) for all 44 filter types.
+See [FILTERS.md](FILTERS.md) for all filter types.
 
 ## Removing go-linear
 

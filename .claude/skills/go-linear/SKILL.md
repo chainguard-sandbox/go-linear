@@ -5,7 +5,7 @@ description: Linear issue tracking CLI with smart filtering and aggregation (pro
 
 # go-linear MCP Skill
 
-Linear CLI for AI agents. 106 tools across 17 entities. Requires `LINEAR_API_KEY` env var.
+Linear CLI for AI agents. Requires `LINEAR_API_KEY` env var.
 
 ## Decision Guide
 
