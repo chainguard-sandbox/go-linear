@@ -28,7 +28,7 @@ Each layer adds value:
 |-------|------------------|
 | **SDK** | Type safety, retries, circuit breakers, metrics (for Go developers) |
 | **CLI** | Name resolution, field defaults, filtering, batching (for humans and agents) |
-| **MCP** | Exposes CLI as 106 tools for AI agents |
+| **MCP** | Exposes CLI as 100+ tools for AI agents |
 
 ---
 
@@ -40,11 +40,13 @@ Each layer adds value:
 go install github.com/chainguard-sandbox/go-linear/cmd/linear@latest
 ```
 
+Note: `go install` names the binary `linear`. Examples below use `go-linear` (the name from `make build`).
+
 Or:
 
 ```bash
 git clone https://github.com/chainguard-sandbox/go-linear
-cd go-linear && make build-cli
+cd go-linear && make build
 ```
 
 ### Pre-built Binaries
@@ -100,7 +102,7 @@ go-linear issue create --team=ENG --title="Fix bug" --priority=2
 | Filter by multiple criteria | `issue list --team=ENG --priority=1 --state="In Progress"` |
 | List with AI suggestions | `issue list --has-suggested-teams` |
 
-See [CLI Quick Start](docs/CLI-QUICK-START.md) for all 106 commands and [Filters Guide](docs/FILTERS.md) for 44 filter options.
+See [CLI Quick Start](docs/CLI-QUICK-START.md) for all commands and [Filters Guide](docs/FILTERS.md) for filter options.
 
 ### SDK (Go Developers)
 
@@ -160,7 +162,8 @@ The MCP server is auto-generated from the CLI using [ophis](https://github.com/n
 | [Claude Setup](docs/CLAUDE-SETUP.md) | MCP/AI agent users |
 | [SDK Documentation](docs/SDK.md) | Go developers |
 | [Skill Reference](.claude/skills/go-linear/SKILL.md) | AI agents (loaded as context) |
-| [Filters](docs/FILTERS.md) | Power users (44 filter flags) |
+| [Filters](docs/FILTERS.md) | Power users |
+| [Migration](docs/MIGRATION.md) | Upgrading from v1.x |
 
 ---
 

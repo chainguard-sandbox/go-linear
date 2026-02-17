@@ -160,8 +160,7 @@ go-linear issue list \
 go-linear issue list \
   --has-blocked-by \
   --assignee=me \
-  --output=json
-```
+ ```
 
 #### Find Overdue Issues
 ```bash
@@ -243,8 +242,7 @@ See: docs/FIELDS.md for field selection details.
 ### Example
 
 ```bash
-go-linear cycle list --active --team=ENG --output=json
-```
+go-linear cycle list --active --team=ENG```
 
 Returns active cycles for the Engineering team.
 
@@ -283,8 +281,7 @@ Returns past cycles from Platform team created in the last 30 days.
 ### Example
 
 ```bash
-go-linear document list --created-after=30d --output=json
-```
+go-linear document list --created-after=30d```
 
 Returns documents created in the last 30 days.
 
@@ -316,8 +313,7 @@ Returns documents created in the last 30 days.
 ### Example
 
 ```bash
-go-linear initiative list --status=Active --health=onTrack --output=json
-```
+go-linear initiative list --status=Active --health=onTrack```
 
 Returns active initiatives that are on track.
 
@@ -344,8 +340,7 @@ Returns active initiatives that are on track.
 ### Example
 
 ```bash
-go-linear comment list --created-after=7d --issue=ENG-123 --output=json
-```
+go-linear comment list --created-after=7d --issue=ENG-123```
 
 Returns comments on issue ENG-123 created in the last 7 days.
 
@@ -386,8 +381,7 @@ Returns comments on issue ENG-123 created in the last 7 days.
 ### Example
 
 ```bash
-go-linear project list --health=onTrack --priority=2 --output=json
-```
+go-linear project list --health=onTrack --priority=2```
 
 Returns on-track high-priority projects.
 
@@ -427,8 +421,7 @@ Returns at-risk projects created in the last 30 days where I'm the lead.
 ### Example
 
 ```bash
-go-linear attachment list --source-type=github --created-after=30d --output=json
-```
+go-linear attachment list --source-type=github --created-after=30d```
 
 Returns GitHub-linked attachments created in the last 30 days.
 
@@ -468,8 +461,7 @@ Returns Slack-linked attachments with "design" in the title.
 ### Example
 
 ```bash
-go-linear label list --name=bug --team=ENG --output=json
-```
+go-linear label list --name=bug --team=ENG```
 
 Returns labels with "bug" in name for the Engineering team.
 
@@ -507,8 +499,7 @@ Returns group labels created in the last 30 days.
 ### Example
 
 ```bash
-go-linear state list --type=started --output=json
-```
+go-linear state list --type=started```
 
 Returns all workflow states of type "started".
 
@@ -548,8 +539,7 @@ Returns completed workflow states for the Engineering team.
 ### Example
 
 ```bash
-go-linear team list --private=true --output=json
-```
+go-linear team list --private=true```
 
 Returns all private teams.
 
@@ -591,8 +581,7 @@ Returns teams with "Platform" in the name created in the last 30 days.
 ### Example
 
 ```bash
-go-linear user list --admin --active --output=json
-```
+go-linear user list --admin --active```
 
 Returns all active admin users.
 

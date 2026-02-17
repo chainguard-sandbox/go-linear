@@ -37,7 +37,7 @@ go-linear issue list --assignee=me --priority=1
 go-linear issue list --team=Engineering --completed-after=yesterday --completed-before=today
 
 # Issues in specific state
-go-linear issue list --state="In Progress" --output=json
+go-linear issue list --state="In Progress"
 ```
 
 ### Complex Query (AI-Optimized)
@@ -247,14 +247,9 @@ go-linear document delete <uuid>
 - `go-linear viewer` - Get current user
 - `go-linear status` - Check rate limits
 
-## Output Formats
+## Output
 
-All commands support multiple output formats:
-
-```bash
---output=json   # Machine-readable (default for AI agents)
---output=table  # Human-readable formatted tables (default)
-```
+All commands output JSON. Use `--fields` to control which fields appear. Pipe to `jq` for human-readable formatting.
 
 ## AI Agent Features
 
@@ -280,13 +275,12 @@ go-linear issue list \
   --state="In Progress" \
   --created-after=7d \
   --label=bug \
-  --assignee=alice@company.com \
-  --output=json
+  --assignee=alice@company.com
 ```
 
 ## MCP Mode (For AI Agents)
 
-The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into 106 MCP tools.
+The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into MCP tools.
 
 **Setup for Claude Code:**
 
@@ -300,8 +294,7 @@ See [CLAUDE-SETUP.md](CLAUDE-SETUP.md) for full instructions.
 
 ## Tips for AI Agents
 
-1. **Always use `--output=json`** for programmatic parsing
-2. **Use relative dates** when possible (`yesterday` vs `2025-12-09`)
+1. **Use relative dates** when possible (`yesterday` vs `2025-12-09`)
 3. **Prefer named parameters** (`--team=Engineering` vs team IDs)
 4. **Check `--help`** for complete flag lists
 5. **Complex queries**: Use `user completed` instead of multiple list commands
