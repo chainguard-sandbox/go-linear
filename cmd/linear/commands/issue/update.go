@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
+Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
 
 Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
@@ -39,7 +39,7 @@ Related: issue_get, issue_create`,
 	// All optional update fields
 	cmd.Flags().String("title", "", "New title")
 	cmd.Flags().String("description", "", "New description (markdown)")
-	cmd.Flags().String("assignee", "", "New assignee name, email, or ID")
+	cmd.Flags().String("assignee", "", "New assignee name, email, or ID (use 'none' to unassign)")
 	cmd.Flags().String("state", "", "New state name or ID")
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
 	cmd.Flags().String("cycle", "", "Cycle name or UUID (use 'none' to remove)")
@@ -66,6 +66,9 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 
 	// Check if we need nullable support (for removing parent/cycle/project with 'none')
 	needsNullable := false
+	if assignee, _ := cmd.Flags().GetString("assignee"); assignee == "none" {
+		needsNullable = true
+	}
 	if cmd.Flags().Changed("parent") {
 		if parent, _ := cmd.Flags().GetString("parent"); parent == "none" {
 			needsNullable = true
@@ -110,7 +113,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		updated = true
 	}
 
-	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" {
+	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" && assignee != "none" {
 		userID, err := res.ResolveUser(ctx, assignee)
 		if err != nil {
 			return fmt.Errorf("failed to resolve assignee: %w", err)
@@ -303,11 +306,15 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	}
 
 	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" {
-		userID, err := res.ResolveUser(ctx, assignee)
-		if err != nil {
-			return fmt.Errorf("failed to resolve assignee: %w", err)
+		if assignee == "none" {
+			input.AssigneeID = linear.NewNull[string]()
+		} else {
+			userID, err := res.ResolveUser(ctx, assignee)
+			if err != nil {
+				return fmt.Errorf("failed to resolve assignee: %w", err)
+			}
+			input.AssigneeID = linear.NewValue(userID)
 		}
-		input.AssigneeID = &userID
 	}
 
 	if state, _ := cmd.Flags().GetString("state"); state != "" {

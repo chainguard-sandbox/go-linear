@@ -48,8 +48,9 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 
 	// Make request
 	reqBody := map[string]any{
-		"query":     mutation,
-		"variables": variables,
+		"query":         mutation,
+		"operationName": "UpdateIssue",
+		"variables":     variables,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
@@ -109,13 +110,13 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 type IssueUpdateNullableInput struct {
 	Title           *string
 	Description     *string
-	AssigneeID      *string
 	StateID         *string
 	Priority        *int64
 	AddedLabelIds   []string
 	RemovedLabelIds []string
 
 	// Nullable fields - support explicit null for removal
+	AssigneeID         Nullable[string]
 	CycleID            Nullable[string]
 	ParentID           Nullable[string]
 	ProjectID          Nullable[string]
@@ -133,8 +134,14 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 	if i.Description != nil {
 		m["description"] = *i.Description
 	}
-	if i.AssigneeID != nil {
-		m["assigneeId"] = *i.AssigneeID
+	if i.AssigneeID.IsSet() {
+		if val, ok := i.AssigneeID.Get(); ok {
+			if val == nil {
+				m["assigneeId"] = nil // Explicit null
+			} else {
+				m["assigneeId"] = *val
+			}
+		}
 	}
 	if i.StateID != nil {
 		m["stateId"] = *i.StateID

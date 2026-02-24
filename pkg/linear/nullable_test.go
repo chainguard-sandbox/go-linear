@@ -258,17 +258,41 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		}
 	})
 
+	// With null assignee (explicit unassign)
+	t.Run("with null assignee", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			AssigneeID: NewNull[string](),
+		}
+		m := input.ToMap()
+		if _, exists := m["assigneeId"]; !exists {
+			t.Error("Expected assigneeId to be in map")
+		}
+		if m["assigneeId"] != nil {
+			t.Errorf("Expected assigneeId=nil, got %v", m["assigneeId"])
+		}
+	})
+
+	// With value assignee
+	t.Run("with value assignee", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			AssigneeID: NewValue("user-123"),
+		}
+		m := input.ToMap()
+		if m["assigneeId"] != "user-123" {
+			t.Errorf("Expected assigneeId=user-123, got %v", m["assigneeId"])
+		}
+	})
+
 	// All fields
 	t.Run("all fields", func(t *testing.T) {
 		title := "Title"
 		desc := "Desc"
-		assignee := "assignee-id"
 		state := "state-id"
 		priority := int64(1)
 		input := IssueUpdateNullableInput{
 			Title:           &title,
 			Description:     &desc,
-			AssigneeID:      &assignee,
+			AssigneeID:      NewValue("assignee-id"),
 			StateID:         &state,
 			Priority:        &priority,
 			AddedLabelIds:   []string{"label-1"},
@@ -285,8 +309,8 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		if m["description"] != desc {
 			t.Errorf("Expected description=%s", desc)
 		}
-		if m["assigneeId"] != assignee {
-			t.Errorf("Expected assigneeId=%s", assignee)
+		if m["assigneeId"] != "assignee-id" {
+			t.Errorf("Expected assigneeId=assignee-id, got %v", m["assigneeId"])
 		}
 		if m["stateId"] != state {
 			t.Errorf("Expected stateId=%s", state)

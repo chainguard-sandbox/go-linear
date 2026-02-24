@@ -75,7 +75,7 @@ Related: issue_list, issue_update`,
 
 	// Update flags (--set-* to distinguish from filter flags)
 	cmd.Flags().String("set-state", "", "New state name or ID")
-	cmd.Flags().String("set-assignee", "", "New assignee (name, email, or 'me')")
+	cmd.Flags().String("set-assignee", "", "New assignee (name, email, 'me', or 'none' to unassign)")
 	cmd.Flags().Int("set-priority", -1, "New priority (0-4)")
 	cmd.Flags().String("set-team", "", "New team name or ID")
 	cmd.Flags().String("set-cycle", "", "New cycle name or UUID (use 'none' to remove)")
@@ -173,11 +173,16 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if setAssignee, _ := cmd.Flags().GetString("set-assignee"); setAssignee != "" {
-		userID, err := res.ResolveUser(ctx, setAssignee)
-		if err != nil {
-			return fmt.Errorf("failed to resolve set-assignee: %w", err)
+		if setAssignee == "none" {
+			empty := ""
+			input.AssigneeID = &empty // Empty string unassigns
+		} else {
+			userID, err := res.ResolveUser(ctx, setAssignee)
+			if err != nil {
+				return fmt.Errorf("failed to resolve set-assignee: %w", err)
+			}
+			input.AssigneeID = &userID
 		}
-		input.AssigneeID = &userID
 		updateCount++
 	}
 

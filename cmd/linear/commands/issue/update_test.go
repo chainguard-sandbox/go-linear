@@ -117,6 +117,23 @@ func TestRunUpdate(t *testing.T) {
 		}
 	})
 
+	t.Run("unassign with none", func(t *testing.T) {
+		cmd := NewUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--assignee=none"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
 	t.Run("update project by name", func(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
