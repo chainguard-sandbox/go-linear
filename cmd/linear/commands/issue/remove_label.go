@@ -18,7 +18,7 @@ func NewRemoveLabelCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Remove a label from an issue",
 		Long: `Remove label from issue. Safe operation.
 
-Example: go-linear issue remove-label ENG-123 bug --output=json
+Example: go-linear issue remove-label ENG-123 bug
 
 Related: issue_add-label, issue_get, label_list`,
 		Args: cobra.ExactArgs(2),
@@ -32,8 +32,6 @@ Related: issue_add-label, issue_get, label_list`,
 			return runRemoveLabel(cmd, client, args[0], args[1])
 		},
 	}
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -61,14 +59,5 @@ func runRemoveLabel(cmd *cobra.Command, client *linear.Client, issueID, labelNam
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), issue, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Removed label '%s' from issue %s\n", labelName, issueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), issue, true)
 }

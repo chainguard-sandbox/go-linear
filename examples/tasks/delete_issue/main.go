@@ -75,7 +75,7 @@ func main() {
 	// Step 3: Delete the issue
 	fmt.Printf("Deleting issue %.0f...\n", issue.Number)
 
-	err = client.IssueDelete(ctx, issue.ID)
+	err = client.IssueDelete(ctx, issue.ID, nil)
 	if err != nil {
 		log.Fatalf("Failed to delete issue: %v", err)
 	}

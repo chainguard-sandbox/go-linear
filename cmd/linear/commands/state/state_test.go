@@ -31,7 +31,7 @@ func TestNewListCommand(t *testing.T) {
 	if cmd.Use != "list" {
 		t.Errorf("Use = %q, want %q", cmd.Use, "list")
 	}
-	for _, flag := range []string{"limit", "output"} {
+	for _, flag := range []string{"limit", "fields"} {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("Expected flag %q", flag)
 		}
@@ -47,17 +47,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -84,22 +74,12 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"state-123", "--output=json"})
+		cmd.SetArgs([]string{"state-123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 		if !strings.Contains(buf.String(), "state-123") {
 			t.Error("Expected state id in output")
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"state-123", "--output=table"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
 		}
 	})
 }

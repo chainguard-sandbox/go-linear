@@ -14,14 +14,14 @@ import (
 
 // NewGetCommand creates the attachment get command.
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	flags := &cli.OutputFlags{}
+	flags := &cli.FieldFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "get <attachment-id>",
 		Short: "Get a single attachment by ID",
 		Long: `Get attachment by UUID. Returns 5 default fields.
 
-Example: go-linear attachment get <uuid> --output=json
+Example: go-linear attachment get <uuid>
 
 Related: issue_get, attachment_delete`,
 		Args: cobra.ExactArgs(1),
@@ -40,45 +40,23 @@ Related: issue_get, attachment_delete`,
 
 	return cmd
 }
-func runGet(cmd *cobra.Command, client *linear.Client, attachmentID string, flags *cli.OutputFlags) error {
+func runGet(cmd *cobra.Command, client *linear.Client, attachmentID string, flags *cli.FieldFlags) error {
 	ctx := cmd.Context()
-
-	if err := flags.Validate(); err != nil {
-		return err
-	}
 
 	attachment, err := client.Attachment(ctx, attachmentID)
 	if err != nil {
 		return fmt.Errorf("failed to get attachment: %w", err)
 	}
 
-	switch flags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("attachment.get", configOverrides)
-		fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachment, true, fieldSelector)
-	case "table":
-		// Simple table output for single attachment
-		fmt.Fprintf(cmd.OutOrStdout(), "ID:          %s\n", attachment.ID)
-		fmt.Fprintf(cmd.OutOrStdout(), "Title:       %s\n", attachment.Title)
-		fmt.Fprintf(cmd.OutOrStdout(), "URL:         %s\n", attachment.URL)
-		if attachment.Subtitle != nil && *attachment.Subtitle != "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "Subtitle:    %s\n", *attachment.Subtitle)
-		}
-		if attachment.SourceType != nil && *attachment.SourceType != "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "Source:      %s\n", *attachment.SourceType)
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Created:     %s\n", attachment.CreatedAt)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", flags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("attachment.get", configOverrides)
+	fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), attachment, true, fieldSelector)
 }

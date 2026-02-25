@@ -3,7 +3,6 @@ package issue
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/chainguard-sandbox/go-linear/internal/testutil"
@@ -26,7 +25,8 @@ func TestNewUpdateCommand(t *testing.T) {
 		expectedFlags := []string{
 			"title", "description", "assignee", "state",
 			"priority", "cycle", "project", "parent",
-			"add-label", "remove-label", "output",
+			"add-label", "remove-label",
+			"due-date", "milestone",
 		}
 		for _, flag := range expectedFlags {
 			if cmd.Flags().Lookup(flag) == nil {
@@ -58,7 +58,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--title=Updated Title", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--title=Updated Title"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -80,7 +80,6 @@ func TestRunUpdate(t *testing.T) {
 			"--title=New Title",
 			"--description=New description",
 			"--priority=1",
-			"--output=json",
 		})
 
 		err := cmd.Execute()
@@ -98,7 +97,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--state=Done", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--state=Done"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -110,7 +109,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--assignee=me", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--assignee=me"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -118,33 +117,20 @@ func TestRunUpdate(t *testing.T) {
 		}
 	})
 
-	t.Run("table output", func(t *testing.T) {
+	t.Run("unassign with none", func(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--title=Updated", "--output=table"})
+		cmd.SetArgs([]string{"ENG-123", "--assignee=none"})
 
 		err := cmd.Execute()
 		if err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 
-		output := buf.String()
-		if !strings.Contains(output, "Updated issue") {
-			t.Errorf("Table output should show 'Updated issue', got: %s", output)
-		}
-	})
-
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewUpdateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--title=Test", "--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
 		}
 	})
 
@@ -152,7 +138,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--project=Test Project", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--project=Test Project"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -169,7 +155,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--cycle=Sprint 1", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--cycle=Sprint 1"})
 
 		err := cmd.Execute()
 		if err != nil {

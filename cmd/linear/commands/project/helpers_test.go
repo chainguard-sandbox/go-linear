@@ -95,6 +95,14 @@ const (
 					"nodes": [
 						{"id": "init-123", "name": "Test Initiative", "status": "Active"}
 					]
+				},
+				"members": {
+					"nodes": []
+				},
+				"projectMilestones": {
+					"nodes": [
+						{"id": "milestone-123", "name": "Q1 2025", "description": "Q1 milestone", "targetDate": "2025-03-31", "sortOrder": 0}
+					]
 				}
 			}
 		}
@@ -246,6 +254,14 @@ const (
 			}
 		}
 	}`
+
+	mockProjectUnarchiveResponse = `{
+		"data": {
+			"projectUnarchive": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -263,5 +279,6 @@ func defaultHandlers() map[string]string {
 		"ListProjectUpdates":     mockProjectUpdatesResponse,
 		"GetProjectUpdate":       mockProjectUpdateResponse,
 		"DeleteProjectUpdate":    mockProjectUpdateDeleteResponse,
+		"UnarchiveProject":       mockProjectUnarchiveResponse,
 	}
 }

@@ -142,7 +142,7 @@ func merge(user, workspace *Config) *Config {
 
 // loadFromPath loads configuration from a specific file path.
 func loadFromPath(path string) (*Config, error) {
-	data, err := os.ReadFile(path) // #nosec G304 - path from trusted config locations only
+	data, err := os.ReadFile(path) // #nosec G304 G703 - path from trusted config locations only
 	if err != nil {
 		return nil, err
 	}

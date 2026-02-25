@@ -31,10 +31,8 @@ func TestNewListCommand(t *testing.T) {
 	if cmd.Use != "list" {
 		t.Errorf("Use = %q, want %q", cmd.Use, "list")
 	}
-	for _, flag := range []string{"limit", "output"} {
-		if cmd.Flags().Lookup(flag) == nil {
-			t.Errorf("Expected flag %q", flag)
-		}
+	if cmd.Flags().Lookup("limit") == nil {
+		t.Error("Expected flag 'limit'")
 	}
 }
 
@@ -47,30 +45,9 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("invalid output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"--output=invalid"})
-		if err := cmd.Execute(); err == nil {
-			t.Error("Expected error")
 		}
 	})
 }
@@ -95,42 +72,12 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Test Project", "--output=json"})
+		cmd.SetArgs([]string{"Test Project"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 		if !strings.Contains(buf.String(), "proj-123") {
 			t.Error("Expected project id in output")
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Test Project", "--output=table"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-		output := buf.String()
-		// Validate enhanced fields are displayed
-		if !strings.Contains(output, "proj-123") {
-			t.Error("Expected ID in output")
-		}
-		if !strings.Contains(output, "68.0%") {
-			t.Error("Expected progress percentage in output")
-		}
-		if !strings.Contains(output, "onTrack") {
-			t.Error("Expected health in output")
-		}
-		if !strings.Contains(output, "Test Lead") {
-			t.Error("Expected lead name in output")
-		}
-		if !strings.Contains(output, "ENG") {
-			t.Error("Expected team key in output")
-		}
-		if !strings.Contains(output, "Test Initiative") {
-			t.Error("Expected linked initiative in output")
 		}
 	})
 }
@@ -144,9 +91,15 @@ func TestNewCreateCommand(t *testing.T) {
 	if cmd.Use != "create" {
 		t.Errorf("Use = %q, want %q", cmd.Use, "create")
 	}
-	if cmd.Flags().Lookup("name") == nil {
-		t.Error("Expected name flag")
-	}
+
+	t.Run("flags exist", func(t *testing.T) {
+		expectedFlags := []string{"name", "team", "description", "lead", "member"}
+		for _, flag := range expectedFlags {
+			if cmd.Flags().Lookup(flag) == nil {
+				t.Errorf("Expected flag %q not found", flag)
+			}
+		}
+	})
 }
 
 func TestRunCreate(t *testing.T) {
@@ -158,7 +111,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--name=New Project", "--team=ENG", "--output=json"})
+		cmd.SetArgs([]string{"--name=New Project", "--team=ENG"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -174,6 +127,15 @@ func TestNewUpdateCommand(t *testing.T) {
 	if !strings.HasPrefix(cmd.Use, "update") {
 		t.Errorf("Use = %q, want prefix update", cmd.Use)
 	}
+
+	t.Run("flags exist", func(t *testing.T) {
+		expectedFlags := []string{"name", "description", "lead", "member"}
+		for _, flag := range expectedFlags {
+			if cmd.Flags().Lookup(flag) == nil {
+				t.Errorf("Expected flag %q not found", flag)
+			}
+		}
+	})
 }
 
 func TestRunUpdate(t *testing.T) {
@@ -185,7 +147,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Test Project", "--name=Updated", "--output=json"})
+		cmd.SetArgs([]string{"Test Project", "--name=Updated"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -215,9 +177,40 @@ func TestRunDelete(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Test Project", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"Test Project", "--yes"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+}
+
+func TestNewMilestoneListCommand(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+	cmd := NewMilestoneListCommand(factory)
+
+	if cmd.Use != "milestone-list <project>" {
+		t.Errorf("Use = %q, want %q", cmd.Use, "milestone-list <project>")
+	}
+}
+
+func TestRunMilestoneList(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	t.Run("json output", func(t *testing.T) {
+		cmd := NewMilestoneListCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"Test Project"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		output := buf.String()
+		if !strings.Contains(output, "Q1 2025") {
+			t.Errorf("Expected milestone name in output, got: %s", output)
 		}
 	})
 }
@@ -248,7 +241,7 @@ func TestRunMilestoneCreate(t *testing.T) {
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		// Use UUID format to skip resolver lookup
-		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000001", "--name=Q1 2025", "--output=json"})
+		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000001", "--name=Q1 2025"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -275,7 +268,7 @@ func TestRunMilestoneUpdate(t *testing.T) {
 		cmd := NewMilestoneUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"milestone-123", "--name=Q2 2025", "--output=json"})
+		cmd.SetArgs([]string{"milestone-123", "--name=Q2 2025"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

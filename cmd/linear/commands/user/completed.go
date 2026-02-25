@@ -24,7 +24,7 @@ func NewCompletedCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Filters: --user=me or email (single user) | --team (all team members), --completed-after=yesterday|7d (see issue_list), --completed-before=today
 Must specify EITHER --user OR --team.
 
-Example: go-linear user completed --team=ENG --completed-after=yesterday --completed-before=today --output=json
+Example: go-linear user completed --team=ENG --completed-after=yesterday --completed-before=today
 
 Returns: [{user: {name, email}, count: number}...]
 Related: user_list, team_list, issue_list`,
@@ -49,9 +49,6 @@ Related: user_list, team_list, issue_list`,
 
 	// Pagination
 	cmd.Flags().IntP("limit", "l", 100, "Max issues per user")
-
-	// Output
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -178,22 +175,5 @@ func runCompleted(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), results, true)
-	case "table":
-		if len(results) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No completed issues found")
-			return nil
-		}
-
-		fmt.Fprintf(cmd.OutOrStdout(), "Completed issues from %s to %s:\n\n", afterStr, beforeStr)
-		for _, result := range results {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s <%s> - %d issues\n", result.User.Name, result.User.Email, result.Count)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), results, true)
 }

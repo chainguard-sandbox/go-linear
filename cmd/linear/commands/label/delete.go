@@ -15,12 +15,11 @@ import (
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
 		Short: "Delete a label permanently",
-		Long: `⚠️ Delete label. Removes from all issues. Cannot be undone. Prompts unless --yes.
+		Long: `Delete label. Removes from all issues. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear label delete bug
 
@@ -35,10 +34,6 @@ Related: label_list, label_get`,
 
 			ctx := cmd.Context()
 
-			if err := outputFlags.Validate(); err != nil {
-				return err
-			}
-
 			res := resolver.New(client)
 
 			labelID, err := res.ResolveLabel(ctx, args[0])
@@ -48,7 +43,7 @@ Related: label_list, label_get`,
 
 			// Confirmation
 			if !confirmFlags.Yes {
-				fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Delete label %s? This cannot be undone.\n", args[0])
+				fmt.Fprintf(cmd.OutOrStderr(), "Delete label %s? This cannot be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
 				response, _ := reader.ReadString('\n')
@@ -63,15 +58,10 @@ Related: label_list, label_get`,
 				return fmt.Errorf("failed to delete label: %w", err)
 			}
 
-			if outputFlags.Output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Label deleted\n")
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	return cmd
 }

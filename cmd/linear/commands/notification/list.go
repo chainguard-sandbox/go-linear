@@ -22,8 +22,8 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Flags: --include-archived, --limit
 
-Example: go-linear notification list --output=json
-Example: go-linear notification list --include-archived --limit=100 --output=json
+Example: go-linear notification list
+Example: go-linear notification list --include-archived --limit=100
 
 Related: notification_get, notification_archive, notification_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,7 +39,6 @@ Related: notification_get, notification_archive, notification_update`,
 
 	cmd.Flags().Bool("include-archived", false, "Include archived notifications")
 	paginationFlags.Bind(cmd, 50)
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -61,26 +60,5 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 		return fmt.Errorf("failed to list notifications: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), notifications, true)
-	case "table":
-		if len(notifications.Nodes) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No notifications")
-			return nil
-		}
-		for _, notif := range notifications.Nodes {
-			status := ""
-			if notif.ReadAt != nil {
-				status = " [read]"
-			} else if notif.SnoozedUntilAt != nil {
-				status = " [snoozed]"
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%s: %s%s\n", notif.Type, notif.ID, status)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), notifications, true)
 }

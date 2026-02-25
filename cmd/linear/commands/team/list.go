@@ -15,7 +15,7 @@ import (
 
 // NewListCommand creates the team list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputFlags{}
+	fieldFlags := &cli.FieldFlags{}
 	paginationFlags := &cli.PaginationFlags{}
 
 	cmd := &cobra.Command{
@@ -28,7 +28,7 @@ Team keys appear in issue identifiers (e.g., ENG-123 where ENG is the team key).
 Filters: --name, --key, --description, --private
 Date filters: --created-after, --created-before, --updated-after, --updated-before
 
-Example: go-linear team list --private=true --output=json
+Example: go-linear team list --private=true
 
 Returns: {nodes: [{7 team fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: team_get, team_members, issue_list`,
@@ -39,7 +39,7 @@ Related: team_get, team_members, issue_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client, outputFlags, paginationFlags)
+			return runList(cmd, client, fieldFlags, paginationFlags)
 		},
 	}
 
@@ -64,18 +64,13 @@ Related: team_get, team_members, issue_list`,
 	cmd.Flags().Bool("private", false, "Filter by private status")
 
 	// Output flags
-	outputFlags.Bind(cmd, "defaults (id,name,key,description,icon,createdAt) | none | defaults,extra | id,name,...")
+	fieldFlags.Bind(cmd, "defaults (id,name,key,description,icon,createdAt) | none | defaults,extra | id,name,...")
 
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
+func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
-
-	// Validate flags
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Build filter from flags
 	filterBuilder := teamfilter.NewFilterBuilder(nil)
@@ -93,24 +88,17 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 			return fmt.Errorf("failed to list teams: %w", err)
 		}
 
-		switch outputFlags.Output {
-		case "json":
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
-			defaults := fieldfilter.GetDefaults("team.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), teams, true, fieldSelector)
-		case "table":
-			return formatter.FormatTeamsTableFiltered(cmd.OutOrStdout(), teams.Nodes)
-		default:
-			return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
 		}
+		defaults := fieldfilter.GetDefaults("team.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), teams, true, fieldSelector)
 	}
 
 	// No filters: use regular query
@@ -119,28 +107,21 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 		return fmt.Errorf("failed to list teams: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		// Load config for field defaults
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-
-		// Get command defaults
-		defaults := fieldfilter.GetDefaults("team.list", configOverrides)
-
-		// Parse field selector with defaults (list command preserves nodes/pageInfo)
-		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), teams, true, fieldSelector)
-	case "table":
-		return formatter.FormatTeamsTable(cmd.OutOrStdout(), teams.Nodes)
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
+	// Load config for field defaults
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+
+	// Get command defaults
+	defaults := fieldfilter.GetDefaults("team.list", configOverrides)
+
+	// Parse field selector with defaults (list command preserves nodes/pageInfo)
+	fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), teams, true, fieldSelector)
 }

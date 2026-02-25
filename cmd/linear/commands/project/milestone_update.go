@@ -21,7 +21,7 @@ func NewMilestoneUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --name, --description, --target-date (date formats: see issue_list)
 
-Example: go-linear project milestone-update <uuid> --name="Q2 2025" --target-date=14d --output=json
+Example: go-linear project milestone-update <uuid> --name="Q2 2025" --target-date=14d
 
 Related: project_milestone-create, project_milestone-delete, project_get`,
 		Args: cobra.ExactArgs(1),
@@ -39,7 +39,6 @@ Related: project_milestone-create, project_milestone-delete, project_get`,
 	cmd.Flags().String("name", "", "New milestone name")
 	cmd.Flags().String("description", "", "New description (markdown)")
 	cmd.Flags().String("target-date", "", "New target date (ISO8601 or relative)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -72,14 +71,5 @@ func runMilestoneUpdate(cmd *cobra.Command, client *linear.Client, milestoneID s
 		return fmt.Errorf("failed to update milestone: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated milestone\n")
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

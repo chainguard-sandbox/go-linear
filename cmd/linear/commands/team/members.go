@@ -20,7 +20,7 @@ func NewMembersCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: --team (from team_list)
 
-Example: go-linear team members --team=ENG --output=json
+Example: go-linear team members --team=ENG
 
 Count: --count returns {"count": N}
 Related: team_get, user_list`,
@@ -39,7 +39,6 @@ Related: team_get, user_list`,
 	_ = cmd.MarkFlagRequired("team")
 
 	cmd.Flags().Bool("count", false, "Return only count, not member list")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -74,32 +73,14 @@ func runMembers(cmd *cobra.Command, client *linear.Client) error {
 	countMode, _ := cmd.Flags().GetBool("count")
 	if countMode {
 		count := len(users.Nodes)
-		output, _ := cmd.Flags().GetString("output")
-		switch output {
-		case "json":
-			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-				"count": count,
-			}, true)
-		case "table":
-			fmt.Fprintf(cmd.OutOrStdout(), "%d\n", count)
-			return nil
-		default:
-			return fmt.Errorf("unsupported output format: %s", output)
-		}
+		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+			"count": count,
+		}, true)
 	}
 
 	// Normal mode - list members
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
-			"team":  team,
-			"users": users.Nodes,
-		}, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Team: %s (%s)\n\n", team.Name, team.Key)
-		return formatter.FormatUsersTable(cmd.OutOrStdout(), users.Nodes)
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+		"team":  team,
+		"users": users.Nodes,
+	}, true)
 }

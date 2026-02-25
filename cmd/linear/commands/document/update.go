@@ -20,7 +20,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --title, --content
 
-Example: go-linear document update <uuid> --title="Updated API Guide" --output=json
+Example: go-linear document update <uuid> --title="Updated API Guide"
 
 Related: document_get, document_create`,
 		Args: cobra.ExactArgs(1),
@@ -37,7 +37,6 @@ Related: document_get, document_create`,
 
 	cmd.Flags().String("title", "", "New document title")
 	cmd.Flags().String("content", "", "New document content (markdown)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -67,14 +66,5 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, documentID string) err
 		return fmt.Errorf("failed to update document: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated document: %s\n", result.Title)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

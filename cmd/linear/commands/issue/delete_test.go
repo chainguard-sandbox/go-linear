@@ -27,9 +27,9 @@ func TestNewDeleteCommand(t *testing.T) {
 			t.Fatal("yes flag not found")
 		}
 
-		outputFlag := cmd.Flags().Lookup("output")
-		if outputFlag == nil {
-			t.Fatal("output flag not found")
+		permanentFlag := cmd.Flags().Lookup("permanent")
+		if permanentFlag == nil {
+			t.Fatal("permanent flag not found")
 		}
 	})
 
@@ -56,7 +56,7 @@ func TestRunDelete(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "--yes"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -69,11 +69,11 @@ func TestRunDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("delete table output", func(t *testing.T) {
+	t.Run("delete with permanent flag", func(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--yes", "--output=table"})
+		cmd.SetArgs([]string{"ENG-123", "--yes", "--permanent"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -81,21 +81,8 @@ func TestRunDelete(t *testing.T) {
 		}
 
 		output := buf.String()
-		if !strings.Contains(output, "deleted") {
-			t.Errorf("Table output should show 'deleted', got: %s", output)
-		}
-	})
-
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewDeleteCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--yes", "--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
+		if !strings.Contains(output, "\"permanent\": true") {
+			t.Errorf("Output should contain permanent: true, got: %s", output)
 		}
 	})
 }

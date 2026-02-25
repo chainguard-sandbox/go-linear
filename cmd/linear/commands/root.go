@@ -80,7 +80,7 @@ func loadClientConfig() *clientConfig {
 		if timeout, err := time.ParseDuration(timeoutStr); err == nil {
 			cfg.timeout = timeout
 		} else {
-			log.Printf("Warning: Invalid LINEAR_TIMEOUT '%s', using default (30s)", timeoutStr)
+			log.Printf("Warning: Invalid LINEAR_TIMEOUT, using default (30s)")
 		}
 	}
 
@@ -121,7 +121,7 @@ func loadClientConfig() *clientConfig {
 		case "1.3":
 			cfg.tlsMinVersion = tls.VersionTLS13
 		default:
-			log.Printf("Warning: Invalid LINEAR_TLS_MIN_VERSION '%s', using TLS 1.2", tlsMinStr)
+			log.Printf("Warning: Invalid LINEAR_TLS_MIN_VERSION, using TLS 1.2")
 		}
 	}
 
@@ -138,7 +138,7 @@ func loadClientConfig() *clientConfig {
 		case "error":
 			level = slog.LevelError
 		default:
-			log.Printf("Warning: Invalid LINEAR_LOG_LEVEL '%s', logging disabled", logLevel)
+			log.Printf("Warning: Invalid LINEAR_LOG_LEVEL, logging disabled")
 			return cfg
 		}
 
@@ -154,7 +154,7 @@ func loadClientConfig() *clientConfig {
 		if enabled, err := strconv.ParseBool(metricsStr); err == nil {
 			cfg.metricsEnabled = enabled
 		} else {
-			log.Printf("Warning: Invalid LINEAR_METRICS_ENABLED '%s', must be true/false", metricsStr)
+			log.Printf("Warning: Invalid LINEAR_METRICS_ENABLED, must be true/false")
 		}
 	}
 
@@ -218,8 +218,9 @@ func NewRootCommand() *cobra.Command {
 	cfg := loadClientConfig()
 
 	rootCmd := &cobra.Command{
-		Use:   "go-linear",
-		Short: "Linear MCP server for AI agents",
+		Use:     "go-linear",
+		Version: linear.Version,
+		Short:   "Linear MCP server for AI agents",
 		Long: `Linear MCP server provides AI agents with command-line access to Linear.
 
 Optimized for both human users and AI agents via MCP (Model Context Protocol).

@@ -15,11 +15,10 @@ import (
 
 func NewDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	confirmFlags := &cli.ConfirmationFlags{}
-	outputFlags := &cli.OutputOnlyFlags{}
 	cmd := &cobra.Command{
 		Use:   "delete <name|id>",
 		Short: "Delete a team permanently",
-		Long: `⚠️ Delete team. Cannot be undone. Prompts unless --yes.
+		Long: `Delete team. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear team delete TestTeam
 
@@ -34,10 +33,6 @@ Related: team_list, team_get`,
 
 			ctx := cmd.Context()
 
-			if err := outputFlags.Validate(); err != nil {
-				return err
-			}
-
 			res := resolver.New(client)
 
 			teamID, err := res.ResolveTeam(ctx, args[0])
@@ -47,7 +42,7 @@ Related: team_list, team_get`,
 
 			// Confirmation
 			if !confirmFlags.Yes {
-				fmt.Fprintf(cmd.OutOrStderr(), "🚨 Delete team %s? This CANNOT be undone.\n", args[0])
+				fmt.Fprintf(cmd.OutOrStderr(), "Delete team %s? This CANNOT be undone.\n", args[0])
 				fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
 				reader := bufio.NewReader(os.Stdin)
 				response, _ := reader.ReadString('\n')
@@ -62,15 +57,10 @@ Related: team_list, team_get`,
 				return fmt.Errorf("failed to delete team: %w", err)
 			}
 
-			if outputFlags.Output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Team deleted\n")
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]bool{"success": true}, true)
 		},
 	}
 
-	outputFlags.Bind(cmd)
 	confirmFlags.Bind(cmd)
 	return cmd
 }

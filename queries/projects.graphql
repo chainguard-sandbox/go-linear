@@ -21,6 +21,13 @@ query GetProject($id: String!) {
       name
       email
     }
+    members(first: 50) {
+      nodes {
+        id
+        name
+        email
+      }
+    }
     teams(first: 10) {
       nodes {
         id
@@ -33,6 +40,15 @@ query GetProject($id: String!) {
         id
         name
         status
+      }
+    }
+    projectMilestones(first: 50) {
+      nodes {
+        id
+        name
+        description
+        targetDate
+        sortOrder
       }
     }
   }

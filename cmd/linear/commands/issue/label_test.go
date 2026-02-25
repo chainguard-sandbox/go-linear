@@ -49,7 +49,7 @@ func TestRunAddLabel(t *testing.T) {
 		cmd := NewAddLabelCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "bug", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "bug"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -59,23 +59,6 @@ func TestRunAddLabel(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "issue-123") {
 			t.Errorf("Output should contain issue id, got: %s", output)
-		}
-	})
-
-	t.Run("add label table output", func(t *testing.T) {
-		cmd := NewAddLabelCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "bug", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Added label") {
-			t.Errorf("Table output should show 'Added label', got: %s", output)
 		}
 	})
 }
@@ -116,7 +99,7 @@ func TestRunRemoveLabel(t *testing.T) {
 		cmd := NewRemoveLabelCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "bug", "--output=json"})
+		cmd.SetArgs([]string{"ENG-123", "bug"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -126,23 +109,6 @@ func TestRunRemoveLabel(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "issue-123") {
 			t.Errorf("Output should contain issue id, got: %s", output)
-		}
-	})
-
-	t.Run("remove label table output", func(t *testing.T) {
-		cmd := NewRemoveLabelCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "bug", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Removed label") {
-			t.Errorf("Table output should show 'Removed label', got: %s", output)
 		}
 	})
 }

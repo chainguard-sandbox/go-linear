@@ -31,7 +31,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "List all templates",
 		Long: `List templates. Returns 4 default fields per template.
 
-Example: go-linear template list --output=json
+Example: go-linear template list
 
 Related: template_get, issue_create`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -48,35 +48,23 @@ Related: template_get, issue_create`,
 				return fmt.Errorf("failed to list templates: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
 			fieldsSpec, _ := cmd.Flags().GetString("fields")
 
-			switch output {
-			case "json":
-				cfg, _ := config.Load()
-				var configOverrides map[string]string
-				if cfg != nil {
-					configOverrides = cfg.FieldDefaults
-				}
-				defaults := fieldfilter.GetDefaults("template.list", configOverrides)
-				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
-				if err != nil {
-					return fmt.Errorf("invalid --fields: %w", err)
-				}
-				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), templates, true, fieldSelector)
-			case "table":
-				for _, tmpl := range templates {
-					fmt.Fprintf(cmd.OutOrStdout(), "%s\n", tmpl.Name)
-				}
-				return nil
-			default:
-				return fmt.Errorf("unsupported output format: %s", output)
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
 			}
+			defaults := fieldfilter.GetDefaults("template.list", configOverrides)
+			fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), templates, true, fieldSelector)
 		},
 	}
 
 	cmd.Flags().IntP("limit", "l", 50, "Number to return")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
 	return cmd
 }
@@ -85,9 +73,9 @@ func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single template by ID",
-		Long: `Get template by UUID. Returns 4 default fields.
+		Long: `Get template by UUID. Returns 5 default fields.
 
-Example: go-linear template get <uuid> --output=json
+Example: go-linear template get <uuid>
 
 Related: template_list, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -104,31 +92,21 @@ Related: template_list, issue_create`,
 				return fmt.Errorf("failed to get template: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			switch output {
-			case "json":
-				cfg, _ := config.Load()
-				var configOverrides map[string]string
-				if cfg != nil {
-					configOverrides = cfg.FieldDefaults
-				}
-				fieldsSpec, _ := cmd.Flags().GetString("fields")
-				defaults := fieldfilter.GetDefaults("template.get", configOverrides)
-				fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
-				if err != nil {
-					return fmt.Errorf("invalid --fields: %w", err)
-				}
-				return formatter.FormatJSONFiltered(cmd.OutOrStdout(), template, true, fieldSelector)
-			case "table":
-				fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", template.Name)
-				return nil
-			default:
-				return fmt.Errorf("unsupported output format: %s", output)
+			cfg, _ := config.Load()
+			var configOverrides map[string]string
+			if cfg != nil {
+				configOverrides = cfg.FieldDefaults
 			}
+			fieldsSpec, _ := cmd.Flags().GetString("fields")
+			defaults := fieldfilter.GetDefaults("template.get", configOverrides)
+			fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+			if err != nil {
+				return fmt.Errorf("invalid --fields: %w", err)
+			}
+			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), template, true, fieldSelector)
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
-	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,templateData,createdAt) | none | defaults,extra")
 	return cmd
 }

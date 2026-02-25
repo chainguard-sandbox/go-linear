@@ -162,6 +162,14 @@ const (
 			}
 		}
 	}`
+
+	mockTeamUnarchiveResponse = `{
+		"data": {
+			"teamUnarchive": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -175,5 +183,6 @@ func defaultHandlers() map[string]string {
 	handlers["UpdateTeam"] = mockTeamUpdateResponse
 	handlers["DeleteTeam"] = mockTeamDeleteResponse
 	handlers["ListCyclesFiltered"] = mockCyclesFilteredResponse
+	handlers["UnarchiveTeam"] = mockTeamUnarchiveResponse
 	return handlers
 }

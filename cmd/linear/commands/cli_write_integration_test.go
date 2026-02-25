@@ -44,7 +44,7 @@ func newWriteTestRunner(t *testing.T) *writeTestRunner {
 	r := newCLIRunner(t)
 
 	// Get a team to use for testing
-	stdout, _, err := r.run("team", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("team", "list", "--limit=1")
 	if err != nil {
 		t.Fatalf("Failed to get teams: %v", err)
 	}
@@ -82,7 +82,6 @@ func TestCLI_IssueCreateUpdateDelete(t *testing.T) {
 			"--team="+r.teamKey,
 			"--title="+title,
 			"--description=Created by CLI integration test",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -113,7 +112,6 @@ func TestCLI_IssueCreateUpdateDelete(t *testing.T) {
 		newTitle := title + " (updated)"
 		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
 			"--title="+newTitle,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue update failed: %v\nstderr: %s", err, stderr)
@@ -155,7 +153,6 @@ func TestCLI_CommentCreateUpdateDelete(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue for comment test: %v", err)
@@ -178,7 +175,6 @@ func TestCLI_CommentCreateUpdateDelete(t *testing.T) {
 		stdout, stderr, err := r.run("comment", "create",
 			"--issue="+issueID,
 			"--body=Test comment from CLI integration test",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("comment create failed: %v\nstderr: %s", err, stderr)
@@ -202,7 +198,6 @@ func TestCLI_CommentCreateUpdateDelete(t *testing.T) {
 
 		stdout, stderr, err := r.run("comment", "update", commentID,
 			"--body=Updated comment from CLI integration test",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("comment update failed: %v\nstderr: %s", err, stderr)
@@ -240,7 +235,6 @@ func TestCLI_CommentThreading(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -260,7 +254,6 @@ func TestCLI_CommentThreading(t *testing.T) {
 		stdout, stderr, err := r.run("comment", "create",
 			"--issue="+issueID,
 			"--body=Parent comment",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("create failed: %v\nstderr: %s", err, stderr)
@@ -283,7 +276,6 @@ func TestCLI_CommentThreading(t *testing.T) {
 			"--issue="+issueID,
 			"--body=Reply comment",
 			"--parent="+parentID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("create reply failed: %v\nstderr: %s", err, stderr)
@@ -306,7 +298,7 @@ func TestCLI_CommentThreading(t *testing.T) {
 			t.Skip("No parent")
 		}
 
-		stdout, stderr, err := r.run("comment", "get", parentID, "--output=json")
+		stdout, stderr, err := r.run("comment", "get", parentID)
 		if err != nil {
 			t.Fatalf("get failed: %v\nstderr: %s", err, stderr)
 		}
@@ -329,7 +321,7 @@ func TestCLI_CommentThreading(t *testing.T) {
 			t.Skip("No reply")
 		}
 
-		stdout, stderr, err := r.run("comment", "get", replyID, "--fields=none", "--output=json")
+		stdout, stderr, err := r.run("comment", "get", replyID, "--fields=none")
 		if err != nil {
 			t.Fatalf("get failed: %v\nstderr: %s", err, stderr)
 		}
@@ -363,7 +355,6 @@ func TestCLI_LabelCreateUpdateDelete(t *testing.T) {
 			"--name="+labelName,
 			"--color=#ff5733",
 			"--description=Created by CLI integration test",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("label create failed: %v\nstderr: %s", err, stderr)
@@ -397,7 +388,6 @@ func TestCLI_LabelCreateUpdateDelete(t *testing.T) {
 
 		stdout, stderr, err := r.run("label", "update", lookupID,
 			"--color=#33ff57",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("label update failed: %v\nstderr: %s", err, stderr)
@@ -440,7 +430,6 @@ func TestCLI_IssueAddRemoveLabel(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -456,7 +445,7 @@ func TestCLI_IssueAddRemoveLabel(t *testing.T) {
 	}()
 
 	// Get first available label
-	stdout, _, err = r.run("label", "list", "--output=json", "--limit=1")
+	stdout, _, err = r.run("label", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No labels available for test")
 	}
@@ -473,7 +462,7 @@ func TestCLI_IssueAddRemoveLabel(t *testing.T) {
 
 	// ADD label
 	t.Run("add-label", func(t *testing.T) {
-		stdout, stderr, err := r.run("issue", "add-label", issueID, labelName, "--output=json")
+		stdout, stderr, err := r.run("issue", "add-label", issueID, labelName)
 		if err != nil {
 			t.Fatalf("add-label failed: %v\nstderr: %s", err, stderr)
 		}
@@ -483,7 +472,7 @@ func TestCLI_IssueAddRemoveLabel(t *testing.T) {
 
 	// REMOVE label
 	t.Run("remove-label", func(t *testing.T) {
-		stdout, stderr, err := r.run("issue", "remove-label", issueID, labelName, "--output=json")
+		stdout, stderr, err := r.run("issue", "remove-label", issueID, labelName)
 		if err != nil {
 			t.Fatalf("remove-label failed: %v\nstderr: %s", err, stderr)
 		}
@@ -504,7 +493,6 @@ func TestCLI_ReactionCreateDelete(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -526,7 +514,6 @@ func TestCLI_ReactionCreateDelete(t *testing.T) {
 		stdout, stderr, err := r.run("reaction", "create",
 			"--issue="+issueID,
 			"--emoji=👍",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("reaction create failed: %v\nstderr: %s", err, stderr)
@@ -576,7 +563,6 @@ func TestCLI_FavoriteCreateDelete(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -597,7 +583,6 @@ func TestCLI_FavoriteCreateDelete(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		stdout, stderr, err := r.run("favorite", "create",
 			"--issue="+issueID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("favorite create failed: %v\nstderr: %s", err, stderr)
@@ -647,7 +632,6 @@ func TestCLI_ProjectCreateUpdateDelete(t *testing.T) {
 			"--team="+r.teamKey,
 			"--name="+projectName,
 			"--description=Created by CLI integration test",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
@@ -672,7 +656,6 @@ func TestCLI_ProjectCreateUpdateDelete(t *testing.T) {
 		newName := projectName + " (updated)"
 		stdout, stderr, err := r.run("project", "update", projectID,
 			"--name="+newName,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("project update failed: %v\nstderr: %s", err, stderr)
@@ -719,7 +702,6 @@ func TestCLI_CycleCreateUpdateArchive(t *testing.T) {
 			"--name="+cycleName,
 			"--starts-at="+startDate,
 			"--ends-at="+endDate,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("cycle create failed: %v\nstderr: %s", err, stderr)
@@ -744,7 +726,6 @@ func TestCLI_CycleCreateUpdateArchive(t *testing.T) {
 		newName := cycleName + " (updated)"
 		stdout, stderr, err := r.run("cycle", "update", cycleID,
 			"--name="+newName,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("cycle update failed: %v\nstderr: %s", err, stderr)
@@ -760,7 +741,7 @@ func TestCLI_CycleCreateUpdateArchive(t *testing.T) {
 			t.Skip("No cycle to archive")
 		}
 
-		stdout, stderr, err := r.run("cycle", "archive", cycleID, "--output=json")
+		stdout, stderr, err := r.run("cycle", "archive", cycleID)
 		if err != nil {
 			t.Fatalf("cycle archive failed: %v\nstderr: %s", err, stderr)
 		}
@@ -786,7 +767,6 @@ func TestCLI_IssueRelateUnrelate(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Relation Test Issue 1 "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -804,7 +784,6 @@ func TestCLI_IssueRelateUnrelate(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Relation Test Issue 2 "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -825,7 +804,6 @@ func TestCLI_IssueRelateUnrelate(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "relate", issue1ID, issue2ID,
 			"--type=blocks",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue relate failed: %v\nstderr: %s", err, stderr)
@@ -885,7 +863,6 @@ func TestCLI_AttachmentLinkURL(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -908,7 +885,6 @@ func TestCLI_AttachmentLinkURL(t *testing.T) {
 			"--issue="+issueID,
 			"--url=https://example.com/test-doc",
 			"--title=Test Document",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("attachment link-url failed: %v\nstderr: %s", err, stderr)
@@ -959,7 +935,6 @@ func TestCLI_InitiativeCreateUpdateDelete(t *testing.T) {
 			"--name="+initName,
 			"--description=Created by CLI integration test",
 			"--status=Active",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("initiative create failed: %v\nstderr: %s", err, stderr)
@@ -985,7 +960,6 @@ func TestCLI_InitiativeCreateUpdateDelete(t *testing.T) {
 		stdout, stderr, err := r.run("initiative", "update", initID,
 			"--name="+newName,
 			"--status=Completed",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("initiative update failed: %v\nstderr: %s", err, stderr)
@@ -1028,7 +1002,6 @@ func TestCLI_InitiativeHierarchy(t *testing.T) {
 			"--name="+parentName,
 			"--description=Parent initiative for hierarchy test",
 			"--status=Active",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("parent initiative create failed: %v\nstderr: %s", err, stderr)
@@ -1052,7 +1025,6 @@ func TestCLI_InitiativeHierarchy(t *testing.T) {
 			"--description=Child initiative for hierarchy test",
 			"--parent="+parentID,
 			"--status=Planned",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("child initiative create failed: %v\nstderr: %s", err, stderr)
@@ -1073,7 +1045,6 @@ func TestCLI_InitiativeHierarchy(t *testing.T) {
 
 		stdout, stderr, err := r.run("initiative", "list",
 			"--parent="+parentID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("list with parent filter failed: %v\nstderr: %s", err, stderr)
@@ -1115,7 +1086,6 @@ func TestCLI_IssueUpdateState(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -1131,7 +1101,7 @@ func TestCLI_IssueUpdateState(t *testing.T) {
 	}()
 
 	// Get the current issue state so we can update to a different one
-	stdout, _, err = r.run("issue", "get", issueID, "--output=json", "--fields=defaults,state")
+	stdout, _, err = r.run("issue", "get", issueID, "--fields=defaults,state")
 	if err != nil {
 		t.Fatalf("Cannot get issue: %v", err)
 	}
@@ -1161,7 +1131,6 @@ func TestCLI_IssueUpdateState(t *testing.T) {
 	t.Run("update-state", func(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--state="+targetStateName,
-			"--output=json",
 		)
 		if err != nil {
 			// Some teams may not have these standard states
@@ -1188,7 +1157,6 @@ func TestCLI_IssueUpdatePriority(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -1207,7 +1175,6 @@ func TestCLI_IssueUpdatePriority(t *testing.T) {
 	t.Run("update-priority", func(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--priority=2",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue update priority failed: %v\nstderr: %s", err, stderr)
@@ -1230,7 +1197,6 @@ func TestCLI_IssueUpdateAssignee(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -1249,7 +1215,6 @@ func TestCLI_IssueUpdateAssignee(t *testing.T) {
 	t.Run("update-assignee", func(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--assignee=me",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue update assignee failed: %v\nstderr: %s", err, stderr)
@@ -1272,7 +1237,6 @@ func TestCLI_ProjectMilestoneCRUD(t *testing.T) {
 	stdout, stderr, err := r.run("project", "create",
 		"--team="+r.teamKey,
 		"--name="+projectName,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create project: %v\nstderr: %s", err, stderr)
@@ -1297,7 +1261,6 @@ func TestCLI_ProjectMilestoneCRUD(t *testing.T) {
 			"--project="+projectID,
 			"--name=Alpha Release",
 			"--target-date="+targetDate,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("milestone create failed: %v\nstderr: %s", err, stderr)
@@ -1321,7 +1284,6 @@ func TestCLI_ProjectMilestoneCRUD(t *testing.T) {
 
 		stdout, stderr, err := r.run("project", "milestone-update", milestoneID,
 			"--name=Beta Release",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("milestone update failed: %v\nstderr: %s", err, stderr)
@@ -1359,7 +1321,6 @@ func TestCLI_AttachmentCreate(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title="+issueTitle,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -1383,7 +1344,6 @@ func TestCLI_AttachmentCreate(t *testing.T) {
 			"--title=Build Report",
 			"--url=https://ci.example.com/builds/123",
 			"--subtitle=Build #123 passed",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("attachment create failed: %v\nstderr: %s", err, stderr)
@@ -1436,7 +1396,6 @@ func TestCLI_IssueCreateWithOptions(t *testing.T) {
 			"--description=Issue with all options set",
 			"--priority=2",
 			"--assignee=me",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -1458,7 +1417,7 @@ func TestCLI_IssueCreateWithOptions(t *testing.T) {
 			t.Skip("No issue to verify")
 		}
 
-		stdout, stderr, err := r.run("issue", "get", issueID, "--output=json")
+		stdout, stderr, err := r.run("issue", "get", issueID)
 		if err != nil {
 			t.Fatalf("issue get failed: %v\nstderr: %s", err, stderr)
 		}
@@ -1503,7 +1462,6 @@ func TestCLI_IssueParentChild(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Parent Issue "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("parent issue create failed: %v\nstderr: %s", err, stderr)
@@ -1526,7 +1484,6 @@ func TestCLI_IssueParentChild(t *testing.T) {
 			"--team="+r.teamKey,
 			"--title=Child Issue "+timestamp,
 			"--parent="+parentID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("child issue create failed: %v\nstderr: %s", err, stderr)
@@ -1545,7 +1502,7 @@ func TestCLI_IssueParentChild(t *testing.T) {
 			t.Skip("No child issue created")
 		}
 
-		stdout, stderr, err := r.run("issue", "get", childID, "--output=json", "--fields=defaults,parent")
+		stdout, stderr, err := r.run("issue", "get", childID, "--fields=defaults,parent")
 		if err != nil {
 			t.Fatalf("issue get failed: %v\nstderr: %s", err, stderr)
 		}
@@ -1572,7 +1529,6 @@ func TestCLI_IssueParentChild(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "update", childID,
 			"--parent=none",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("remove parent failed: %v\nstderr: %s", err, stderr)
@@ -1588,7 +1544,7 @@ func TestCLI_IssueParentChild(t *testing.T) {
 			t.Skip("No child issue")
 		}
 
-		stdout, stderr, err := r.run("issue", "get", childID, "--output=json", "--fields=defaults,parent")
+		stdout, stderr, err := r.run("issue", "get", childID, "--fields=defaults,parent")
 		if err != nil {
 			t.Fatalf("issue get failed: %v\nstderr: %s", err, stderr)
 		}
@@ -1629,7 +1585,6 @@ func TestCLI_IssueProjectAssignment(t *testing.T) {
 		stdout, stderr, err := r.run("project", "create",
 			"--team="+r.teamKey,
 			"--name=Project Assignment Test "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
@@ -1647,7 +1602,6 @@ func TestCLI_IssueProjectAssignment(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Project Assignment Issue "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -1668,7 +1622,6 @@ func TestCLI_IssueProjectAssignment(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--project="+projectID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("assign project failed: %v\nstderr: %s", err, stderr)
@@ -1686,7 +1639,6 @@ func TestCLI_IssueProjectAssignment(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--project=none",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("unassign project failed: %v\nstderr: %s", err, stderr)
@@ -1727,7 +1679,6 @@ func TestCLI_IssueCycleAssignment(t *testing.T) {
 			"--name=Cycle Assignment Test "+timestamp,
 			"--starts-at="+startDate,
 			"--ends-at="+endDate,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("cycle create failed: %v\nstderr: %s", err, stderr)
@@ -1745,7 +1696,6 @@ func TestCLI_IssueCycleAssignment(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Cycle Assignment Issue "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -1766,7 +1716,6 @@ func TestCLI_IssueCycleAssignment(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--cycle="+cycleID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("assign cycle failed: %v\nstderr: %s", err, stderr)
@@ -1784,7 +1733,6 @@ func TestCLI_IssueCycleAssignment(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "update", issueID,
 			"--cycle=none",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("unassign cycle failed: %v\nstderr: %s", err, stderr)
@@ -1800,7 +1748,7 @@ func TestCLI_IssueCycleAssignment(t *testing.T) {
 			r.run("issue", "delete", issueID, "--yes")
 		}
 		if cycleID != "" {
-			r.run("cycle", "archive", cycleID, "--output=json")
+			r.run("cycle", "archive", cycleID)
 		}
 		t.Log("Cleaned up test resources")
 	})
@@ -1825,7 +1773,6 @@ func TestCLI_IssueCreateWithCycle(t *testing.T) {
 			"--name=Issue Create Cycle Test "+timestamp,
 			"--starts-at="+startDate,
 			"--ends-at="+endDate,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("cycle create failed: %v\nstderr: %s", err, stderr)
@@ -1848,7 +1795,6 @@ func TestCLI_IssueCreateWithCycle(t *testing.T) {
 			"--team="+r.teamKey,
 			"--title=Issue With Cycle "+timestamp,
 			"--cycle="+cycleID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create with cycle failed: %v\nstderr: %s", err, stderr)
@@ -1867,7 +1813,7 @@ func TestCLI_IssueCreateWithCycle(t *testing.T) {
 			r.run("issue", "delete", issueID, "--yes")
 		}
 		if cycleID != "" {
-			r.run("cycle", "archive", cycleID, "--output=json")
+			r.run("cycle", "archive", cycleID)
 		}
 		t.Log("Cleaned up test resources")
 	})
@@ -1887,7 +1833,6 @@ func TestCLI_IssueCreateWithProject(t *testing.T) {
 		stdout, stderr, err := r.run("project", "create",
 			"--team="+r.teamKey,
 			"--name=Issue Create Project Test "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
@@ -1910,7 +1855,6 @@ func TestCLI_IssueCreateWithProject(t *testing.T) {
 			"--team="+r.teamKey,
 			"--title=Issue With Project "+timestamp,
 			"--project="+projectID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create with project failed: %v\nstderr: %s", err, stderr)
@@ -1949,7 +1893,6 @@ func TestCLI_IssueRelationUpdate(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Relation Update Test 1 "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -1967,7 +1910,6 @@ func TestCLI_IssueRelationUpdate(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title=Relation Update Test 2 "+timestamp,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -1988,7 +1930,6 @@ func TestCLI_IssueRelationUpdate(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "relate", issue1ID, issue2ID,
 			"--type=related",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue relate failed: %v\nstderr: %s", err, stderr)
@@ -2014,7 +1955,6 @@ func TestCLI_IssueRelationUpdate(t *testing.T) {
 
 		stdout, stderr, err := r.run("issue", "update-relation", relationID,
 			"--type=blocks",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("update-relation failed: %v\nstderr: %s", err, stderr)
@@ -2056,7 +1996,6 @@ func TestCLI_IssueBatchUpdate(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title="+batchPrefix+" Issue 1",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue 1 create failed: %v\nstderr: %s", err, stderr)
@@ -2071,7 +2010,6 @@ func TestCLI_IssueBatchUpdate(t *testing.T) {
 		stdout, stderr, err = r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--title="+batchPrefix+" Issue 2",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue 2 create failed: %v\nstderr: %s", err, stderr)
@@ -2095,7 +2033,6 @@ func TestCLI_IssueBatchUpdate(t *testing.T) {
 			"--title="+batchPrefix,
 			"--set-priority=2",
 			"--dry-run",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("batch-update dry-run failed: %v\nstderr: %s", err, stderr)
@@ -2115,7 +2052,6 @@ func TestCLI_IssueBatchUpdate(t *testing.T) {
 			"--title="+batchPrefix,
 			"--set-priority=2",
 			"--yes",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("batch-update failed: %v\nstderr: %s", err, stderr)
@@ -2153,7 +2089,6 @@ func TestCLI_TeamCreateUpdateDelete(t *testing.T) {
 			"--name="+teamName,
 			"--key="+teamKey,
 			"--description=Created by CLI integration test",
-			"--output=json",
 		)
 		if err != nil {
 			// Team creation may require admin permissions
@@ -2179,7 +2114,7 @@ func TestCLI_TeamCreateUpdateDelete(t *testing.T) {
 			t.Skip("No team created")
 		}
 
-		stdout, stderr, err := r.run("team", "get", teamKey, "--output=json")
+		stdout, stderr, err := r.run("team", "get", teamKey)
 		if err != nil {
 			t.Fatalf("team get failed: %v\nstderr: %s", err, stderr)
 		}
@@ -2202,7 +2137,6 @@ func TestCLI_TeamCreateUpdateDelete(t *testing.T) {
 		newDesc := "Updated by CLI integration test"
 		stdout, stderr, err := r.run("team", "update", teamKey,
 			"--description="+newDesc,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("team update failed: %v\nstderr: %s", err, stderr)
@@ -2236,7 +2170,7 @@ func TestCLI_NotificationSubscribeUnsubscribe(t *testing.T) {
 	var subscriptionID string
 
 	// Get a project to subscribe to
-	stdout, _, err := r.run("project", "list", "--output=json", "--limit=1")
+	stdout, _, err := r.run("project", "list", "--limit=1")
 	if err != nil {
 		t.Skip("No projects available for notification test")
 	}
@@ -2255,7 +2189,6 @@ func TestCLI_NotificationSubscribeUnsubscribe(t *testing.T) {
 	t.Run("subscribe", func(t *testing.T) {
 		stdout, stderr, err := r.run("notification", "subscribe",
 			"--project="+projectID,
-			"--output=json",
 		)
 		if err != nil {
 			// Notification subscriptions may require specific permissions or features
@@ -2308,7 +2241,6 @@ func TestCLI_NotificationUpdateAndArchive(t *testing.T) {
 	stdout, _, err := r.run("issue", "create",
 		"--team="+r.teamKey,
 		"--title=Notification Test "+timestamp,
-		"--output=json",
 	)
 	if err != nil {
 		t.Fatalf("Failed to create issue: %v", err)
@@ -2366,7 +2298,6 @@ func TestCLI_IssueCreateWithEstimate(t *testing.T) {
 			"--team="+r.teamKey,
 			"--title="+title,
 			"--estimate=5",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -2393,7 +2324,7 @@ func TestCLI_IssueCreateWithLabels(t *testing.T) {
 	r := newWriteTestRunner(t)
 
 	// Get available labels
-	stdout, _, err := r.run("label", "list", "--output=json", "--limit=2")
+	stdout, _, err := r.run("label", "list", "--limit=2")
 	if err != nil {
 		t.Skip("No labels available")
 	}
@@ -2420,7 +2351,6 @@ func TestCLI_IssueCreateWithLabels(t *testing.T) {
 			"--title="+title,
 			"--label="+label1,
 			"--label="+label2,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
@@ -2461,7 +2391,6 @@ func TestCLI_CycleWithDescription(t *testing.T) {
 			"--name="+cycleName,
 			"--starts-at="+startDate,
 			"--ends-at="+endDate,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("cycle create failed: %v\nstderr: %s", err, stderr)
@@ -2482,7 +2411,6 @@ func TestCLI_CycleWithDescription(t *testing.T) {
 
 		stdout, stderr, err := r.run("cycle", "update", cycleID,
 			"--description=Sprint goals and objectives",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("cycle update failed: %v\nstderr: %s", err, stderr)
@@ -2495,7 +2423,7 @@ func TestCLI_CycleWithDescription(t *testing.T) {
 	// Cleanup
 	t.Run("cleanup", func(t *testing.T) {
 		if cycleID != "" {
-			r.run("cycle", "archive", cycleID, "--output=json")
+			r.run("cycle", "archive", cycleID)
 		}
 	})
 }
@@ -2516,7 +2444,6 @@ func TestCLI_ProjectStatusUpdateLifecycle(t *testing.T) {
 			"--team="+r.teamKey,
 			"--name="+projectName,
 			"--description=Project for status update testing",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
@@ -2539,7 +2466,6 @@ func TestCLI_ProjectStatusUpdateLifecycle(t *testing.T) {
 			"--project="+projectID,
 			"--body=Week 1: All systems operational",
 			"--health=onTrack",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("status update create failed: %v\nstderr: %s", err, stderr)
@@ -2565,7 +2491,6 @@ func TestCLI_ProjectStatusUpdateLifecycle(t *testing.T) {
 
 		stdout, stderr, err := r.run("project", "status-update-list",
 			"--project="+projectID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("status update list failed: %v\nstderr: %s", err, stderr)
@@ -2593,7 +2518,6 @@ func TestCLI_ProjectStatusUpdateLifecycle(t *testing.T) {
 
 		stdout, stderr, err := r.run("project", "status-update-get",
 			updateID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("status update get failed: %v\nstderr: %s", err, stderr)
@@ -2656,7 +2580,6 @@ func TestCLI_InitiativeStatusUpdateLifecycle(t *testing.T) {
 			"--name="+initiativeName,
 			"--description=Initiative for status update testing",
 			"--status=Active",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("initiative create failed: %v\nstderr: %s", err, stderr)
@@ -2679,7 +2602,6 @@ func TestCLI_InitiativeStatusUpdateLifecycle(t *testing.T) {
 			"--initiative="+initiativeID,
 			"--body=Q1 Progress: Ahead of schedule",
 			"--health=onTrack",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("status update create failed: %v\nstderr: %s", err, stderr)
@@ -2705,7 +2627,6 @@ func TestCLI_InitiativeStatusUpdateLifecycle(t *testing.T) {
 
 		stdout, stderr, err := r.run("initiative", "status-update-list",
 			"--initiative="+initiativeID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("status update list failed: %v\nstderr: %s", err, stderr)
@@ -2733,7 +2654,6 @@ func TestCLI_InitiativeStatusUpdateLifecycle(t *testing.T) {
 
 		stdout, stderr, err := r.run("initiative", "status-update-get",
 			updateID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("status update get failed: %v\nstderr: %s", err, stderr)
@@ -2790,7 +2710,6 @@ func TestCLI_TeamVelocity(t *testing.T) {
 		stdout, stderr, err := r.run("team", "velocity",
 			"--team="+r.teamKey,
 			"--cycles=3",
-			"--output=json",
 		)
 
 		// Check if team has no completed cycles (valid case)
@@ -2828,25 +2747,6 @@ func TestCLI_TeamVelocity(t *testing.T) {
 			result["avgIssuesCompleted"])
 	})
 
-	t.Run("table_output", func(t *testing.T) {
-		stdout, stderr, err := r.run("team", "velocity",
-			"--team="+r.teamKey,
-			"--output=table",
-		)
-		if err != nil {
-			t.Fatalf("team velocity table failed: %v\nstderr: %s", err, stderr)
-		}
-
-		// Check for either metrics or no cycles message
-		hasMetrics := strings.Contains(stdout, "Velocity Metrics")
-		hasNoCycles := strings.Contains(stdout, "No completed cycles")
-
-		if !hasMetrics && !hasNoCycles {
-			t.Errorf("Expected either velocity metrics or no cycles message, got: %s", stdout)
-		}
-
-		t.Logf("Velocity output:\n%s", stdout)
-	})
 }
 
 // --- Initiative-Project Linking Test ---
@@ -2866,7 +2766,6 @@ func TestCLI_InitiativeProjectLinking(t *testing.T) {
 			"--name="+initiativeName,
 			"--description=Initiative for linking test",
 			"--status=Active",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("initiative create failed: %v\nstderr: %s", err, stderr)
@@ -2885,7 +2784,6 @@ func TestCLI_InitiativeProjectLinking(t *testing.T) {
 			"--team="+r.teamKey,
 			"--name="+projectName,
 			"--description=Project for linking test",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("project create failed: %v\nstderr: %s", err, stderr)
@@ -2908,7 +2806,6 @@ func TestCLI_InitiativeProjectLinking(t *testing.T) {
 		stdout, stderr, err := r.run("initiative", "add-project",
 			"--initiative="+initiativeID,
 			"--project="+projectID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("add-project failed: %v\nstderr: %s", err, stderr)
@@ -2934,7 +2831,6 @@ func TestCLI_InitiativeProjectLinking(t *testing.T) {
 		stdout, stderr, err := r.run("initiative", "remove-project",
 			"--initiative="+initiativeID,
 			"--project="+projectID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("remove-project failed: %v\nstderr: %s", err, stderr)
@@ -2979,7 +2875,6 @@ func TestCLI_DocumentCRUD(t *testing.T) {
 			"--title="+docTitle,
 			"--content=# Test\n\nThis is test documentation.",
 			"--team="+r.teamKey,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("document create failed: %v\nstderr: %s", err, stderr)
@@ -3001,7 +2896,6 @@ func TestCLI_DocumentCRUD(t *testing.T) {
 		stdout, stderr, err := r.run("document", "update", documentID,
 			"--title="+newTitle,
 			"--content=# Updated\n\nUpdated content.",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("document update failed: %v\nstderr: %s", err, stderr)
@@ -3041,7 +2935,6 @@ func TestCLI_NotificationInbox(t *testing.T) {
 	t.Run("list_notifications", func(t *testing.T) {
 		stdout, stderr, err := r.run("notification", "list",
 			"--limit=5",
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("notification list failed: %v\nstderr: %s", err, stderr)
@@ -3059,7 +2952,7 @@ func TestCLI_NotificationInbox(t *testing.T) {
 	var notificationID string
 	t.Run("get_notification", func(t *testing.T) {
 		// Get first notification from list
-		stdout, _, _ := r.run("notification", "list", "--limit=1", "--output=json")
+		stdout, _, _ := r.run("notification", "list", "--limit=1")
 
 		var result map[string]any
 		json.Unmarshal([]byte(stdout), &result)
@@ -3070,7 +2963,6 @@ func TestCLI_NotificationInbox(t *testing.T) {
 
 			stdout, stderr, err := r.run("notification", "get",
 				notificationID,
-				"--output=json",
 			)
 			if err != nil {
 				t.Fatalf("notification get failed: %v\nstderr: %s", err, stderr)
@@ -3130,7 +3022,7 @@ func TestCLI_IssueCreateWithTemplate(t *testing.T) {
 	r := newWriteTestRunner(t)
 
 	// Check if templates exist
-	stdout, _, _ := r.run("template", "list", "--limit=1", "--output=json")
+	stdout, _, _ := r.run("template", "list", "--limit=1")
 	var templates []map[string]any
 	json.Unmarshal([]byte(stdout), &templates)
 
@@ -3144,7 +3036,6 @@ func TestCLI_IssueCreateWithTemplate(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "create",
 			"--team="+r.teamKey,
 			"--template="+templateName,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("create with template failed: %v\nstderr: %s", err, stderr)
@@ -3170,7 +3061,6 @@ func TestCLI_IssueSuggestions(t *testing.T) {
 		"--team="+r.teamKey,
 		"--has-suggested-teams",
 		"--limit=1",
-		"--output=json",
 	)
 
 	var result map[string]any
@@ -3187,7 +3077,6 @@ func TestCLI_IssueSuggestions(t *testing.T) {
 	t.Run("list_suggestions", func(t *testing.T) {
 		stdout, stderr, err := r.run("issue", "suggestions",
 			issueID,
-			"--output=json",
 		)
 		if err != nil {
 			t.Fatalf("suggestions failed: %v\nstderr: %s", err, stderr)
@@ -3199,5 +3088,396 @@ func TestCLI_IssueSuggestions(t *testing.T) {
 		if suggestions, ok := suggestResult["suggestions"].([]any); ok {
 			t.Logf("Issue %s has %d AI suggestions", issueID, len(suggestions))
 		}
+	})
+}
+
+// --- v2.0.0 Feature Tests ---
+
+// TestCLI_IssueDueDate tests issue due-date create/update/clear
+func TestCLI_IssueDueDate(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	title := fmt.Sprintf("Due Date Test Issue %s", timestamp)
+
+	var issueIdentifier string
+
+	// CREATE with due-date
+	t.Run("create_with_due_date", func(t *testing.T) {
+		dueDate := time.Now().AddDate(0, 0, 14).Format("2006-01-02") // 2 weeks from now
+
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--title="+title,
+			"--due-date="+dueDate,
+		)
+		if err != nil {
+			t.Fatalf("issue create with due-date failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+
+		issueIdentifier = issue["identifier"].(string)
+		// Note: dueDate may not be in create response, verify via get command instead
+		t.Logf("Created issue %s", issueIdentifier)
+	})
+
+	// UPDATE due-date
+	t.Run("update_due_date", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		newDueDate := time.Now().AddDate(0, 1, 0).Format("2006-01-02") // 1 month from now
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--due-date="+newDueDate,
+		)
+		if err != nil {
+			t.Fatalf("issue update due-date failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated issue %s due date", issueIdentifier)
+		_ = stdout
+	})
+
+	// CLEAR due-date
+	t.Run("clear_due_date", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--due-date=none",
+		)
+		if err != nil {
+			t.Fatalf("issue clear due-date failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Cleared issue %s due date", issueIdentifier)
+		_ = stdout
+	})
+
+	// DELETE issue
+	t.Run("delete", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to delete")
+		}
+
+		_, _, err := r.run("issue", "delete", issueIdentifier, "--yes")
+		if err != nil {
+			t.Fatalf("issue delete failed: %v", err)
+		}
+		t.Logf("Deleted issue: %s", issueIdentifier)
+	})
+}
+
+// TestCLI_IssueMilestoneAssignment tests assigning issues to project milestones
+func TestCLI_IssueMilestoneAssignment(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("Milestone Assignment Test %s", timestamp)
+
+	// Create project first
+	stdout, stderr, err := r.run("project", "create",
+		"--team="+r.teamKey,
+		"--name="+projectName,
+	)
+	if err != nil {
+		t.Fatalf("Failed to create project: %v\nstderr: %s", err, stderr)
+	}
+
+	var projectResult map[string]any
+	json.Unmarshal([]byte(stdout), &projectResult)
+	project := extractEntity(projectResult, "project")
+	projectID := project["id"].(string)
+
+	defer func() {
+		r.run("project", "delete", projectID, "--yes")
+	}()
+
+	// Create milestone
+	stdout, stderr, err = r.run("project", "milestone-create",
+		"--project="+projectID,
+		"--name=v1.0 Release",
+	)
+	if err != nil {
+		t.Fatalf("Failed to create milestone: %v\nstderr: %s", err, stderr)
+	}
+
+	var milestoneResult map[string]any
+	json.Unmarshal([]byte(stdout), &milestoneResult)
+	milestone := extractEntity(milestoneResult, "projectMilestone")
+	milestoneID := milestone["id"].(string)
+
+	var issueIdentifier string
+
+	// CREATE issue with milestone
+	t.Run("create_with_milestone", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--title=Issue with milestone "+timestamp,
+			"--project="+projectID,
+			"--milestone="+milestoneID,
+		)
+		if err != nil {
+			t.Fatalf("issue create with milestone failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+
+		issueIdentifier = issue["identifier"].(string)
+		t.Logf("Created issue %s with milestone", issueIdentifier)
+	})
+
+	// CLEAR milestone
+	t.Run("clear_milestone", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--milestone=none",
+		)
+		if err != nil {
+			t.Fatalf("issue clear milestone failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Cleared milestone from issue %s", issueIdentifier)
+		_ = stdout
+	})
+
+	// DELETE issue
+	t.Run("delete_issue", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to delete")
+		}
+
+		_, _, err := r.run("issue", "delete", issueIdentifier, "--yes")
+		if err != nil {
+			t.Fatalf("issue delete failed: %v", err)
+		}
+		t.Logf("Deleted issue: %s", issueIdentifier)
+	})
+
+	// Milestone deletion handled by project deletion in defer
+}
+
+// TestCLI_ProjectLeadAndMembers tests project lead and member assignment
+func TestCLI_ProjectLeadAndMembers(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("Lead/Member Test %s", timestamp)
+
+	var projectID string
+
+	// CREATE project with lead
+	t.Run("create_with_lead", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "create",
+			"--team="+r.teamKey,
+			"--name="+projectName,
+			"--lead=me",
+		)
+		if err != nil {
+			t.Fatalf("project create with lead failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		project := extractEntity(result, "project")
+
+		projectID = project["id"].(string)
+		t.Logf("Created project %s with lead=me", projectID)
+	})
+
+	// UPDATE project with member
+	t.Run("update_with_member", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project to update")
+		}
+
+		stdout, stderr, err := r.run("project", "update", projectID,
+			"--member=me",
+		)
+		if err != nil {
+			t.Fatalf("project update with member failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated project %s with member=me", projectID)
+		_ = stdout
+	})
+
+	// GET project and verify lead/members
+	t.Run("get_shows_lead_members", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project to get")
+		}
+
+		stdout, stderr, err := r.run("project", "get", projectID)
+		if err != nil {
+			t.Fatalf("project get failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+
+		if result["lead"] == nil {
+			t.Error("Expected lead in project response")
+		}
+		if result["members"] == nil {
+			t.Error("Expected members in project response")
+		}
+
+		t.Logf("Project has lead and members fields")
+	})
+
+	// DELETE project
+	t.Run("delete", func(t *testing.T) {
+		if projectID == "" {
+			t.Skip("No project to delete")
+		}
+
+		_, _, err := r.run("project", "delete", projectID, "--yes")
+		if err != nil {
+			t.Fatalf("project delete failed: %v", err)
+		}
+		t.Logf("Deleted project: %s", projectID)
+	})
+}
+
+// TestCLI_MilestoneList tests the milestone-list command
+func TestCLI_MilestoneList(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := fmt.Sprintf("Milestone List Test %s", timestamp)
+
+	// Create project
+	stdout, stderr, err := r.run("project", "create",
+		"--team="+r.teamKey,
+		"--name="+projectName,
+	)
+	if err != nil {
+		t.Fatalf("Failed to create project: %v\nstderr: %s", err, stderr)
+	}
+
+	var projectResult map[string]any
+	json.Unmarshal([]byte(stdout), &projectResult)
+	project := extractEntity(projectResult, "project")
+	projectID := project["id"].(string)
+
+	defer func() {
+		r.run("project", "delete", projectID, "--yes")
+	}()
+
+	// Create multiple milestones
+	milestoneNames := []string{"Alpha", "Beta", "GA"}
+	for _, name := range milestoneNames {
+		_, stderr, err := r.run("project", "milestone-create",
+			"--project="+projectID,
+			"--name="+name,
+		)
+		if err != nil {
+			t.Fatalf("Failed to create milestone %s: %v\nstderr: %s", name, err, stderr)
+		}
+	}
+
+	// LIST milestones (json)
+	t.Run("list_json", func(t *testing.T) {
+		stdout, stderr, err := r.run("project", "milestone-list", projectID)
+		if err != nil {
+			t.Fatalf("milestone-list json failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var milestones []map[string]any
+		if err := json.Unmarshal([]byte(stdout), &milestones); err != nil {
+			t.Fatalf("Failed to parse milestone-list JSON: %v", err)
+		}
+
+		if len(milestones) != len(milestoneNames) {
+			t.Errorf("Expected %d milestones, got %d", len(milestoneNames), len(milestones))
+		}
+		t.Logf("milestone-list JSON returned %d milestones", len(milestones))
+	})
+
+}
+
+// TestCLI_StateAliases tests state resolution with aliases (todo, done, etc.)
+func TestCLI_StateAliases(t *testing.T) {
+	r := newWriteTestRunner(t)
+
+	timestamp := time.Now().Format("20060102-150405")
+	title := fmt.Sprintf("State Alias Test %s", timestamp)
+
+	var issueIdentifier string
+
+	// CREATE issue
+	t.Run("create", func(t *testing.T) {
+		stdout, stderr, err := r.run("issue", "create",
+			"--team="+r.teamKey,
+			"--title="+title,
+		)
+		if err != nil {
+			t.Fatalf("issue create failed: %v\nstderr: %s", err, stderr)
+		}
+
+		var result map[string]any
+		json.Unmarshal([]byte(stdout), &result)
+		issue := extractIssue(result)
+		issueIdentifier = issue["identifier"].(string)
+		t.Logf("Created issue: %s", issueIdentifier)
+	})
+
+	// UPDATE with state alias "done"
+	t.Run("update_state_done", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--state=done",
+		)
+		if err != nil {
+			t.Fatalf("issue update --state=done failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated issue %s state to 'done'", issueIdentifier)
+		_ = stdout
+	})
+
+	// UPDATE with state alias "todo"
+	t.Run("update_state_todo", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to update")
+		}
+
+		stdout, stderr, err := r.run("issue", "update", issueIdentifier,
+			"--state=todo",
+		)
+		if err != nil {
+			t.Fatalf("issue update --state=todo failed: %v\nstderr: %s", err, stderr)
+		}
+
+		t.Logf("Updated issue %s state to 'todo'", issueIdentifier)
+		_ = stdout
+	})
+
+	// DELETE issue
+	t.Run("delete", func(t *testing.T) {
+		if issueIdentifier == "" {
+			t.Skip("No issue to delete")
+		}
+
+		_, _, err := r.run("issue", "delete", issueIdentifier, "--yes")
+		if err != nil {
+			t.Fatalf("issue delete failed: %v", err)
+		}
+		t.Logf("Deleted issue: %s", issueIdentifier)
 	})
 }

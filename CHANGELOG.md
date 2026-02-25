@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - Unreleased
+
+### Breaking Changes
+- **JSON-only output**: Dropped table output — all commands output JSON exclusively. The `--output` flag is removed (~4,000 lines removed). See [docs/MIGRATION.md](docs/MIGRATION.md).
+- **SDK**: `IssueDelete(ctx, id)` → `IssueDelete(ctx, id, permanentlyDelete *bool)`. Pass `nil` to preserve v1.x behavior.
+
+### Added
+
+**Lifecycle Management** (12 commands):
+- `issue archive` / `issue unarchive` / `issue delete --permanent`
+- `initiative archive` / `initiative unarchive` / `initiative list-sub`
+- `project archive` / `project unarchive` / `project milestone-list` / `project status-list`
+- `team unarchive` / `team remove-member`
+- `document unarchive`
+
+**Resolver Improvements**:
+- Resolvers now show available options on "not found" errors (e.g., lists valid project statuses)
+- Issue ID resolution added to `delete`, `archive`, and `unarchive` commands
+
+**Project Updates**:
+- Comprehensive `project update` flags for all mutable fields
+
+**Templates**:
+- `template get` now includes `templateData` field showing pre-filled template values
+- `issue create --use-default-template` to apply the team's default template
+
+**CLI**:
+- `--version` flag with build metadata (version, commit, tree state, build date)
+- `--assignee=none` to unassign issues
+- Priority validation (0–4) across all commands
+
+**Error Handling**:
+- Structured error handling infrastructure with improved messages for fetch failures and empty input
+
+### Changed
+- Sync upstream schema to `@linear/sdk@75.0.0`
+- Go 1.25.7 (fixes GO-2026-4337 TLS vulnerability)
+- Removed goreleaser; simplified Makefile sync check
+
+### Fixed
+- Config-default labels no longer override template labels when `--label` is not explicitly passed
+- Resolve gosec findings: G704 (subprocess), G703 (error string), G117 (HTTP redirect), G706 (env var log sanitization)
+- Skip ambiguous state name tests on multi-team workspaces
+
+### Documentation
+- Added `CONTRIBUTING.md`
+- Added `docs/MIGRATION.md` for v1→v2 upgrade guide
+- Removed static counts and outdated docs
+
+### Security
+- Bumped `step-security/harden-runner`, `actions/checkout`, `actions/setup-go`, `aquasecurity/trivy-action`
+- Bumped `github.com/olekukonko/tablewriter` and minor-and-patch dependency group
+
 ## [1.4.1] - 2026-01-16
 
 ### Fixed

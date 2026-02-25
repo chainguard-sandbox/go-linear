@@ -43,8 +43,8 @@ func testFactory(t *testing.T, serverURL string) cli.ClientFactory {
 
 const (
 	// Templates returns an array directly, not paginated
-	mockTemplatesResponse = `{"data": {"templates": [{"id": "tpl-123", "name": "Bug Report", "description": "Bug template", "createdAt": "2024-01-01T00:00:00.000Z", "type": "issue"}]}}`
-	mockTemplateResponse  = `{"data": {"template": {"id": "tpl-123", "name": "Bug Report", "description": "Bug template", "createdAt": "2024-01-01T00:00:00.000Z", "type": "issue"}}}`
+	mockTemplatesResponse = `{"data": {"templates": [{"id": "tpl-123", "name": "Bug Report", "description": "Bug template", "templateData": "{\"priority\":1,\"description\":\"## Steps to reproduce\\n\"}", "createdAt": "2024-01-01T00:00:00.000Z", "type": "issue"}]}}`
+	mockTemplateResponse  = `{"data": {"template": {"id": "tpl-123", "name": "Bug Report", "description": "Bug template", "templateData": "{\"priority\":1,\"description\":\"## Steps to reproduce\\n\"}", "createdAt": "2024-01-01T00:00:00.000Z", "updatedAt": "2024-01-01T00:00:00.000Z", "type": "issue"}}}`
 )
 
 func defaultHandlers() map[string]string {

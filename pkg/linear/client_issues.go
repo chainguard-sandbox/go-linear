@@ -236,35 +236,116 @@ func (c *Client) IssueBatchUpdate(ctx context.Context, ids []string, input intgr
 	return &resp.IssueBatchUpdate, nil
 }
 
-// IssueDelete permanently deletes an issue.
+// IssueDelete deletes an issue.
 //
 // Parameters:
 //   - id: Issue UUID to delete (required)
+//   - permanentlyDelete: If true, permanently deletes (cannot be undone).
+//     If false/nil, moves to trash (30-day grace period).
 //
 // Returns:
 //   - nil: Issue successfully deleted
 //   - error: Non-nil if issue not found, permission denied, or deletion fails
 //
-// Warning: This is permanent and cannot be undone. The issue will be removed
+// Warning: Permanent deletion cannot be undone. The issue will be removed
 // from all projects, cycles, and relationships.
 //
 // Permissions Required: Write
 //
-// Related: [IssueCreate], [IssueUpdate]
+// Related: [IssueCreate], [IssueUpdate], [IssueArchive], [IssueUnarchive]
 //
 // Example:
 //
-//	if err := client.IssueDelete(ctx, issueID); err != nil {
+//	// Move to trash (can be restored within 30 days)
+//	if err := client.IssueDelete(ctx, issueID, nil); err != nil {
 //	    return fmt.Errorf("delete failed: %w", err)
 //	}
-func (c *Client) IssueDelete(ctx context.Context, id string) error {
-	resp, err := c.gqlClient.DeleteIssue(ctx, id)
+//
+//	// Permanently delete
+//	permanent := true
+//	if err := client.IssueDelete(ctx, issueID, &permanent); err != nil {
+//	    return fmt.Errorf("delete failed: %w", err)
+//	}
+func (c *Client) IssueDelete(ctx context.Context, id string, permanentlyDelete *bool) error {
+	resp, err := c.gqlClient.DeleteIssue(ctx, id, permanentlyDelete)
 	if err != nil {
 		return wrapGraphQLError("IssueDelete", err)
 	}
 
 	if !resp.IssueDelete.Success {
 		return errMutationFailed("IssueDelete")
+	}
+
+	return nil
+}
+
+// IssueArchive archives an issue.
+//
+// Archived issues are hidden from default views but can be unarchived.
+//
+// Parameters:
+//   - id: Issue UUID to archive (required)
+//   - trash: If true, moves to trash (30-day auto-delete). If false/nil, archives normally.
+//
+// Returns:
+//   - nil: Issue successfully archived
+//   - error: Non-nil if issue not found, permission denied, or archive fails
+//
+// Permissions Required: Write
+//
+// Related: [IssueUnarchive], [IssueDelete]
+//
+// Example:
+//
+//	// Archive issue (can be unarchived later)
+//	if err := client.IssueArchive(ctx, issueID, nil); err != nil {
+//	    return fmt.Errorf("archive failed: %w", err)
+//	}
+//
+//	// Move to trash (30-day auto-delete, can be unarchived)
+//	trash := true
+//	if err := client.IssueArchive(ctx, issueID, &trash); err != nil {
+//	    return fmt.Errorf("trash failed: %w", err)
+//	}
+func (c *Client) IssueArchive(ctx context.Context, id string, trash *bool) error {
+	resp, err := c.gqlClient.ArchiveIssue(ctx, id, trash)
+	if err != nil {
+		return wrapGraphQLError("IssueArchive", err)
+	}
+
+	if !resp.IssueArchive.Success {
+		return errMutationFailed("IssueArchive")
+	}
+
+	return nil
+}
+
+// IssueUnarchive restores an archived or trashed issue.
+//
+// Parameters:
+//   - id: Issue UUID to unarchive (required)
+//
+// Returns:
+//   - nil: Issue successfully unarchived
+//   - error: Non-nil if issue not found, permission denied, or unarchive fails
+//
+// Permissions Required: Write
+//
+// Related: [IssueArchive], [IssueDelete]
+//
+// Example:
+//
+//	if err := client.IssueUnarchive(ctx, issueID); err != nil {
+//	    return fmt.Errorf("unarchive failed: %w", err)
+//	}
+func (c *Client) IssueUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveIssue(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("IssueUnarchive", err)
+	}
+
+	if !resp.IssueUnarchive.Success {
+		return errMutationFailed("IssueUnarchive")
 	}
 
 	return nil

@@ -27,3 +27,15 @@ mutation DeleteInitiative($id: String!) {
     success
   }
 }
+
+mutation ArchiveInitiative($id: String!) {
+  initiativeArchive(id: $id) {
+    success
+  }
+}
+
+mutation UnarchiveInitiative($id: String!) {
+  initiativeUnarchive(id: $id) {
+    success
+  }
+}

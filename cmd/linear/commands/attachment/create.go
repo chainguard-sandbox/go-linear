@@ -22,7 +22,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --issue (ID from issue_list), --title, --url
 Optional: --subtitle, --icon-url, --metadata (JSON)
 
-Example: go-linear attachment create --issue=ENG-123 --title="Build #42" --url=https://ci.example.com/42 --metadata='{"status":"passed"}' --output=json
+Example: go-linear attachment create --issue=ENG-123 --title="Build #42" --url=https://ci.example.com/42 --metadata='{"status":"passed"}'
 
 Related: issue_get, attachment_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,7 +45,6 @@ Related: issue_get, attachment_get`,
 	cmd.Flags().String("subtitle", "", "Subtitle text")
 	cmd.Flags().String("icon-url", "", "Icon URL (20x20px PNG/JPG, max 1MB)")
 	cmd.Flags().String("metadata", "", "JSON metadata object")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -84,14 +83,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create attachment: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created attachment '%s' on issue %s\n", title, issueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

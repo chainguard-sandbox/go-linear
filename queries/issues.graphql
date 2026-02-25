@@ -6,10 +6,13 @@ query GetIssue($id: String!) {
     description
     priority
     estimate
+    dueDate
     createdAt
     updatedAt
     number
     url
+    trashed
+    archivedAt
     parent {
       id
       identifier
@@ -29,6 +32,10 @@ query GetIssue($id: String!) {
       name
       displayName
     }
+    projectMilestone {
+      id
+      name
+    }
   }
 }
 
@@ -40,10 +47,13 @@ query ListIssues($first: Int, $after: String) {
       title
       description
       priority
+      dueDate
       createdAt
       updatedAt
       number
       url
+      trashed
+      archivedAt
       state {
         id
         name
@@ -58,6 +68,10 @@ query ListIssues($first: Int, $after: String) {
         name
         displayName
         email
+      }
+      projectMilestone {
+        id
+        name
       }
     }
     pageInfo {

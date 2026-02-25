@@ -33,3 +33,9 @@ mutation DeleteDocument($id: String!) {
     success
   }
 }
+
+mutation UnarchiveDocument($id: String!) {
+  documentUnarchive(id: $id) {
+    success
+  }
+}

@@ -20,10 +20,10 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Create a new issue",
 		Long: `Create issue. Safe operation. Uses config defaults for team/labels.
 
-Required: --title
-Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label (from config)
+Required: --title (unless using --template or --use-default-template)
+Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label, --due-date=YYYY-MM-DD, --milestone=<uuid>, --template, --use-default-template
 
-Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --output=json
+Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --due-date=2025-03-01
 
 Related: issue_get, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,6 +45,7 @@ Related: issue_get, issue_list`,
 
 	// Template
 	cmd.Flags().String("template", "", "Template name or ID to apply")
+	cmd.Flags().Bool("use-default-template", false, "Use the team's default template")
 
 	// Optional
 	cmd.Flags().String("description", "", "Issue description (markdown)")
@@ -56,8 +57,8 @@ Related: issue_get, issue_list`,
 	cmd.Flags().String("project", "", "Project name or UUID")
 	cmd.Flags().String("parent", "", "Parent issue ID (creates sub-issue)")
 	cmd.Flags().Int("estimate", -1, "Story points/estimate")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD)")
+	cmd.Flags().String("milestone", "", "Project milestone name or UUID")
 
 	return cmd
 }
@@ -93,19 +94,31 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Template support
-	if template, _ := cmd.Flags().GetString("template"); template != "" {
-		templateID, err := res.ResolveTemplate(ctx, template)
+	useDefaultTemplate, _ := cmd.Flags().GetBool("use-default-template")
+	templateFlag, _ := cmd.Flags().GetString("template")
+
+	if templateFlag != "" && useDefaultTemplate {
+		return fmt.Errorf("--template and --use-default-template are mutually exclusive")
+	}
+
+	if templateFlag != "" {
+		templateID, err := res.ResolveTemplate(ctx, templateFlag)
 		if err != nil {
 			return fmt.Errorf("failed to resolve template: %w", err)
 		}
 		input.TemplateID = &templateID
 	}
 
-	// Title is optional if template is used
+	if useDefaultTemplate {
+		input.UseDefaultTemplate = &useDefaultTemplate
+	}
+
+	// Title is optional if a template is used
+	hasTemplate := input.TemplateID != nil || useDefaultTemplate
 	if title != "" {
 		input.Title = &title
-	} else if input.TemplateID == nil {
-		return fmt.Errorf("--title is required when not using --template")
+	} else if !hasTemplate {
+		return fmt.Errorf("--title is required when not using --template or --use-default-template")
 	}
 
 	// Optional fields
@@ -130,13 +143,21 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if priority, _ := cmd.Flags().GetInt("priority"); priority >= 0 {
+		if priority > 4 {
+			return fmt.Errorf("invalid priority %d: must be 0-4 (0=none, 1=urgent, 2=high, 3=normal, 4=low)", priority)
+		}
 		p := int64(priority)
 		input.Priority = &p
 	}
 
-	// Labels: merge config defaults with flag values
+	// Labels: merge config defaults with flag values.
+	// When a template is active and --label was not explicitly passed,
+	// skip config defaults so they don't override template labels.
 	labels, _ := cmd.Flags().GetStringArray("label")
-	allLabels := append([]string{}, cfg.Defaults.Labels...)
+	var allLabels []string
+	if !hasTemplate || cmd.Flags().Changed("label") {
+		allLabels = append(allLabels, cfg.Defaults.Labels...)
+	}
 	allLabels = append(allLabels, labels...)
 
 	if len(allLabels) > 0 {
@@ -181,6 +202,18 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		input.Estimate = &e
 	}
 
+	if dueDate, _ := cmd.Flags().GetString("due-date"); dueDate != "" {
+		input.DueDate = &dueDate
+	}
+
+	if milestone, _ := cmd.Flags().GetString("milestone"); milestone != "" {
+		milestoneID, err := res.ResolveMilestone(ctx, milestone)
+		if err != nil {
+			return fmt.Errorf("failed to resolve milestone: %w", err)
+		}
+		input.ProjectMilestoneID = &milestoneID
+	}
+
 	// Create issue
 	result, err := client.IssueCreate(ctx, input)
 	if err != nil {
@@ -188,14 +221,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Created issue: %s\n", result.Identifier)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

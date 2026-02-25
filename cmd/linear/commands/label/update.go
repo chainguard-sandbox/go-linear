@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Fields: --name, --color (hex), --description
 
-Example: go-linear label update bug --color="#ff0000" --description="Critical bugs" --output=json
+Example: go-linear label update bug --color="#ff0000" --description="Critical bugs"
 
 Related: label_get, label_list`,
 		Args: cobra.ExactArgs(1),
@@ -63,19 +63,13 @@ Related: label_get, label_list`,
 				return fmt.Errorf("failed to update label: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated label: %s\n", result.Name)
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
 	cmd.Flags().String("name", "", "New label name")
 	cmd.Flags().String("color", "", "New color hex code")
 	cmd.Flags().String("description", "", "New description")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }

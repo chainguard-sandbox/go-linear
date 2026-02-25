@@ -50,7 +50,12 @@ jobs:
 
             echo "Building ${GOOS}/${GOARCH}..."
             GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build \
-              -ldflags="-s -w -X main.version=${VERSION}" \
+              -trimpath \
+              -ldflags="-s -w -buildid= \
+                -X github.com/chainguard-sandbox/go-linear/pkg/linear.Version=${VERSION} \
+                -X github.com/chainguard-sandbox/go-linear/pkg/linear.GitCommit=${GITHUB_SHA} \
+                -X github.com/chainguard-sandbox/go-linear/pkg/linear.GitTreeState=clean \
+                -X github.com/chainguard-sandbox/go-linear/pkg/linear.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
               -o "$output" \
               ./cmd/linear
           done

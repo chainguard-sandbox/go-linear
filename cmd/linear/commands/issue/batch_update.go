@@ -25,10 +25,10 @@ func NewBatchUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Safety: --dry-run shows what would change, --yes skips confirmation
 
-Filters: All 64 issue list filters (--team, --state, --creator, --has-suggested-teams, etc.)
-Updates: --set-state, --set-assignee, --set-priority, --add-label, --remove-label, etc.
+Filters: Same as issue_list (--team, --state, --assignee, --priority, --label, etc.)
+Updates: --set-* flags (same fields as issue_update), --add-label, --remove-label
 
-Example: go-linear issue batch-update --state=Triage --has-suggested-teams --set-state=Backlog --dry-run
+Example: go-linear issue batch-update --state=Triage --set-state=Backlog --dry-run
 
 Related: issue_list, issue_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -75,7 +75,7 @@ Related: issue_list, issue_update`,
 
 	// Update flags (--set-* to distinguish from filter flags)
 	cmd.Flags().String("set-state", "", "New state name or ID")
-	cmd.Flags().String("set-assignee", "", "New assignee (name, email, or 'me')")
+	cmd.Flags().String("set-assignee", "", "New assignee (name, email, 'me', or 'none' to unassign)")
 	cmd.Flags().Int("set-priority", -1, "New priority (0-4)")
 	cmd.Flags().String("set-team", "", "New team name or ID")
 	cmd.Flags().String("set-cycle", "", "New cycle name or UUID (use 'none' to remove)")
@@ -85,13 +85,13 @@ Related: issue_list, issue_update`,
 	cmd.Flags().String("set-description", "", "New description")
 	cmd.Flags().String("set-title", "", "New title")
 	cmd.Flags().Int("set-estimate", -1, "New estimate")
+	cmd.Flags().String("set-due-date", "", "New due date (YYYY-MM-DD, use 'none' to remove)")
+	cmd.Flags().String("set-milestone", "", "New milestone UUID (use 'none' to remove)")
 
 	// Safety flags
 	cmd.Flags().Bool("dry-run", false, "Show what would change without applying")
 	cmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt")
 	cmd.Flags().Int("batch-limit", 50, "Max issues per batch (API max: 50)")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -173,15 +173,23 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if setAssignee, _ := cmd.Flags().GetString("set-assignee"); setAssignee != "" {
-		userID, err := res.ResolveUser(ctx, setAssignee)
-		if err != nil {
-			return fmt.Errorf("failed to resolve set-assignee: %w", err)
+		if setAssignee == "none" {
+			empty := ""
+			input.AssigneeID = &empty // Empty string unassigns
+		} else {
+			userID, err := res.ResolveUser(ctx, setAssignee)
+			if err != nil {
+				return fmt.Errorf("failed to resolve set-assignee: %w", err)
+			}
+			input.AssigneeID = &userID
 		}
-		input.AssigneeID = &userID
 		updateCount++
 	}
 
 	if setPriority, _ := cmd.Flags().GetInt("set-priority"); setPriority >= 0 {
+		if setPriority > 4 {
+			return fmt.Errorf("invalid priority %d: must be 0-4 (0=none, 1=urgent, 2=high, 3=normal, 4=low)", setPriority)
+		}
 		p := int64(setPriority)
 		input.Priority = &p
 		updateCount++
@@ -270,6 +278,32 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 		updateCount++
 	}
 
+	if cmd.Flags().Changed("set-due-date") {
+		setDueDate, _ := cmd.Flags().GetString("set-due-date")
+		if setDueDate == "none" {
+			empty := ""
+			input.DueDate = &empty
+		} else {
+			input.DueDate = &setDueDate
+		}
+		updateCount++
+	}
+
+	if cmd.Flags().Changed("set-milestone") {
+		setMilestone, _ := cmd.Flags().GetString("set-milestone")
+		if setMilestone == "none" {
+			empty := ""
+			input.ProjectMilestoneID = &empty
+		} else {
+			milestoneID, err := res.ResolveMilestone(ctx, setMilestone)
+			if err != nil {
+				return fmt.Errorf("failed to resolve milestone: %w", err)
+			}
+			input.ProjectMilestoneID = &milestoneID
+		}
+		updateCount++
+	}
+
 	if updateCount == 0 {
 		return fmt.Errorf("no update flags specified (use --set-state, --set-assignee, etc.)")
 	}
@@ -310,14 +344,5 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to batch update: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Updated %d issues\n", len(result.Issues))
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

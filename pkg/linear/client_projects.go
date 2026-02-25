@@ -108,6 +108,54 @@ func (c *Client) ProjectDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// ProjectArchive archives a project by ID.
+//
+// Note: Linear recommends using ProjectDelete instead of archive.
+//
+// Parameters:
+//   - id: Project UUID to archive (required)
+//
+// Returns:
+//   - nil: Project successfully archived
+//   - error: Non-nil if archive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [ProjectUnarchive], [ProjectDelete]
+func (c *Client) ProjectArchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.ArchiveProject(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("ProjectArchive", err)
+	}
+	if !resp.ProjectArchive.Success {
+		return errMutationFailed("ProjectArchive")
+	}
+	return nil
+}
+
+// ProjectUnarchive restores an archived project by ID.
+//
+// Parameters:
+//   - id: Project UUID to restore (required)
+//
+// Returns:
+//   - nil: Project successfully restored
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [ProjectDelete], [ProjectCreate]
+func (c *Client) ProjectUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveProject(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("ProjectUnarchive", err)
+	}
+	if !resp.ProjectUnarchive.Success {
+		return errMutationFailed("ProjectUnarchive")
+	}
+	return nil
+}
+
 // ProjectMilestoneCreate creates a new milestone within a project.
 //
 // Milestones represent phases or stages within a project (e.g., "Q1 2025", "Beta Launch", "v1.0 Release").
@@ -311,4 +359,23 @@ func (c *Client) ProjectUpdateDelete(ctx context.Context, id string) error {
 		return errMutationFailed("ProjectUpdateDelete")
 	}
 	return nil
+}
+
+// ProjectStatuses retrieves all project statuses for the organization.
+//
+// Project statuses represent workflow states like "Backlog", "In Progress", "Completed".
+//
+// Returns:
+//   - []ProjectStatus: Array of project statuses with ID, Name, Type, Color
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [ProjectUpdate]
+func (c *Client) ProjectStatuses(ctx context.Context) ([]*intgraphql.ListProjectStatuses_Organization_ProjectStatuses, error) {
+	resp, err := c.gqlClient.ListProjectStatuses(ctx)
+	if err != nil {
+		return nil, wrapGraphQLError("list project statuses query", err)
+	}
+	return resp.Organization.ProjectStatuses, nil
 }

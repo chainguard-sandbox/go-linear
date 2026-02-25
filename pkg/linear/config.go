@@ -12,7 +12,7 @@ import (
 // ClientConfig holds configuration for a Linear client.
 type ClientConfig struct {
 	// APIKey is the Linear API key or OAuth token
-	APIKey string
+	APIKey string // #nosec G117 - intentional credential holder, not a leak
 
 	// BaseURL is the Linear API endpoint
 	// Default: https://api.linear.app/graphql

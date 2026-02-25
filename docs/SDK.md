@@ -298,7 +298,20 @@ func (c *Client) IssueUpdate(ctx context.Context, id string, input IssueUpdateIn
 
 **Delete:**
 ```go
-func (c *Client) IssueDelete(ctx context.Context, id string) (*ArchivePayload, error)
+func (c *Client) IssueDelete(ctx context.Context, id string, permanentlyDelete *bool) error
+// permanentlyDelete: nil = trash (30-day grace), &true = permanent
+```
+
+**Archive/Unarchive:**
+```go
+func (c *Client) IssueArchive(ctx context.Context, id string, trash *bool) error
+func (c *Client) IssueUnarchive(ctx context.Context, id string) error
+func (c *Client) InitiativeArchive(ctx context.Context, id string) error
+func (c *Client) InitiativeUnarchive(ctx context.Context, id string) error
+func (c *Client) ProjectArchive(ctx context.Context, id string) error
+func (c *Client) ProjectUnarchive(ctx context.Context, id string) error
+func (c *Client) TeamUnarchive(ctx context.Context, id string) error
+func (c *Client) DocumentUnarchive(ctx context.Context, id string) error
 ```
 
 **Parameters:**
@@ -336,6 +349,11 @@ Special: `Viewer(ctx)` - authenticated user, `Organization(ctx)` - workspace inf
 | Teams | `TeamCreate(ctx, input)` | `TeamUpdate(ctx, id, input)` | `TeamDelete(ctx, id)` |
 | Projects | `ProjectCreate(ctx, input)` | `ProjectUpdate(ctx, id, input)` | `ProjectDelete(ctx, id)` |
 | Cycles | `CycleCreate(ctx, input)` | `CycleUpdate(ctx, id, input)` | `CycleArchive(ctx, id)` |
+| Initiatives | `InitiativeCreate(ctx, input)` | `InitiativeUpdate(ctx, id, input)` | `InitiativeDelete(ctx, id)` |
+
+**Additional Methods:**
+- `SubInitiatives(ctx, id, first, after)` - List sub-initiatives of a parent
+- `TeamMemberships(ctx, teamID, first, after)` - Get team memberships for member management
 
 ---
 

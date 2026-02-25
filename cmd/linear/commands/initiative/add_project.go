@@ -24,7 +24,7 @@ initiatives, and initiatives can have multiple projects.
 
 Required: --initiative (UUID or name), --project (UUID or name)
 
-Example: go-linear initiative add-project --initiative=<uuid> --project=<uuid> --output=json
+Example: go-linear initiative add-project --initiative=<uuid> --project=<uuid>
 
 Related: initiative_remove-project, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,7 +42,6 @@ Related: initiative_remove-project, project_list`,
 	_ = cmd.MarkFlagRequired("initiative")
 	cmd.Flags().String("project", "", "Project name or UUID (required)")
 	_ = cmd.MarkFlagRequired("project")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -75,15 +74,5 @@ func runAddProject(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to link project to initiative: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Linked project %s to initiative %s\n",
-			result.Project.Name, result.Initiative.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

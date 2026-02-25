@@ -15,7 +15,7 @@ import (
 )
 
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputFlags{}
+	fieldFlags := &cli.FieldFlags{}
 	paginationFlags := &cli.PaginationFlags{}
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -25,7 +25,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Filters: --name, --creator, --owner, --parent, --health, --status, --slug-id
 Date filters: --created-after, --target-after, etc. (date formats: see issue_list)
 
-Example: go-linear initiative list --status=Active --output=json
+Example: go-linear initiative list --status=Active
 
 Related: initiative_get, project_list, issue_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +35,7 @@ Related: initiative_get, project_list, issue_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client, outputFlags, paginationFlags)
+			return runList(cmd, client, fieldFlags, paginationFlags)
 		},
 	}
 
@@ -63,16 +63,13 @@ Related: initiative_get, project_list, issue_list`,
 
 	// Output
 	paginationFlags.Bind(cmd, 50)
-	outputFlags.Bind(cmd, "defaults (...) | none | defaults,extra")
+	fieldFlags.Bind(cmd, "defaults (...) | none | defaults,extra")
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
+func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
 
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 	res := resolver.New(client)
 
 	// Build filter from flags
@@ -91,31 +88,17 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 			return fmt.Errorf("failed to list initiatives: %w", err)
 		}
 
-		switch outputFlags.Output {
-		case "json":
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
-			defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), initiatives, true, fieldSelector)
-		case "table":
-			if len(initiatives.Nodes) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "No initiatives found")
-				return nil
-			}
-			for _, init := range initiatives.Nodes {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s\n", init.Name)
-			}
-			return nil
-		default:
-			return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
 		}
+		defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), initiatives, true, fieldSelector)
 	}
 
 	// No filters: use regular query
@@ -124,29 +107,15 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 		return fmt.Errorf("failed to list initiatives: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
-		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), initiatives, true, fieldSelector)
-	case "table":
-		if len(initiatives.Nodes) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No initiatives found")
-			return nil
-		}
-		for _, init := range initiatives.Nodes {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", init.Name)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("initiative.list", configOverrides)
+	fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), initiatives, true, fieldSelector)
 }

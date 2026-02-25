@@ -15,7 +15,7 @@ import (
 
 // NewListCommand creates the user list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	outputFlags := &cli.OutputFlags{}
+	fieldFlags := &cli.FieldFlags{}
 	paginationFlags := &cli.PaginationFlags{}
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -25,7 +25,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Filters: --name, --email, --display-name, --active, --admin, --is-me
 Date filters: --created-after, --created-before, --updated-after, --updated-before
 
-Example: go-linear user list --active --output=json
+Example: go-linear user list --active
 
 Returns: {nodes: [{6 user fields}...], pageInfo: {hasNextPage, endCursor}}
 Related: user_get, user_completed, issue_list`,
@@ -36,7 +36,7 @@ Related: user_get, user_completed, issue_list`,
 			}
 			defer client.Close()
 
-			return runList(cmd, client, outputFlags, paginationFlags)
+			return runList(cmd, client, fieldFlags, paginationFlags)
 		},
 	}
 
@@ -63,16 +63,12 @@ Related: user_get, user_completed, issue_list`,
 
 	// Output
 	paginationFlags.Bind(cmd, 250)
-	outputFlags.Bind(cmd, "defaults (...) | none | defaults,extra")
+	fieldFlags.Bind(cmd, "defaults (...) | none | defaults,extra")
 	return cmd
 }
 
-func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
+func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	// Build filter from flags
 	filterBuilder := userfilter.NewFilterBuilder(nil)
@@ -90,24 +86,17 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 			return fmt.Errorf("failed to list users: %w", err)
 		}
 
-		switch outputFlags.Output {
-		case "json":
-			cfg, _ := config.Load()
-			var configOverrides map[string]string
-			if cfg != nil {
-				configOverrides = cfg.FieldDefaults
-			}
-			defaults := fieldfilter.GetDefaults("user.list", configOverrides)
-			fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-			if err != nil {
-				return fmt.Errorf("invalid --fields: %w", err)
-			}
-			return formatter.FormatJSONFiltered(cmd.OutOrStdout(), users, true, fieldSelector)
-		case "table":
-			return formatter.FormatUsersTableFiltered(cmd.OutOrStdout(), users.Nodes)
-		default:
-			return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
+		cfg, _ := config.Load()
+		var configOverrides map[string]string
+		if cfg != nil {
+			configOverrides = cfg.FieldDefaults
 		}
+		defaults := fieldfilter.GetDefaults("user.list", configOverrides)
+		fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+		if err != nil {
+			return fmt.Errorf("invalid --fields: %w", err)
+		}
+		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), users, true, fieldSelector)
 	}
 
 	// No filters: use regular query
@@ -116,28 +105,21 @@ func runList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputF
 		return fmt.Errorf("failed to list users: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		// Load config for field defaults
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-
-		// Get command defaults
-		defaults := fieldfilter.GetDefaults("user.list", configOverrides)
-
-		// Parse field selector with defaults (list command preserves nodes/pageInfo)
-		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), users, true, fieldSelector)
-	case "table":
-		return formatter.FormatUsersTable(cmd.OutOrStdout(), users.Nodes)
-	default:
-		return fmt.Errorf("unsupported outputFlags.Output format: %s", outputFlags.Output)
+	// Load config for field defaults
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+
+	// Get command defaults
+	defaults := fieldfilter.GetDefaults("user.list", configOverrides)
+
+	// Parse field selector with defaults (list command preserves nodes/pageInfo)
+	fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), users, true, fieldSelector)
 }

@@ -16,7 +16,7 @@ import (
 // NewStatusUpdateListCommand creates the project status-update-list command.
 func NewStatusUpdateListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	paginationFlags := &cli.PaginationFlags{}
-	outputFlags := &cli.OutputFlags{}
+	fieldFlags := &cli.FieldFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "status-update-list",
@@ -25,7 +25,7 @@ func NewStatusUpdateListCommand(clientFactory cli.ClientFactory) *cobra.Command 
 
 Required: --project (UUID or name)
 
-Example: go-linear project status-update-list --project=<uuid> --output=json
+Example: go-linear project status-update-list --project=<uuid>
 
 Related: project_status-update-create, project_status-update-get, project_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +35,7 @@ Related: project_status-update-create, project_status-update-get, project_get`,
 			}
 			defer client.Close()
 
-			return runStatusUpdateList(cmd, client, outputFlags, paginationFlags)
+			return runStatusUpdateList(cmd, client, fieldFlags, paginationFlags)
 		},
 	}
 
@@ -43,17 +43,13 @@ Related: project_status-update-create, project_status-update-get, project_get`,
 	_ = cmd.MarkFlagRequired("project")
 
 	paginationFlags.Bind(cmd, 50)
-	outputFlags.Bind(cmd, "defaults (id,body,health,createdAt,user.name) | none | defaults,extra")
+	fieldFlags.Bind(cmd, "defaults (id,body,health,createdAt,user.name) | none | defaults,extra")
 
 	return cmd
 }
 
-func runStatusUpdateList(cmd *cobra.Command, client *linear.Client, outputFlags *cli.OutputFlags, paginationFlags *cli.PaginationFlags) error {
+func runStatusUpdateList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFlags, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
-
-	if err := outputFlags.Validate(); err != nil {
-		return err
-	}
 
 	res := resolver.New(client)
 
@@ -71,33 +67,15 @@ func runStatusUpdateList(cmd *cobra.Command, client *linear.Client, outputFlags 
 		return fmt.Errorf("failed to list project status updates: %w", err)
 	}
 
-	switch outputFlags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("project.status-update-list", configOverrides)
-		fieldSelector, err := fieldfilter.NewForList(outputFlags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), updates, true, fieldSelector)
-	case "table":
-		if len(updates.ProjectUpdates.Nodes) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "No status updates found")
-			return nil
-		}
-		for _, update := range updates.ProjectUpdates.Nodes {
-			health := ""
-			if update.Health != "" {
-				health = fmt.Sprintf(" [%s]", update.Health)
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%s%s\n", update.ID, health)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", outputFlags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("project.status-update-list", configOverrides)
+	fieldSelector, err := fieldfilter.NewForList(fieldFlags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), updates, true, fieldSelector)
 }

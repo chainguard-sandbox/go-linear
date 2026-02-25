@@ -28,22 +28,12 @@ func TestRunViewer(t *testing.T) {
 		cmd := NewViewerCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 		if !strings.Contains(buf.String(), "viewer-123") {
 			t.Error("Expected viewer id in output")
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewViewerCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
 		}
 	})
 }

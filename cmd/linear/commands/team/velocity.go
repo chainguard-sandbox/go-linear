@@ -25,8 +25,8 @@ Uses the last 3-5 completed cycles by default.
 Required: --team (name or key)
 Optional: --cycles (number of recent cycles to analyze, default: 3)
 
-Example: go-linear team velocity --team=ENG --output=table
-Example: go-linear team velocity --team=ENG --cycles=5 --output=json
+Example: go-linear team velocity --team=ENG
+Example: go-linear team velocity --team=ENG --cycles=5
 
 Related: cycle_get, cycle_list, team_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,7 +43,6 @@ Related: cycle_get, cycle_list, team_get`,
 	cmd.Flags().String("team", "", "Team name or key (required)")
 	_ = cmd.MarkFlagRequired("team")
 	cmd.Flags().Int("cycles", 3, "Number of recent completed cycles to analyze")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -105,8 +104,12 @@ func runVelocity(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if len(completedCycles) == 0 {
-		fmt.Fprintf(cmd.OutOrStdout(), "No completed cycles found for team %s\n", team.Name)
-		return nil
+		return formatter.FormatJSON(cmd.OutOrStdout(), map[string]any{
+			"teamName":       team.Name,
+			"teamKey":        team.Key,
+			"cyclesAnalyzed": 0,
+			"message":        "No completed cycles found",
+		}, true)
 	}
 
 	// Calculate metrics
@@ -140,22 +143,5 @@ func runVelocity(cmd *cobra.Command, client *linear.Client) error {
 		TotalIssuesScope:   totalIssues,
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), metrics, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Team Velocity Metrics: %s (%s)\n", metrics.TeamName, metrics.TeamKey)
-		fmt.Fprintf(cmd.OutOrStdout(), "Cycles Analyzed: %d\n\n", metrics.CyclesAnalyzed)
-		fmt.Fprintf(cmd.OutOrStdout(), "Average per Cycle:\n")
-		fmt.Fprintf(cmd.OutOrStdout(), "  Points Completed: %.1f\n", metrics.AvgPointsCompleted)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Issues Completed: %.1f\n", metrics.AvgIssuesCompleted)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Completion Rate:  %.1f%%\n", metrics.AvgCompletionRate*100)
-		fmt.Fprintf(cmd.OutOrStdout(), "\nTotal Across %d Cycles:\n", metrics.CyclesAnalyzed)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Points Scope:     %.0f\n", metrics.TotalPointsScope)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Issues Scope:     %.0f\n", metrics.TotalIssuesScope)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), metrics, true)
 }

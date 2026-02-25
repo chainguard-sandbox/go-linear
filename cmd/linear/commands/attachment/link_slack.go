@@ -19,7 +19,7 @@ func NewLinkSlackCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Required: --issue (ID from issue_list), --url (Slack permalink)
 
-Example: go-linear attachment link-slack --issue=ENG-123 --url=https://workspace.slack.com/archives/C123/p1234567890 --output=json
+Example: go-linear attachment link-slack --issue=ENG-123 --url=https://workspace.slack.com/archives/C123/p1234567890
 
 Related: attachment_link-url, attachment_link-github, issue_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -37,7 +37,6 @@ Related: attachment_link-url, attachment_link-github, issue_get`,
 	_ = cmd.MarkFlagRequired("url")
 	cmd.Flags().String("issue", "", "Issue identifier or UUID (required)")
 	cmd.Flags().String("url", "", "Slack message URL (required)")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -53,14 +52,5 @@ func runLinkSlack(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to link Slack message: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Linked Slack message to issue %s\n", issueID)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -25,7 +25,7 @@ func NewOrganizationCommand(clientFactory cli.ClientFactory) *cobra.Command {
 
 Examples:
   go-linear organization
-  go-linear org --output=json`,
+  go-linear org`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -37,7 +37,6 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 	cmd.Flags().String("fields", "", "defaults (id,name,urlKey,createdAt) | none | defaults,extra")
 
 	return cmd
@@ -51,27 +50,17 @@ func run(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to get organization: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
 	fieldsSpec, _ := cmd.Flags().GetString("fields")
 
-	switch output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("organization", configOverrides)
-		fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), org, true, fieldSelector)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Name: %s\n", org.Name)
-		fmt.Fprintf(cmd.OutOrStdout(), "URL:  %s\n", org.URLKey)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("organization", configOverrides)
+	fieldSelector, err := fieldfilter.New(fieldsSpec, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), org, true, fieldSelector)
 }

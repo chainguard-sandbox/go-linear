@@ -196,6 +196,22 @@ const (
 			}
 		}
 	}`
+
+	mockInitiativeArchiveResponse = `{
+		"data": {
+			"initiativeArchive": {
+				"success": true
+			}
+		}
+	}`
+
+	mockInitiativeUnarchiveResponse = `{
+		"data": {
+			"initiativeUnarchive": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -212,5 +228,7 @@ func defaultHandlers() map[string]string {
 	handlers["CreateInitiativeToProject"] = mockInitiativeToProjectCreateResponse
 	handlers["ListInitiativeToProjects"] = mockInitiativeToProjectsResponse
 	handlers["DeleteInitiativeToProject"] = mockInitiativeToProjectDeleteResponse
+	handlers["ArchiveInitiative"] = mockInitiativeArchiveResponse
+	handlers["UnarchiveInitiative"] = mockInitiativeUnarchiveResponse
 	return handlers
 }

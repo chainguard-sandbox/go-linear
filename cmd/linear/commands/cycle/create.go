@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --team (from team_list), --starts-at, --ends-at (date formats: see issue_list)
 Optional: --name
 
-Example: go-linear cycle create --team=ENG --starts-at=2025-12-16 --ends-at=14d --name="Sprint 42" --output=json
+Example: go-linear cycle create --team=ENG --starts-at=2025-12-16 --ends-at=14d --name="Sprint 42"
 
 Related: cycle_list, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -68,16 +68,7 @@ Related: cycle_list, team_list`,
 				return fmt.Errorf("failed to create cycle: %w", err)
 			}
 
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-			}
-			name := "cycle"
-			if result.Name != nil {
-				name = *result.Name
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "✓ Created cycle: %s\n", name)
-			return nil
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
@@ -88,7 +79,6 @@ Related: cycle_list, team_list`,
 	cmd.Flags().String("ends-at", "", "End date (required)")
 	_ = cmd.MarkFlagRequired("ends-at")
 	cmd.Flags().String("name", "", "Cycle name")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }

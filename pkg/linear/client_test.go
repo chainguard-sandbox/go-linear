@@ -572,7 +572,7 @@ func TestClient_IssueDeleteMock(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":{"issueDelete":{"success":true}}}`))
 	})
 
-	err := client.IssueDelete(context.Background(), "iss-1")
+	err := client.IssueDelete(context.Background(), "iss-1", nil)
 	if err != nil {
 		t.Fatalf("IssueDelete() error = %v", err)
 	}

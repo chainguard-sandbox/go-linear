@@ -20,9 +20,9 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Long: `Create project. Safe operation.
 
 Required: --name, --team (from team_list)
-Optional: --description
+Optional: --description, --lead (user), --member (user, repeatable)
 
-Example: go-linear project create --name="Q1 Platform" --team=ENG --description="Platform improvements" --output=json
+Example: go-linear project create --name="Q1 Platform" --team=ENG --lead=me --member=john@co.com
 
 Related: project_list, project_get, team_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,7 +43,8 @@ Related: project_list, project_get, team_list`,
 	_ = cmd.MarkFlagRequired("team")
 
 	cmd.Flags().String("description", "", "Project description")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("lead", "", "Project lead (user name, email, or ID)")
+	cmd.Flags().StringArray("member", []string{}, "Project members (user name, email, or ID - repeatable)")
 
 	return cmd
 }
@@ -69,19 +70,31 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		input.Description = &desc
 	}
 
+	if lead, _ := cmd.Flags().GetString("lead"); lead != "" {
+		leadID, err := res.ResolveUser(ctx, lead)
+		if err != nil {
+			return fmt.Errorf("failed to resolve lead: %w", err)
+		}
+		input.LeadID = &leadID
+	}
+
+	members, _ := cmd.Flags().GetStringArray("member")
+	if len(members) > 0 {
+		memberIDs := make([]string, 0, len(members))
+		for _, member := range members {
+			memberID, err := res.ResolveUser(ctx, member)
+			if err != nil {
+				return fmt.Errorf("failed to resolve member %q: %w", member, err)
+			}
+			memberIDs = append(memberIDs, memberID)
+		}
+		input.MemberIds = memberIDs
+	}
+
 	result, err := client.ProjectCreate(ctx, input)
 	if err != nil {
 		return fmt.Errorf("failed to create project: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created project: %s\n", result.Name)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

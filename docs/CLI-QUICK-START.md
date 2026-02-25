@@ -37,7 +37,7 @@ go-linear issue list --assignee=me --priority=1
 go-linear issue list --team=Engineering --completed-after=yesterday --completed-before=today
 
 # Issues in specific state
-go-linear issue list --state="In Progress" --output=json
+go-linear issue list --state="In Progress"
 ```
 
 ### Complex Query (AI-Optimized)
@@ -127,7 +127,7 @@ go-linear document delete <uuid>
 
 ## All Available Commands
 
-**Issues (9)**:
+**Issues (15)**:
 - `go-linear issue list` - List with 64 filters, --count mode
 - `go-linear issue get <id>` - Get single issue
 - `go-linear issue search <query>` - Full-text search, --count mode
@@ -135,36 +135,58 @@ go-linear document delete <uuid>
 - `go-linear issue create` - Create issue. Supports --template
 - `go-linear issue update <id>` - Update issue
 - `go-linear issue batch-update` - Update multiple (max 50) ⭐
-- `go-linear issue delete <id>` - Delete issue ⚠️
+- `go-linear issue delete <id>` - Delete issue (--permanent for no grace period) ⚠️
+- `go-linear issue archive <id>` - Archive issue (--trash for 30-day auto-delete) ⭐
+- `go-linear issue unarchive <id>` - Restore archived/trashed issue ⭐
 - `go-linear issue relate <id1> <id2>` - Create relationship
+- `go-linear issue unrelate <id1> <id2>` - Remove relationship
+- `go-linear issue update-relation <id>` - Change relationship type
+- `go-linear issue add-label <id>` - Add label to issue
+- `go-linear issue remove-label <id>` - Remove label from issue
 
 **Users (3)**:
 - `go-linear user list` - List all users
 - `go-linear user get <name|email>` - Get user details
 - `go-linear user completed` - Get completed work ⭐
 
-**Teams (4)**:
+**Teams (10)**:
 - `go-linear team list` - List teams
+- `go-linear team get <id>` - Get team details
+- `go-linear team create` - Create team
+- `go-linear team update <id>` - Update team
+- `go-linear team delete <id>` - Delete team ⚠️
 - `go-linear team members --team=X` - List members
 - `go-linear team add-member` - Add user to team
+- `go-linear team remove-member` - Remove user from team ⭐
+- `go-linear team unarchive <id>` - Restore archived team ⭐
 - `go-linear team velocity --team=X` - Calculate performance metrics ⭐
 
-**Projects (8)**:
+**Projects (15)**:
 - `go-linear project list` - List projects
 - `go-linear project get <id>` - Get project with metrics
 - `go-linear project create` - Create project
 - `go-linear project update <id>` - Update project
+- `go-linear project delete <id>` - Delete project ⚠️
+- `go-linear project archive <id>` - Archive project (Linear recommends delete) ⭐
+- `go-linear project unarchive <id>` - Restore archived project ⭐
+- `go-linear project milestone-create` - Create milestone
+- `go-linear project milestone-update <id>` - Update milestone
+- `go-linear project milestone-delete <id>` - Delete milestone ⚠️
+- `go-linear project milestone-list` - List project milestones ⭐
 - `go-linear project status-update-create` - Create status update ⭐
 - `go-linear project status-update-list` - List updates ⭐
 - `go-linear project status-update-get <id>` - Get update ⭐
 - `go-linear project status-update-delete <id>` - Delete update ⭐
 
-**Initiatives (11)**:
+**Initiatives (14)**:
 - `go-linear initiative list` - List initiatives
 - `go-linear initiative get <id>` - Get initiative with metrics
 - `go-linear initiative create` - Create initiative
 - `go-linear initiative update <id>` - Update initiative
 - `go-linear initiative delete <id>` - Delete initiative ⚠️
+- `go-linear initiative archive <id>` - Archive initiative ⭐
+- `go-linear initiative unarchive <id>` - Restore archived initiative ⭐
+- `go-linear initiative list-sub <id>` - List sub-initiatives ⭐
 - `go-linear initiative status-update-create` - Create status update ⭐
 - `go-linear initiative status-update-list` - List updates ⭐
 - `go-linear initiative status-update-get <id>` - Get update ⭐
@@ -172,9 +194,12 @@ go-linear document delete <uuid>
 - `go-linear initiative add-project` - Link project to initiative ⭐
 - `go-linear initiative remove-project` - Unlink project ⭐
 
-**Cycles (2)**:
+**Cycles (5)**:
 - `go-linear cycle list` - List cycles/sprints
 - `go-linear cycle get <id>` - Get cycle with metrics
+- `go-linear cycle create` - Create cycle
+- `go-linear cycle update <id>` - Update cycle
+- `go-linear cycle archive <id>` - Archive cycle
 
 **Comments (5)**:
 - `go-linear comment list` - List comments
@@ -183,11 +208,20 @@ go-linear document delete <uuid>
 - `go-linear comment update <id>` - Update comment
 - `go-linear comment delete <id>` - Delete comment ⚠️
 
-**Labels (2)**:
+**Labels (5)**:
 - `go-linear label list` - List labels
+- `go-linear label get <id>` - Get label
 - `go-linear label create` - Create label
+- `go-linear label update <id>` - Update label
+- `go-linear label delete <id>` - Delete label ⚠️
 
-**Documents (5)**:
+**Documents (7)**:
+- `go-linear document list` - List documents
+- `go-linear document get <id>` - Get document
+- `go-linear document create` - Create document ⭐
+- `go-linear document update <id>` - Update document ⭐
+- `go-linear document delete <id>` - Delete document ⚠️
+- `go-linear document unarchive <id>` - Restore deleted document ⭐
 
 **Notifications (7)**:
 - `go-linear notification list` - List inbox notifications
@@ -198,24 +232,24 @@ go-linear document delete <uuid>
 - `go-linear notification subscribe` - Subscribe to entity updates
 - `go-linear notification unsubscribe <id>` - Remove subscription
 
-- `go-linear document list` - List documents
-- `go-linear document get <id>` - Get document
-- `go-linear document create` - Create document ⭐
-- `go-linear document update <id>` - Update document ⭐
-- `go-linear document delete <id>` - Delete document ⚠️
+**Attachments (7)**:
+- `go-linear attachment list` - List attachments
+- `go-linear attachment get <id>` - Get attachment
+- `go-linear attachment create` - Create attachment
+- `go-linear attachment delete <id>` - Delete attachment ⚠️
+- `go-linear attachment link-github` - Link GitHub PR/issue
+- `go-linear attachment link-slack` - Link Slack message
+- `go-linear attachment link-url` - Link URL
 
-**States & Info (2)**:
+**States & Info (4)**:
 - `go-linear state list` - List workflow states
+- `go-linear state get <id>` - Get workflow state
 - `go-linear viewer` - Get current user
+- `go-linear status` - Check rate limits
 
-## Output Formats
+## Output
 
-All commands support multiple output formats:
-
-```bash
---output=json   # Machine-readable (default for AI agents)
---output=table  # Human-readable formatted tables (default)
-```
+All commands output JSON. Use `--fields` to control which fields appear. Pipe to `jq` for human-readable formatting.
 
 ## AI Agent Features
 
@@ -241,13 +275,12 @@ go-linear issue list \
   --state="In Progress" \
   --created-after=7d \
   --label=bug \
-  --assignee=alice@company.com \
-  --output=json
+  --assignee=alice@company.com
 ```
 
 ## MCP Mode (For AI Agents)
 
-The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into 89 MCP tools.
+The same binary works as an MCP server. [Ophis](https://github.com/njayp/ophis) automatically converts all CLI commands into MCP tools.
 
 **Setup for Claude Code:**
 
@@ -261,8 +294,7 @@ See [CLAUDE-SETUP.md](CLAUDE-SETUP.md) for full instructions.
 
 ## Tips for AI Agents
 
-1. **Always use `--output=json`** for programmatic parsing
-2. **Use relative dates** when possible (`yesterday` vs `2025-12-09`)
+1. **Use relative dates** when possible (`yesterday` vs `2025-12-09`)
 3. **Prefer named parameters** (`--team=Engineering` vs team IDs)
 4. **Check `--help`** for complete flag lists
 5. **Complex queries**: Use `user completed` instead of multiple list commands

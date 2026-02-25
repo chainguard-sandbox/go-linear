@@ -14,7 +14,7 @@ Where `<spec>` can be:
 
 | Syntax | Behavior | Example |
 |--------|----------|---------|
-| *(empty)* | Use smart defaults | `--output=json` |
+| *(empty)* | Use smart defaults | `go-linear issue list` |
 | `defaults` | Explicitly use defaults | `--fields=defaults` |
 | `none` | Show all available fields | `--fields=none` |
 | `defaults,field,...` | Add fields to defaults | `--fields=defaults,estimate,number` |
@@ -91,39 +91,32 @@ Use dot notation to access nested object fields:
 
 ### Use Defaults
 ```bash
-linear issue get ENG-123 --output=json
-# Returns 10 fields
+linear issue get ENG-123# Returns 10 fields
 
-linear issue list --output=json
-# Returns 8 fields per issue
+linear issue list# Returns 8 fields per issue
 ```
 
 ### Add to Defaults
 ```bash
 # Need description and estimate too?
-linear issue get ENG-123 --fields=defaults,estimate,number --output=json
-# Returns: 10 default fields + estimate + number = 12 fields
+linear issue get ENG-123 --fields=defaults,estimate,number# Returns: 10 default fields + estimate + number = 12 fields
 
 # Multiple additions
-linear issue get ENG-123 --fields=defaults,estimate,labels,dueDate --output=json
-```
+linear issue get ENG-123 --fields=defaults,estimate,labels,dueDate```
 
 ### Show Only Specific Fields
 ```bash
 # Just ID and title
-linear issue get ENG-123 --fields=id,title --output=json
-# Returns: {"id": "...", "title": "..."}
+linear issue get ENG-123 --fields=id,title# Returns: {"id": "...", "title": "..."}
 
 # With nested field
-linear issue get ENG-123 --fields=id,title,assignee.name --output=json
-# Returns: {"id": "...", "title": "...", "assignee": {"name": "..."}}
+linear issue get ENG-123 --fields=id,title,assignee.name# Returns: {"id": "...", "title": "...", "assignee": {"name": "..."}}
 ```
 
 ### Show All Fields
 ```bash
 # See everything available
-linear issue get ENG-123 --fields=none --output=json
-# Returns: ~50 fields (varies by resource type)
+linear issue get ENG-123 --fields=none# Returns: ~50 fields (varies by resource type)
 ```
 
 ## User Configuration
@@ -216,14 +209,12 @@ cat schema.graphql | grep "type Issue " -A 200
 
 **Use defaults first:**
 ```bash
-linear issue list --output=json
-# Returns manageable dataset (~50 lines per issue)
+linear issue list# Returns manageable dataset (~50 lines per issue)
 ```
 
 **Add fields as needed:**
 ```bash
-linear issue list --fields=defaults,description,labels --output=json
-# Only request additional fields when necessary
+linear issue list --fields=defaults,description,labels# Only request additional fields when necessary
 ```
 
 **Avoid expensive fields:**
@@ -232,21 +223,19 @@ linear issue list --fields=defaults,description,labels --output=json
 
 ### For Humans
 
-**Use table output for scanning:**
+**Pipe to jq for readable output:**
 ```bash
-linear issue list
-# Readable table format
+linear issue list | jq '.nodes[] | "\(.identifier): \(.title)"'
 ```
 
-**Use JSON with defaults for scripts:**
+**Extract specific fields:**
 ```bash
-linear issue list --output=json | jq '.nodes[] | .identifier'
-# Predictable structure
+linear issue list | jq '.nodes[] | .identifier'
 ```
 
 **Use none for debugging:**
 ```bash
-linear issue get ENG-123 --fields=none --output=json | jq .
+linear issue get ENG-123 --fields=none | jq .
 # See everything available
 ```
 

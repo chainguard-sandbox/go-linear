@@ -48,8 +48,9 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 
 	// Make request
 	reqBody := map[string]any{
-		"query":     mutation,
-		"variables": variables,
+		"query":         mutation,
+		"operationName": "UpdateIssue",
+		"variables":     variables,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
@@ -66,7 +67,7 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	req.Header.Set("Authorization", c.config.APIKey)
 
 	// Use the client's HTTP client (has retry/circuit breaker logic)
-	resp, err := c.config.HTTPClient.Do(req)
+	resp, err := c.config.HTTPClient.Do(req) // #nosec G704 - BaseURL from trusted config, not user input
 	if err != nil {
 		return nil, err
 	}
@@ -109,16 +110,18 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 type IssueUpdateNullableInput struct {
 	Title           *string
 	Description     *string
-	AssigneeID      *string
 	StateID         *string
 	Priority        *int64
 	AddedLabelIds   []string
 	RemovedLabelIds []string
 
 	// Nullable fields - support explicit null for removal
-	CycleID   Nullable[string]
-	ParentID  Nullable[string]
-	ProjectID Nullable[string]
+	AssigneeID         Nullable[string]
+	CycleID            Nullable[string]
+	ParentID           Nullable[string]
+	ProjectID          Nullable[string]
+	DueDate            Nullable[string]
+	ProjectMilestoneID Nullable[string]
 }
 
 // ToMap converts to map for JSON encoding with explicit null support.
@@ -131,8 +134,14 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 	if i.Description != nil {
 		m["description"] = *i.Description
 	}
-	if i.AssigneeID != nil {
-		m["assigneeId"] = *i.AssigneeID
+	if i.AssigneeID.IsSet() {
+		if val, ok := i.AssigneeID.Get(); ok {
+			if val == nil {
+				m["assigneeId"] = nil // Explicit null
+			} else {
+				m["assigneeId"] = *val
+			}
+		}
 	}
 	if i.StateID != nil {
 		m["stateId"] = *i.StateID
@@ -174,6 +183,26 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 				m["projectId"] = nil // Explicit null
 			} else {
 				m["projectId"] = *val
+			}
+		}
+	}
+
+	if i.DueDate.IsSet() {
+		if val, ok := i.DueDate.Get(); ok {
+			if val == nil {
+				m["dueDate"] = nil // Explicit null
+			} else {
+				m["dueDate"] = *val
+			}
+		}
+	}
+
+	if i.ProjectMilestoneID.IsSet() {
+		if val, ok := i.ProjectMilestoneID.Get(); ok {
+			if val == nil {
+				m["projectMilestoneId"] = nil // Explicit null
+			} else {
+				m["projectMilestoneId"] = *val
 			}
 		}
 	}

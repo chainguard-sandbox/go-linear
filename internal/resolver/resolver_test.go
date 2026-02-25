@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/pkg/linear"
 )
 
@@ -252,13 +253,30 @@ func TestLive_ResolveState(t *testing.T) {
 	ctx := context.Background()
 
 	// Get workflow states for dynamic testing
-	first := int64(50)
+	// Find a state with a unique name to avoid ambiguity across teams
+	first := int64(200)
 	states, err := client.WorkflowStates(ctx, &first, nil)
 	if err != nil || len(states.Nodes) == 0 {
 		t.Skip("No workflow states available for testing")
 	}
 
-	firstState := states.Nodes[0]
+	// Count occurrences of each state name
+	nameCounts := make(map[string]int)
+	for _, s := range states.Nodes {
+		nameCounts[s.Name]++
+	}
+
+	// Find a state with a unique name (only appears once)
+	var firstState *intgraphql.ListWorkflowStates_WorkflowStates_Nodes
+	for _, s := range states.Nodes {
+		if nameCounts[s.Name] == 1 {
+			firstState = s
+			break
+		}
+	}
+	if firstState == nil {
+		t.Skip("No unique state name found (all states are ambiguous across teams)")
+	}
 
 	tests := []struct {
 		name    string

@@ -106,6 +106,51 @@ func (c *Client) TeamDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// TeamUnarchive restores an archived team by ID.
+//
+// Parameters:
+//   - id: Team UUID to restore (required)
+//
+// Returns:
+//   - nil: Team successfully restored
+//   - error: Non-nil if unarchive fails or Success is false
+//
+// Permissions Required: Write
+//
+// Related: [TeamDelete], [TeamCreate]
+func (c *Client) TeamUnarchive(ctx context.Context, id string) error {
+	resp, err := c.gqlClient.UnarchiveTeam(ctx, id)
+	if err != nil {
+		return wrapGraphQLError("TeamUnarchive", err)
+	}
+	if !resp.TeamUnarchive.Success {
+		return errMutationFailed("TeamUnarchive")
+	}
+	return nil
+}
+
+// TeamMemberships retrieves a paginated list of team memberships.
+//
+// Parameters:
+//   - teamID: Team UUID (required)
+//   - first: Number of memberships to return (nil = server default ~50)
+//   - after: Cursor for pagination (nil = start from beginning)
+//
+// Returns:
+//   - Team with memberships containing user info
+//   - error: Non-nil if query fails
+//
+// Permissions Required: Read
+//
+// Related: [TeamMembershipCreate], [TeamMembershipDelete]
+func (c *Client) TeamMemberships(ctx context.Context, teamID string, first *int64, after *string) (*intgraphql.ListTeamMemberships_Team, error) {
+	resp, err := c.gqlClient.ListTeamMemberships(ctx, teamID, first, after)
+	if err != nil {
+		return nil, wrapGraphQLError("team memberships query", err)
+	}
+	return &resp.Team, nil
+}
+
 // TeamMembershipCreate adds a user to a team.
 //
 // Parameters:

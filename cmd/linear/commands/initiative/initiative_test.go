@@ -42,17 +42,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -79,45 +69,12 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--output=json"})
+		cmd.SetArgs([]string{"Security Initiative"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 		if !strings.Contains(buf.String(), "init-123") {
 			t.Error("Expected initiative id in output")
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--output=table"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-		output := buf.String()
-		// Validate enhanced fields are displayed
-		if !strings.Contains(output, "init-123") {
-			t.Error("Expected ID in output")
-		}
-		if !strings.Contains(output, "Active") {
-			t.Error("Expected status in output")
-		}
-		if !strings.Contains(output, "atRisk") {
-			t.Error("Expected health in output")
-		}
-		if !strings.Contains(output, "Test Owner") {
-			t.Error("Expected owner name in output")
-		}
-		if !strings.Contains(output, "Parent Initiative") {
-			t.Error("Expected parent initiative in output")
-		}
-		if !strings.Contains(output, "2 linked") {
-			t.Error("Expected linked projects count in output")
-		}
-		if !strings.Contains(output, "Test Project 1") {
-			t.Error("Expected linked project name in output")
 		}
 	})
 }
@@ -142,7 +99,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--name=Test Initiative", "--output=json"})
+		cmd.SetArgs([]string{"--name=Test Initiative"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -169,7 +126,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--name=Updated Initiative", "--output=json"})
+		cmd.SetArgs([]string{"Security Initiative", "--name=Updated Initiative"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -196,17 +153,7 @@ func TestRunDelete(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--yes", "--output=json"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("table output with yes flag", func(t *testing.T) {
-		cmd := NewDeleteCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"Security Initiative", "--yes", "--output=table"})
+		cmd.SetArgs([]string{"Security Initiative", "--yes"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -242,7 +189,6 @@ func TestRunAddProject(t *testing.T) {
 		cmd.SetArgs([]string{
 			"--initiative=Security Initiative",
 			"--project=Test Project",
-			"--output=json",
 		})
 
 		if err := cmd.Execute(); err != nil {
@@ -252,26 +198,6 @@ func TestRunAddProject(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "link-123") {
 			t.Errorf("Expected link-123 in output, got: %s", output)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewAddProjectCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{
-			"--initiative=Security Initiative",
-			"--project=Test Project",
-			"--output=table",
-		})
-
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Linked") {
-			t.Errorf("Expected linked message in output, got: %s", output)
 		}
 	})
 }
@@ -305,7 +231,6 @@ func TestRunRemoveProject(t *testing.T) {
 		cmd.SetArgs([]string{
 			"--initiative=Security Initiative",
 			"--project=Test Project",
-			"--output=json",
 		})
 
 		if err := cmd.Execute(); err != nil {
@@ -315,26 +240,6 @@ func TestRunRemoveProject(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "success") {
 			t.Errorf("Expected success in output, got: %s", output)
-		}
-	})
-
-	t.Run("table output", func(t *testing.T) {
-		cmd := NewRemoveProjectCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{
-			"--initiative=Security Initiative",
-			"--project=Test Project",
-			"--output=table",
-		})
-
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Unlinked") {
-			t.Errorf("Expected unlinked message in output, got: %s", output)
 		}
 	})
 }

@@ -1,0 +1,14 @@
+query ListProjectStatuses {
+  organization {
+    projectStatuses {
+      id
+      name
+      description
+      type
+      color
+      position
+      indefinite
+      createdAt
+    }
+  }
+}

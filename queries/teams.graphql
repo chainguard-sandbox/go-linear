@@ -53,3 +53,27 @@ query ListTeamsFiltered($first: Int, $after: String, $filter: TeamFilter) {
     }
   }
 }
+
+query ListTeamMemberships($teamId: String!, $first: Int, $after: String) {
+  team(id: $teamId) {
+    id
+    name
+    key
+    memberships(first: $first, after: $after) {
+      nodes {
+        id
+        owner
+        createdAt
+        user {
+          id
+          name
+          email
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

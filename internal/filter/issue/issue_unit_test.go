@@ -211,13 +211,27 @@ func TestLive_IssueFilterBuilder(t *testing.T) {
 		cmd := &cobra.Command{Use: "test"}
 		cmd.Flags().String("state", "", "")
 
-		// Get first state from API
-		states, err := client.WorkflowStates(ctx, nil, nil)
+		// Find a state with a unique name to avoid ambiguity across teams
+		first := int64(200)
+		states, err := client.WorkflowStates(ctx, &first, nil)
 		if err != nil || len(states.Nodes) == 0 {
 			t.Skip("No workflow states available for testing")
 		}
 
-		stateName := states.Nodes[0].Name
+		nameCounts := make(map[string]int)
+		for _, s := range states.Nodes {
+			nameCounts[s.Name]++
+		}
+		stateName := ""
+		for _, s := range states.Nodes {
+			if nameCounts[s.Name] == 1 {
+				stateName = s.Name
+				break
+			}
+		}
+		if stateName == "" {
+			t.Skip("No unique state name found (all states are ambiguous across teams)")
+		}
 		mustSet(cmd, "state", stateName)
 
 		err = builder.FromFlags(ctx, cmd)
@@ -385,13 +399,30 @@ func TestLive_IssueFilterBuilder(t *testing.T) {
 			t.Skip("No teams available")
 		}
 
-		states, err := client.WorkflowStates(ctx, nil, nil)
+		first := int64(200)
+		states, err := client.WorkflowStates(ctx, &first, nil)
 		if err != nil || len(states.Nodes) == 0 {
 			t.Skip("No states available")
 		}
 
+		// Find a state with a unique name to avoid ambiguity
+		nameCounts := make(map[string]int)
+		for _, s := range states.Nodes {
+			nameCounts[s.Name]++
+		}
+		stateName := ""
+		for _, s := range states.Nodes {
+			if nameCounts[s.Name] == 1 {
+				stateName = s.Name
+				break
+			}
+		}
+		if stateName == "" {
+			t.Skip("No unique state name found")
+		}
+
 		mustSet(cmd, "team", teams.Nodes[0].Name)
-		mustSet(cmd, "state", states.Nodes[0].Name)
+		mustSet(cmd, "state", stateName)
 
 		err = builder.FromFlags(ctx, cmd)
 		if err != nil {

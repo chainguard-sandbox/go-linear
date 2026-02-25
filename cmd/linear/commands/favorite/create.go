@@ -19,7 +19,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Star an issue, project, cycle, or document",
 		Long: `Star item. Safe operation. Must specify exactly one of: --issue, --project, --cycle, --document.
 
-Example: go-linear favorite create --issue=ENG-123 --output=json
+Example: go-linear favorite create --issue=ENG-123
 
 Related: favorite_delete, issue_list, project_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -37,7 +37,6 @@ Related: favorite_delete, issue_list, project_list`,
 	cmd.Flags().String("project", "", "Project name or UUID")
 	cmd.Flags().String("cycle", "", "Cycle UUID")
 	cmd.Flags().String("document", "", "Document UUID")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -112,14 +111,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create favorite: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Starred %s\n", resourceType)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

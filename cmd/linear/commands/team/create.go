@@ -21,7 +21,7 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Required: --name, --key (2-5 uppercase letters, used in issue IDs like PLT-123)
 Optional: --description
 
-Example: go-linear team create --name=Platform --key=PLT --description="Platform team" --output=json
+Example: go-linear team create --name=Platform --key=PLT --description="Platform team"
 
 Related: team_list, team_get`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,7 +42,6 @@ Related: team_list, team_get`,
 	_ = cmd.MarkFlagRequired("key")
 
 	cmd.Flags().String("description", "", "Team description")
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
 
 	return cmd
 }
@@ -67,14 +66,5 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		return fmt.Errorf("failed to create team: %w", err)
 	}
 
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "✓ Created team: %s (%s)\n", result.Name, result.Key)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

@@ -67,7 +67,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"notif-123", "--read", "--output=json"})
+		cmd.SetArgs([]string{"notif-123", "--read"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -95,7 +95,7 @@ func TestRunSubscribe(t *testing.T) {
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		// Use UUID format
-		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000001", "--output=json"})
+		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000001"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}

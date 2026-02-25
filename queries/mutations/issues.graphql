@@ -41,8 +41,20 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
   }
 }
 
-mutation DeleteIssue($id: String!) {
-  issueDelete(id: $id) {
+mutation DeleteIssue($id: String!, $permanentlyDelete: Boolean) {
+  issueDelete(id: $id, permanentlyDelete: $permanentlyDelete) {
+    success
+  }
+}
+
+mutation ArchiveIssue($id: String!, $trash: Boolean) {
+  issueArchive(id: $id, trash: $trash) {
+    success
+  }
+}
+
+mutation UnarchiveIssue($id: String!) {
+  issueUnarchive(id: $id) {
     success
   }
 }

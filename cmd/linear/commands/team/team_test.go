@@ -63,7 +63,7 @@ func TestNewListCommand(t *testing.T) {
 	})
 
 	t.Run("flags exist", func(t *testing.T) {
-		expectedFlags := []string{"limit", "output", "fields"}
+		expectedFlags := []string{"limit", "fields"}
 		for _, flag := range expectedFlags {
 			if cmd.Flags().Lookup(flag) == nil {
 				t.Errorf("Expected flag %q not found", flag)
@@ -82,7 +82,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=json"})
+		cmd.SetArgs([]string{})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -95,45 +95,15 @@ func TestRunList(t *testing.T) {
 		}
 	})
 
-	t.Run("list table output", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "ENG") {
-			t.Errorf("Table output should contain team key, got: %s", output)
-		}
-	})
-
 	t.Run("list with limit", func(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--limit=10", "--output=json"})
+		cmd.SetArgs([]string{"--limit=10"})
 
 		err := cmd.Execute()
 		if err != nil {
 			t.Fatalf("Execute() error = %v", err)
-		}
-	})
-
-	t.Run("invalid output format", func(t *testing.T) {
-		cmd := NewListCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"--output=invalid"})
-
-		err := cmd.Execute()
-		if err == nil {
-			t.Error("Expected error for invalid output format")
 		}
 	})
 }
@@ -174,7 +144,7 @@ func TestRunGet(t *testing.T) {
 		cmd := NewGetCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG", "--output=json"})
+		cmd.SetArgs([]string{"ENG"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -184,23 +154,6 @@ func TestRunGet(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "team-123") {
 			t.Errorf("Output should contain team id, got: %s", output)
-		}
-	})
-
-	t.Run("get table output", func(t *testing.T) {
-		cmd := NewGetCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "ENG") || !strings.Contains(output, "Engineering") {
-			t.Errorf("Table output should contain team info, got: %s", output)
 		}
 	})
 }
@@ -262,7 +215,7 @@ func TestRunCreate(t *testing.T) {
 		cmd := NewCreateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--name=New Team", "--key=NEW", "--output=json"})
+		cmd.SetArgs([]string{"--name=New Team", "--key=NEW"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -272,23 +225,6 @@ func TestRunCreate(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "team-new") {
 			t.Errorf("Output should contain new team id, got: %s", output)
-		}
-	})
-
-	t.Run("create team table output", func(t *testing.T) {
-		cmd := NewCreateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--name=New Team", "--key=NEW", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Created") && !strings.Contains(output, "NEW") {
-			t.Errorf("Table output should show created team, got: %s", output)
 		}
 	})
 }
@@ -326,7 +262,7 @@ func TestRunUpdate(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG", "--name=Updated Engineering", "--output=json"})
+		cmd.SetArgs([]string{"ENG", "--name=Updated Engineering"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -336,23 +272,6 @@ func TestRunUpdate(t *testing.T) {
 		output := buf.String()
 		if !strings.Contains(output, "team-123") {
 			t.Errorf("Output should contain team id, got: %s", output)
-		}
-	})
-
-	t.Run("update team table output", func(t *testing.T) {
-		cmd := NewUpdateCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG", "--name=Updated Engineering", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Updated") || !strings.Contains(output, "Engineering") {
-			t.Errorf("Table output should show updated team, got: %s", output)
 		}
 	})
 }
@@ -388,7 +307,7 @@ func TestRunDelete(t *testing.T) {
 		cmd := NewDeleteCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG", "--yes", "--output=json"})
+		cmd.SetArgs([]string{"ENG", "--yes"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -396,25 +315,8 @@ func TestRunDelete(t *testing.T) {
 		}
 
 		output := buf.String()
-		if !strings.Contains(output, "success") && !strings.Contains(output, "true") && !strings.Contains(output, "deleted") {
+		if !strings.Contains(output, "success") && !strings.Contains(output, "true") {
 			t.Errorf("Output should indicate success, got: %s", output)
-		}
-	})
-
-	t.Run("delete team table output", func(t *testing.T) {
-		cmd := NewDeleteCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG", "--yes", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(strings.ToLower(output), "deleted") {
-			t.Errorf("Table output should show deleted, got: %s", output)
 		}
 	})
 }
@@ -449,7 +351,7 @@ func TestRunVelocity(t *testing.T) {
 		cmd := NewVelocityCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--team=ENG", "--output=json"})
+		cmd.SetArgs([]string{"--team=ENG"})
 
 		err := cmd.Execute()
 		if err != nil {
@@ -467,29 +369,6 @@ func TestRunVelocity(t *testing.T) {
 		}
 		if result["cyclesAnalyzed"] != float64(3) {
 			t.Errorf("Expected cyclesAnalyzed=3, got %v", result["cyclesAnalyzed"])
-		}
-	})
-
-	t.Run("velocity table output", func(t *testing.T) {
-		cmd := NewVelocityCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--team=ENG", "--cycles=3", "--output=table"})
-
-		err := cmd.Execute()
-		if err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-
-		output := buf.String()
-		if !strings.Contains(output, "Engineering") {
-			t.Errorf("Table output should show team name, got: %s", output)
-		}
-		if !strings.Contains(output, "Velocity Metrics") {
-			t.Errorf("Table output should show velocity metrics, got: %s", output)
-		}
-		if !strings.Contains(output, "Average per Cycle") {
-			t.Errorf("Table output should show averages, got: %s", output)
 		}
 	})
 }

@@ -19,9 +19,9 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee=me, --state, --priority (0-4), --cycle, --project, --parent, --add-label, --remove-label, --link-pr (owner/repo#123)
+Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
 
-Example: go-linear issue update ENG-123 --state=Done --parent=ENG-100 --link-pr=org/repo#123 --output=json
+Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -39,7 +39,7 @@ Related: issue_get, issue_create`,
 	// All optional update fields
 	cmd.Flags().String("title", "", "New title")
 	cmd.Flags().String("description", "", "New description (markdown)")
-	cmd.Flags().String("assignee", "", "New assignee name, email, or ID")
+	cmd.Flags().String("assignee", "", "New assignee name, email, or ID (use 'none' to unassign)")
 	cmd.Flags().String("state", "", "New state name or ID")
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
 	cmd.Flags().String("cycle", "", "Cycle name or UUID (use 'none' to remove)")
@@ -48,8 +48,8 @@ Related: issue_get, issue_create`,
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
-
-	cmd.Flags().StringP("output", "o", "table", "Output format: json|table")
+	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD, use 'none' to remove)")
+	cmd.Flags().String("milestone", "", "Project milestone UUID (use 'none' to remove)")
 
 	return cmd
 }
@@ -66,6 +66,9 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 
 	// Check if we need nullable support (for removing parent/cycle/project with 'none')
 	needsNullable := false
+	if assignee, _ := cmd.Flags().GetString("assignee"); assignee == "none" {
+		needsNullable = true
+	}
 	if cmd.Flags().Changed("parent") {
 		if parent, _ := cmd.Flags().GetString("parent"); parent == "none" {
 			needsNullable = true
@@ -78,6 +81,16 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 	if cmd.Flags().Changed("project") {
 		if project, _ := cmd.Flags().GetString("project"); project == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("due-date") {
+		if dueDate, _ := cmd.Flags().GetString("due-date"); dueDate == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("milestone") {
+		if milestone, _ := cmd.Flags().GetString("milestone"); milestone == "none" {
 			needsNullable = true
 		}
 	}
@@ -100,7 +113,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		updated = true
 	}
 
-	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" {
+	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" && assignee != "none" {
 		userID, err := res.ResolveUser(ctx, assignee)
 		if err != nil {
 			return fmt.Errorf("failed to resolve assignee: %w", err)
@@ -119,6 +132,9 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	if priority, _ := cmd.Flags().GetInt("priority"); priority >= 0 {
+		if priority > 4 {
+			return fmt.Errorf("invalid priority %d: must be 0-4 (0=none, 1=urgent, 2=high, 3=normal, 4=low)", priority)
+		}
 		p := int64(priority)
 		input.Priority = &p
 		updated = true
@@ -203,6 +219,34 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		updated = true
 	}
 
+	// Due date assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("due-date") {
+		dueDate, _ := cmd.Flags().GetString("due-date")
+		if dueDate == "none" {
+			empty := ""
+			input.DueDate = &empty
+		} else {
+			input.DueDate = &dueDate
+		}
+		updated = true
+	}
+
+	// Milestone assignment (supports 'none' to remove)
+	if cmd.Flags().Changed("milestone") {
+		milestone, _ := cmd.Flags().GetString("milestone")
+		if milestone == "none" {
+			empty := ""
+			input.ProjectMilestoneID = &empty
+		} else {
+			milestoneID, err := res.ResolveMilestone(ctx, milestone)
+			if err != nil {
+				return fmt.Errorf("failed to resolve milestone: %w", err)
+			}
+			input.ProjectMilestoneID = &milestoneID
+		}
+		updated = true
+	}
+
 	if !updated {
 		return fmt.Errorf("no fields to update specified")
 	}
@@ -229,16 +273,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Updated issue: %s\n", result.Identifier)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }
 
 // contains checks if a string contains a substring
@@ -271,11 +306,15 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	}
 
 	if assignee, _ := cmd.Flags().GetString("assignee"); assignee != "" {
-		userID, err := res.ResolveUser(ctx, assignee)
-		if err != nil {
-			return fmt.Errorf("failed to resolve assignee: %w", err)
+		if assignee == "none" {
+			input.AssigneeID = linear.NewNull[string]()
+		} else {
+			userID, err := res.ResolveUser(ctx, assignee)
+			if err != nil {
+				return fmt.Errorf("failed to resolve assignee: %w", err)
+			}
+			input.AssigneeID = linear.NewValue(userID)
 		}
-		input.AssigneeID = &userID
 	}
 
 	if state, _ := cmd.Flags().GetString("state"); state != "" {
@@ -359,6 +398,28 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 		}
 	}
 
+	if cmd.Flags().Changed("due-date") {
+		dueDate, _ := cmd.Flags().GetString("due-date")
+		if dueDate == "none" {
+			input.DueDate = linear.NewNull[string]()
+		} else {
+			input.DueDate = linear.NewValue(dueDate)
+		}
+	}
+
+	if cmd.Flags().Changed("milestone") {
+		milestone, _ := cmd.Flags().GetString("milestone")
+		if milestone == "none" {
+			input.ProjectMilestoneID = linear.NewNull[string]()
+		} else {
+			milestoneID, err := res.ResolveMilestone(ctx, milestone)
+			if err != nil {
+				return fmt.Errorf("failed to resolve milestone: %w", err)
+			}
+			input.ProjectMilestoneID = linear.NewValue(milestoneID)
+		}
+	}
+
 	// Use nullable update method
 	result, err := client.IssueUpdateNullable(ctx, issueID, input)
 	if err != nil {
@@ -366,14 +427,5 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	}
 
 	// Format output
-	output, _ := cmd.Flags().GetString("output")
-	switch output {
-	case "json":
-		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
-	case "table":
-		fmt.Fprintf(cmd.OutOrStdout(), "Updated issue: %s\n", result.Identifier)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", output)
-	}
+	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }

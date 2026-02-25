@@ -14,14 +14,14 @@ import (
 
 // NewGetCommand creates the label get command.
 func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
-	flags := &cli.OutputFlags{}
+	flags := &cli.FieldFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "get <label-id>",
 		Short: "Get a single label by ID",
 		Long: `Get label by UUID. Returns 5 default fields.
 
-Example: go-linear label get <label-uuid> --output=json
+Example: go-linear label get <label-uuid>
 
 Related: label_list, label_create`,
 		Args: cobra.ExactArgs(1),
@@ -40,44 +40,23 @@ Related: label_list, label_create`,
 
 	return cmd
 }
-func runGet(cmd *cobra.Command, client *linear.Client, labelID string, flags *cli.OutputFlags) error {
+func runGet(cmd *cobra.Command, client *linear.Client, labelID string, flags *cli.FieldFlags) error {
 	ctx := cmd.Context()
-
-	if err := flags.Validate(); err != nil {
-		return err
-	}
 
 	label, err := client.IssueLabel(ctx, labelID)
 	if err != nil {
 		return fmt.Errorf("failed to get label: %w", err)
 	}
 
-	switch flags.Output {
-	case "json":
-		cfg, _ := config.Load()
-		var configOverrides map[string]string
-		if cfg != nil {
-			configOverrides = cfg.FieldDefaults
-		}
-		defaults := fieldfilter.GetDefaults("label.get", configOverrides)
-		fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
-		if err != nil {
-			return fmt.Errorf("invalid --fields: %w", err)
-		}
-		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), label, true, fieldSelector)
-	case "table":
-		// Simple table output for single label
-		fmt.Fprintf(cmd.OutOrStdout(), "ID:          %s\n", label.ID)
-		fmt.Fprintf(cmd.OutOrStdout(), "Name:        %s\n", label.Name)
-		if label.Description != nil && *label.Description != "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "Description: %s\n", *label.Description)
-		}
-		if label.Color != "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "Color:       %s\n", label.Color)
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Created:     %s\n", label.CreatedAt)
-		return nil
-	default:
-		return fmt.Errorf("unsupported output format: %s", flags.Output)
+	cfg, _ := config.Load()
+	var configOverrides map[string]string
+	if cfg != nil {
+		configOverrides = cfg.FieldDefaults
 	}
+	defaults := fieldfilter.GetDefaults("label.get", configOverrides)
+	fieldSelector, err := fieldfilter.New(flags.Fields, defaults)
+	if err != nil {
+		return fmt.Errorf("invalid --fields: %w", err)
+	}
+	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), label, true, fieldSelector)
 }

@@ -43,7 +43,7 @@ func TestRunCreate(t *testing.T) {
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		// Use UUID format to skip resolver
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--output=json"})
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
