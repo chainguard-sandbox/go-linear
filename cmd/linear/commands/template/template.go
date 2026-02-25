@@ -73,7 +73,7 @@ func NewGetCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get <id>",
 		Short: "Get a single template by ID",
-		Long: `Get template by UUID. Returns 4 default fields.
+		Long: `Get template by UUID. Returns 5 default fields.
 
 Example: go-linear template get <uuid>
 
@@ -107,6 +107,6 @@ Related: template_list, issue_create`,
 		},
 	}
 
-	cmd.Flags().String("fields", "", "defaults (id,name,description,createdAt) | none | defaults,extra")
+	cmd.Flags().String("fields", "", "defaults (id,name,description,templateData,createdAt) | none | defaults,extra")
 	return cmd
 }

@@ -141,4 +141,54 @@ func TestRunCreate(t *testing.T) {
 			t.Errorf("Output should be valid JSON: %v", err)
 		}
 	})
+
+	t.Run("create with use-default-template", func(t *testing.T) {
+		cmd := NewCreateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--team=ENG", "--use-default-template"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("template and use-default-template mutually exclusive", func(t *testing.T) {
+		cmd := NewCreateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{"--title=Test", "--team=ENG", "--template=Bug Report", "--use-default-template"})
+
+		err := cmd.Execute()
+		if err == nil {
+			t.Error("Expected error when both --template and --use-default-template are set")
+		}
+		if err != nil && !strings.Contains(err.Error(), "mutually exclusive") {
+			t.Errorf("Expected mutually exclusive error, got: %v", err)
+		}
+	})
+
+	t.Run("create with template by name", func(t *testing.T) {
+		cmd := NewCreateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--team=ENG", "--template=Bug Report"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
 }

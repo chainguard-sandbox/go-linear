@@ -3,6 +3,7 @@ query GetTemplate($id: String!) {
     id
     name
     description
+    templateData
     createdAt
     updatedAt
     type
@@ -14,6 +15,7 @@ query ListTemplates {
     id
     name
     description
+    templateData
     createdAt
     type
   }

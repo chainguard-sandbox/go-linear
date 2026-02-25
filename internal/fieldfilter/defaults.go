@@ -122,7 +122,7 @@ var BuiltinDefaults = map[string][]string{
 		"id", "name", "description", "createdAt",
 	},
 	"template.get": {
-		"id", "name", "description", "createdAt",
+		"id", "name", "description", "templateData", "createdAt",
 	},
 
 	// Favorite commands (no list, only create/delete)

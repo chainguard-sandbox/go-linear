@@ -265,6 +265,14 @@ const (
 	}`
 )
 
+const mockTemplatesResponse = `{
+	"data": {
+		"templates": [
+			{"id": "tpl-123", "name": "Bug Report", "templateData": "{\"priority\":1}", "type": "issue"}
+		]
+	}
+}`
+
 func defaultHandlers() map[string]string {
 	return map[string]string{
 		// Queries - match by query name in document
@@ -278,6 +286,7 @@ func defaultHandlers() map[string]string {
 		"SearchIssues":       mockSearchResponse,
 		"ListProjects":       mockProjectsResponse,
 		"ListCycles":         mockCyclesResponse,
+		"ListTemplates":      mockTemplatesResponse,
 
 		// Mutations - match by operation name (gqlgenc uses these)
 		"CreateIssue":         mockIssueCreateResponse,

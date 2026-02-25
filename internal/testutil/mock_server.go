@@ -658,7 +658,7 @@ const (
 	MockTemplatesResponse = `{
 		"data": {
 			"templates": [
-				{"id": "template-123", "name": "Bug Report", "type": "issue"}
+				{"id": "template-123", "name": "Bug Report", "templateData": "{\"priority\":1}", "type": "issue"}
 			]
 		}
 	}`
@@ -668,6 +668,7 @@ const (
 			"template": {
 				"id": "template-123",
 				"name": "Bug Report",
+				"templateData": "{\"priority\":1}",
 				"type": "issue"
 			}
 		}

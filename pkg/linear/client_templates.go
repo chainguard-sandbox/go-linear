@@ -12,6 +12,7 @@ import (
 //   - Template.ID: Template UUID (always populated)
 //   - Template.Name: Template name (always populated)
 //   - Template.Description: Template description (may be empty)
+//   - Template.TemplateData: JSON-encoded pre-filled fields (always populated)
 //   - Template.Type: Template type (always populated)
 //   - Template.CreatedAt: Creation timestamp (always populated)
 //   - Template.UpdatedAt: Last update timestamp (always populated)

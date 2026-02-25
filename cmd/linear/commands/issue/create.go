@@ -20,8 +20,8 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Create a new issue",
 		Long: `Create issue. Safe operation. Uses config defaults for team/labels.
 
-Required: --title
-Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label, --due-date=YYYY-MM-DD, --milestone=<uuid>
+Required: --title (unless using --template or --use-default-template)
+Optional: --team (from config), --description, --assignee=me, --priority (0-4), --state, --label, --due-date=YYYY-MM-DD, --milestone=<uuid>, --template, --use-default-template
 
 Example: go-linear issue create --title="Fix bug" --assignee=me --priority=1 --due-date=2025-03-01
 
@@ -45,6 +45,7 @@ Related: issue_get, issue_list`,
 
 	// Template
 	cmd.Flags().String("template", "", "Template name or ID to apply")
+	cmd.Flags().Bool("use-default-template", false, "Use the team's default template")
 
 	// Optional
 	cmd.Flags().String("description", "", "Issue description (markdown)")
@@ -93,19 +94,31 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	// Template support
-	if template, _ := cmd.Flags().GetString("template"); template != "" {
-		templateID, err := res.ResolveTemplate(ctx, template)
+	useDefaultTemplate, _ := cmd.Flags().GetBool("use-default-template")
+	templateFlag, _ := cmd.Flags().GetString("template")
+
+	if templateFlag != "" && useDefaultTemplate {
+		return fmt.Errorf("--template and --use-default-template are mutually exclusive")
+	}
+
+	if templateFlag != "" {
+		templateID, err := res.ResolveTemplate(ctx, templateFlag)
 		if err != nil {
 			return fmt.Errorf("failed to resolve template: %w", err)
 		}
 		input.TemplateID = &templateID
 	}
 
-	// Title is optional if template is used
+	if useDefaultTemplate {
+		input.UseDefaultTemplate = &useDefaultTemplate
+	}
+
+	// Title is optional if a template is used
+	hasTemplate := input.TemplateID != nil || useDefaultTemplate
 	if title != "" {
 		input.Title = &title
-	} else if input.TemplateID == nil {
-		return fmt.Errorf("--title is required when not using --template")
+	} else if !hasTemplate {
+		return fmt.Errorf("--title is required when not using --template or --use-default-template")
 	}
 
 	// Optional fields
@@ -137,9 +150,14 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		input.Priority = &p
 	}
 
-	// Labels: merge config defaults with flag values
+	// Labels: merge config defaults with flag values.
+	// When a template is active and --label was not explicitly passed,
+	// skip config defaults so they don't override template labels.
 	labels, _ := cmd.Flags().GetStringArray("label")
-	allLabels := append([]string{}, cfg.Defaults.Labels...)
+	var allLabels []string
+	if !hasTemplate || cmd.Flags().Changed("label") {
+		allLabels = append(allLabels, cfg.Defaults.Labels...)
+	}
 	allLabels = append(allLabels, labels...)
 
 	if len(allLabels) > 0 {

@@ -8412,12 +8412,13 @@ func (t *ListTeamMemberships_Team) GetName() string {
 }
 
 type GetTemplate_Template struct {
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string   "json:\"description,omitempty\" graphql:\"description\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	Type        string    "json:\"type\" graphql:\"type\""
-	UpdatedAt   time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	CreatedAt    time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description  *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID           string    "json:\"id\" graphql:\"id\""
+	Name         string    "json:\"name\" graphql:\"name\""
+	TemplateData string    "json:\"templateData\" graphql:\"templateData\""
+	Type         string    "json:\"type\" graphql:\"type\""
+	UpdatedAt    time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
 }
 
 func (t *GetTemplate_Template) GetCreatedAt() *time.Time {
@@ -8444,6 +8445,12 @@ func (t *GetTemplate_Template) GetName() string {
 	}
 	return t.Name
 }
+func (t *GetTemplate_Template) GetTemplateData() string {
+	if t == nil {
+		t = &GetTemplate_Template{}
+	}
+	return t.TemplateData
+}
 func (t *GetTemplate_Template) GetType() string {
 	if t == nil {
 		t = &GetTemplate_Template{}
@@ -8458,11 +8465,12 @@ func (t *GetTemplate_Template) GetUpdatedAt() *time.Time {
 }
 
 type ListTemplates_Templates struct {
-	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Description *string   "json:\"description,omitempty\" graphql:\"description\""
-	ID          string    "json:\"id\" graphql:\"id\""
-	Name        string    "json:\"name\" graphql:\"name\""
-	Type        string    "json:\"type\" graphql:\"type\""
+	CreatedAt    time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	Description  *string   "json:\"description,omitempty\" graphql:\"description\""
+	ID           string    "json:\"id\" graphql:\"id\""
+	Name         string    "json:\"name\" graphql:\"name\""
+	TemplateData string    "json:\"templateData\" graphql:\"templateData\""
+	Type         string    "json:\"type\" graphql:\"type\""
 }
 
 func (t *ListTemplates_Templates) GetCreatedAt() *time.Time {
@@ -8488,6 +8496,12 @@ func (t *ListTemplates_Templates) GetName() string {
 		t = &ListTemplates_Templates{}
 	}
 	return t.Name
+}
+func (t *ListTemplates_Templates) GetTemplateData() string {
+	if t == nil {
+		t = &ListTemplates_Templates{}
+	}
+	return t.TemplateData
 }
 func (t *ListTemplates_Templates) GetType() string {
 	if t == nil {
@@ -14028,6 +14042,7 @@ const GetTemplateDocument = `query GetTemplate ($id: String!) {
 		id
 		name
 		description
+		templateData
 		createdAt
 		updatedAt
 		type
@@ -14057,6 +14072,7 @@ const ListTemplatesDocument = `query ListTemplates {
 		id
 		name
 		description
+		templateData
 		createdAt
 		type
 	}
