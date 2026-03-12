@@ -7,7 +7,7 @@ require (
 	github.com/chainguard-dev/clog v1.8.0
 	github.com/codeGROOVE-dev/fido v1.10.0
 	github.com/codeGROOVE-dev/fido/pkg/store/localfs v1.10.0
-	github.com/njayp/ophis v1.1.1
+	github.com/njayp/ophis v1.1.4
 	github.com/prometheus/client_golang v1.23.2
 	github.com/spf13/cobra v1.10.2
 	go.opentelemetry.io/otel v1.40.0
@@ -33,7 +33,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/modelcontextprotocol/go-sdk v1.2.0 // indirect
+	github.com/modelcontextprotocol/go-sdk v1.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.40.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/mod v0.31.0 // indirect
-	golang.org/x/oauth2 v0.34.0 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
