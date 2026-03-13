@@ -20,9 +20,9 @@ Where `<spec>` can be:
 | `defaults,field,...` | Add fields to defaults | `--fields=defaults,estimate,number` |
 | `field1,field2,...` | Show only specified fields | `--fields=id,title,url` |
 
-## Default Field Sets (v1.2.0)
+## Default Field Sets
 
-**These defaults are part of the stable API.** Fields may be added in minor versions (non-breaking), but will not be removed in v1.x releases.
+**These defaults are part of the stable API.** Fields may be added in minor versions (non-breaking) but will not be removed within a major version.
 
 ### Issue Commands
 
@@ -239,14 +239,3 @@ linear issue get ENG-123 --fields=none | jq .
 # See everything available
 ```
 
-## Version History
-
-**v1.2.0** (2025-12-12):
-- Introduced field defaults
-- Added `defaults`, `none` keywords
-- Added additive syntax (`defaults,field`)
-- Defaults are stable API (additions only, no removals in v1.x)
-
-**Future (v1.3.0+)**:
-- May add more fields to defaults (non-breaking)
-- May add new resource-specific defaults

@@ -194,7 +194,7 @@ make sync-upstream  # Fetch latest schema + regenerate
 
 ## Project Info
 
-**Status**: v2.x stable. Semantic versioning.
+**Status**: Stable. Semantic versioning.
 
 **Not official**: This is a third-party client. Official Linear SDKs at https://github.com/linear
 
