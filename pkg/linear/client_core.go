@@ -86,12 +86,7 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 			return fmt.Errorf("failed to get credential: %w", err)
 		}
 
-		// Normalize authorization header
-		if len(authValue) > 7 && authValue[:7] != "Bearer " {
-			if len(authValue) > 8 && authValue[:8] != "lin_api_" {
-				authValue = "Bearer " + authValue
-			}
-		}
+		authValue = normalizeAuthHeader(authValue)
 		req.Header.Set("Authorization", authValue)
 		req.Header.Set("User-Agent", c.config.UserAgent)
 
@@ -103,12 +98,7 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 			if _, refreshErr := c.credentialProvider.Refresh(ctx); refreshErr == nil {
 				// Retry with fresh credential
 				newCred, _ := c.credentialProvider.Get(ctx)
-				if len(newCred) > 7 && newCred[:7] != "Bearer " {
-					if len(newCred) > 8 && newCred[:8] != "lin_api_" {
-						newCred = "Bearer " + newCred
-					}
-				}
-				req.Header.Set("Authorization", newCred)
+				req.Header.Set("Authorization", normalizeAuthHeader(newCred))
 				return next(ctx, req, gqlInfo, res)
 			}
 		}
@@ -133,6 +123,17 @@ func (c *Client) Close() error {
 		c.config.HTTPClient.CloseIdleConnections()
 	}
 	return nil
+}
+
+// normalizeAuthHeader adds "Bearer " prefix for OAuth tokens.
+// API keys (lin_api_*) and already-prefixed tokens are left as-is.
+func normalizeAuthHeader(authValue string) string {
+	if len(authValue) > 7 && authValue[:7] != "Bearer " {
+		if len(authValue) > 8 && authValue[:8] != "lin_api_" {
+			authValue = "Bearer " + authValue
+		}
+	}
+	return authValue
 }
 
 // isAuthError checks if an error is an authentication error (401).
