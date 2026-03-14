@@ -82,7 +82,7 @@ func NewDefaultClientConfig(apiKey string) *ClientConfig {
 	return &ClientConfig{
 		APIKey:     apiKey,
 		BaseURL:    "https://api.linear.app/graphql",
-		UserAgent:  "go-linear/0.1.0",
+		UserAgent:  "go-linear/" + Version,
 		HTTPClient: newDefaultHTTPClient(),
 	}
 }
