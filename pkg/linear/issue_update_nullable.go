@@ -84,6 +84,10 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("IssueUpdateNullable: HTTP %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
