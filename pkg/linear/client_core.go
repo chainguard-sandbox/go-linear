@@ -128,10 +128,17 @@ func (c *Client) Close() error {
 // normalizeAuthHeader adds "Bearer " prefix for OAuth tokens.
 // API keys (lin_api_*) and already-prefixed tokens are left as-is.
 func normalizeAuthHeader(authValue string) string {
-	if len(authValue) > 7 && authValue[:7] != "Bearer " {
-		if len(authValue) > 8 && authValue[:8] != "lin_api_" {
-			authValue = "Bearer " + authValue
-		}
+	// Already has Bearer prefix
+	if len(authValue) > 7 && authValue[:7] == "Bearer " {
+		return authValue
+	}
+	// API key — no prefix needed
+	if len(authValue) >= 8 && authValue[:8] == "lin_api_" {
+		return authValue
+	}
+	// OAuth token — add Bearer prefix
+	if authValue != "" {
+		return "Bearer " + authValue
 	}
 	return authValue
 }
