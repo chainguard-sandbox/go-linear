@@ -262,6 +262,14 @@ const (
 			}
 		}
 	}`
+
+	mockProjectArchiveResponse = `{
+		"data": {
+			"projectArchive": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -280,5 +288,6 @@ func defaultHandlers() map[string]string {
 		"GetProjectUpdate":       mockProjectUpdateResponse,
 		"DeleteProjectUpdate":    mockProjectUpdateDeleteResponse,
 		"UnarchiveProject":       mockProjectUnarchiveResponse,
+		"ArchiveProject":         mockProjectArchiveResponse,
 	}
 }
