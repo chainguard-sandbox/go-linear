@@ -141,10 +141,15 @@ func (r *Resolver) ResolveTeam(ctx context.Context, nameOrID string) (string, er
 func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (string, error) {
 	// Handle "me" special case before generic resolution
 	if strings.EqualFold(nameOrEmailOrID, "me") {
+		cacheKey := "user:me"
+		if id, ok := r.cache.Get(cacheKey); ok {
+			return id, nil
+		}
 		viewer, err := r.client.Viewer(ctx)
 		if err != nil {
 			return "", newFetchError("user", err)
 		}
+		r.cache.Set(cacheKey, viewer.ID)
 		return viewer.ID, nil
 	}
 
@@ -367,7 +372,7 @@ func (r *Resolver) ResolveIssue(ctx context.Context, identifierOrID string) (str
 		return "", newFetchError("issue", err)
 	}
 
-	if result == nil {
+	if result == nil || result.ID == "" {
 		return "", newNotFoundError("issue", identifierOrID, nil)
 	}
 
