@@ -97,7 +97,10 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		if err != nil && isAuthError(err) {
 			if _, refreshErr := c.credentialProvider.Refresh(ctx); refreshErr == nil {
 				// Retry with fresh credential
-				newCred, _ := c.credentialProvider.Get(ctx)
+				newCred, getErr := c.credentialProvider.Get(ctx)
+				if getErr != nil {
+					return fmt.Errorf("failed to get refreshed credential: %w", getErr)
+				}
 				req.Header.Set("Authorization", normalizeAuthHeader(newCred))
 				return next(ctx, req, gqlInfo, res)
 			}
