@@ -57,4 +57,3 @@ func ApplyDateRange(parser dateparser.Parser, dr *DateRange, afterFlag, beforeFl
 	}
 	return nil
 }
-
