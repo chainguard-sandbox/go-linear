@@ -64,9 +64,17 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", c.config.APIKey)
+	req.Header.Set("User-Agent", c.config.UserAgent)
 
-	// Use the client's HTTP client (has retry/circuit breaker logic)
+	// Get credential through the provider (supports rotation)
+	authValue, err := c.credentialProvider.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get credential: %w", err)
+	}
+	authValue = normalizeAuthHeader(authValue)
+	req.Header.Set("Authorization", authValue)
+
+	// Use the client's HTTP client (has retry/circuit breaker/metrics via transport)
 	resp, err := c.config.HTTPClient.Do(req) // #nosec G704 - BaseURL from trusted config, not user input
 	if err != nil {
 		return nil, err
@@ -76,7 +84,13 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("IssueUpdateNullable: HTTP %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
+	// Limit response body to prevent OOM from oversized responses
+	const maxResponseSize = 10 * 1024 * 1024 // 10MB
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
 	if err != nil {
 		return nil, err
 	}

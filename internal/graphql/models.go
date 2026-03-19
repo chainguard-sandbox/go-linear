@@ -15,6 +15,53 @@ type AgentActivityContent interface {
 	IsAgentActivityContent()
 }
 
+// A base part in an AI conversation.
+type AiConversationBasePart interface {
+	IsAiConversationBasePart()
+	// The ID of the part.
+	GetID() string
+	// The metadata of the part.
+	GetMetadata() *AiConversationPartMetadata
+	// The type of the part.
+	GetType() AiConversationPartType
+}
+
+type AiConversationBaseToolCall interface {
+	IsAiConversationBaseToolCall()
+	GetDisplayInfo() *AiConversationToolDisplayInfo
+	// The name of the tool that was called.
+	GetName() AiConversationTool
+	// The arguments of the tool call.
+	GetRawArgs() *string
+	// The result of the tool call.
+	GetRawResult() *string
+}
+
+type AiConversationBaseWidget interface {
+	IsAiConversationBaseWidget()
+	// Display information for the widget, including ProseMirror and Markdown representations.
+	GetDisplayInfo() *AiConversationWidgetDisplayInfo
+	// The name of the widget.
+	GetName() AiConversationWidgetName
+	// The arguments of the widget.
+	GetRawArgs() *string
+}
+
+// A part in an AI conversation.
+type AiConversationPart interface {
+	IsAiConversationPart()
+}
+
+// The tool call.
+type AiConversationToolCall interface {
+	IsAiConversationToolCall()
+}
+
+// The widget.
+type AiConversationWidget interface {
+	IsAiConversationWidget()
+}
+
 // A generic payload return from entity archive or deletion mutations.
 type ArchivePayload interface {
 	IsArchivePayload()
@@ -309,7 +356,7 @@ type AgentActivityCreatePromptInput struct {
 	// The agent session this activity belongs to.
 	AgentSessionID string `json:"agentSessionId"`
 	// The content payload of the prompt agent activity.
-	Content map[string]any `json:"content"`
+	Content *AgentActivityPromptCreateInputContent `json:"content"`
 	// [Internal] Metadata about user-provided contextual information for this agent activity.
 	ContextualMetadata map[string]any `json:"contextualMetadata,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
@@ -392,6 +439,16 @@ type AgentActivityPromptContent struct {
 }
 
 func (AgentActivityPromptContent) IsAgentActivityContent() {}
+
+// [Internal] Input for creating prompt-type agent activities (created by users).
+type AgentActivityPromptCreateInputContent struct {
+	// A message requesting additional information or action from user in markdown format.
+	Body *string `json:"body,omitempty"`
+	// [Internal] The prompt content as a ProseMirror document.
+	BodyData *string `json:"bodyData,omitempty"`
+	// The type of activity.
+	Type AgentActivityType `json:"type"`
+}
 
 // Content for a response activity.
 type AgentActivityResponseContent struct {
@@ -479,8 +536,6 @@ type AgentSession struct {
 	Issue *Issue `json:"issue,omitempty"`
 	// A dynamically updated list of the agent's execution strategy.
 	Plan *string `json:"plan,omitempty"`
-	// [Internal] A formatted prompt string containing relevant context for the agent session, including issue details, comments, and guidance.
-	PromptContext *string `json:"promptContext,omitempty"`
 	// [Internal] Pull requests associated with this agent session.
 	PullRequests *AgentSessionToPullRequestConnection `json:"pullRequests"`
 	// The comment that this agent session was spawned from, if from a different thread.
@@ -718,6 +773,953 @@ type AgentSessionWebhookPayload struct {
 
 func (AgentSessionWebhookPayload) IsDataWebhookPayload() {}
 
+// [Internal] A conversation between a user and an LLM.
+type AiConversation struct {
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// Serialized JSON representing the contexts this conversation is related to.
+	Context map[string]any `json:"context"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// [Internal] The log ID of the AI response.
+	EvalLogID *string `json:"evalLogId,omitempty"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// The iteration ID of the conversation in agentic workflow.
+	IterationID *string `json:"iterationId,omitempty"`
+	// The parts of the conversation.
+	Parts []AiConversationPart `json:"parts,omitempty"`
+	// The time at when the user marked the conversation as read. Null, if the user hasn't read the conversation.
+	ReadAt *time.Time `json:"readAt,omitempty"`
+	// The status of the conversation.
+	Status AiConversationStatus `json:"status"`
+	// A summary of the conversation.
+	Summary *string `json:"summary,omitempty"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+	// The user who the conversation belongs to.
+	User *User `json:"user,omitempty"`
+	// [Internal] The workflow definition that created this conversation.
+	WorkflowDefinition *WorkflowDefinition `json:"workflowDefinition,omitempty"`
+}
+
+func (AiConversation) IsNode() {}
+
+// The unique identifier of the entity.
+func (this AiConversation) GetID() string { return this.ID }
+
+type AiConversationCodeIntelligenceToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationCodeIntelligenceToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo              `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationCodeIntelligenceToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationCodeIntelligenceToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationCodeIntelligenceToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationCodeIntelligenceToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationCodeIntelligenceToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationCodeIntelligenceToolCall) IsAiConversationToolCall() {}
+
+type AiConversationCodeIntelligenceToolCallArgs struct {
+	Question string `json:"question"`
+}
+
+type AiConversationCreateEntityToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationCreateEntityToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo          `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationCreateEntityToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationCreateEntityToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationCreateEntityToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationCreateEntityToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationCreateEntityToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationCreateEntityToolCall) IsAiConversationToolCall() {}
+
+type AiConversationCreateEntityToolCallArgs struct {
+	Count *float64 `json:"count,omitempty"`
+	Type  string   `json:"type"`
+}
+
+type AiConversationDeleteEntityToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationDeleteEntityToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo          `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationDeleteEntityToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationDeleteEntityToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationDeleteEntityToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationDeleteEntityToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationDeleteEntityToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationDeleteEntityToolCall) IsAiConversationToolCall() {}
+
+type AiConversationDeleteEntityToolCallArgs struct {
+	Entity *AiConversationSearchEntitiesToolCallResultEntities `json:"entity"`
+}
+
+type AiConversationEntityCardWidget struct {
+	// The arguments to the widget.
+	Args *AiConversationEntityCardWidgetArgs `json:"args,omitempty"`
+	// Display information for the widget, including ProseMirror and Markdown representations.
+	DisplayInfo *AiConversationWidgetDisplayInfo `json:"displayInfo,omitempty"`
+	// The name of the widget.
+	Name AiConversationWidgetName `json:"name"`
+	// The arguments of the widget.
+	RawArgs *string `json:"rawArgs,omitempty"`
+}
+
+func (AiConversationEntityCardWidget) IsAiConversationBaseWidget() {}
+
+// Display information for the widget, including ProseMirror and Markdown representations.
+func (this AiConversationEntityCardWidget) GetDisplayInfo() *AiConversationWidgetDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the widget.
+func (this AiConversationEntityCardWidget) GetName() AiConversationWidgetName { return this.Name }
+
+// The arguments of the widget.
+func (this AiConversationEntityCardWidget) GetRawArgs() *string { return this.RawArgs }
+
+func (AiConversationEntityCardWidget) IsAiConversationWidget() {}
+
+type AiConversationEntityCardWidgetArgs struct {
+	// The action performed on the entity (leave empty if just found)
+	Action *AiConversationEntityCardWidgetArgsAction `json:"action,omitempty"`
+	// The UUID of the entity to display
+	ID string `json:"id"`
+	// @deprecated Optional note to display about the entity
+	Note *string `json:"note,omitempty"`
+	// [Internal] The entity type
+	Type AiConversationEntityCardWidgetArgsType `json:"type"`
+}
+
+type AiConversationEntityListWidget struct {
+	// The arguments to the widget.
+	Args *AiConversationEntityListWidgetArgs `json:"args,omitempty"`
+	// Display information for the widget, including ProseMirror and Markdown representations.
+	DisplayInfo *AiConversationWidgetDisplayInfo `json:"displayInfo,omitempty"`
+	// The name of the widget.
+	Name AiConversationWidgetName `json:"name"`
+	// The arguments of the widget.
+	RawArgs *string `json:"rawArgs,omitempty"`
+}
+
+func (AiConversationEntityListWidget) IsAiConversationBaseWidget() {}
+
+// Display information for the widget, including ProseMirror and Markdown representations.
+func (this AiConversationEntityListWidget) GetDisplayInfo() *AiConversationWidgetDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the widget.
+func (this AiConversationEntityListWidget) GetName() AiConversationWidgetName { return this.Name }
+
+// The arguments of the widget.
+func (this AiConversationEntityListWidget) GetRawArgs() *string { return this.RawArgs }
+
+func (AiConversationEntityListWidget) IsAiConversationWidget() {}
+
+type AiConversationEntityListWidgetArgs struct {
+	// The action performed on the entities (leave empty if just found)
+	Action *AiConversationEntityListWidgetArgsAction `json:"action,omitempty"`
+	// Total number of entities in the list
+	Count    *float64                                      `json:"count,omitempty"`
+	Entities []*AiConversationEntityListWidgetArgsEntities `json:"entities"`
+}
+
+type AiConversationEntityListWidgetArgsEntities struct {
+	// Entity UUID
+	ID string `json:"id"`
+	// @deprecated Optional note to display about the entity
+	Note *string `json:"note,omitempty"`
+	// [Internal] The entity type
+	Type AiConversationEntityListWidgetArgsEntitiesType `json:"type"`
+}
+
+type AiConversationGetMicrosoftTeamsConversationHistoryToolCall struct {
+	DisplayInfo *AiConversationToolDisplayInfo `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationGetMicrosoftTeamsConversationHistoryToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationGetMicrosoftTeamsConversationHistoryToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationGetMicrosoftTeamsConversationHistoryToolCall) GetName() AiConversationTool {
+	return this.Name
+}
+
+// The arguments of the tool call.
+func (this AiConversationGetMicrosoftTeamsConversationHistoryToolCall) GetRawArgs() *string {
+	return this.RawArgs
+}
+
+// The result of the tool call.
+func (this AiConversationGetMicrosoftTeamsConversationHistoryToolCall) GetRawResult() *string {
+	return this.RawResult
+}
+
+func (AiConversationGetMicrosoftTeamsConversationHistoryToolCall) IsAiConversationToolCall() {}
+
+type AiConversationGetPullRequestDiffToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationGetPullRequestDiffToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo                `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationGetPullRequestDiffToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationGetPullRequestDiffToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationGetPullRequestDiffToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationGetPullRequestDiffToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationGetPullRequestDiffToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationGetPullRequestDiffToolCall) IsAiConversationToolCall() {}
+
+type AiConversationGetPullRequestDiffToolCallArgs struct {
+	Entity *AiConversationSearchEntitiesToolCallResultEntities `json:"entity"`
+}
+
+type AiConversationGetPullRequestFileToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationGetPullRequestFileToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo                `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationGetPullRequestFileToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationGetPullRequestFileToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationGetPullRequestFileToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationGetPullRequestFileToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationGetPullRequestFileToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationGetPullRequestFileToolCall) IsAiConversationToolCall() {}
+
+type AiConversationGetPullRequestFileToolCallArgs struct {
+	Entity *AiConversationSearchEntitiesToolCallResultEntities `json:"entity"`
+	Path   string                                              `json:"path"`
+}
+
+type AiConversationGetSlackConversationHistoryToolCall struct {
+	DisplayInfo *AiConversationToolDisplayInfo `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationGetSlackConversationHistoryToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationGetSlackConversationHistoryToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationGetSlackConversationHistoryToolCall) GetName() AiConversationTool {
+	return this.Name
+}
+
+// The arguments of the tool call.
+func (this AiConversationGetSlackConversationHistoryToolCall) GetRawArgs() *string {
+	return this.RawArgs
+}
+
+// The result of the tool call.
+func (this AiConversationGetSlackConversationHistoryToolCall) GetRawResult() *string {
+	return this.RawResult
+}
+
+func (AiConversationGetSlackConversationHistoryToolCall) IsAiConversationToolCall() {}
+
+type AiConversationInvokeMcpToolToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationInvokeMcpToolToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo           `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationInvokeMcpToolToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationInvokeMcpToolToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationInvokeMcpToolToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationInvokeMcpToolToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationInvokeMcpToolToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationInvokeMcpToolToolCall) IsAiConversationToolCall() {}
+
+type AiConversationInvokeMcpToolToolCallArgs struct {
+	Server *AiConversationInvokeMcpToolToolCallArgsServer `json:"server"`
+	Tool   *AiConversationInvokeMcpToolToolCallArgsTool   `json:"tool"`
+}
+
+type AiConversationInvokeMcpToolToolCallArgsServer struct {
+	IntegrationID string  `json:"integrationId"`
+	Name          string  `json:"name"`
+	Title         *string `json:"title,omitempty"`
+}
+
+type AiConversationInvokeMcpToolToolCallArgsTool struct {
+	Name  string  `json:"name"`
+	Title *string `json:"title,omitempty"`
+}
+
+// Metadata about a part in an AI conversation.
+type AiConversationPartMetadata struct {
+	// The eval log ID of the part.
+	EvalLogID *string `json:"evalLogId,omitempty"`
+	// AI feedback state for this part.
+	Feedback map[string]any `json:"feedback,omitempty"`
+	// The turn ID of the part.
+	TurnID string `json:"turnId"`
+}
+
+// A prompt part in an AI conversation.
+type AiConversationPromptPart struct {
+	// The Markdown body of the prompt part.
+	Body string `json:"body"`
+	// The data of the prompt part.
+	BodyData map[string]any `json:"bodyData"`
+	// The ID of the part.
+	ID string `json:"id"`
+	// The metadata of the part.
+	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The type of the part.
+	Type AiConversationPartType `json:"type"`
+	// The user who created the prompt part.
+	User *User `json:"user,omitempty"`
+}
+
+func (AiConversationPromptPart) IsAiConversationBasePart() {}
+
+// The ID of the part.
+func (this AiConversationPromptPart) GetID() string { return this.ID }
+
+// The metadata of the part.
+func (this AiConversationPromptPart) GetMetadata() *AiConversationPartMetadata { return this.Metadata }
+
+// The type of the part.
+func (this AiConversationPromptPart) GetType() AiConversationPartType { return this.Type }
+
+func (AiConversationPromptPart) IsAiConversationPart() {}
+
+type AiConversationQueryActivityToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationQueryActivityToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo           `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationQueryActivityToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationQueryActivityToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationQueryActivityToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationQueryActivityToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationQueryActivityToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationQueryActivityToolCall) IsAiConversationToolCall() {}
+
+type AiConversationQueryActivityToolCallArgs struct {
+	Entities []*AiConversationSearchEntitiesToolCallResultEntities `json:"entities,omitempty"`
+}
+
+type AiConversationQueryUpdatesToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationQueryUpdatesToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo          `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationQueryUpdatesToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationQueryUpdatesToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationQueryUpdatesToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationQueryUpdatesToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationQueryUpdatesToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationQueryUpdatesToolCall) IsAiConversationToolCall() {}
+
+type AiConversationQueryUpdatesToolCallArgs struct {
+	Entity     *AiConversationSearchEntitiesToolCallResultEntities `json:"entity,omitempty"`
+	UpdateType AiConversationQueryUpdatesToolCallArgsUpdateType    `json:"updateType"`
+}
+
+type AiConversationQueryViewToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationQueryViewToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo       `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationQueryViewToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationQueryViewToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationQueryViewToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationQueryViewToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationQueryViewToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationQueryViewToolCall) IsAiConversationToolCall() {}
+
+type AiConversationQueryViewToolCallArgs struct {
+	Filter *string                                  `json:"filter,omitempty"`
+	Mode   AiConversationQueryViewToolCallArgsMode  `json:"mode"`
+	View   *AiConversationQueryViewToolCallArgsView `json:"view"`
+}
+
+type AiConversationQueryViewToolCallArgsView struct {
+	Group          *AiConversationSearchEntitiesToolCallResultEntities `json:"group,omitempty"`
+	PredefinedView *string                                             `json:"predefinedView,omitempty"`
+	Type           string                                              `json:"type"`
+}
+
+// A reasoning part in an AI conversation.
+type AiConversationReasoningPart struct {
+	// The Markdown body of the reasoning part.
+	Body string `json:"body"`
+	// The data of the reasoning part.
+	BodyData map[string]any `json:"bodyData"`
+	// The ID of the part.
+	ID string `json:"id"`
+	// The metadata of the part.
+	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The title of the reasoning part.
+	Title *string `json:"title,omitempty"`
+	// The type of the part.
+	Type AiConversationPartType `json:"type"`
+}
+
+func (AiConversationReasoningPart) IsAiConversationBasePart() {}
+
+// The ID of the part.
+func (this AiConversationReasoningPart) GetID() string { return this.ID }
+
+// The metadata of the part.
+func (this AiConversationReasoningPart) GetMetadata() *AiConversationPartMetadata {
+	return this.Metadata
+}
+
+// The type of the part.
+func (this AiConversationReasoningPart) GetType() AiConversationPartType { return this.Type }
+
+func (AiConversationReasoningPart) IsAiConversationPart() {}
+
+type AiConversationResearchToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationResearchToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo      `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+	// The result of the tool call.
+	Result *AiConversationResearchToolCallResult `json:"result,omitempty"`
+}
+
+func (AiConversationResearchToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationResearchToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationResearchToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationResearchToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationResearchToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationResearchToolCall) IsAiConversationToolCall() {}
+
+type AiConversationResearchToolCallArgs struct {
+	Context  string                                                `json:"context"`
+	Query    string                                                `json:"query"`
+	Subjects []*AiConversationSearchEntitiesToolCallResultEntities `json:"subjects,omitempty"`
+}
+
+type AiConversationResearchToolCallResult struct {
+	ProgressID *string `json:"progressId,omitempty"`
+}
+
+type AiConversationRetrieveEntitiesToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationRetrieveEntitiesToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo              `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationRetrieveEntitiesToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationRetrieveEntitiesToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationRetrieveEntitiesToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationRetrieveEntitiesToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationRetrieveEntitiesToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationRetrieveEntitiesToolCall) IsAiConversationToolCall() {}
+
+type AiConversationRetrieveEntitiesToolCallArgs struct {
+	Entities []*AiConversationSearchEntitiesToolCallResultEntities `json:"entities"`
+}
+
+type AiConversationSearchDocumentationToolCall struct {
+	DisplayInfo *AiConversationToolDisplayInfo `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationSearchDocumentationToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationSearchDocumentationToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationSearchDocumentationToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationSearchDocumentationToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationSearchDocumentationToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationSearchDocumentationToolCall) IsAiConversationToolCall() {}
+
+type AiConversationSearchEntitiesToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationSearchEntitiesToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo            `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+	// The result of the tool call.
+	Result *AiConversationSearchEntitiesToolCallResult `json:"result,omitempty"`
+}
+
+func (AiConversationSearchEntitiesToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationSearchEntitiesToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationSearchEntitiesToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationSearchEntitiesToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationSearchEntitiesToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationSearchEntitiesToolCall) IsAiConversationToolCall() {}
+
+type AiConversationSearchEntitiesToolCallArgs struct {
+	Queries []string `json:"queries"`
+	Type    *string  `json:"type,omitempty"`
+}
+
+type AiConversationSearchEntitiesToolCallResult struct {
+	Entities []*AiConversationSearchEntitiesToolCallResultEntities `json:"entities"`
+}
+
+type AiConversationSearchEntitiesToolCallResultEntities struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
+type AiConversationSuggestValuesToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationSuggestValuesToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo           `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationSuggestValuesToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationSuggestValuesToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationSuggestValuesToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationSuggestValuesToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationSuggestValuesToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationSuggestValuesToolCall) IsAiConversationToolCall() {}
+
+type AiConversationSuggestValuesToolCallArgs struct {
+	Field string  `json:"field"`
+	Query *string `json:"query,omitempty"`
+}
+
+// A text part in an AI conversation.
+type AiConversationTextPart struct {
+	// The Markdown body of the text part.
+	Body string `json:"body"`
+	// The data of the text part.
+	BodyData map[string]any `json:"bodyData"`
+	// The ID of the part.
+	ID string `json:"id"`
+	// The metadata of the part.
+	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The type of the part.
+	Type AiConversationPartType `json:"type"`
+}
+
+func (AiConversationTextPart) IsAiConversationBasePart() {}
+
+// The ID of the part.
+func (this AiConversationTextPart) GetID() string { return this.ID }
+
+// The metadata of the part.
+func (this AiConversationTextPart) GetMetadata() *AiConversationPartMetadata { return this.Metadata }
+
+// The type of the part.
+func (this AiConversationTextPart) GetType() AiConversationPartType { return this.Type }
+
+func (AiConversationTextPart) IsAiConversationPart() {}
+
+// A tool call part in an AI conversation.
+type AiConversationToolCallPart struct {
+	// The ID of the part.
+	ID string `json:"id"`
+	// The metadata of the part.
+	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The tool call part.
+	ToolCall AiConversationToolCall `json:"toolCall"`
+	// The type of the part.
+	Type AiConversationPartType `json:"type"`
+}
+
+func (AiConversationToolCallPart) IsAiConversationBasePart() {}
+
+// The ID of the part.
+func (this AiConversationToolCallPart) GetID() string { return this.ID }
+
+// The metadata of the part.
+func (this AiConversationToolCallPart) GetMetadata() *AiConversationPartMetadata {
+	return this.Metadata
+}
+
+// The type of the part.
+func (this AiConversationToolCallPart) GetType() AiConversationPartType { return this.Type }
+
+func (AiConversationToolCallPart) IsAiConversationPart() {}
+
+type AiConversationToolDisplayInfo struct {
+	ActiveLabel   string  `json:"activeLabel"`
+	Detail        *string `json:"detail,omitempty"`
+	Icon          string  `json:"icon"`
+	InactiveLabel string  `json:"inactiveLabel"`
+	Result        *string `json:"result,omitempty"`
+}
+
+type AiConversationTranscribeMediaToolCall struct {
+	DisplayInfo *AiConversationToolDisplayInfo `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationTranscribeMediaToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationTranscribeMediaToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationTranscribeMediaToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationTranscribeMediaToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationTranscribeMediaToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationTranscribeMediaToolCall) IsAiConversationToolCall() {}
+
+type AiConversationTranscribeVideoToolCall struct {
+	DisplayInfo *AiConversationToolDisplayInfo `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationTranscribeVideoToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationTranscribeVideoToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationTranscribeVideoToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationTranscribeVideoToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationTranscribeVideoToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationTranscribeVideoToolCall) IsAiConversationToolCall() {}
+
+type AiConversationUpdateEntityToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationUpdateEntityToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo          `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationUpdateEntityToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationUpdateEntityToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationUpdateEntityToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationUpdateEntityToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationUpdateEntityToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationUpdateEntityToolCall) IsAiConversationToolCall() {}
+
+type AiConversationUpdateEntityToolCallArgs struct {
+	Entity *AiConversationSearchEntitiesToolCallResultEntities `json:"entity"`
+}
+
+type AiConversationWebSearchToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationWebSearchToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo       `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationWebSearchToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationWebSearchToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationWebSearchToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationWebSearchToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationWebSearchToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationWebSearchToolCall) IsAiConversationToolCall() {}
+
+type AiConversationWebSearchToolCallArgs struct {
+	Query *string `json:"query,omitempty"`
+	URL   *string `json:"url,omitempty"`
+}
+
+type AiConversationWidgetDisplayInfo struct {
+	// The Markdown representation of the widget content.
+	Body string `json:"body"`
+	// The ProseMirror data representation of the widget content.
+	BodyData map[string]any `json:"bodyData"`
+}
+
+// A widget part in an AI conversation.
+type AiConversationWidgetPart struct {
+	// The ID of the part.
+	ID string `json:"id"`
+	// The metadata of the part.
+	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The type of the part.
+	Type AiConversationPartType `json:"type"`
+	// The widget.
+	Widget AiConversationWidget `json:"widget"`
+}
+
+func (AiConversationWidgetPart) IsAiConversationBasePart() {}
+
+// The ID of the part.
+func (this AiConversationWidgetPart) GetID() string { return this.ID }
+
+// The metadata of the part.
+func (this AiConversationWidgetPart) GetMetadata() *AiConversationPartMetadata { return this.Metadata }
+
+// The type of the part.
+func (this AiConversationWidgetPart) GetType() AiConversationPartType { return this.Type }
+
+func (AiConversationWidgetPart) IsAiConversationPart() {}
+
 // AI prompt rules for a team.
 type AiPromptRules struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
@@ -840,62 +1842,6 @@ type AsksChannelConnectPayload struct {
 	Mapping *SlackChannelNameMapping `json:"mapping"`
 	// Whether the operation was successful.
 	Success bool `json:"success"`
-}
-
-// Settings for an Asks web form.
-type AsksWebSettings struct {
-	// The time at which the entity was archived. Null if the entity has not been archived.
-	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
-	// The time at which the entity was created.
-	CreatedAt time.Time `json:"createdAt"`
-	// The user who created the Asks web settings.
-	Creator *User `json:"creator,omitempty"`
-	// The custom domain for the Asks web form. If null, the default Linear-hosted domain will be used.
-	Domain *string `json:"domain,omitempty"`
-	// The email intake address associated with these Asks web settings.
-	EmailIntakeAddress *EmailIntakeAddress `json:"emailIntakeAddress,omitempty"`
-	// The unique identifier of the entity.
-	ID string `json:"id"`
-	// The identity provider for SAML authentication on this Asks web form.
-	IdentityProvider *IdentityProvider `json:"identityProvider,omitempty"`
-	// The organization that the Asks web settings are associated with.
-	Organization *Organization `json:"organization"`
-	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
-	//     been updated after creation.
-	UpdatedAt time.Time `json:"updatedAt"`
-}
-
-func (AsksWebSettings) IsNode() {}
-
-// The unique identifier of the entity.
-func (this AsksWebSettings) GetID() string { return this.ID }
-
-type AsksWebSettingsCreateInput struct {
-	// The custom domain for the Asks web form. If null, the default Linear-hosted domain will be used.
-	Domain *string `json:"domain,omitempty"`
-	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
-	ID *string `json:"id,omitempty"`
-}
-
-type AsksWebSettingsEmailIntakeAddressInput struct {
-	// The email address for forwarding.
-	ForwardingEmailAddress *string `json:"forwardingEmailAddress,omitempty"`
-	// The sender name for outgoing emails.
-	SenderName *string `json:"senderName,omitempty"`
-}
-
-type AsksWebSettingsPayload struct {
-	// The Asks web settings that were created or updated.
-	AsksWebSettings *AsksWebSettings `json:"asksWebSettings"`
-	// The identifier of the last sync operation.
-	LastSyncID float64 `json:"lastSyncId"`
-	// Whether the operation was successful.
-	Success bool `json:"success"`
-}
-
-type AsksWebSettingsUpdateInput struct {
-	// The custom domain for the Asks web form. If null, the default Linear-hosted domain will be used.
-	Domain *string `json:"domain,omitempty"`
 }
 
 // Issue assignee sorting options.
@@ -1236,6 +2182,8 @@ type AuthIdentityProvider struct {
 type AuthOrganization struct {
 	// Allowed authentication providers, empty array means all are allowed
 	AllowedAuthServices []string `json:"allowedAuthServices"`
+	// An approximate count of users, updated once per day.
+	ApproximateUserCount float64 `json:"approximateUserCount"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The time at which deletion of the organization was requested.
@@ -1385,6 +2333,38 @@ type CandidateRepository struct {
 	RepositoryFullName string `json:"repositoryFullName"`
 }
 
+// [Internal] Coding agent sandbox details for an agent session.
+type CodingAgentSandboxPayload struct {
+	// The agent session identifier.
+	AgentSessionID string `json:"agentSessionId"`
+	// Git ref to checkout.
+	BaseRef *string `json:"baseRef,omitempty"`
+	// Git branch name for this sandbox.
+	BranchName *string `json:"branchName,omitempty"`
+	// When the sandbox was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The user who initiated the session.
+	CreatorID *string `json:"creatorId,omitempty"`
+	// Datadog logs URL for the session or sandbox.
+	DatadogLogsURL *string `json:"datadogLogsUrl,omitempty"`
+	// When the session reached a terminal state.
+	EndedAt *time.Time `json:"endedAt,omitempty"`
+	// The sandbox identifier.
+	ID string `json:"id"`
+	// The organization identifier.
+	OrganizationID string `json:"organizationId"`
+	// GitHub repository in owner/repo format.
+	Repository string `json:"repository"`
+	// The sandbox logs URL.
+	SandboxLogsURL *string `json:"sandboxLogsUrl,omitempty"`
+	// Current sandbox URL.
+	SandboxURL *string `json:"sandboxUrl,omitempty"`
+	// When the sandbox first became active.
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+	// Claude Agent SDK conversation ID.
+	WorkerConversationID *string `json:"workerConversationId,omitempty"`
+}
+
 // A comment associated with an issue.
 type Comment struct {
 	// Agent session associated with this comment.
@@ -1429,6 +2409,8 @@ type Comment struct {
 	Issue *Issue `json:"issue,omitempty"`
 	// The ID of the issue that the comment is associated with.
 	IssueID *string `json:"issueId,omitempty"`
+	// [Internal] The user on whose behalf the comment was created, e.g. when the Linear assistant creates a comment for a user.
+	OnBehalfOf *User `json:"onBehalfOf,omitempty"`
 	// The parent comment under which the current comment is nested.
 	Parent *Comment `json:"parent,omitempty"`
 	// The ID of the parent comment under which the current comment is nested.
@@ -1453,6 +2435,8 @@ type Comment struct {
 	ResolvingCommentID *string `json:"resolvingCommentId,omitempty"`
 	// The user that resolved the thread.
 	ResolvingUser *User `json:"resolvingUser,omitempty"`
+	// [Internal] Agent sessions spawned from this comment.
+	SpawnedAgentSessions *AgentSessionConnection `json:"spawnedAgentSessions"`
 	// The external services the comment is synced with.
 	SyncedWith []*ExternalEntityInfo `json:"syncedWith,omitempty"`
 	// [Internal] A generated summary of the comment thread.
@@ -1538,7 +2522,7 @@ type CommentCreateInput struct {
 	BodyData *string `json:"bodyData,omitempty"`
 	// Create comment as a user with the provided name. This option is only available to OAuth applications creating comments in `actor=app` mode.
 	CreateAsUser *string `json:"createAsUser,omitempty"`
-	// Flag to indicate this comment should be created on the issue's synced Slack comment thread. If no synced Slack comment thread exists, the mutation will fail.
+	// Flag to indicate this comment should be created on the issue's synced Slack comment thread. If no synced Slack comment thread exists, the mutation will fail. If there are multiple synced Slack threads on the issue, the oldest one will be targeted.
 	CreateOnSyncedSlackThread *bool `json:"createOnSyncedSlackThread,omitempty"`
 	// The date when the comment was created (e.g. if importing from another system). Must be a date in the past. If none is provided, the backend will generate the time as now.
 	CreatedAt *time.Time `json:"createdAt,omitempty"`
@@ -2157,6 +3141,8 @@ type Customer struct {
 	MainSourceID *string `json:"mainSourceId,omitempty"`
 	// The customer's name.
 	Name string `json:"name"`
+	// Customer needs associated with this customer.
+	Needs []*CustomerNeed `json:"needs"`
 	// The user who owns the customer.
 	Owner *User `json:"owner,omitempty"`
 	// The annual revenue generated by the customer.
@@ -3990,6 +4976,8 @@ type DocumentContent struct {
 	Project *Project `json:"project,omitempty"`
 	// The project milestone that the content is associated with.
 	ProjectMilestone *ProjectMilestone `json:"projectMilestone,omitempty"`
+	// [Internal] The pull request that the content is associated with.
+	PullRequest *PullRequest `json:"pullRequest,omitempty"`
 	// The time at which the document content was restored from a previous version.
 	RestoredAt *time.Time `json:"restoredAt,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
@@ -4030,6 +5018,8 @@ type DocumentContentHistoryType struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// The UUID of the document content history entry.
 	ID string `json:"id"`
+	// Metadata associated with the history item.
+	Metadata *string `json:"metadata,omitempty"`
 }
 
 type DocumentCreateInput struct {
@@ -4536,6 +5526,8 @@ type EmailIntakeAddress struct {
 	IssueCreatedAutoReplyEnabled bool `json:"issueCreatedAutoReplyEnabled"`
 	// The organization that the email address is associated with.
 	Organization *Organization `json:"organization"`
+	// Whether to reopen completed or canceled issues when a substantive email reply is received.
+	ReopenOnReply bool `json:"reopenOnReply"`
 	// Whether email replies are enabled.
 	RepliesEnabled bool `json:"repliesEnabled"`
 	// The name to be used for outgoing emails.
@@ -4579,6 +5571,8 @@ type EmailIntakeAddressCreateInput struct {
 	IssueCreatedAutoReply *string `json:"issueCreatedAutoReply,omitempty"`
 	// Whether the issue created auto-reply is enabled.
 	IssueCreatedAutoReplyEnabled *bool `json:"issueCreatedAutoReplyEnabled,omitempty"`
+	// Whether to reopen completed or canceled issues when a substantive email reply is received.
+	ReopenOnReply *bool `json:"reopenOnReply,omitempty"`
 	// Whether email replies are enabled.
 	RepliesEnabled *bool `json:"repliesEnabled,omitempty"`
 	// The name to be used for outgoing emails.
@@ -4621,6 +5615,8 @@ type EmailIntakeAddressUpdateInput struct {
 	IssueCreatedAutoReply *string `json:"issueCreatedAutoReply,omitempty"`
 	// Whether the issue created auto-reply is enabled.
 	IssueCreatedAutoReplyEnabled *bool `json:"issueCreatedAutoReplyEnabled,omitempty"`
+	// Whether to reopen completed or canceled issues when a substantive email reply is received.
+	ReopenOnReply *bool `json:"reopenOnReply,omitempty"`
 	// Whether email replies are enabled.
 	RepliesEnabled *bool `json:"repliesEnabled,omitempty"`
 	// The name to be used for outgoing emails.
@@ -4866,6 +5862,20 @@ type EstimateSort struct {
 	Nulls *PaginationNulls `json:"nulls,omitempty"`
 	// The order for the individual sort
 	Order *PaginationSortOrder `json:"order,omitempty"`
+}
+
+type EventTrackingInput struct {
+	// The event name to track.
+	Event string `json:"event"`
+	// Optional properties for the event.
+	Properties map[string]any `json:"properties,omitempty"`
+	// Client session ID for PostHog session correlation.
+	SessionID *string `json:"sessionId,omitempty"`
+}
+
+type EventTrackingPayload struct {
+	// Whether the operation was successful.
+	Success bool `json:"success"`
 }
 
 // Information about an external entity.
@@ -5487,6 +6497,8 @@ type GitHubRepoMappingInput struct {
 type GitHubSettingsInput struct {
 	// Whether the integration has code access
 	CodeAccess *bool `json:"codeAccess,omitempty"`
+	// The enterprise URL if this is a GitHub Enterprise Cloud integration.
+	EnterpriseURL *string `json:"enterpriseUrl,omitempty"`
 	// The avatar URL for the GitHub organization.
 	OrgAvatarURL *string `json:"orgAvatarUrl,omitempty"`
 	// The GitHub organization's name.
@@ -5728,6 +6740,8 @@ type Initiative struct {
 	Owner *User `json:"owner,omitempty"`
 	// Parent initiative associated with the initiative.
 	ParentInitiative *Initiative `json:"parentInitiative,omitempty"`
+	// [Internal] Parent initiatives associated with the initiative.
+	ParentInitiatives *InitiativeConnection `json:"parentInitiatives"`
 	// Projects associated with the initiative.
 	Projects *ProjectConnection `json:"projects"`
 	// The initiative's unique URL slug.
@@ -5802,6 +6816,8 @@ type InitiativeCollectionFilter struct {
 	Ancestors *InitiativeCollectionFilter `json:"ancestors,omitempty"`
 	// Compound filters, all of which need to be matched by the initiative.
 	And []*InitiativeCollectionFilter `json:"and,omitempty"`
+	// Comparator for the initiative completed at date.
+	CompletedAt *NullableDateComparator `json:"completedAt,omitempty"`
 	// Comparator for the created at date.
 	CreatedAt *DateComparator `json:"createdAt,omitempty"`
 	// Filters that the initiative creator must satisfy.
@@ -5814,6 +6830,8 @@ type InitiativeCollectionFilter struct {
 	HealthWithAge *StringComparator `json:"healthWithAge,omitempty"`
 	// Comparator for the identifier.
 	ID *IDComparator `json:"id,omitempty"`
+	// Filters that the initiative updates must satisfy.
+	InitiativeUpdates *InitiativeUpdatesCollectionFilter `json:"initiativeUpdates,omitempty"`
 	// Comparator for the collection length.
 	Length *NumberComparator `json:"length,omitempty"`
 	// Comparator for the initiative name.
@@ -5826,6 +6844,8 @@ type InitiativeCollectionFilter struct {
 	SlugID *StringComparator `json:"slugId,omitempty"`
 	// Filters that needs to be matched by some initiatives.
 	Some *InitiativeFilter `json:"some,omitempty"`
+	// Comparator for the initiative started at date.
+	StartedAt *NullableDateComparator `json:"startedAt,omitempty"`
 	// Comparator for the initiative status: Planned, Active, Completed
 	Status *StringComparator `json:"status,omitempty"`
 	// Comparator for the initiative target date.
@@ -5890,6 +6910,8 @@ type InitiativeFilter struct {
 	Ancestors *InitiativeCollectionFilter `json:"ancestors,omitempty"`
 	// Compound filters, all of which need to be matched by the initiative.
 	And []*InitiativeFilter `json:"and,omitempty"`
+	// Comparator for the initiative completed at date.
+	CompletedAt *NullableDateComparator `json:"completedAt,omitempty"`
 	// Comparator for the created at date.
 	CreatedAt *DateComparator `json:"createdAt,omitempty"`
 	// Filters that the initiative creator must satisfy.
@@ -5900,6 +6922,8 @@ type InitiativeFilter struct {
 	HealthWithAge *StringComparator `json:"healthWithAge,omitempty"`
 	// Comparator for the identifier.
 	ID *IDComparator `json:"id,omitempty"`
+	// Filters that the initiative updates must satisfy.
+	InitiativeUpdates *InitiativeUpdatesCollectionFilter `json:"initiativeUpdates,omitempty"`
 	// Comparator for the initiative name.
 	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the initiative.
@@ -5908,6 +6932,8 @@ type InitiativeFilter struct {
 	Owner *NullableUserFilter `json:"owner,omitempty"`
 	// Comparator for the initiative slug ID.
 	SlugID *StringComparator `json:"slugId,omitempty"`
+	// Comparator for the initiative started at date.
+	StartedAt *NullableDateComparator `json:"startedAt,omitempty"`
 	// Comparator for the initiative status: Planned, Active, Completed
 	Status *StringComparator `json:"status,omitempty"`
 	// Comparator for the initiative target date.
@@ -6656,6 +7682,8 @@ type InitiativeUpdateWebhookPayload struct {
 	BodyData string `json:"bodyData"`
 	// The time at which the entity was created.
 	CreatedAt string `json:"createdAt"`
+	// The diff between the current update and the previous one, formatted as markdown.
+	DiffMarkdown *string `json:"diffMarkdown,omitempty"`
 	// The edited at timestamp of the initiative update.
 	EditedAt string `json:"editedAt"`
 	// The health of the initiative update.
@@ -6688,6 +7716,40 @@ type InitiativeUpdatedAtSort struct {
 	Nulls *PaginationNulls `json:"nulls,omitempty"`
 	// The order for the individual sort
 	Order *PaginationSortOrder `json:"order,omitempty"`
+}
+
+// Collection filtering options for filtering initiatives by initiative updates.
+type InitiativeUpdatesCollectionFilter struct {
+	// Compound filters, all of which need to be matched by the initiative update.
+	And []*InitiativeUpdatesCollectionFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Filters that needs to be matched by all initiative updates.
+	Every *InitiativeUpdatesFilter `json:"every,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Comparator for the collection length.
+	Length *NumberComparator `json:"length,omitempty"`
+	// Compound filters, one of which need to be matched by the update.
+	Or []*InitiativeUpdatesCollectionFilter `json:"or,omitempty"`
+	// Filters that needs to be matched by some initiative updates.
+	Some *InitiativeUpdatesFilter `json:"some,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+}
+
+// Options for filtering initiatives by initiative updates.
+type InitiativeUpdatesFilter struct {
+	// Compound filters, all of which need to be matched by the initiative updates.
+	And []*InitiativeUpdatesFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Compound filters, one of which need to be matched by the initiative updates.
+	Or []*InitiativeUpdatesFilter `json:"or,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
 
 // Payload for an initiative webhook.
@@ -6730,6 +7792,8 @@ type InitiativeWebhookPayload struct {
 	OwnerID *string `json:"ownerId,omitempty"`
 	// The parent initiative associated with the initiative.
 	ParentInitiative *InitiativeChildWebhookPayload `json:"parentInitiative,omitempty"`
+	// The parent initiatives associated with the initiative.
+	ParentInitiatives []*InitiativeChildWebhookPayload `json:"parentInitiatives,omitempty"`
 	// The projects associated with the initiative.
 	Projects []*ProjectChildWebhookPayload `json:"projects,omitempty"`
 	// The unique slug identifier of the initiative.
@@ -7210,6 +8274,8 @@ type Issue struct {
 	RecurringIssueTemplate *Template `json:"recurringIssueTemplate,omitempty"`
 	// Relations associated with this issue.
 	Relations *IssueRelationConnection `json:"relations"`
+	// Shared access metadata for this issue.
+	SharedAccess *IssueSharedAccess `json:"sharedAccess"`
 	// The time at which the issue's SLA will breach.
 	SLABreachesAt *time.Time `json:"slaBreachesAt,omitempty"`
 	// The time at which the issue's SLA will enter high risk state.
@@ -7681,6 +8747,8 @@ type IssueDraft struct {
 	ProjectID *string `json:"projectId,omitempty"`
 	// The project milestone associated with the draft.
 	ProjectMilestoneID *string `json:"projectMilestoneId,omitempty"`
+	// The IDs of releases associated with the draft.
+	ReleaseIds []string `json:"releaseIds"`
 	// Serialized array of JSONs representing the recurring issue's schedule.
 	Schedule map[string]any `json:"schedule,omitempty"`
 	// The ID of the comment that the draft was created from.
@@ -8053,6 +9121,8 @@ type IssueHistory struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	// Whether the issue's description was updated.
 	UpdatedDescription *bool `json:"updatedDescription,omitempty"`
+	// [INTERNAL] Metadata about the workflow that made changes to the issue.
+	WorkflowMetadata *IssueHistoryWorkflowMetadata `json:"workflowMetadata,omitempty"`
 }
 
 func (IssueHistory) IsNode() {}
@@ -8094,6 +9164,14 @@ type IssueHistoryTriageRuleMetadata struct {
 	TriageRuleError *IssueHistoryTriageRuleError `json:"triageRuleError,omitempty"`
 	// The triage rule that triggered the issue update.
 	UpdatedByTriageRule *WorkflowDefinition `json:"updatedByTriageRule,omitempty"`
+}
+
+// Metadata about a workflow that made changes to an issue.
+type IssueHistoryWorkflowMetadata struct {
+	// The AI conversation associated with the workflow.
+	AiConversation *AiConversation `json:"aiConversation,omitempty"`
+	// The workflow definition that triggered the issue update.
+	WorkflowDefinition *WorkflowDefinition `json:"workflowDefinition,omitempty"`
 }
 
 // Comparator for issue identifiers.
@@ -8856,6 +9934,8 @@ type IssueSearchResult struct {
 	RecurringIssueTemplate *Template `json:"recurringIssueTemplate,omitempty"`
 	// Relations associated with this issue.
 	Relations *IssueRelationConnection `json:"relations"`
+	// Shared access metadata for this issue.
+	SharedAccess *IssueSharedAccess `json:"sharedAccess"`
 	// The time at which the issue's SLA will breach.
 	SLABreachesAt *time.Time `json:"slaBreachesAt,omitempty"`
 	// The time at which the issue's SLA will enter high risk state.
@@ -8918,6 +9998,19 @@ type IssueSearchResultEdge struct {
 	// Used in `before` and `after` args
 	Cursor string             `json:"cursor"`
 	Node   *IssueSearchResult `json:"node"`
+}
+
+type IssueSharedAccess struct {
+	// Issue update fields the viewer cannot modify due to shared-only access.
+	DisallowedIssueFields []IssueSharedAccessDisallowedField `json:"disallowedIssueFields"`
+	// Whether this issue has been shared with users outside the team.
+	IsShared bool `json:"isShared"`
+	// The number of users this issue is shared with.
+	SharedWithCount int64 `json:"sharedWithCount"`
+	// Users this issue is shared with.
+	SharedWithUsers []*User `json:"sharedWithUsers"`
+	// Whether the viewer can access this issue only through issue sharing.
+	ViewerHasOnlySharedAccess bool `json:"viewerHasOnlySharedAccess"`
 }
 
 // Payload for issue SLA webhook events.
@@ -9179,8 +10272,6 @@ type IssueToRelease struct {
 	ID string `json:"id"`
 	// The issue associated with the release.
 	Issue *Issue `json:"issue"`
-	// The pull request that linked this issue to the release.
-	PullRequest *PullRequest `json:"pullRequest,omitempty"`
 	// The release associated with the issue.
 	Release *Release `json:"release"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
@@ -9477,6 +10568,26 @@ type JiraConfigurationInput struct {
 	ManualSetup *bool `json:"manualSetup,omitempty"`
 }
 
+type JiraFetchProjectStatusesInput struct {
+	// The id of the Jira integration.
+	IntegrationID string `json:"integrationId"`
+	// The Jira project ID to fetch statuses for.
+	ProjectID string `json:"projectId"`
+}
+
+type JiraFetchProjectStatusesPayload struct {
+	// The integration that was created or updated.
+	Integration *Integration `json:"integration,omitempty"`
+	// The fetched Jira issue statuses (non-Epic).
+	IssueStatuses []string `json:"issueStatuses"`
+	// The identifier of the last sync operation.
+	LastSyncID float64 `json:"lastSyncId"`
+	// The fetched Jira project statuses (Epic).
+	ProjectStatuses []string `json:"projectStatuses"`
+	// Whether the operation was successful.
+	Success bool `json:"success"`
+}
+
 type JiraLinearMappingInput struct {
 	// Whether the sync for this mapping is bidirectional.
 	Bidirectional *bool `json:"bidirectional,omitempty"`
@@ -9515,7 +10626,7 @@ type JiraSettingsInput struct {
 	Projects []*JiraProjectDataInput `json:"projects"`
 	// Whether the user needs to provide setup information about the webhook to complete the integration setup. Only relevant for integrations that use a manual setup flow
 	SetupPending *bool `json:"setupPending,omitempty"`
-	// The status names per issue type, per project.
+	// Jira status names grouped by project, separated into issue statuses (non-Epic) and project statuses (Epic). Structure: projectId -> { issueStatuses: string[], projectStatuses: string[] }
 	StatusNamesPerIssueType map[string]any `json:"statusNamesPerIssueType,omitempty"`
 }
 
@@ -10547,6 +11658,8 @@ type NullableStringComparator struct {
 
 // Team filtering options.
 type NullableTeamFilter struct {
+	// Filters that the team's ancestors must satisfy.
+	Ancestors *TeamCollectionFilter `json:"ancestors,omitempty"`
 	// Compound filters, all of which need to be matched by the team.
 	And []*NullableTeamFilter `json:"and,omitempty"`
 	// Comparator for the created at date.
@@ -11057,6 +12170,8 @@ type Organization struct {
 	ProjectUpdatesReminderFrequency ProjectUpdateReminderFrequency `json:"projectUpdatesReminderFrequency"`
 	// The feature release channel the organization belongs to.
 	ReleaseChannel ReleaseChannel `json:"releaseChannel"`
+	// [Internal] Whether agent invocation is restricted to full workspace members.
+	RestrictAgentInvocationToMembers *bool `json:"restrictAgentInvocationToMembers,omitempty"`
 	// [DEPRECATED] Whether workspace label creation, update, and deletion is restricted to admins.
 	RestrictLabelManagementToAdmins *bool `json:"restrictLabelManagementToAdmins,omitempty"`
 	// [DEPRECATED] Whether team creation is restricted to admins.
@@ -11967,6 +13082,8 @@ type Project struct {
 	State string `json:"state"`
 	// The status that the project is associated with.
 	Status *ProjectStatus `json:"status"`
+	// The external services the project is synced with.
+	SyncedWith []*ExternalEntityInfo `json:"syncedWith,omitempty"`
 	// The estimated completion date of the project.
 	TargetDate *string `json:"targetDate,omitempty"`
 	// The resolution of the project's estimated completion date.
@@ -13321,6 +14438,8 @@ type ProjectSearchResult struct {
 	State string `json:"state"`
 	// The status that the project is associated with.
 	Status *ProjectStatus `json:"status"`
+	// The external services the project is synced with.
+	SyncedWith []*ExternalEntityInfo `json:"syncedWith,omitempty"`
 	// The estimated completion date of the project.
 	TargetDate *string `json:"targetDate,omitempty"`
 	// The resolution of the project's estimated completion date.
@@ -13772,6 +14891,8 @@ type ProjectUpdateWebhookPayload struct {
 	BodyData string `json:"bodyData"`
 	// The time at which the entity was created.
 	CreatedAt string `json:"createdAt"`
+	// The diff between the current update and the previous one, formatted as markdown.
+	DiffMarkdown *string `json:"diffMarkdown,omitempty"`
 	// The edited at timestamp of the project update.
 	EditedAt string `json:"editedAt"`
 	// The health of the project update.
@@ -13924,6 +15045,8 @@ type ProjectWebhookPayload struct {
 	Status *ProjectStatusChildWebhookPayload `json:"status,omitempty"`
 	// The ID of the project status.
 	StatusID string `json:"statusId"`
+	// The external services the project is synced with.
+	SyncedWith map[string]any `json:"syncedWith,omitempty"`
 	// The target date of the project.
 	TargetDate *string `json:"targetDate,omitempty"`
 	// The resolution of the project's target date.
@@ -13944,10 +15067,14 @@ func (ProjectWebhookPayload) IsDataWebhookPayload() {}
 type PullRequest struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// [Internal] The checks associated with the pull request.
+	Checks []*PullRequestCheck `json:"checks"`
 	// [ALPHA] The commits associated with the pull request.
 	Commits []*PullRequestCommit `json:"commits"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
+	// [Internal] The user who created the pull request.
+	Creator *User `json:"creator,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The merge commit created when the PR was merged.
@@ -13978,6 +15105,24 @@ func (PullRequest) IsNode() {}
 // The unique identifier of the entity.
 func (this PullRequest) GetID() string { return this.ID }
 
+// [ALPHA] A pull request check.
+type PullRequestCheck struct {
+	// The date/time at which when the check was completed.
+	CompletedAt *time.Time `json:"completedAt,omitempty"`
+	// Whether the check is required.
+	IsRequired *bool `json:"isRequired,omitempty"`
+	// The name of the check.
+	Name string `json:"name"`
+	// The date/time at which when the check was started.
+	StartedAt *time.Time `json:"startedAt,omitempty"`
+	// The status of the check.
+	Status string `json:"status"`
+	// The URL of the check.
+	URL *string `json:"url,omitempty"`
+	// The name of the workflow that triggered the check.
+	WorkflowName *string `json:"workflowName,omitempty"`
+}
+
 // [ALPHA] A pull request commit.
 type PullRequestCommit struct {
 	// Number of additions in this commit.
@@ -13992,6 +15137,8 @@ type PullRequestCommit struct {
 	CommittedAt string `json:"committedAt"`
 	// Number of deletions in this commit.
 	Deletions float64 `json:"deletions"`
+	// Whether this commit has multiple parents.
+	IsMergeCommit *bool `json:"isMergeCommit,omitempty"`
 	// The full commit message.
 	Message string `json:"message"`
 	// The Git commit SHA.
@@ -14428,6 +15575,8 @@ type Release struct {
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
+	// [Internal] The current progress of the release.
+	CurrentProgress map[string]any `json:"currentProgress"`
 	// The release's description.
 	Description *string `json:"description,omitempty"`
 	// [Internal] Documents associated with the release.
@@ -14440,6 +15589,8 @@ type Release struct {
 	Name string `json:"name"`
 	// The pipeline this release belongs to.
 	Pipeline *ReleasePipeline `json:"pipeline"`
+	// [Internal] The progress history of the release.
+	ProgressHistory map[string]any `json:"progressHistory"`
 	// The release's unique URL slug.
 	SlugID string `json:"slugId"`
 	// The current stage of the release.
@@ -14450,6 +15601,8 @@ type Release struct {
 	StartedAt *time.Time `json:"startedAt,omitempty"`
 	// The estimated completion date of the release.
 	TargetDate *string `json:"targetDate,omitempty"`
+	// A flag that indicates whether the release is in the trash bin.
+	Trashed *bool `json:"trashed,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -14494,6 +15647,8 @@ type ReleaseCollectionFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// Comparator for the collection length.
 	Length *NumberComparator `json:"length,omitempty"`
+	// Comparator for the release name.
+	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the release.
 	Or []*ReleaseCollectionFilter `json:"or,omitempty"`
 	// Filters that the release's pipeline must satisfy.
@@ -14504,6 +15659,8 @@ type ReleaseCollectionFilter struct {
 	Stage *ReleaseStageFilter `json:"stage,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// Comparator for the release version.
+	Version *StringComparator `json:"version,omitempty"`
 }
 
 type ReleaseCompleteInput struct {
@@ -14540,7 +15697,7 @@ type ReleaseCreateInput struct {
 	Name string `json:"name"`
 	// The identifier of the pipeline this release belongs to.
 	PipelineID string `json:"pipelineId"`
-	// The current stage of the release. Defaults to the first 'started' stage.
+	// The current stage of the release. Defaults to the first 'completed' stage for continuous pipelines, or the first 'started' stage for scheduled pipelines.
 	StageID *string `json:"stageId,omitempty"`
 	// The estimated start date of the release.
 	StartDate *string `json:"startDate,omitempty"`
@@ -14560,6 +15717,8 @@ type ReleaseDebugSinkInput struct {
 	Issues map[string]any `json:"issues"`
 	// Pull request debug information.
 	PullRequests []map[string]any `json:"pullRequests"`
+	// Map of reverted issue identifiers to their source information.
+	RevertedIssues map[string]any `json:"revertedIssues,omitempty"`
 }
 
 type ReleaseEdge struct {
@@ -14576,6 +15735,8 @@ type ReleaseFilter struct {
 	CreatedAt *DateComparator `json:"createdAt,omitempty"`
 	// Comparator for the identifier.
 	ID *IDComparator `json:"id,omitempty"`
+	// Comparator for the release name.
+	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the release.
 	Or []*ReleaseFilter `json:"or,omitempty"`
 	// Filters that the release's pipeline must satisfy.
@@ -14584,6 +15745,8 @@ type ReleaseFilter struct {
 	Stage *ReleaseStageFilter `json:"stage,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// Comparator for the release version.
+	Version *StringComparator `json:"version,omitempty"`
 }
 
 type ReleasePayload struct {
@@ -14597,6 +15760,8 @@ type ReleasePayload struct {
 
 // [Internal] A release pipeline.
 type ReleasePipeline struct {
+	// [ALPHA] The number of non-archived releases in this pipeline.
+	ApproximateReleaseCount int64 `json:"approximateReleaseCount"`
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 	// The time at which the entity was created.
@@ -14676,6 +15841,8 @@ type ReleasePipelineFilter struct {
 	CreatedAt *DateComparator `json:"createdAt,omitempty"`
 	// Comparator for the identifier.
 	ID *IDComparator `json:"id,omitempty"`
+	// Comparator for the pipeline name.
+	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the pipeline.
 	Or []*ReleasePipelineFilter `json:"or,omitempty"`
 	// Comparator for the updated at date.
@@ -14710,6 +15877,8 @@ type ReleaseStage struct {
 	Color string `json:"color"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
+	// Whether this stage is frozen. Only applicable to started type stages.
+	Frozen bool `json:"frozen"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The name of the stage.
@@ -14759,6 +15928,8 @@ type ReleaseStageConnection struct {
 type ReleaseStageCreateInput struct {
 	// The UI color of the stage as a HEX string.
 	Color string `json:"color"`
+	// Whether this stage is frozen. Only applicable to started stages.
+	Frozen *bool `json:"frozen,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// The name of the stage.
@@ -14821,12 +15992,12 @@ type ReleaseStageTypeComparator struct {
 type ReleaseStageUpdateInput struct {
 	// The UI color of the stage as a HEX string.
 	Color *string `json:"color,omitempty"`
+	// Whether this stage is frozen. Only applicable to started stages.
+	Frozen *bool `json:"frozen,omitempty"`
 	// The name of the stage.
 	Name *string `json:"name,omitempty"`
 	// The position of the stage.
 	Position *float64 `json:"position,omitempty"`
-	// The type of the stage.
-	Type *ReleaseStageType `json:"type,omitempty"`
 }
 
 // The release data to sync.
@@ -14835,12 +16006,6 @@ type ReleaseSyncInput struct {
 	CommitSha string `json:"commitSha"`
 	// Debug information for release creation diagnostics.
 	DebugSink *ReleaseDebugSinkInput `json:"debugSink,omitempty"`
-	// The description of the release.
-	Description *string `json:"description,omitempty"`
-	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
-	ID *string `json:"id,omitempty"`
-	// [DEPRECATED] Issue identifiers (e.g. ENG-123) to associate with this release.
-	IssueIdentifiers []string `json:"issueIdentifiers,omitempty"`
 	// Issue references (e.g. ENG-123) to associate with this release.
 	IssueReferences []*IssueReferenceInput `json:"issueReferences,omitempty"`
 	// The name of the release.
@@ -14851,12 +16016,8 @@ type ReleaseSyncInput struct {
 	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
 	// Information about the source repository.
 	Repository *RepositoryDataInput `json:"repository,omitempty"`
-	// The current stage of the release. Defaults to the first 'completed' stage.
-	StageID *string `json:"stageId,omitempty"`
-	// The estimated start date of the release.
-	StartDate *string `json:"startDate,omitempty"`
-	// The estimated completion date of the release.
-	TargetDate *string `json:"targetDate,omitempty"`
+	// Issue references that were reverted and should be removed from the release.
+	RevertedIssueReferences []*IssueReferenceInput `json:"revertedIssueReferences,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
 }
@@ -14867,10 +16028,6 @@ type ReleaseSyncInputBase struct {
 	CommitSha string `json:"commitSha"`
 	// Debug information for release creation diagnostics.
 	DebugSink *ReleaseDebugSinkInput `json:"debugSink,omitempty"`
-	// The description of the release.
-	Description *string `json:"description,omitempty"`
-	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
-	ID *string `json:"id,omitempty"`
 	// Issue references (e.g. ENG-123) to associate with this release.
 	IssueReferences []*IssueReferenceInput `json:"issueReferences,omitempty"`
 	// The name of the release.
@@ -14879,12 +16036,8 @@ type ReleaseSyncInputBase struct {
 	PullRequestReferences []*PullRequestReferenceInput `json:"pullRequestReferences,omitempty"`
 	// Information about the source repository.
 	Repository *RepositoryDataInput `json:"repository,omitempty"`
-	// The current stage of the release. Defaults to the first 'completed' stage.
-	StageID *string `json:"stageId,omitempty"`
-	// The estimated start date of the release.
-	StartDate *string `json:"startDate,omitempty"`
-	// The estimated completion date of the release.
-	TargetDate *string `json:"targetDate,omitempty"`
+	// Issue references that were reverted and should be removed from the release.
+	RevertedIssueReferences []*IssueReferenceInput `json:"revertedIssueReferences,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
 }
@@ -14921,6 +16074,8 @@ type ReleaseUpdateInput struct {
 	StartDate *string `json:"startDate,omitempty"`
 	// The estimated completion date of the release.
 	TargetDate *string `json:"targetDate,omitempty"`
+	// Whether the release has been trashed.
+	Trashed *bool `json:"trashed,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
 }
@@ -15932,6 +17087,8 @@ type TeamChildWebhookPayload struct {
 
 // Team collection filtering options.
 type TeamCollectionFilter struct {
+	// Filters that the team's ancestors must satisfy.
+	Ancestors *TeamCollectionFilter `json:"ancestors,omitempty"`
 	// Compound filters, all of which need to be matched by the team.
 	And []*TeamCollectionFilter `json:"and,omitempty"`
 	// Comparator for the created at date.
@@ -16041,6 +17198,8 @@ type TeamEdge struct {
 
 // Team filtering options.
 type TeamFilter struct {
+	// Filters that the team's ancestors must satisfy.
+	Ancestors *TeamCollectionFilter `json:"ancestors,omitempty"`
 	// Compound filters, all of which need to be matched by the team.
 	And []*TeamFilter `json:"and,omitempty"`
 	// Comparator for the created at date.
@@ -16401,6 +17560,8 @@ type TeamWithParentWebhookPayload struct {
 type Template struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The color of the template icon.
+	Color *string `json:"color,omitempty"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// The user who created the template.
@@ -16409,6 +17570,8 @@ type Template struct {
 	Description *string `json:"description,omitempty"`
 	// [Internal] Whether the template has form fields
 	HasFormFields bool `json:"hasFormFields"`
+	// The icon of the template.
+	Icon *string `json:"icon,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The original template inherited from.
@@ -16446,8 +17609,12 @@ type TemplateConnection struct {
 }
 
 type TemplateCreateInput struct {
+	// The color of the template icon.
+	Color *string `json:"color,omitempty"`
 	// The template description.
 	Description *string `json:"description,omitempty"`
+	// The icon of the template.
+	Icon *string `json:"icon,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
 	// The template name.
@@ -16478,8 +17645,12 @@ type TemplatePayload struct {
 }
 
 type TemplateUpdateInput struct {
+	// The color of the template icon.
+	Color *string `json:"color,omitempty"`
 	// The template description.
 	Description *string `json:"description,omitempty"`
+	// The icon of the template.
+	Icon *string `json:"icon,omitempty"`
 	// The template name.
 	Name *string `json:"name,omitempty"`
 	// The position of the template in the templates list.
@@ -17339,6 +18510,8 @@ type ViewPreferencesCreateInput struct {
 	ProjectID *string `json:"projectId,omitempty"`
 	// The project label these view preferences are associated with.
 	ProjectLabelID *string `json:"projectLabelId,omitempty"`
+	// The release pipeline these view preferences are associated with.
+	ReleasePipelineID *string `json:"releasePipelineId,omitempty"`
 	// The team these view preferences are associated with.
 	TeamID *string `json:"teamId,omitempty"`
 	// The type of view preferences (either user or organization level preferences).
@@ -17358,6 +18531,14 @@ type ViewPreferencesPayload struct {
 	ViewPreferences *ViewPreferences `json:"viewPreferences"`
 }
 
+// A label group column configuration for the project list view.
+type ViewPreferencesProjectLabelGroupColumn struct {
+	// Whether the label group column is active.
+	Active bool `json:"active"`
+	// The identifier of the label group.
+	ID string `json:"id"`
+}
+
 type ViewPreferencesUpdateInput struct {
 	// The default parameters for the insight on that view.
 	Insights map[string]any `json:"insights,omitempty"`
@@ -17366,14 +18547,394 @@ type ViewPreferencesUpdateInput struct {
 }
 
 type ViewPreferencesValues struct {
+	// Whether issues in closed columns should be ordered by recency.
+	ClosedIssuesOrderedByRecency *bool `json:"closedIssuesOrderedByRecency,omitempty"`
+	// Whether to show the custom view creation date field.
+	CustomViewFieldDateCreated *bool `json:"customViewFieldDateCreated,omitempty"`
+	// Whether to show the custom view updated date field.
+	CustomViewFieldDateUpdated *bool `json:"customViewFieldDateUpdated,omitempty"`
+	// Whether to show the custom view owner field.
+	CustomViewFieldOwner *bool `json:"customViewFieldOwner,omitempty"`
+	// Whether to show the custom view visibility field.
+	CustomViewFieldVisibility *bool `json:"customViewFieldVisibility,omitempty"`
+	// The custom views ordering.
+	CustomViewsOrdering *string `json:"customViewsOrdering,omitempty"`
+	// Whether to show the customer domains field.
+	CustomerFieldDomains *bool `json:"customerFieldDomains,omitempty"`
+	// Whether to show the customer owner field.
+	CustomerFieldOwner *bool `json:"customerFieldOwner,omitempty"`
+	// Whether to show the customer request count field.
+	CustomerFieldRequestCount *bool `json:"customerFieldRequestCount,omitempty"`
+	// Whether to show the customer revenue field.
+	CustomerFieldRevenue *bool `json:"customerFieldRevenue,omitempty"`
+	// Whether to show the customer size field.
+	CustomerFieldSize *bool `json:"customerFieldSize,omitempty"`
+	// Whether to show the customer source field.
+	CustomerFieldSource *bool `json:"customerFieldSource,omitempty"`
+	// Whether to show the customer status field.
+	CustomerFieldStatus *bool `json:"customerFieldStatus,omitempty"`
+	// Whether to show the customer tier field.
+	CustomerFieldTier *bool `json:"customerFieldTier,omitempty"`
+	// Whether to show the issue identifier field in the customer page.
+	CustomerPageNeedsFieldIssueIdentifier *bool `json:"customerPageNeedsFieldIssueIdentifier,omitempty"`
+	// Whether to show the issue priority field in the customer page.
+	CustomerPageNeedsFieldIssuePriority *bool `json:"customerPageNeedsFieldIssuePriority,omitempty"`
+	// Whether to show the issue status field in the customer page.
+	CustomerPageNeedsFieldIssueStatus *bool `json:"customerPageNeedsFieldIssueStatus,omitempty"`
+	// Whether to show the issue due date field in the customer page.
+	CustomerPageNeedsFieldIssueTargetDueDate *bool `json:"customerPageNeedsFieldIssueTargetDueDate,omitempty"`
+	// Whether to show completed issues and projects in the customer page.
+	CustomerPageNeedsShowCompletedIssuesAndProjects *string `json:"customerPageNeedsShowCompletedIssuesAndProjects,omitempty"`
+	// Whether to show important customer needs first.
+	CustomerPageNeedsShowImportantFirst *bool `json:"customerPageNeedsShowImportantFirst,omitempty"`
+	// The customer page needs view grouping.
+	CustomerPageNeedsViewGrouping *string `json:"customerPageNeedsViewGrouping,omitempty"`
+	// The customer page needs view ordering.
+	CustomerPageNeedsViewOrdering *string `json:"customerPageNeedsViewOrdering,omitempty"`
+	// The customers view ordering.
+	CustomersViewOrdering *string `json:"customersViewOrdering,omitempty"`
+	// Whether to show the dashboard creation date field.
+	DashboardFieldDateCreated *bool `json:"dashboardFieldDateCreated,omitempty"`
+	// Whether to show the dashboard updated date field.
+	DashboardFieldDateUpdated *bool `json:"dashboardFieldDateUpdated,omitempty"`
+	// Whether to show the dashboard owner field.
+	DashboardFieldOwner *bool `json:"dashboardFieldOwner,omitempty"`
+	// The dashboards ordering.
+	DashboardsOrdering *string `json:"dashboardsOrdering,omitempty"`
+	// Whether to show important embedded customer needs first.
+	EmbeddedCustomerNeedsShowImportantFirst *bool `json:"embeddedCustomerNeedsShowImportantFirst,omitempty"`
+	// The embedded customer needs view ordering.
+	EmbeddedCustomerNeedsViewOrdering *string `json:"embeddedCustomerNeedsViewOrdering,omitempty"`
+	// Whether to show the issue assignee field.
+	FieldAssignee *bool `json:"fieldAssignee,omitempty"`
+	// Whether to show the customer request count field.
+	FieldCustomerCount *bool `json:"fieldCustomerCount,omitempty"`
+	// Whether to show the customer revenue field.
+	FieldCustomerRevenue *bool `json:"fieldCustomerRevenue,omitempty"`
+	// Whether to show the cycle field.
+	FieldCycle *bool `json:"fieldCycle,omitempty"`
+	// Whether to show the issue archived date field.
+	FieldDateArchived *bool `json:"fieldDateArchived,omitempty"`
+	// Whether to show the issue creation date field.
+	FieldDateCreated *bool `json:"fieldDateCreated,omitempty"`
+	// Whether to show the issue last activity date field.
+	FieldDateMyActivity *bool `json:"fieldDateMyActivity,omitempty"`
+	// Whether to show the issue updated date field.
+	FieldDateUpdated *bool `json:"fieldDateUpdated,omitempty"`
+	// Whether to show the due date field.
+	FieldDueDate *bool `json:"fieldDueDate,omitempty"`
+	// Whether to show the issue estimate field.
+	FieldEstimate *bool `json:"fieldEstimate,omitempty"`
+	// Whether to show the issue identifier field.
+	FieldID *bool `json:"fieldId,omitempty"`
+	// Whether to show the labels field.
+	FieldLabels *bool `json:"fieldLabels,omitempty"`
+	// Whether to show the link count field.
+	FieldLinkCount *bool `json:"fieldLinkCount,omitempty"`
+	// Whether to show the milestone field.
+	FieldMilestone *bool `json:"fieldMilestone,omitempty"`
+	// Whether to show preview links.
+	FieldPreviewLinks *bool `json:"fieldPreviewLinks,omitempty"`
+	// Whether to show the issue priority field.
+	FieldPriority *bool `json:"fieldPriority,omitempty"`
+	// Whether to show the project field.
+	FieldProject *bool `json:"fieldProject,omitempty"`
+	// Whether to show the pull requests field.
+	FieldPullRequests *bool `json:"fieldPullRequests,omitempty"`
+	// Whether to show the release field.
+	FieldRelease *bool `json:"fieldRelease,omitempty"`
+	// Whether to show the Sentry issues field.
+	FieldSentryIssues *bool `json:"fieldSentryIssues,omitempty"`
+	// Whether to show the SLA field.
+	FieldSLA *bool `json:"fieldSla,omitempty"`
+	// Whether to show the issue status field.
+	FieldStatus *bool `json:"fieldStatus,omitempty"`
+	// Whether to show the time in current status field.
+	FieldTimeInCurrentStatus *bool `json:"fieldTimeInCurrentStatus,omitempty"`
+	// List of column model IDs which should be hidden on a board.
+	HiddenColumns []string `json:"hiddenColumns,omitempty"`
+	// List of row model IDs which should be hidden on a board.
+	HiddenRows []string `json:"hiddenRows,omitempty"`
+	// The inbox view ordering.
+	InboxViewOrdering *string `json:"inboxViewOrdering,omitempty"`
+	// Whether to show the initiative activity field.
+	InitiativeFieldActivity *bool `json:"initiativeFieldActivity,omitempty"`
+	// Whether to show the initiative completed date field.
+	InitiativeFieldDateCompleted *bool `json:"initiativeFieldDateCompleted,omitempty"`
+	// Whether to show the initiative created date field.
+	InitiativeFieldDateCreated *bool `json:"initiativeFieldDateCreated,omitempty"`
+	// Whether to show the initiative updated date field.
+	InitiativeFieldDateUpdated *bool `json:"initiativeFieldDateUpdated,omitempty"`
+	// Whether to show the initiative description field.
+	InitiativeFieldDescription *bool `json:"initiativeFieldDescription,omitempty"`
+	// Whether to show the initiative active projects health field.
+	InitiativeFieldHealth *bool `json:"initiativeFieldHealth,omitempty"`
+	// Whether to show the initiative health field.
+	InitiativeFieldInitiativeHealth *bool `json:"initiativeFieldInitiativeHealth,omitempty"`
+	// Whether to show the initiative owner field.
+	InitiativeFieldOwner *bool `json:"initiativeFieldOwner,omitempty"`
+	// Whether to show the initiative projects field.
+	InitiativeFieldProjects *bool `json:"initiativeFieldProjects,omitempty"`
+	// Whether to show the initiative start date field.
+	InitiativeFieldStartDate *bool `json:"initiativeFieldStartDate,omitempty"`
+	// Whether to show the initiative target date field.
+	InitiativeFieldTargetDate *bool `json:"initiativeFieldTargetDate,omitempty"`
+	// Whether to show the initiative teams field.
+	InitiativeFieldTeams *bool `json:"initiativeFieldTeams,omitempty"`
+	// The initiative grouping.
+	InitiativeGrouping *string `json:"initiativeGrouping,omitempty"`
+	// The initiative ordering.
+	InitiativesViewOrdering *string `json:"initiativesViewOrdering,omitempty"`
 	// The issue grouping.
 	IssueGrouping *string `json:"issueGrouping,omitempty"`
-	// The issue sub grouping.
+	// The label group ID used for issue grouping.
+	IssueGroupingLabelGroupID *string `json:"issueGroupingLabelGroupId,omitempty"`
+	// How sub-issues should be nested and displayed.
+	IssueNesting *string `json:"issueNesting,omitempty"`
+	// The issue sub-grouping.
 	IssueSubGrouping *string `json:"issueSubGrouping,omitempty"`
-	// Whether to show completed issues.
+	// The label group ID used for issue sub-grouping.
+	IssueSubGroupingLabelGroupID *string `json:"issueSubGroupingLabelGroupId,omitempty"`
+	// The issue layout type.
+	Layout *string `json:"layout,omitempty"`
+	// Whether to show the member joined date field.
+	MemberFieldJoined *bool `json:"memberFieldJoined,omitempty"`
+	// Whether to show the member status field.
+	MemberFieldStatus *bool `json:"memberFieldStatus,omitempty"`
+	// Whether to show the member teams field.
+	MemberFieldTeams *bool `json:"memberFieldTeams,omitempty"`
+	// Whether to show completed issues last in project customer needs.
+	ProjectCustomerNeedsShowCompletedIssuesLast *bool `json:"projectCustomerNeedsShowCompletedIssuesLast,omitempty"`
+	// Whether to show important project customer needs first.
+	ProjectCustomerNeedsShowImportantFirst *bool `json:"projectCustomerNeedsShowImportantFirst,omitempty"`
+	// The project customer needs view grouping.
+	ProjectCustomerNeedsViewGrouping *string `json:"projectCustomerNeedsViewGrouping,omitempty"`
+	// The project customer needs view ordering.
+	ProjectCustomerNeedsViewOrdering *string `json:"projectCustomerNeedsViewOrdering,omitempty"`
+	// Whether to show the project activity field.
+	ProjectFieldActivity *bool `json:"projectFieldActivity,omitempty"`
+	// Whether to show the project customer count field.
+	ProjectFieldCustomerCount *bool `json:"projectFieldCustomerCount,omitempty"`
+	// Whether to show the project customer revenue field.
+	ProjectFieldCustomerRevenue *bool `json:"projectFieldCustomerRevenue,omitempty"`
+	// Whether to show the project completion date field.
+	ProjectFieldDateCompleted *bool `json:"projectFieldDateCompleted,omitempty"`
+	// Whether to show the project creation date field.
+	ProjectFieldDateCreated *bool `json:"projectFieldDateCreated,omitempty"`
+	// Whether to show the project updated date field.
+	ProjectFieldDateUpdated *bool `json:"projectFieldDateUpdated,omitempty"`
+	// Whether to show the project description field.
+	ProjectFieldDescription *bool `json:"projectFieldDescription,omitempty"`
+	// Whether to show the project description field on the board.
+	ProjectFieldDescriptionBoard *bool `json:"projectFieldDescriptionBoard,omitempty"`
+	// Whether to show the project health field.
+	ProjectFieldHealth *bool `json:"projectFieldHealth,omitempty"`
+	// Whether to show the project health field on the timeline.
+	ProjectFieldHealthTimeline *bool `json:"projectFieldHealthTimeline,omitempty"`
+	// Whether to show the project initiatives field.
+	ProjectFieldInitiatives *bool `json:"projectFieldInitiatives,omitempty"`
+	// Whether to show the project labels field.
+	ProjectFieldLabels *bool `json:"projectFieldLabels,omitempty"`
+	// Whether to show the project lead field.
+	ProjectFieldLead *bool `json:"projectFieldLead,omitempty"`
+	// Whether to show the project lead field on the timeline.
+	ProjectFieldLeadTimeline *bool `json:"projectFieldLeadTimeline,omitempty"`
+	// Whether to show the project members field.
+	ProjectFieldMembers *bool `json:"projectFieldMembers,omitempty"`
+	// Whether to show the project members field on the board.
+	ProjectFieldMembersBoard *bool `json:"projectFieldMembersBoard,omitempty"`
+	// Whether to show the project members field on the list.
+	ProjectFieldMembersList *bool `json:"projectFieldMembersList,omitempty"`
+	// Whether to show the project members field on the timeline.
+	ProjectFieldMembersTimeline *bool `json:"projectFieldMembersTimeline,omitempty"`
+	// Whether to show the project milestone field.
+	ProjectFieldMilestone *bool `json:"projectFieldMilestone,omitempty"`
+	// Whether to show the project milestone field on the timeline.
+	ProjectFieldMilestoneTimeline *bool `json:"projectFieldMilestoneTimeline,omitempty"`
+	// Whether to show the project predictions field.
+	ProjectFieldPredictions *bool `json:"projectFieldPredictions,omitempty"`
+	// Whether to show the project predictions field on the timeline.
+	ProjectFieldPredictionsTimeline *bool `json:"projectFieldPredictionsTimeline,omitempty"`
+	// Whether to show the project priority field.
+	ProjectFieldPriority *bool `json:"projectFieldPriority,omitempty"`
+	// Whether to show the project relations field.
+	ProjectFieldRelations *bool `json:"projectFieldRelations,omitempty"`
+	// Whether to show the project relations field on the timeline.
+	ProjectFieldRelationsTimeline *bool `json:"projectFieldRelationsTimeline,omitempty"`
+	// Whether to show the project roadmaps field.
+	ProjectFieldRoadmaps *bool `json:"projectFieldRoadmaps,omitempty"`
+	// Whether to show the project roadmaps field on the board.
+	ProjectFieldRoadmapsBoard *bool `json:"projectFieldRoadmapsBoard,omitempty"`
+	// Whether to show the project roadmaps field on the list.
+	ProjectFieldRoadmapsList *bool `json:"projectFieldRoadmapsList,omitempty"`
+	// Whether to show the project roadmaps field on the timeline.
+	ProjectFieldRoadmapsTimeline *bool `json:"projectFieldRoadmapsTimeline,omitempty"`
+	// Whether to show the project rollout stage field.
+	ProjectFieldRolloutStage *bool `json:"projectFieldRolloutStage,omitempty"`
+	// Whether to show the project start date field.
+	ProjectFieldStartDate *bool `json:"projectFieldStartDate,omitempty"`
+	// Whether to show the project status field.
+	ProjectFieldStatus *bool `json:"projectFieldStatus,omitempty"`
+	// Whether to show the project status field on the timeline.
+	ProjectFieldStatusTimeline *bool `json:"projectFieldStatusTimeline,omitempty"`
+	// Whether to show the project target date field.
+	ProjectFieldTargetDate *bool `json:"projectFieldTargetDate,omitempty"`
+	// Whether to show the project teams field.
+	ProjectFieldTeams *bool `json:"projectFieldTeams,omitempty"`
+	// Whether to show the project teams field on the board.
+	ProjectFieldTeamsBoard *bool `json:"projectFieldTeamsBoard,omitempty"`
+	// Whether to show the project teams field on the list.
+	ProjectFieldTeamsList *bool `json:"projectFieldTeamsList,omitempty"`
+	// Whether to show the project teams field on the timeline.
+	ProjectFieldTeamsTimeline *bool `json:"projectFieldTeamsTimeline,omitempty"`
+	// The ordering of project groups.
+	ProjectGroupOrdering *string `json:"projectGroupOrdering,omitempty"`
+	// The project grouping.
+	ProjectGrouping *string `json:"projectGrouping,omitempty"`
+	// The date resolution when grouping projects by date.
+	ProjectGroupingDateResolution *string `json:"projectGroupingDateResolution,omitempty"`
+	// The label group ID used for project grouping.
+	ProjectGroupingLabelGroupID *string `json:"projectGroupingLabelGroupId,omitempty"`
+	// The project label group columns configuration.
+	ProjectLabelGroupColumns []*ViewPreferencesProjectLabelGroupColumn `json:"projectLabelGroupColumns,omitempty"`
+	// The project layout type.
+	ProjectLayout *string `json:"projectLayout,omitempty"`
+	// How to show empty project groups.
+	ProjectShowEmptyGroups *string `json:"projectShowEmptyGroups,omitempty"`
+	// How to show empty project groups on the board layout.
+	ProjectShowEmptyGroupsBoard *string `json:"projectShowEmptyGroupsBoard,omitempty"`
+	// How to show empty project groups on the list layout.
+	ProjectShowEmptyGroupsList *string `json:"projectShowEmptyGroupsList,omitempty"`
+	// How to show empty project groups on the timeline layout.
+	ProjectShowEmptyGroupsTimeline *string `json:"projectShowEmptyGroupsTimeline,omitempty"`
+	// How to show empty project sub-groups.
+	ProjectShowEmptySubGroups *string `json:"projectShowEmptySubGroups,omitempty"`
+	// How to show empty project sub-groups on the board layout.
+	ProjectShowEmptySubGroupsBoard *string `json:"projectShowEmptySubGroupsBoard,omitempty"`
+	// How to show empty project sub-groups on the list layout.
+	ProjectShowEmptySubGroupsList *string `json:"projectShowEmptySubGroupsList,omitempty"`
+	// How to show empty project sub-groups on the timeline layout.
+	ProjectShowEmptySubGroupsTimeline *string `json:"projectShowEmptySubGroupsTimeline,omitempty"`
+	// The project sub-grouping.
+	ProjectSubGrouping *string `json:"projectSubGrouping,omitempty"`
+	// The label group ID used for project sub-grouping.
+	ProjectSubGroupingLabelGroupID *string `json:"projectSubGroupingLabelGroupId,omitempty"`
+	// The project ordering.
+	ProjectViewOrdering *string `json:"projectViewOrdering,omitempty"`
+	// The zoom level for the timeline view.
+	ProjectZoomLevel *string `json:"projectZoomLevel,omitempty"`
+	// Whether to show the latest release field for release pipelines.
+	ReleasePipelineFieldLatestRelease *bool `json:"releasePipelineFieldLatestRelease,omitempty"`
+	// Whether to show the releases field for release pipelines.
+	ReleasePipelineFieldReleases *bool `json:"releasePipelineFieldReleases,omitempty"`
+	// Whether to show the type field for release pipelines.
+	ReleasePipelineFieldType *bool `json:"releasePipelineFieldType,omitempty"`
+	// The release pipelines view ordering.
+	ReleasePipelinesViewOrdering *string `json:"releasePipelinesViewOrdering,omitempty"`
+	// Whether to show the review avatar field.
+	ReviewFieldAvatar *bool `json:"reviewFieldAvatar,omitempty"`
+	// Whether to show the review checks field.
+	ReviewFieldChecks *bool `json:"reviewFieldChecks,omitempty"`
+	// Whether to show the review identifier field.
+	ReviewFieldIdentifier *bool `json:"reviewFieldIdentifier,omitempty"`
+	// Whether to show the review preview links field.
+	ReviewFieldPreviewLinks *bool `json:"reviewFieldPreviewLinks,omitempty"`
+	// Whether to show the review repository field.
+	ReviewFieldRepository *bool `json:"reviewFieldRepository,omitempty"`
+	// The review grouping.
+	ReviewGrouping *string `json:"reviewGrouping,omitempty"`
+	// The review view ordering.
+	ReviewViewOrdering *string `json:"reviewViewOrdering,omitempty"`
+	// Whether to show the release date field for scheduled pipeline releases.
+	ScheduledPipelineReleaseFieldReleaseDate *bool `json:"scheduledPipelineReleaseFieldReleaseDate,omitempty"`
+	// Whether to show the stage field for scheduled pipeline releases.
+	ScheduledPipelineReleaseFieldStage *bool `json:"scheduledPipelineReleaseFieldStage,omitempty"`
+	// The scheduled pipeline releases view ordering.
+	ScheduledPipelineReleasesViewOrdering *string `json:"scheduledPipelineReleasesViewOrdering,omitempty"`
+	// The search result type filter.
+	SearchResultType *string `json:"searchResultType,omitempty"`
+	// The search view ordering.
+	SearchViewOrdering *string `json:"searchViewOrdering,omitempty"`
+	// Whether to show archived items.
+	ShowArchivedItems *bool `json:"showArchivedItems,omitempty"`
+	// Whether completed agent sessions are shown and for how long.
+	ShowCompletedAgentSessions *string `json:"showCompletedAgentSessions,omitempty"`
+	// Whether completed issues are shown and for how long.
 	ShowCompletedIssues *string `json:"showCompletedIssues,omitempty"`
+	// Whether completed projects are shown and for how long.
+	ShowCompletedProjects *string `json:"showCompletedProjects,omitempty"`
+	// Whether completed reviews are shown and for how long.
+	ShowCompletedReviews *string `json:"showCompletedReviews,omitempty"`
+	// Whether to show draft reviews.
+	ShowDraftReviews *bool `json:"showDraftReviews,omitempty"`
+	// Whether to show empty groups.
+	ShowEmptyGroups *bool `json:"showEmptyGroups,omitempty"`
+	// Whether to show empty groups on the board layout.
+	ShowEmptyGroupsBoard *bool `json:"showEmptyGroupsBoard,omitempty"`
+	// Whether to show empty groups on the list layout.
+	ShowEmptyGroupsList *bool `json:"showEmptyGroupsList,omitempty"`
+	// Whether to show empty sub-groups.
+	ShowEmptySubGroups *bool `json:"showEmptySubGroups,omitempty"`
+	// Whether to show empty sub-groups on the board layout.
+	ShowEmptySubGroupsBoard *bool `json:"showEmptySubGroupsBoard,omitempty"`
+	// Whether to show empty sub-groups on the list layout.
+	ShowEmptySubGroupsList *bool `json:"showEmptySubGroupsList,omitempty"`
+	// Whether to show sub-initiatives nested.
+	ShowNestedInitiatives *bool `json:"showNestedInitiatives,omitempty"`
+	// Whether to show only snoozed items.
+	ShowOnlySnoozedItems *bool `json:"showOnlySnoozedItems,omitempty"`
+	// Whether to show parent issues for sub-issues.
+	ShowParents *bool `json:"showParents,omitempty"`
+	// Whether to show read items.
+	ShowReadItems *bool `json:"showReadItems,omitempty"`
+	// Whether to show snoozed items.
+	ShowSnoozedItems *bool `json:"showSnoozedItems,omitempty"`
+	// Whether to show sub-initiative projects.
+	ShowSubInitiativeProjects *bool `json:"showSubInitiativeProjects,omitempty"`
+	// Whether to show sub-issues.
+	ShowSubIssues *bool `json:"showSubIssues,omitempty"`
+	// Whether to show sub-team issues.
+	ShowSubTeamIssues *bool `json:"showSubTeamIssues,omitempty"`
+	// Whether to show sub-team projects.
+	ShowSubTeamProjects *bool `json:"showSubTeamProjects,omitempty"`
+	// Whether to show supervised issues.
+	ShowSupervisedIssues *bool `json:"showSupervisedIssues,omitempty"`
+	// Whether to show triage issues.
+	ShowTriageIssues *bool `json:"showTriageIssues,omitempty"`
+	// Whether to show unread items first.
+	ShowUnreadItemsFirst *bool `json:"showUnreadItemsFirst,omitempty"`
+	// Whether to show the team cycle field.
+	TeamFieldCycle *bool `json:"teamFieldCycle,omitempty"`
+	// Whether to show the team creation date field.
+	TeamFieldDateCreated *bool `json:"teamFieldDateCreated,omitempty"`
+	// Whether to show the team updated date field.
+	TeamFieldDateUpdated *bool `json:"teamFieldDateUpdated,omitempty"`
+	// Whether to show the team identifier field.
+	TeamFieldIdentifier *bool `json:"teamFieldIdentifier,omitempty"`
+	// Whether to show the team members field.
+	TeamFieldMembers *bool `json:"teamFieldMembers,omitempty"`
+	// Whether to show the team membership field.
+	TeamFieldMembership *bool `json:"teamFieldMembership,omitempty"`
+	// Whether to show the team owner field.
+	TeamFieldOwner *bool `json:"teamFieldOwner,omitempty"`
+	// Whether to show the team projects field.
+	TeamFieldProjects *bool `json:"teamFieldProjects,omitempty"`
+	// The team view ordering.
+	TeamViewOrdering *string `json:"teamViewOrdering,omitempty"`
+	// Selected team IDs to show cycles for in timeline chronology bar.
+	TimelineChronologyShowCycleTeamIds []string `json:"timelineChronologyShowCycleTeamIds,omitempty"`
+	// Whether to show week numbers in timeline chronology bar.
+	TimelineChronologyShowWeekNumbers *bool `json:"timelineChronologyShowWeekNumbers,omitempty"`
+	// The zoom scale for the timeline view.
+	TimelineZoomScale *float64 `json:"timelineZoomScale,omitempty"`
+	// The triage view ordering.
+	TriageViewOrdering *string `json:"triageViewOrdering,omitempty"`
 	// The issue ordering.
 	ViewOrdering *string `json:"viewOrdering,omitempty"`
+	// The direction of the issue ordering.
+	ViewOrderingDirection *string `json:"viewOrderingDirection,omitempty"`
+	// The workspace members view ordering.
+	WorkspaceMembersViewOrdering *string `json:"workspaceMembersViewOrdering,omitempty"`
 }
 
 // A webhook used to send HTTP notifications over data updates.
@@ -17770,7 +19331,7 @@ type WorkflowState struct {
 	Position float64 `json:"position"`
 	// The team to which this state belongs to.
 	Team *Team `json:"team"`
-	// The type of the state. One of "triage", "backlog", "unstarted", "started", "completed", "canceled".
+	// The type of the state. One of "triage", "backlog", "unstarted", "started", "completed", "canceled", "duplicate".
 	Type string `json:"type"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
@@ -17861,7 +19422,7 @@ type WorkflowStateFilter struct {
 	Position *NumberComparator `json:"position,omitempty"`
 	// Filters that the workflow states team must satisfy.
 	Team *TeamFilter `json:"team,omitempty"`
-	// Comparator for the workflow state type. Possible values are "triage", "backlog", "unstarted", "started", "completed", "canceled".
+	// Comparator for the workflow state type. Possible values are "triage", "backlog", "unstarted", "started", "completed", "canceled", "duplicate".
 	Type *StringComparator `json:"type,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
@@ -17916,6 +19477,8 @@ type ZendeskSettingsInput struct {
 	DisableCustomerRequestsAutoCreation *bool `json:"disableCustomerRequestsAutoCreation,omitempty"`
 	// Whether Linear Agent should be enabled for this integration.
 	EnableAiIntake *bool `json:"enableAiIntake,omitempty"`
+	// The host mappings from Zendesk brands.
+	HostMappings []string `json:"hostMappings,omitempty"`
 	// Whether an internal message should be added when someone comments on an issue.
 	SendNoteOnComment *bool `json:"sendNoteOnComment,omitempty"`
 	// Whether an internal message should be added when a Linear issue changes status (for status types except completed or canceled).
@@ -18165,6 +19728,666 @@ func (e *AgentSessionType) UnmarshalJSON(b []byte) error {
 }
 
 func (e AgentSessionType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The action performed on the entity (leave empty if just found)
+type AiConversationEntityCardWidgetArgsAction string
+
+const (
+	AiConversationEntityCardWidgetArgsActionCreated AiConversationEntityCardWidgetArgsAction = "created"
+	AiConversationEntityCardWidgetArgsActionUpdated AiConversationEntityCardWidgetArgsAction = "updated"
+)
+
+var AllAiConversationEntityCardWidgetArgsAction = []AiConversationEntityCardWidgetArgsAction{
+	AiConversationEntityCardWidgetArgsActionCreated,
+	AiConversationEntityCardWidgetArgsActionUpdated,
+}
+
+func (e AiConversationEntityCardWidgetArgsAction) IsValid() bool {
+	switch e {
+	case AiConversationEntityCardWidgetArgsActionCreated, AiConversationEntityCardWidgetArgsActionUpdated:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationEntityCardWidgetArgsAction) String() string {
+	return string(e)
+}
+
+func (e *AiConversationEntityCardWidgetArgsAction) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationEntityCardWidgetArgsAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationEntityCardWidgetArgsAction", str)
+	}
+	return nil
+}
+
+func (e AiConversationEntityCardWidgetArgsAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationEntityCardWidgetArgsAction) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationEntityCardWidgetArgsAction) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// [Internal] The entity type
+type AiConversationEntityCardWidgetArgsType string
+
+const (
+	AiConversationEntityCardWidgetArgsTypeAiPrompt         AiConversationEntityCardWidgetArgsType = "AiPrompt"
+	AiConversationEntityCardWidgetArgsTypeCustomView       AiConversationEntityCardWidgetArgsType = "CustomView"
+	AiConversationEntityCardWidgetArgsTypeCustomer         AiConversationEntityCardWidgetArgsType = "Customer"
+	AiConversationEntityCardWidgetArgsTypeCustomerNeed     AiConversationEntityCardWidgetArgsType = "CustomerNeed"
+	AiConversationEntityCardWidgetArgsTypeDocument         AiConversationEntityCardWidgetArgsType = "Document"
+	AiConversationEntityCardWidgetArgsTypeInitiative       AiConversationEntityCardWidgetArgsType = "Initiative"
+	AiConversationEntityCardWidgetArgsTypeInitiativeUpdate AiConversationEntityCardWidgetArgsType = "InitiativeUpdate"
+	AiConversationEntityCardWidgetArgsTypeIssue            AiConversationEntityCardWidgetArgsType = "Issue"
+	AiConversationEntityCardWidgetArgsTypeProject          AiConversationEntityCardWidgetArgsType = "Project"
+	AiConversationEntityCardWidgetArgsTypeProjectUpdate    AiConversationEntityCardWidgetArgsType = "ProjectUpdate"
+	AiConversationEntityCardWidgetArgsTypePullRequest      AiConversationEntityCardWidgetArgsType = "PullRequest"
+	AiConversationEntityCardWidgetArgsTypeRelease          AiConversationEntityCardWidgetArgsType = "Release"
+	AiConversationEntityCardWidgetArgsTypeReleasePipeline  AiConversationEntityCardWidgetArgsType = "ReleasePipeline"
+	AiConversationEntityCardWidgetArgsTypeTeam             AiConversationEntityCardWidgetArgsType = "Team"
+	AiConversationEntityCardWidgetArgsTypeTemplate         AiConversationEntityCardWidgetArgsType = "Template"
+)
+
+var AllAiConversationEntityCardWidgetArgsType = []AiConversationEntityCardWidgetArgsType{
+	AiConversationEntityCardWidgetArgsTypeAiPrompt,
+	AiConversationEntityCardWidgetArgsTypeCustomView,
+	AiConversationEntityCardWidgetArgsTypeCustomer,
+	AiConversationEntityCardWidgetArgsTypeCustomerNeed,
+	AiConversationEntityCardWidgetArgsTypeDocument,
+	AiConversationEntityCardWidgetArgsTypeInitiative,
+	AiConversationEntityCardWidgetArgsTypeInitiativeUpdate,
+	AiConversationEntityCardWidgetArgsTypeIssue,
+	AiConversationEntityCardWidgetArgsTypeProject,
+	AiConversationEntityCardWidgetArgsTypeProjectUpdate,
+	AiConversationEntityCardWidgetArgsTypePullRequest,
+	AiConversationEntityCardWidgetArgsTypeRelease,
+	AiConversationEntityCardWidgetArgsTypeReleasePipeline,
+	AiConversationEntityCardWidgetArgsTypeTeam,
+	AiConversationEntityCardWidgetArgsTypeTemplate,
+}
+
+func (e AiConversationEntityCardWidgetArgsType) IsValid() bool {
+	switch e {
+	case AiConversationEntityCardWidgetArgsTypeAiPrompt, AiConversationEntityCardWidgetArgsTypeCustomView, AiConversationEntityCardWidgetArgsTypeCustomer, AiConversationEntityCardWidgetArgsTypeCustomerNeed, AiConversationEntityCardWidgetArgsTypeDocument, AiConversationEntityCardWidgetArgsTypeInitiative, AiConversationEntityCardWidgetArgsTypeInitiativeUpdate, AiConversationEntityCardWidgetArgsTypeIssue, AiConversationEntityCardWidgetArgsTypeProject, AiConversationEntityCardWidgetArgsTypeProjectUpdate, AiConversationEntityCardWidgetArgsTypePullRequest, AiConversationEntityCardWidgetArgsTypeRelease, AiConversationEntityCardWidgetArgsTypeReleasePipeline, AiConversationEntityCardWidgetArgsTypeTeam, AiConversationEntityCardWidgetArgsTypeTemplate:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationEntityCardWidgetArgsType) String() string {
+	return string(e)
+}
+
+func (e *AiConversationEntityCardWidgetArgsType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationEntityCardWidgetArgsType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationEntityCardWidgetArgsType", str)
+	}
+	return nil
+}
+
+func (e AiConversationEntityCardWidgetArgsType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationEntityCardWidgetArgsType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationEntityCardWidgetArgsType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The action performed on the entities (leave empty if just found)
+type AiConversationEntityListWidgetArgsAction string
+
+const (
+	AiConversationEntityListWidgetArgsActionCreated AiConversationEntityListWidgetArgsAction = "created"
+	AiConversationEntityListWidgetArgsActionUpdated AiConversationEntityListWidgetArgsAction = "updated"
+)
+
+var AllAiConversationEntityListWidgetArgsAction = []AiConversationEntityListWidgetArgsAction{
+	AiConversationEntityListWidgetArgsActionCreated,
+	AiConversationEntityListWidgetArgsActionUpdated,
+}
+
+func (e AiConversationEntityListWidgetArgsAction) IsValid() bool {
+	switch e {
+	case AiConversationEntityListWidgetArgsActionCreated, AiConversationEntityListWidgetArgsActionUpdated:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationEntityListWidgetArgsAction) String() string {
+	return string(e)
+}
+
+func (e *AiConversationEntityListWidgetArgsAction) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationEntityListWidgetArgsAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationEntityListWidgetArgsAction", str)
+	}
+	return nil
+}
+
+func (e AiConversationEntityListWidgetArgsAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationEntityListWidgetArgsAction) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationEntityListWidgetArgsAction) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// [Internal] The entity type
+type AiConversationEntityListWidgetArgsEntitiesType string
+
+const (
+	AiConversationEntityListWidgetArgsEntitiesTypeAiPrompt         AiConversationEntityListWidgetArgsEntitiesType = "AiPrompt"
+	AiConversationEntityListWidgetArgsEntitiesTypeCustomView       AiConversationEntityListWidgetArgsEntitiesType = "CustomView"
+	AiConversationEntityListWidgetArgsEntitiesTypeCustomer         AiConversationEntityListWidgetArgsEntitiesType = "Customer"
+	AiConversationEntityListWidgetArgsEntitiesTypeCustomerNeed     AiConversationEntityListWidgetArgsEntitiesType = "CustomerNeed"
+	AiConversationEntityListWidgetArgsEntitiesTypeDocument         AiConversationEntityListWidgetArgsEntitiesType = "Document"
+	AiConversationEntityListWidgetArgsEntitiesTypeInitiative       AiConversationEntityListWidgetArgsEntitiesType = "Initiative"
+	AiConversationEntityListWidgetArgsEntitiesTypeInitiativeUpdate AiConversationEntityListWidgetArgsEntitiesType = "InitiativeUpdate"
+	AiConversationEntityListWidgetArgsEntitiesTypeIssue            AiConversationEntityListWidgetArgsEntitiesType = "Issue"
+	AiConversationEntityListWidgetArgsEntitiesTypeProject          AiConversationEntityListWidgetArgsEntitiesType = "Project"
+	AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate    AiConversationEntityListWidgetArgsEntitiesType = "ProjectUpdate"
+	AiConversationEntityListWidgetArgsEntitiesTypePullRequest      AiConversationEntityListWidgetArgsEntitiesType = "PullRequest"
+	AiConversationEntityListWidgetArgsEntitiesTypeRelease          AiConversationEntityListWidgetArgsEntitiesType = "Release"
+	AiConversationEntityListWidgetArgsEntitiesTypeReleasePipeline  AiConversationEntityListWidgetArgsEntitiesType = "ReleasePipeline"
+	AiConversationEntityListWidgetArgsEntitiesTypeTeam             AiConversationEntityListWidgetArgsEntitiesType = "Team"
+	AiConversationEntityListWidgetArgsEntitiesTypeTemplate         AiConversationEntityListWidgetArgsEntitiesType = "Template"
+)
+
+var AllAiConversationEntityListWidgetArgsEntitiesType = []AiConversationEntityListWidgetArgsEntitiesType{
+	AiConversationEntityListWidgetArgsEntitiesTypeAiPrompt,
+	AiConversationEntityListWidgetArgsEntitiesTypeCustomView,
+	AiConversationEntityListWidgetArgsEntitiesTypeCustomer,
+	AiConversationEntityListWidgetArgsEntitiesTypeCustomerNeed,
+	AiConversationEntityListWidgetArgsEntitiesTypeDocument,
+	AiConversationEntityListWidgetArgsEntitiesTypeInitiative,
+	AiConversationEntityListWidgetArgsEntitiesTypeInitiativeUpdate,
+	AiConversationEntityListWidgetArgsEntitiesTypeIssue,
+	AiConversationEntityListWidgetArgsEntitiesTypeProject,
+	AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate,
+	AiConversationEntityListWidgetArgsEntitiesTypePullRequest,
+	AiConversationEntityListWidgetArgsEntitiesTypeRelease,
+	AiConversationEntityListWidgetArgsEntitiesTypeReleasePipeline,
+	AiConversationEntityListWidgetArgsEntitiesTypeTeam,
+	AiConversationEntityListWidgetArgsEntitiesTypeTemplate,
+}
+
+func (e AiConversationEntityListWidgetArgsEntitiesType) IsValid() bool {
+	switch e {
+	case AiConversationEntityListWidgetArgsEntitiesTypeAiPrompt, AiConversationEntityListWidgetArgsEntitiesTypeCustomView, AiConversationEntityListWidgetArgsEntitiesTypeCustomer, AiConversationEntityListWidgetArgsEntitiesTypeCustomerNeed, AiConversationEntityListWidgetArgsEntitiesTypeDocument, AiConversationEntityListWidgetArgsEntitiesTypeInitiative, AiConversationEntityListWidgetArgsEntitiesTypeInitiativeUpdate, AiConversationEntityListWidgetArgsEntitiesTypeIssue, AiConversationEntityListWidgetArgsEntitiesTypeProject, AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate, AiConversationEntityListWidgetArgsEntitiesTypePullRequest, AiConversationEntityListWidgetArgsEntitiesTypeRelease, AiConversationEntityListWidgetArgsEntitiesTypeReleasePipeline, AiConversationEntityListWidgetArgsEntitiesTypeTeam, AiConversationEntityListWidgetArgsEntitiesTypeTemplate:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationEntityListWidgetArgsEntitiesType) String() string {
+	return string(e)
+}
+
+func (e *AiConversationEntityListWidgetArgsEntitiesType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationEntityListWidgetArgsEntitiesType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationEntityListWidgetArgsEntitiesType", str)
+	}
+	return nil
+}
+
+func (e AiConversationEntityListWidgetArgsEntitiesType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationEntityListWidgetArgsEntitiesType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationEntityListWidgetArgsEntitiesType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The type of a part in an AI conversation.
+type AiConversationPartType string
+
+const (
+	AiConversationPartTypePrompt            AiConversationPartType = "prompt"
+	AiConversationPartTypeReasoning         AiConversationPartType = "reasoning"
+	AiConversationPartTypeText              AiConversationPartType = "text"
+	AiConversationPartTypeToolCall          AiConversationPartType = "toolCall"
+	AiConversationPartTypeWidget            AiConversationPartType = "widget"
+	AiConversationPartTypeWidgetPlaceholder AiConversationPartType = "widgetPlaceholder"
+)
+
+var AllAiConversationPartType = []AiConversationPartType{
+	AiConversationPartTypePrompt,
+	AiConversationPartTypeReasoning,
+	AiConversationPartTypeText,
+	AiConversationPartTypeToolCall,
+	AiConversationPartTypeWidget,
+	AiConversationPartTypeWidgetPlaceholder,
+}
+
+func (e AiConversationPartType) IsValid() bool {
+	switch e {
+	case AiConversationPartTypePrompt, AiConversationPartTypeReasoning, AiConversationPartTypeText, AiConversationPartTypeToolCall, AiConversationPartTypeWidget, AiConversationPartTypeWidgetPlaceholder:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationPartType) String() string {
+	return string(e)
+}
+
+func (e *AiConversationPartType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationPartType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationPartType", str)
+	}
+	return nil
+}
+
+func (e AiConversationPartType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationPartType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationPartType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type AiConversationQueryUpdatesToolCallArgsUpdateType string
+
+const (
+	AiConversationQueryUpdatesToolCallArgsUpdateTypeInitiativeUpdate AiConversationQueryUpdatesToolCallArgsUpdateType = "InitiativeUpdate"
+	AiConversationQueryUpdatesToolCallArgsUpdateTypeProjectUpdate    AiConversationQueryUpdatesToolCallArgsUpdateType = "ProjectUpdate"
+)
+
+var AllAiConversationQueryUpdatesToolCallArgsUpdateType = []AiConversationQueryUpdatesToolCallArgsUpdateType{
+	AiConversationQueryUpdatesToolCallArgsUpdateTypeInitiativeUpdate,
+	AiConversationQueryUpdatesToolCallArgsUpdateTypeProjectUpdate,
+}
+
+func (e AiConversationQueryUpdatesToolCallArgsUpdateType) IsValid() bool {
+	switch e {
+	case AiConversationQueryUpdatesToolCallArgsUpdateTypeInitiativeUpdate, AiConversationQueryUpdatesToolCallArgsUpdateTypeProjectUpdate:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationQueryUpdatesToolCallArgsUpdateType) String() string {
+	return string(e)
+}
+
+func (e *AiConversationQueryUpdatesToolCallArgsUpdateType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationQueryUpdatesToolCallArgsUpdateType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationQueryUpdatesToolCallArgsUpdateType", str)
+	}
+	return nil
+}
+
+func (e AiConversationQueryUpdatesToolCallArgsUpdateType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationQueryUpdatesToolCallArgsUpdateType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationQueryUpdatesToolCallArgsUpdateType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type AiConversationQueryViewToolCallArgsMode string
+
+const (
+	AiConversationQueryViewToolCallArgsModeInsight AiConversationQueryViewToolCallArgsMode = "insight"
+	AiConversationQueryViewToolCallArgsModeList    AiConversationQueryViewToolCallArgsMode = "list"
+)
+
+var AllAiConversationQueryViewToolCallArgsMode = []AiConversationQueryViewToolCallArgsMode{
+	AiConversationQueryViewToolCallArgsModeInsight,
+	AiConversationQueryViewToolCallArgsModeList,
+}
+
+func (e AiConversationQueryViewToolCallArgsMode) IsValid() bool {
+	switch e {
+	case AiConversationQueryViewToolCallArgsModeInsight, AiConversationQueryViewToolCallArgsModeList:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationQueryViewToolCallArgsMode) String() string {
+	return string(e)
+}
+
+func (e *AiConversationQueryViewToolCallArgsMode) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationQueryViewToolCallArgsMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationQueryViewToolCallArgsMode", str)
+	}
+	return nil
+}
+
+func (e AiConversationQueryViewToolCallArgsMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationQueryViewToolCallArgsMode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationQueryViewToolCallArgsMode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The status of an AI conversation.
+type AiConversationStatus string
+
+const (
+	AiConversationStatusActive        AiConversationStatus = "active"
+	AiConversationStatusAwaitingInput AiConversationStatus = "awaitingInput"
+	AiConversationStatusComplete      AiConversationStatus = "complete"
+	AiConversationStatusError         AiConversationStatus = "error"
+	AiConversationStatusPending       AiConversationStatus = "pending"
+)
+
+var AllAiConversationStatus = []AiConversationStatus{
+	AiConversationStatusActive,
+	AiConversationStatusAwaitingInput,
+	AiConversationStatusComplete,
+	AiConversationStatusError,
+	AiConversationStatusPending,
+}
+
+func (e AiConversationStatus) IsValid() bool {
+	switch e {
+	case AiConversationStatusActive, AiConversationStatusAwaitingInput, AiConversationStatusComplete, AiConversationStatusError, AiConversationStatusPending:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationStatus) String() string {
+	return string(e)
+}
+
+func (e *AiConversationStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationStatus", str)
+	}
+	return nil
+}
+
+func (e AiConversationStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The name of a tool that was called in an AI conversation.
+type AiConversationTool string
+
+const (
+	AiConversationToolCodeIntelligence                     AiConversationTool = "CodeIntelligence"
+	AiConversationToolCreateEntity                         AiConversationTool = "CreateEntity"
+	AiConversationToolDeleteEntity                         AiConversationTool = "DeleteEntity"
+	AiConversationToolGetMicrosoftTeamsConversationHistory AiConversationTool = "GetMicrosoftTeamsConversationHistory"
+	AiConversationToolGetPullRequestDiff                   AiConversationTool = "GetPullRequestDiff"
+	AiConversationToolGetPullRequestFile                   AiConversationTool = "GetPullRequestFile"
+	AiConversationToolGetSlackConversationHistory          AiConversationTool = "GetSlackConversationHistory"
+	AiConversationToolInvokeMcpTool                        AiConversationTool = "InvokeMcpTool"
+	AiConversationToolQueryActivity                        AiConversationTool = "QueryActivity"
+	AiConversationToolQueryUpdates                         AiConversationTool = "QueryUpdates"
+	AiConversationToolQueryView                            AiConversationTool = "QueryView"
+	AiConversationToolResearch                             AiConversationTool = "Research"
+	AiConversationToolRetrieveEntities                     AiConversationTool = "RetrieveEntities"
+	AiConversationToolSearchDocumentation                  AiConversationTool = "SearchDocumentation"
+	AiConversationToolSearchEntities                       AiConversationTool = "SearchEntities"
+	AiConversationToolSuggestValues                        AiConversationTool = "SuggestValues"
+	AiConversationToolTranscribeMedia                      AiConversationTool = "TranscribeMedia"
+	AiConversationToolTranscribeVideo                      AiConversationTool = "TranscribeVideo"
+	AiConversationToolUpdateEntity                         AiConversationTool = "UpdateEntity"
+	AiConversationToolWebSearch                            AiConversationTool = "WebSearch"
+)
+
+var AllAiConversationTool = []AiConversationTool{
+	AiConversationToolCodeIntelligence,
+	AiConversationToolCreateEntity,
+	AiConversationToolDeleteEntity,
+	AiConversationToolGetMicrosoftTeamsConversationHistory,
+	AiConversationToolGetPullRequestDiff,
+	AiConversationToolGetPullRequestFile,
+	AiConversationToolGetSlackConversationHistory,
+	AiConversationToolInvokeMcpTool,
+	AiConversationToolQueryActivity,
+	AiConversationToolQueryUpdates,
+	AiConversationToolQueryView,
+	AiConversationToolResearch,
+	AiConversationToolRetrieveEntities,
+	AiConversationToolSearchDocumentation,
+	AiConversationToolSearchEntities,
+	AiConversationToolSuggestValues,
+	AiConversationToolTranscribeMedia,
+	AiConversationToolTranscribeVideo,
+	AiConversationToolUpdateEntity,
+	AiConversationToolWebSearch,
+}
+
+func (e AiConversationTool) IsValid() bool {
+	switch e {
+	case AiConversationToolCodeIntelligence, AiConversationToolCreateEntity, AiConversationToolDeleteEntity, AiConversationToolGetMicrosoftTeamsConversationHistory, AiConversationToolGetPullRequestDiff, AiConversationToolGetPullRequestFile, AiConversationToolGetSlackConversationHistory, AiConversationToolInvokeMcpTool, AiConversationToolQueryActivity, AiConversationToolQueryUpdates, AiConversationToolQueryView, AiConversationToolResearch, AiConversationToolRetrieveEntities, AiConversationToolSearchDocumentation, AiConversationToolSearchEntities, AiConversationToolSuggestValues, AiConversationToolTranscribeMedia, AiConversationToolTranscribeVideo, AiConversationToolUpdateEntity, AiConversationToolWebSearch:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationTool) String() string {
+	return string(e)
+}
+
+func (e *AiConversationTool) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationTool(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationTool", str)
+	}
+	return nil
+}
+
+func (e AiConversationTool) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationTool) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationTool) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The name of a widget in an AI conversation.
+type AiConversationWidgetName string
+
+const (
+	AiConversationWidgetNameEntityCard AiConversationWidgetName = "EntityCard"
+	AiConversationWidgetNameEntityList AiConversationWidgetName = "EntityList"
+)
+
+var AllAiConversationWidgetName = []AiConversationWidgetName{
+	AiConversationWidgetNameEntityCard,
+	AiConversationWidgetNameEntityList,
+}
+
+func (e AiConversationWidgetName) IsValid() bool {
+	switch e {
+	case AiConversationWidgetNameEntityCard, AiConversationWidgetNameEntityList:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationWidgetName) String() string {
+	return string(e)
+}
+
+func (e *AiConversationWidgetName) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationWidgetName(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationWidgetName", str)
+	}
+	return nil
+}
+
+func (e AiConversationWidgetName) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationWidgetName) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationWidgetName) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -19285,6 +21508,7 @@ type IntegrationService string
 
 const (
 	IntegrationServiceAirbyte                       IntegrationService = "airbyte"
+	IntegrationServiceAsksWeb                       IntegrationService = "asksWeb"
 	IntegrationServiceDiscord                       IntegrationService = "discord"
 	IntegrationServiceEmail                         IntegrationService = "email"
 	IntegrationServiceFigma                         IntegrationService = "figma"
@@ -19308,6 +21532,7 @@ const (
 	IntegrationServiceLoom                          IntegrationService = "loom"
 	IntegrationServiceMcpServer                     IntegrationService = "mcpServer"
 	IntegrationServiceMcpServerPersonal             IntegrationService = "mcpServerPersonal"
+	IntegrationServiceMicrosoftPersonal             IntegrationService = "microsoftPersonal"
 	IntegrationServiceMicrosoftTeams                IntegrationService = "microsoftTeams"
 	IntegrationServiceNotion                        IntegrationService = "notion"
 	IntegrationServiceOpsgenie                      IntegrationService = "opsgenie"
@@ -19329,6 +21554,7 @@ const (
 
 var AllIntegrationService = []IntegrationService{
 	IntegrationServiceAirbyte,
+	IntegrationServiceAsksWeb,
 	IntegrationServiceDiscord,
 	IntegrationServiceEmail,
 	IntegrationServiceFigma,
@@ -19352,6 +21578,7 @@ var AllIntegrationService = []IntegrationService{
 	IntegrationServiceLoom,
 	IntegrationServiceMcpServer,
 	IntegrationServiceMcpServerPersonal,
+	IntegrationServiceMicrosoftPersonal,
 	IntegrationServiceMicrosoftTeams,
 	IntegrationServiceNotion,
 	IntegrationServiceOpsgenie,
@@ -19373,7 +21600,7 @@ var AllIntegrationService = []IntegrationService{
 
 func (e IntegrationService) IsValid() bool {
 	switch e {
-	case IntegrationServiceAirbyte, IntegrationServiceDiscord, IntegrationServiceEmail, IntegrationServiceFigma, IntegrationServiceFigmaPlugin, IntegrationServiceFront, IntegrationServiceGithub, IntegrationServiceGithubCodeAccessPersonal, IntegrationServiceGithubCommit, IntegrationServiceGithubEnterpriseServer, IntegrationServiceGithubImport, IntegrationServiceGithubPersonal, IntegrationServiceGitlab, IntegrationServiceGong, IntegrationServiceGoogleCalendarPersonal, IntegrationServiceGoogleSheets, IntegrationServiceIntercom, IntegrationServiceJira, IntegrationServiceJiraPersonal, IntegrationServiceLaunchDarkly, IntegrationServiceLaunchDarklyPersonal, IntegrationServiceLoom, IntegrationServiceMcpServer, IntegrationServiceMcpServerPersonal, IntegrationServiceMicrosoftTeams, IntegrationServiceNotion, IntegrationServiceOpsgenie, IntegrationServicePagerDuty, IntegrationServiceSalesforce, IntegrationServiceSentry, IntegrationServiceSlack, IntegrationServiceSlackAsks, IntegrationServiceSlackCustomViewNotifications, IntegrationServiceSlackInitiativePost, IntegrationServiceSlackOrgInitiativeUpdatesPost, IntegrationServiceSlackOrgProjectUpdatesPost, IntegrationServiceSlackPersonal, IntegrationServiceSlackPost, IntegrationServiceSlackProjectPost, IntegrationServiceSlackProjectUpdatesPost, IntegrationServiceZendesk:
+	case IntegrationServiceAirbyte, IntegrationServiceAsksWeb, IntegrationServiceDiscord, IntegrationServiceEmail, IntegrationServiceFigma, IntegrationServiceFigmaPlugin, IntegrationServiceFront, IntegrationServiceGithub, IntegrationServiceGithubCodeAccessPersonal, IntegrationServiceGithubCommit, IntegrationServiceGithubEnterpriseServer, IntegrationServiceGithubImport, IntegrationServiceGithubPersonal, IntegrationServiceGitlab, IntegrationServiceGong, IntegrationServiceGoogleCalendarPersonal, IntegrationServiceGoogleSheets, IntegrationServiceIntercom, IntegrationServiceJira, IntegrationServiceJiraPersonal, IntegrationServiceLaunchDarkly, IntegrationServiceLaunchDarklyPersonal, IntegrationServiceLoom, IntegrationServiceMcpServer, IntegrationServiceMcpServerPersonal, IntegrationServiceMicrosoftPersonal, IntegrationServiceMicrosoftTeams, IntegrationServiceNotion, IntegrationServiceOpsgenie, IntegrationServicePagerDuty, IntegrationServiceSalesforce, IntegrationServiceSentry, IntegrationServiceSlack, IntegrationServiceSlackAsks, IntegrationServiceSlackCustomViewNotifications, IntegrationServiceSlackInitiativePost, IntegrationServiceSlackOrgInitiativeUpdatesPost, IntegrationServiceSlackOrgProjectUpdatesPost, IntegrationServiceSlackPersonal, IntegrationServiceSlackPost, IntegrationServiceSlackProjectPost, IntegrationServiceSlackProjectUpdatesPost, IntegrationServiceZendesk:
 		return true
 	}
 	return false
@@ -19469,6 +21696,66 @@ func (e *IssueRelationType) UnmarshalJSON(b []byte) error {
 }
 
 func (e IssueRelationType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// Issue update fields that are disallowed for users with only shared access.
+type IssueSharedAccessDisallowedField string
+
+const (
+	IssueSharedAccessDisallowedFieldCycleID            IssueSharedAccessDisallowedField = "cycleId"
+	IssueSharedAccessDisallowedFieldProjectID          IssueSharedAccessDisallowedField = "projectId"
+	IssueSharedAccessDisallowedFieldProjectMilestoneID IssueSharedAccessDisallowedField = "projectMilestoneId"
+	IssueSharedAccessDisallowedFieldTeamID             IssueSharedAccessDisallowedField = "teamId"
+)
+
+var AllIssueSharedAccessDisallowedField = []IssueSharedAccessDisallowedField{
+	IssueSharedAccessDisallowedFieldCycleID,
+	IssueSharedAccessDisallowedFieldProjectID,
+	IssueSharedAccessDisallowedFieldProjectMilestoneID,
+	IssueSharedAccessDisallowedFieldTeamID,
+}
+
+func (e IssueSharedAccessDisallowedField) IsValid() bool {
+	switch e {
+	case IssueSharedAccessDisallowedFieldCycleID, IssueSharedAccessDisallowedFieldProjectID, IssueSharedAccessDisallowedFieldProjectMilestoneID, IssueSharedAccessDisallowedFieldTeamID:
+		return true
+	}
+	return false
+}
+
+func (e IssueSharedAccessDisallowedField) String() string {
+	return string(e)
+}
+
+func (e *IssueSharedAccessDisallowedField) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IssueSharedAccessDisallowedField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IssueSharedAccessDisallowedField", str)
+	}
+	return nil
+}
+
+func (e IssueSharedAccessDisallowedField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *IssueSharedAccessDisallowedField) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e IssueSharedAccessDisallowedField) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -21139,6 +23426,7 @@ func (e ReleaseStageType) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// Which day count to use for SLA calculations.
 type SLADayCountType string
 
 const (
@@ -21817,6 +24105,7 @@ const (
 	UserFlagTypeSlackAgentPromoFromCreateNewIssueShown   UserFlagType = "slackAgentPromoFromCreateNewIssueShown"
 	UserFlagTypeSlackBotWelcomeMessageShown              UserFlagType = "slackBotWelcomeMessageShown"
 	UserFlagTypeSlackCommentReactionTipShown             UserFlagType = "slackCommentReactionTipShown"
+	UserFlagTypeTeamsBotWelcomeMessageShown              UserFlagType = "teamsBotWelcomeMessageShown"
 	UserFlagTypeTeamsPageIntroductionDismissed           UserFlagType = "teamsPageIntroductionDismissed"
 	UserFlagTypeThreadedCommentsNudgeIsSeen              UserFlagType = "threadedCommentsNudgeIsSeen"
 	UserFlagTypeTriageWelcomeDismissed                   UserFlagType = "triageWelcomeDismissed"
@@ -21868,6 +24157,7 @@ var AllUserFlagType = []UserFlagType{
 	UserFlagTypeSlackAgentPromoFromCreateNewIssueShown,
 	UserFlagTypeSlackBotWelcomeMessageShown,
 	UserFlagTypeSlackCommentReactionTipShown,
+	UserFlagTypeTeamsBotWelcomeMessageShown,
 	UserFlagTypeTeamsPageIntroductionDismissed,
 	UserFlagTypeThreadedCommentsNudgeIsSeen,
 	UserFlagTypeTriageWelcomeDismissed,
@@ -21881,7 +24171,7 @@ var AllUserFlagType = []UserFlagType{
 
 func (e UserFlagType) IsValid() bool {
 	switch e {
-	case UserFlagTypeAll, UserFlagTypeAnalyticsWelcomeDismissed, UserFlagTypeCanPlaySnake, UserFlagTypeCanPlayTetris, UserFlagTypeCommandMenuClearShortcutTip, UserFlagTypeCompletedOnboarding, UserFlagTypeCycleWelcomeDismissed, UserFlagTypeDesktopDownloadToastDismissed, UserFlagTypeDesktopInstalled, UserFlagTypeDesktopTabsOnboardingDismissed, UserFlagTypeDueDateShortcutMigration, UserFlagTypeEditorSlashCommandUsed, UserFlagTypeEmptyActiveIssuesDismissed, UserFlagTypeEmptyBacklogDismissed, UserFlagTypeEmptyCustomViewsDismissed, UserFlagTypeEmptyMyIssuesDismissed, UserFlagTypeEmptyParagraphSlashCommandTip, UserFlagTypeFigmaPluginBannerDismissed, UserFlagTypeFigmaPromptDismissed, UserFlagTypeHelpIslandFeatureInsightsDismissed, UserFlagTypeImportBannerDismissed, UserFlagTypeInitiativesBannerDismissed, UserFlagTypeInsightsHelpDismissed, UserFlagTypeInsightsWelcomeDismissed, UserFlagTypeIssueLabelSuggestionUsed, UserFlagTypeIssueMovePromptCompleted, UserFlagTypeJoinTeamIntroductionDismissed, UserFlagTypeListSelectionTip, UserFlagTypeMigrateThemePreference, UserFlagTypeMilestoneOnboardingIsSeenAndDismissed, UserFlagTypeProjectBacklogWelcomeDismissed, UserFlagTypeProjectBoardOnboardingIsSeenAndDismissed, UserFlagTypeProjectUpdatesWelcomeDismissed, UserFlagTypeProjectWelcomeDismissed, UserFlagTypePulseWelcomeDismissed, UserFlagTypeRewindBannerDismissed, UserFlagTypeSlackAgentPromoFromCreateNewIssueShown, UserFlagTypeSlackBotWelcomeMessageShown, UserFlagTypeSlackCommentReactionTipShown, UserFlagTypeTeamsPageIntroductionDismissed, UserFlagTypeThreadedCommentsNudgeIsSeen, UserFlagTypeTriageWelcomeDismissed, UserFlagTypeTryCyclesDismissed, UserFlagTypeTryGithubDismissed, UserFlagTypeTryInvitePeopleDismissed, UserFlagTypeTryRoadmapsDismissed, UserFlagTypeTryTriageDismissed, UserFlagTypeUpdatedSlackThreadSyncIntegration:
+	case UserFlagTypeAll, UserFlagTypeAnalyticsWelcomeDismissed, UserFlagTypeCanPlaySnake, UserFlagTypeCanPlayTetris, UserFlagTypeCommandMenuClearShortcutTip, UserFlagTypeCompletedOnboarding, UserFlagTypeCycleWelcomeDismissed, UserFlagTypeDesktopDownloadToastDismissed, UserFlagTypeDesktopInstalled, UserFlagTypeDesktopTabsOnboardingDismissed, UserFlagTypeDueDateShortcutMigration, UserFlagTypeEditorSlashCommandUsed, UserFlagTypeEmptyActiveIssuesDismissed, UserFlagTypeEmptyBacklogDismissed, UserFlagTypeEmptyCustomViewsDismissed, UserFlagTypeEmptyMyIssuesDismissed, UserFlagTypeEmptyParagraphSlashCommandTip, UserFlagTypeFigmaPluginBannerDismissed, UserFlagTypeFigmaPromptDismissed, UserFlagTypeHelpIslandFeatureInsightsDismissed, UserFlagTypeImportBannerDismissed, UserFlagTypeInitiativesBannerDismissed, UserFlagTypeInsightsHelpDismissed, UserFlagTypeInsightsWelcomeDismissed, UserFlagTypeIssueLabelSuggestionUsed, UserFlagTypeIssueMovePromptCompleted, UserFlagTypeJoinTeamIntroductionDismissed, UserFlagTypeListSelectionTip, UserFlagTypeMigrateThemePreference, UserFlagTypeMilestoneOnboardingIsSeenAndDismissed, UserFlagTypeProjectBacklogWelcomeDismissed, UserFlagTypeProjectBoardOnboardingIsSeenAndDismissed, UserFlagTypeProjectUpdatesWelcomeDismissed, UserFlagTypeProjectWelcomeDismissed, UserFlagTypePulseWelcomeDismissed, UserFlagTypeRewindBannerDismissed, UserFlagTypeSlackAgentPromoFromCreateNewIssueShown, UserFlagTypeSlackBotWelcomeMessageShown, UserFlagTypeSlackCommentReactionTipShown, UserFlagTypeTeamsBotWelcomeMessageShown, UserFlagTypeTeamsPageIntroductionDismissed, UserFlagTypeThreadedCommentsNudgeIsSeen, UserFlagTypeTriageWelcomeDismissed, UserFlagTypeTryCyclesDismissed, UserFlagTypeTryGithubDismissed, UserFlagTypeTryInvitePeopleDismissed, UserFlagTypeTryRoadmapsDismissed, UserFlagTypeTryTriageDismissed, UserFlagTypeUpdatedSlackThreadSyncIntegration:
 		return true
 	}
 	return false
@@ -22289,6 +24579,7 @@ const (
 	ViewTypeBacklog                          ViewType = "backlog"
 	ViewTypeBoard                            ViewType = "board"
 	ViewTypeCompletedCycle                   ViewType = "completedCycle"
+	ViewTypeContinuousPipelineReleases       ViewType = "continuousPipelineReleases"
 	ViewTypeCreatedReviews                   ViewType = "createdReviews"
 	ViewTypeCustomView                       ViewType = "customView"
 	ViewTypeCustomViews                      ViewType = "customViews"
@@ -22333,6 +24624,7 @@ const (
 	ViewTypeRoadmapBacklog                   ViewType = "roadmapBacklog"
 	ViewTypeRoadmapClosed                    ViewType = "roadmapClosed"
 	ViewTypeRoadmaps                         ViewType = "roadmaps"
+	ViewTypeScheduledPipelineReleases        ViewType = "scheduledPipelineReleases"
 	ViewTypeSearch                           ViewType = "search"
 	ViewTypeSplitSearch                      ViewType = "splitSearch"
 	ViewTypeSubIssues                        ViewType = "subIssues"
@@ -22351,6 +24643,7 @@ var AllViewType = []ViewType{
 	ViewTypeBacklog,
 	ViewTypeBoard,
 	ViewTypeCompletedCycle,
+	ViewTypeContinuousPipelineReleases,
 	ViewTypeCreatedReviews,
 	ViewTypeCustomView,
 	ViewTypeCustomViews,
@@ -22395,6 +24688,7 @@ var AllViewType = []ViewType{
 	ViewTypeRoadmapBacklog,
 	ViewTypeRoadmapClosed,
 	ViewTypeRoadmaps,
+	ViewTypeScheduledPipelineReleases,
 	ViewTypeSearch,
 	ViewTypeSplitSearch,
 	ViewTypeSubIssues,
@@ -22407,7 +24701,7 @@ var AllViewType = []ViewType{
 
 func (e ViewType) IsValid() bool {
 	switch e {
-	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReleasePipelines, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
+	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeContinuousPipelineReleases, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeInbox, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReleasePipelines, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeScheduledPipelineReleases, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
 		return true
 	}
 	return false

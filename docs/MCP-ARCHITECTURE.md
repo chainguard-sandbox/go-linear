@@ -103,4 +103,4 @@ ophis.Merge(rootCmd, &ophis.Config{
 })
 ```
 
-See [MCP-CLI-DOCUMENTATION.md](./MCP-CLI-DOCUMENTATION.md) for usage details.
+See the CLI commands for usage details.

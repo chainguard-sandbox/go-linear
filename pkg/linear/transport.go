@@ -424,10 +424,14 @@ func parseRateLimitHeaders(resp *http.Response) *RateLimitInfo {
 
 	// Parse request-based limits
 	if v := h.Get("X-RateLimit-Requests-Limit"); v != "" {
-		info.RequestsLimit, _ = strconv.Atoi(v)
+		if n, err := strconv.Atoi(v); err == nil {
+			info.RequestsLimit = n
+		}
 	}
 	if v := h.Get("X-RateLimit-Requests-Remaining"); v != "" {
-		info.RequestsRemaining, _ = strconv.Atoi(v)
+		if n, err := strconv.Atoi(v); err == nil {
+			info.RequestsRemaining = n
+		}
 	}
 	if v := h.Get("X-RateLimit-Requests-Reset"); v != "" {
 		if ts, err := strconv.ParseInt(v, 10, 64); err == nil {
@@ -437,10 +441,14 @@ func parseRateLimitHeaders(resp *http.Response) *RateLimitInfo {
 
 	// Parse complexity-based limits
 	if v := h.Get("X-RateLimit-Complexity-Limit"); v != "" {
-		info.ComplexityLimit, _ = strconv.Atoi(v)
+		if n, err := strconv.Atoi(v); err == nil {
+			info.ComplexityLimit = n
+		}
 	}
 	if v := h.Get("X-RateLimit-Complexity-Remaining"); v != "" {
-		info.ComplexityRemaining, _ = strconv.Atoi(v)
+		if n, err := strconv.Atoi(v); err == nil {
+			info.ComplexityRemaining = n
+		}
 	}
 	if v := h.Get("X-RateLimit-Complexity-Reset"); v != "" {
 		if ts, err := strconv.ParseInt(v, 10, 64); err == nil {

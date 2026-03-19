@@ -18,8 +18,9 @@ func TestNewDefaultClientConfig(t *testing.T) {
 		t.Errorf("expected BaseURL https://api.linear.app/graphql, got %q", config.BaseURL)
 	}
 
-	if config.UserAgent != "go-linear/0.1.0" {
-		t.Errorf("expected UserAgent go-linear/0.1.0, got %q", config.UserAgent)
+	expectedUA := "go-linear/" + Version
+	if config.UserAgent != expectedUA {
+		t.Errorf("expected UserAgent %q, got %q", expectedUA, config.UserAgent)
 	}
 
 	if config.HTTPClient == nil {

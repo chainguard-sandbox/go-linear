@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-03-17
+
+### Changed
+- Sync upstream schema to `@linear/sdk@77.0.0` (was 75.0.0)
+- Go 1.26.1 (was 1.25.7; fixes GO-2026-4596..4599 stdlib vulns)
+- Added CODEOWNERS
+
+### Fixed
+- Bound `IssueUpdateNullable` response body read to 10MB to prevent OOM
+- Validate HTTP status in `IssueUpdateNullable` before parsing body
+- Route `IssueUpdateNullable` through credential provider and auth normalization
+- Handle credential refresh failure instead of silently retrying with empty auth
+- Correct `normalizeAuthHeader` logic for short OAuth tokens
+- Handle malformed rate limit headers gracefully
+- Guard `ResolveIssue` against caching empty IDs from null API responses
+- Cache `ResolveUser("me")` results to avoid repeated API calls
+- Use build version in UserAgent header
+- Remove unused `ptrFloat` function
+
+### Security
+- Added `step-security/harden-runner` to release workflow (was the only workflow missing it)
+- Quote shell variables in release workflow
+- Bumped `github.com/modelcontextprotocol/go-sdk` to 1.3.1 (CVE-2026-27896)
+- Bumped `github.com/njayp/ophis` from 1.1.1 to 1.1.4
+- Bumped `aquasecurity/trivy-action` from 0.34.0 to 0.35.0
+
+### CI
+- Drop Go 1.25 from test matrix (go.mod requires >= 1.26)
+- Bump golangci-lint to v2.11 for Go 1.26 compatibility
+
+### Documentation
+- Clean up for public release
+
 ## [2.0.0] - Unreleased
 
 ### Breaking Changes

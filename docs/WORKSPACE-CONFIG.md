@@ -106,7 +106,6 @@ Currently supports:
 
 ## Future Extensions
 
-See [IDEAS.md](IDEAS.md) for planned features:
 - Saved filter queries
 - Per-command defaults
 - Workspace-specific MCP config

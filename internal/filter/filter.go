@@ -57,8 +57,3 @@ func ApplyDateRange(parser dateparser.Parser, dr *DateRange, afterFlag, beforeFl
 	}
 	return nil
 }
-
-// ptrFloat returns a pointer to a float64.
-func ptrFloat(f float64) *float64 {
-	return &f
-}

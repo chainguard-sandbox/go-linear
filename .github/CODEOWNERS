@@ -1,0 +1,6 @@
+# Each line is a file pattern followed by one or more owners.
+
+* @chainguard-sandbox/developer-platform-team-write @chainguard-sandbox/customer-platform-team-write @chainguard-sandbox/prodsec-team-write
+
+# Require review by repo owners of changes to CODEOWNERS
+CODEOWNERS @chainguard-sandbox/developer-platform-team-write @chainguard-sandbox/customer-platform-team-write @chainguard-sandbox/prodsec-team-write

@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: ['1.25']
+        go: ['1.26']
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -41,11 +41,11 @@ jobs:
         run: go test -race -cover ./...
 
       - name: Run tests with coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.25'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.26'
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.25'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.26'
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de  # v5
         with:
           files: ./coverage.out
