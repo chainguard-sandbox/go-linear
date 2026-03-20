@@ -3,7 +3,7 @@ package linear
 import (
 	"context"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // Roadmap retrieves a single product roadmap by ID.

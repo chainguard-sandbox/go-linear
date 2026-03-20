@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
-	"github.com/chainguard-sandbox/go-linear/internal/resolver"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 )
 
 // DateFormat is the ISO8601 format used for Linear API date fields.

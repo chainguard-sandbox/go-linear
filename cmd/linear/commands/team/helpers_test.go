@@ -1,6 +1,6 @@
 package team
 
-import "github.com/chainguard-sandbox/go-linear/internal/testutil"
+import "github.com/chainguard-sandbox/go-linear/v2/internal/testutil"
 
 const (
 	mockTeamsResponse = `{

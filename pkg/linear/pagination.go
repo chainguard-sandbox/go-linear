@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // IssueIterator provides automatic pagination over issues.

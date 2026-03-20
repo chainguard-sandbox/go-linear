@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // ApplyEmail handles --email flag.

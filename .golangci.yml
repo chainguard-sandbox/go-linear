@@ -138,7 +138,7 @@ formatters:
       sections:
         - standard  # Standard library
         - default   # Everything else
-        - prefix(github.com/chainguard-sandbox/go-linear)  # This project
+        - prefix(github.com/chainguard-sandbox/go-linear/v2)  # This project
 
 issues:
   # Maximum issues count per one linter

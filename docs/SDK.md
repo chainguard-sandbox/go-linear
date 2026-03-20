@@ -3,7 +3,7 @@
 Production-ready Go client for the Linear GraphQL API.
 
 ```bash
-go get github.com/chainguard-sandbox/go-linear
+go get github.com/chainguard-sandbox/go-linear/v2
 ```
 
 ---
@@ -17,7 +17,7 @@ import (
     "context"
     "log"
 
-    "github.com/chainguard-sandbox/go-linear/pkg/linear"
+    "github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 func main() {
@@ -63,7 +63,7 @@ import (
     "os"
     "time"
 
-    "github.com/chainguard-sandbox/go-linear/pkg/linear"
+    "github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // Use the convenience logger or create your own with clog.New()

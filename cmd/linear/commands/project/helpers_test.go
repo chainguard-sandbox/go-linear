@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {

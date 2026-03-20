@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // TestLive_AttachmentMutations_FullCycle tests complete attachment lifecycle.

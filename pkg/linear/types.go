@@ -1,6 +1,6 @@
 package linear
 
-import intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+import intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 
 // Priority represents Linear issue priority levels.
 //

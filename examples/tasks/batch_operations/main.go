@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 func main() {

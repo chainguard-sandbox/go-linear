@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/resolver"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 func TestLive_AttachmentFilterBuilder(t *testing.T) {

@@ -20,7 +20,7 @@ import (
 
 	"github.com/njayp/ophis"
 
-	"github.com/chainguard-sandbox/go-linear/cmd/linear/commands"
+	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands"
 )
 
 func main() {

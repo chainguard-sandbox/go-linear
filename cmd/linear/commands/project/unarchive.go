@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
-	"github.com/chainguard-sandbox/go-linear/internal/formatter"
-	"github.com/chainguard-sandbox/go-linear/internal/resolver"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // NewUnarchiveCommand creates the project unarchive command.

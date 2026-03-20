@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const tracerName = "github.com/chainguard-sandbox/go-linear"
+const tracerName = "github.com/chainguard-sandbox/go-linear/v2"
 
 // startSpan creates a span for an operation.
 func startSpan(ctx context.Context, operation string) (context.Context, trace.Span) {

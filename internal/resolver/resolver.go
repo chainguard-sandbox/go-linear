@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 var uuidRegex = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)

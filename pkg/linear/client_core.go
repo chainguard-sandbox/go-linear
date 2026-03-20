@@ -8,7 +8,7 @@ import (
 
 	"github.com/Yamashou/gqlgenc/clientv2"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // Client manages communication with the Linear API.

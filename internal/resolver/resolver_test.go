@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // testSetup creates a client, resolver, and cleanup function for tests.

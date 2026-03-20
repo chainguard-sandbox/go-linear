@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 func newTestClient(t *testing.T, handler http.HandlerFunc) *Client {
