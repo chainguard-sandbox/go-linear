@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // Issue retrieves a single issue by ID.

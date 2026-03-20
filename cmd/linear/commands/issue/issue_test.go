@@ -3,7 +3,7 @@ package issue
 import (
 	"testing"
 
-	"github.com/chainguard-sandbox/go-linear/internal/testutil"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/testutil"
 )
 
 func TestNewIssueCommand(t *testing.T) {

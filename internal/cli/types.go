@@ -4,7 +4,7 @@ package cli
 import (
 	"io"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // ClientFactory creates a Linear API client.

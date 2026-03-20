@@ -5,7 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // Viewer returns the currently authenticated user information.

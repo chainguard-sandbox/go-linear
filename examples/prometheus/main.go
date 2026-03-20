@@ -17,7 +17,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 func main() {

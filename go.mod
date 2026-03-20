@@ -1,4 +1,4 @@
-module github.com/chainguard-sandbox/go-linear
+module github.com/chainguard-sandbox/go-linear/v2
 
 go 1.26.1
 

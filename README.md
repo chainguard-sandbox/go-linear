@@ -4,8 +4,8 @@ Go SDK, CLI, and MCP server for Linear.
 
 Built for humans and AI agents who want to work with Linear without wrestling GraphQL.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-sandbox/go-linear.svg)](https://pkg.go.dev/github.com/chainguard-sandbox/go-linear)
-[![Go Report Card](https://goreportcard.com/badge/github.com/chainguard-sandbox/go-linear)](https://goreportcard.com/report/github.com/chainguard-sandbox/go-linear)
+[![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-sandbox/go-linear/v2.svg)](https://pkg.go.dev/github.com/chainguard-sandbox/go-linear/v2)
+[![Go Report Card](https://goreportcard.com/badge/github.com/chainguard-sandbox/go-linear/v2)](https://goreportcard.com/report/github.com/chainguard-sandbox/go-linear/v2)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
@@ -37,7 +37,7 @@ Each layer adds value:
 ### From Source
 
 ```bash
-go install github.com/chainguard-sandbox/go-linear/cmd/linear@latest
+go install github.com/chainguard-sandbox/go-linear/v2/cmd/linear@latest
 ```
 
 Note: `go install` names the binary `linear`. Examples below use `go-linear` (the name from `make build`).
@@ -56,7 +56,7 @@ Download from [GitHub Releases](https://github.com/chainguard-sandbox/go-linear/
 ### Go SDK
 
 ```bash
-go get github.com/chainguard-sandbox/go-linear
+go get github.com/chainguard-sandbox/go-linear/v2
 ```
 
 ---

@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
-	"github.com/chainguard-sandbox/go-linear/internal/config"
-	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
-	"github.com/chainguard-sandbox/go-linear/internal/formatter"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/config"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/fieldfilter"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // cli.ClientFactory is a function that creates a Linear client.

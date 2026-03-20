@@ -7,7 +7,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // ExampleClient_IssueCreate demonstrates creating an issue with common fields.

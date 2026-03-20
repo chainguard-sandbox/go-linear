@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/filter"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/filter"
 )
 
 // ApplyEndsAt handles --ends-after and --ends-before flags.

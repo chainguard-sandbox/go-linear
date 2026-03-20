@@ -2,8 +2,8 @@
 package common
 
 import (
-	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // DateFilterable is implemented by filter builders that support CreatedAt filtering.

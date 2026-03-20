@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
-	"github.com/chainguard-sandbox/go-linear/pkg/linear"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
 // MockServer creates a test server that handles Linear API queries.

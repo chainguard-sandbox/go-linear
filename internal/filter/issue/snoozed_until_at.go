@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/filter"
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/filter"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // ApplySnoozedUntilAt handles --snoozed-until-after and --snoozed-until-before flags.

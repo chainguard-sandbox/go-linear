@@ -8,7 +8,7 @@
 
 # Project configuration
 BINARY_NAME := go-linear
-MODULE := github.com/chainguard-sandbox/go-linear
+MODULE := github.com/chainguard-sandbox/go-linear/v2
 BINDIR := bin
 GOFILES := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./upstream/*" -not -path "./internal/graphql/generated.go")
 

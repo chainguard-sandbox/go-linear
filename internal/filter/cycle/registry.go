@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/filter/common"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/filter/common"
 )
 
 // FilterFunc is the signature for cycle filter functions.

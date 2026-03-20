@@ -4,7 +4,7 @@ package initiative
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 )
 
 func NewInitiativeCommand(clientFactory cli.ClientFactory) *cobra.Command {

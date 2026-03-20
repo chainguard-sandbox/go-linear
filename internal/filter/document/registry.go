@@ -1,7 +1,7 @@
 package document
 
 import (
-	"github.com/chainguard-sandbox/go-linear/internal/filter/common"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/filter/common"
 )
 
 // Filters maps filter names to their apply functions.

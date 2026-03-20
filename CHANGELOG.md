@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-03-20
+
+### Changed
+- Add `/v2` suffix to Go module path (`github.com/chainguard-sandbox/go-linear/v2`) per [Go major version requirements](https://go.dev/ref/mod#major-version-suffixes). Without this, pkg.go.dev cannot index v2.x releases.
+- Update all internal imports, ldflags, golangci-lint prefix, and documentation to use `/v2` module path
+
+### Migration
+- Update imports from `github.com/chainguard-sandbox/go-linear/...` to `github.com/chainguard-sandbox/go-linear/v2/...`
+- Update `go get` to `go get github.com/chainguard-sandbox/go-linear/v2`
+
 ## [2.1.0] - 2026-03-17
 
 ### Changed

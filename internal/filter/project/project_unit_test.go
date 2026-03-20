@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/internal/dateparser"
-	"github.com/chainguard-sandbox/go-linear/internal/filter/common"
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/filter/common"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // testBuilder creates a FilterBuilder with a nil resolver for unit tests.

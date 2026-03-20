@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	intgraphql "github.com/chainguard-sandbox/go-linear/internal/graphql"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
 
 // IssueUpdateNullable updates an issue with support for explicit null values.

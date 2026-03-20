@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/chainguard-sandbox/go-linear/internal/fieldfilter"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/fieldfilter"
 )
 
 // FormatJSON writes data as JSON to the writer.
