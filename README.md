@@ -1,6 +1,6 @@
 # go-linear
 
-Go SDK, CLI, and MCP server for Linear. Generated from upstream schema.
+Go SDK, CLI, and MCP server for Linear.
 
 Built for humans and AI agents who want to work with Linear without wrestling GraphQL.
 
