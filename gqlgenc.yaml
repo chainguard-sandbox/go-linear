@@ -1,6 +1,5 @@
 # gqlgenc configuration
 # Documentation: https://github.com/Yamashou/gqlgenc
-# Pattern from: chainguard.dev/mono/bots/fulfilled
 
 # Model generation configuration
 model:
