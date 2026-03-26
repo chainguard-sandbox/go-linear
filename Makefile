@@ -71,9 +71,9 @@ install: build-cli  ## Install go-linear to $GOPATH/bin
 # Code generation
 #
 
-generate:  ## Run code generation (genqlient)
+generate:  ## Run code generation (gqlgenc)
 	@echo "Running code generation..."
-	@go generate ./...
+	@go run github.com/Yamashou/gqlgenc generate
 	@echo "✓ Code generation complete"
 
 #
