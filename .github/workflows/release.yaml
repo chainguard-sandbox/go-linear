@@ -79,6 +79,11 @@ jobs:
             PRERELEASE="--prerelease"
           fi
 
+          gh release upload "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber \
+            dist/go-linear-* \
+            dist/checksums.txt || \
           gh release create "$VERSION" \
             --repo "$GITHUB_REPOSITORY" \
             --title "$VERSION" \
