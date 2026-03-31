@@ -1,6 +1,7 @@
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 "Indicates exactly one field must be supplied and this field must not be `null`."
@@ -1075,6 +1076,10 @@ type AiConversation implements Node {
   """
   id: ID!
   """
+  The initial source of the conversation.
+  """
+  initialSource: AiConversationInitialSource!
+  """
   The iteration ID of the conversation in agentic workflow.
   """
   iterationId: String
@@ -1454,6 +1459,18 @@ type AiConversationGetSlackConversationHistoryToolCall implements AiConversation
   rawResult: JSON
 }
 
+"""
+The initial source of an AI conversation.
+"""
+enum AiConversationInitialSource {
+  comment
+  directChat
+  microsoftTeams
+  pullRequestComment
+  slack
+  workflow
+}
+
 type AiConversationInvokeMcpToolToolCall implements AiConversationBaseToolCall {
   """
   The arguments to the tool call.
@@ -1505,6 +1522,10 @@ Metadata about a part in an AI conversation.
 """
 type AiConversationPartMetadata {
   """
+  The ended timestamp of the part.
+  """
+  endedAt: String
+  """
   The eval log ID of the part.
   """
   evalLogId: String
@@ -1513,9 +1534,25 @@ type AiConversationPartMetadata {
   """
   feedback: JSONObject
   """
+  The phase during which the part was generated.
+  """
+  phase: AiConversationPartPhase
+  """
+  The started timestamp of the part.
+  """
+  startedAt: String
+  """
   The turn ID of the part.
   """
   turnId: String!
+}
+
+"""
+The phase during which a conversation part was generated.
+"""
+enum AiConversationPartPhase {
+  answer
+  commentary
 }
 
 """
@@ -1715,6 +1752,30 @@ type AiConversationResearchToolCallResult {
   progressId: String
 }
 
+type AiConversationRestoreEntityToolCall implements AiConversationBaseToolCall {
+  """
+  The arguments to the tool call.
+  """
+  args: AiConversationRestoreEntityToolCallArgs
+  displayInfo: AiConversationToolDisplayInfo!
+  """
+  The name of the tool that was called.
+  """
+  name: AiConversationTool!
+  """
+  The arguments of the tool call.
+  """
+  rawArgs: JSON
+  """
+  The result of the tool call.
+  """
+  rawResult: JSON
+}
+
+type AiConversationRestoreEntityToolCallArgs {
+  entity: AiConversationSearchEntitiesToolCallResultEntities!
+}
+
 type AiConversationRetrieveEntitiesToolCall implements AiConversationBaseToolCall {
   """
   The arguments to the tool call.
@@ -1871,6 +1932,7 @@ enum AiConversationTool {
   QueryUpdates
   QueryView
   Research
+  RestoreEntity
   RetrieveEntities
   SearchDocumentation
   SearchEntities
@@ -1897,6 +1959,7 @@ union AiConversationToolCall =
   | AiConversationQueryUpdatesToolCall
   | AiConversationQueryViewToolCall
   | AiConversationResearchToolCall
+  | AiConversationRestoreEntityToolCall
   | AiConversationRetrieveEntitiesToolCall
   | AiConversationSearchDocumentationToolCall
   | AiConversationSearchEntitiesToolCall
@@ -1989,7 +2052,8 @@ type AiConversationUpdateEntityToolCall implements AiConversationBaseToolCall {
 }
 
 type AiConversationUpdateEntityToolCallArgs {
-  entity: AiConversationSearchEntitiesToolCallResultEntities!
+  entities: [AiConversationSearchEntitiesToolCallResultEntities!]
+  entity: AiConversationSearchEntitiesToolCallResultEntities
 }
 
 type AiConversationWebSearchToolCall implements AiConversationBaseToolCall {
@@ -2064,6 +2128,156 @@ type AiConversationWidgetPart implements AiConversationBasePart {
 }
 
 """
+[Internal] A prompt workflow progress.
+"""
+type AiPromptProgress implements Node {
+  """
+  The time at which the entity was archived. Null if the entity has not been archived.
+  """
+  archivedAt: DateTime
+  """
+  The time at which the entity was created.
+  """
+  createdAt: DateTime!
+  """
+  The unique identifier of the entity.
+  """
+  id: ID!
+  """
+  [Internal] The log ID for the prompt workflow, if available.
+  """
+  logId: String
+  """
+  [Internal] The metadata for the prompt workflow.
+  """
+  metadata: JSONObject!
+  """
+  [Internal] The status of the prompt workflow.
+  """
+  status: AiPromptProgressStatus!
+  """
+  [Internal] The type of AI prompt workflow.
+  """
+  type: AiPromptType!
+  """
+  The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+      been updated after creation.
+  """
+  updatedAt: DateTime!
+}
+
+type AiPromptProgressConnection {
+  edges: [AiPromptProgressEdge!]!
+  nodes: [AiPromptProgress!]!
+  pageInfo: PageInfo!
+}
+
+type AiPromptProgressEdge {
+  """
+  Used in `before` and `after` args
+  """
+  cursor: String!
+  node: AiPromptProgress!
+}
+
+"""
+[Internal] AI prompt progress filtering options.
+"""
+input AiPromptProgressFilter {
+  """
+  [Internal] Compound filters, all of which need to be matched by the AI prompt progress.
+  """
+  and: [AiPromptProgressFilter!]
+  """
+  Comparator for the created at date.
+  """
+  createdAt: DateComparator
+  """
+  Comparator for the identifier.
+  """
+  id: IDComparator
+  """
+  [Internal] Compound filters, one of which need to be matched by the AI prompt progress.
+  """
+  or: [AiPromptProgressFilter!]
+  """
+  [Internal] Comparator for the AI prompt workflow status.
+  """
+  status: AiPromptProgressStatusComparator
+  """
+  [Internal] Comparator for the AI prompt workflow type.
+  """
+  type: AiPromptTypeComparator
+  """
+  Comparator for the updated at date.
+  """
+  updatedAt: DateComparator
+}
+
+"""
+[Internal] The status of a prompt workflow.
+"""
+enum AiPromptProgressStatus {
+  canceled
+  created
+  failed
+  finished
+  inProgress
+}
+
+"""
+[Internal] Comparator for the AI prompt workflow status.
+"""
+input AiPromptProgressStatusComparator {
+  """
+  Equals constraint.
+  """
+  eq: AiPromptProgressStatus
+  """
+  In-array constraint.
+  """
+  in: [AiPromptProgressStatus!]
+  """
+  Not-equals constraint.
+  """
+  neq: AiPromptProgressStatus
+  """
+  Not-in-array constraint.
+  """
+  nin: [AiPromptProgressStatus!]
+  """
+  Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
+  """
+  null: Boolean
+}
+
+"""
+[Internal] Filter for AI prompt progress subscription events.
+"""
+input AiPromptProgressSubscriptionFilter {
+  """
+  [Internal] Filter by comment ID.
+  """
+  commentId: IDComparator
+  """
+  [Internal] Filter by issue ID.
+  """
+  issueId: IDComparator
+  """
+  [Internal] Filter by pull request comment ID.
+  """
+  pullRequestCommentId: IDComparator
+  """
+  [Internal] Filter by prompt workflow status.
+  """
+  status: AiPromptProgressStatusComparator
+  """
+  [Internal] Filter by prompt workflow type.
+  """
+  type: AiPromptTypeComparator
+}
+
+"""
 AI prompt rules for a team.
 """
 type AiPromptRules implements Node {
@@ -2088,6 +2302,51 @@ type AiPromptRules implements Node {
   The user who last updated the AI prompt rules.
   """
   updatedBy: User
+}
+
+"""
+The type of AI prompt workflow.
+"""
+enum AiPromptType {
+  agentGuidance
+  aiConversation
+  codeIntelligence
+  gongIssueIntake
+  initiativeUpdates
+  intercomIssueIntake
+  internalResearch
+  microsoftTeamsIssueIntake
+  productIntelligence
+  projectUpdates
+  slackIssueIntake
+  triageAgent
+  zendeskIssueIntake
+}
+
+"""
+[Internal] Comparator for the AI prompt workflow type.
+"""
+input AiPromptTypeComparator {
+  """
+  Equals constraint.
+  """
+  eq: AiPromptType
+  """
+  In-array constraint.
+  """
+  in: [AiPromptType!]
+  """
+  Not-equals constraint.
+  """
+  neq: AiPromptType
+  """
+  Not-in-array constraint.
+  """
+  nin: [AiPromptType!]
+  """
+  Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
+  """
+  null: Boolean
 }
 
 input AirbyteConfigurationInput {
@@ -2887,11 +3146,15 @@ type AuthOrganization {
   """
   Allowed authentication providers, empty array means all are allowed
   """
-  allowedAuthServices: [String!]!
+  allowedAuthServices: [String!]! @deprecated(reason: "Use authSettings.allowedAuthServices instead.")
   """
   An approximate count of users, updated once per day.
   """
   approximateUserCount: Float!
+  """
+  Authentication settings for the organization.
+  """
+  authSettings: JSONObject!
   """
   The time at which the entity was created.
   """
@@ -3235,13 +3498,17 @@ type CodingAgentSandboxPayload {
   """
   startedAt: DateTime
   """
+  Temporal URL to view all workflows for this sandbox.
+  """
+  temporalWorkflowUrl: String
+  """
   Claude Agent SDK conversation ID.
   """
   workerConversationId: String
 }
 
 """
-A comment associated with an issue.
+A comment associated with an entity.
 """
 type Comment implements Node {
   """
@@ -3277,6 +3544,39 @@ type Comment implements Node {
     """
     orderBy: PaginationOrderBy
   ): AgentSessionConnection!
+  """
+  [Internal] AI prompt progresses associated with this comment.
+  """
+  aiPromptProgresses(
+    """
+    A cursor to be used with first for forward pagination
+    """
+    after: String
+    """
+    A cursor to be used with last for backward pagination.
+    """
+    before: String
+    """
+    Filter returned AI prompt progresses.
+    """
+    filter: AiPromptProgressFilter
+    """
+    The number of items to forward paginate (used with after). Defaults to 50.
+    """
+    first: Int
+    """
+    Should archived resources be included (default: false)
+    """
+    includeArchived: Boolean
+    """
+    The number of items to backward paginate (used with before). Defaults to 50.
+    """
+    last: Int
+    """
+    By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
+    """
+    orderBy: PaginationOrderBy
+  ): AiPromptProgressConnection!
   """
   The time at which the entity was archived. Null if the entity has not been archived.
   """
@@ -3392,6 +3692,14 @@ type Comment implements Node {
   """
   id: ID!
   """
+  [Internal] The initiative that the comment is associated with.
+  """
+  initiative: Initiative
+  """
+  [Internal] The ID of the initiative that the comment is associated with.
+  """
+  initiativeId: String
+  """
   The initiative update that the comment is associated with.
   """
   initiativeUpdate: InitiativeUpdate
@@ -3427,6 +3735,14 @@ type Comment implements Node {
   The post that the comment is associated with.
   """
   post: Post
+  """
+  [Internal] The project that the comment is associated with.
+  """
+  project: Project
+  """
+  [Internal] The ID of the project that the comment is associated with.
+  """
+  projectId: String
   """
   The project update that the comment is associated with.
   """
@@ -3532,6 +3848,10 @@ type CommentChildWebhookPayload {
   """
   id: String!
   """
+  [Internal] The ID of the initiative this comment belongs to.
+  """
+  initiativeId: String
+  """
   The ID of the initiative update this comment belongs to.
   """
   initiativeUpdateId: String
@@ -3539,6 +3859,10 @@ type CommentChildWebhookPayload {
   The ID of the issue this comment belongs to.
   """
   issueId: String
+  """
+  [Internal] The ID of the project this comment belongs to.
+  """
+  projectId: String
   """
   The ID of the project update this comment belongs to.
   """
@@ -3578,6 +3902,10 @@ input CommentCollectionFilter {
   """
   id: IDComparator
   """
+  [Internal] Filters that the comment's initiative must satisfy.
+  """
+  initiative: NullableInitiativeFilter
+  """
   Filters that the comment's issue must satisfy.
   """
   issue: NullableIssueFilter
@@ -3597,6 +3925,10 @@ input CommentCollectionFilter {
   Filters that the comment parent must satisfy.
   """
   parent: NullableCommentFilter
+  """
+  [Internal] Filters that the comment's project must satisfy.
+  """
+  project: NullableProjectFilter
   """
   Filters that the comment's project update must satisfy.
   """
@@ -3663,6 +3995,10 @@ input CommentCreateInput {
   """
   id: String
   """
+  [Internal] The initiative to associate the comment with.
+  """
+  initiativeId: String
+  """
   The initiative update to associate the comment with.
   """
   initiativeUpdateId: String
@@ -3678,6 +4014,10 @@ input CommentCreateInput {
   The post to associate the comment with.
   """
   postId: String
+  """
+  [Internal] The project to associate the comment with.
+  """
+  projectId: String
   """
   The project update to associate the comment with.
   """
@@ -3725,6 +4065,10 @@ input CommentFilter {
   """
   id: IDComparator
   """
+  [Internal] Filters that the comment's initiative must satisfy.
+  """
+  initiative: NullableInitiativeFilter
+  """
   Filters that the comment's issue must satisfy.
   """
   issue: NullableIssueFilter
@@ -3740,6 +4084,10 @@ input CommentFilter {
   Filters that the comment parent must satisfy.
   """
   parent: NullableCommentFilter
+  """
+  [Internal] Filters that the comment's project must satisfy.
+  """
+  project: NullableProjectFilter
   """
   Filters that the comment's project update must satisfy.
   """
@@ -3849,6 +4197,10 @@ type CommentWebhookPayload {
   """
   id: String!
   """
+  [Internal] The ID of the initiative this comment belongs to.
+  """
+  initiativeId: String
+  """
   The initiative update this comment belongs to.
   """
   initiativeUpdate: InitiativeUpdateChildWebhookPayload
@@ -3876,6 +4228,10 @@ type CommentWebhookPayload {
   The ID of the post this comment belongs to.
   """
   postId: String
+  """
+  [Internal] The ID of the project this comment belongs to.
+  """
+  projectId: String
   """
   The project update this comment belongs to.
   """
@@ -7475,6 +7831,10 @@ type Document implements Node {
   """
   sortOrder: Float!
   """
+  [Internal] A one-sentence AI-generated summary of the document content.
+  """
+  summary: String
+  """
   [Internal] The team that the document is associated with.
   """
   team: Team
@@ -7636,6 +7996,37 @@ type DocumentContentChildWebhookPayload {
   project: ProjectChildWebhookPayload
 }
 
+"""
+A draft revision of document content, pending user review.
+"""
+type DocumentContentDraft implements Node {
+  """
+  The time at which the entity was archived. Null if the entity has not been archived.
+  """
+  archivedAt: DateTime
+  """
+  The draft content state as a base64 encoded Yjs state update.
+  """
+  contentState: String!
+  """
+  The time at which the entity was created.
+  """
+  createdAt: DateTime!
+  documentContent: DocumentContent!
+  documentContentId: String!
+  """
+  The unique identifier of the entity.
+  """
+  id: ID!
+  """
+  The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+      been updated after creation.
+  """
+  updatedAt: DateTime!
+  user: User!
+  userId: String!
+}
+
 type DocumentContentHistoryPayload {
   """
   The document content history entries.
@@ -7762,6 +8153,10 @@ input DocumentFilter {
   """
   creator: UserFilter
   """
+  Filters that the document's cycle must satisfy.
+  """
+  cycle: CycleFilter
+  """
   Comparator for the identifier.
   """
   id: IDComparator
@@ -7781,6 +8176,10 @@ input DocumentFilter {
   Filters that the document's project must satisfy.
   """
   project: ProjectFilter
+  """
+  Filters that the document's release must satisfy.
+  """
+  release: ReleaseFilter
   """
   Comparator for the document slug ID.
   """
@@ -8067,6 +8466,10 @@ type DocumentSearchResult implements Node {
   """
   sortOrder: Float!
   """
+  [Internal] A one-sentence AI-generated summary of the document content.
+  """
+  summary: String
+  """
   [Internal] The team that the document is associated with.
   """
   team: Team
@@ -8287,7 +8690,7 @@ type Draft implements Node {
   """
   id: ID!
   """
-  The initiative for which this is a draft initiative update.
+  The initiative for which this is a draft comment or initiative update.
   """
   initiative: Initiative
   """
@@ -8311,7 +8714,7 @@ type Draft implements Node {
   """
   post: Post
   """
-  The project for which this is a draft project update.
+  The project for which this is a draft comment or project update.
   """
   project: Project
   """
@@ -8675,6 +9078,10 @@ input EmailUserAccountAuthChallengeInput {
   Whether to only return the login code. This is used by mobile apps to skip showing the login link.
   """
   loginCodeOnly: Boolean
+  """
+  PostHog session ID for attribution tracking.
+  """
+  sessionId: String
 }
 
 type EmailUserAccountAuthChallengeResponse {
@@ -10154,6 +10561,10 @@ input GitHubRepoInput {
   """
   archived: Boolean
   """
+  The external identifier (GitHub node ID) for the repository.
+  """
+  externalId: String
+  """
   The full name of the repository.
   """
   fullName: String!
@@ -10199,6 +10610,10 @@ input GitHubSettingsInput {
   The enterprise URL if this is a GitHub Enterprise Cloud integration.
   """
   enterpriseUrl: String
+  """
+  The stable external identifier (GitHub node ID) for the organization.
+  """
+  externalOrgId: String
   """
   The avatar URL for the GitHub organization.
   """
@@ -10394,6 +10809,10 @@ input GoogleUserAccountAuthInput {
   The URI to redirect the user to.
   """
   redirectUri: String
+  """
+  PostHog session ID for attribution tracking.
+  """
+  sessionId: String
   """
   The timezone of the user's browser.
   """
@@ -17214,6 +17633,15 @@ enum IssueSharedAccessDisallowedField {
 }
 
 """
+Policy controlling whether and by whom issues in a team can be shared with non-team-members.
+"""
+enum IssueSharingPolicy {
+  adminsOnly
+  allMembers
+  disabled
+}
+
+"""
 Payload for issue SLA webhook events.
 """
 type IssueSlaWebhookPayload {
@@ -17450,6 +17878,28 @@ type IssueStatusChangedNotificationWebhookPayload {
   The ID of the user who received the notification.
   """
   userId: String!
+}
+
+"""
+Filter for issue subscription events.
+"""
+input IssueSubscriptionFilter {
+  """
+  Filter by assignee ID.
+  """
+  assigneeId: IDComparator
+  """
+  Filter by project ID.
+  """
+  projectId: IDComparator
+  """
+  Filter by workflow state ID.
+  """
+  stateId: IDComparator
+  """
+  Filter by team ID.
+  """
+  teamId: IDComparator
 }
 
 type IssueSuggestion implements Node {
@@ -18281,6 +18731,10 @@ input JiraLinearMappingInput {
   The Jira id for this project.
   """
   jiraProjectId: String!
+  """
+  Whether this mapping uses legacy unidirectional sync behavior where no changes sync from Linear to Jira.
+  """
+  legacyUnidirectional: Boolean
   """
   The Linear team id to map to the given project.
   """
@@ -19274,6 +19728,10 @@ type Mutation {
   Updates a customer need
   """
   customerNeedUpdate(
+    """
+    Whether to remove any existing attachment associated with the customer need.
+    """
+    clearAttachment: Boolean
     """
     The identifier of the customer need to update.
     """
@@ -21508,6 +21966,23 @@ type Mutation {
     slackChannelName: String
   ): ProjectPayload!
   """
+  [Internal] Creates a Slack channel for an existing project.
+  """
+  projectCreateSlackChannel(
+    """
+    The identifier of the project.
+    """
+    id: String!
+    """
+    The identifier of the Slack integration to use. When not provided, uses the organization's configured integration.
+    """
+    integrationId: String
+    """
+    The full name for the Slack channel to create (including prefix). When provided, a Slack channel will be created and connected to the project.
+    """
+    slackChannelName: String!
+  ): ProjectPayload!
+  """
   Deletes (trashes) a project.
   """
   projectDelete(
@@ -22364,7 +22839,7 @@ type Mutation {
     input: TriageResponsibilityUpdateInput!
   ): TriageResponsibilityPayload!
   """
-  [Internal] Updates existing Slack integration scopes.
+  [Internal] Updates existing Slack and Asks integration scopes.
   """
   updateIntegrationSlackScopes(
     """
@@ -23437,6 +23912,10 @@ input NullableCommentFilter {
   """
   id: IDComparator
   """
+  [Internal] Filters that the comment's initiative must satisfy.
+  """
+  initiative: NullableInitiativeFilter
+  """
   Filters that the comment's issue must satisfy.
   """
   issue: NullableIssueFilter
@@ -23456,6 +23935,10 @@ input NullableCommentFilter {
   Filters that the comment parent must satisfy.
   """
   parent: NullableCommentFilter
+  """
+  [Internal] Filters that the comment's project must satisfy.
+  """
+  project: NullableProjectFilter
   """
   Filters that the comment's project update must satisfy.
   """
@@ -23754,6 +24237,92 @@ input NullableDurationComparator {
   Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
   """
   null: Boolean
+}
+
+"""
+Initiative filtering options.
+"""
+input NullableInitiativeFilter {
+  """
+  Comparator for the initiative activity type.
+  """
+  activityType: StringComparator
+  """
+  Filters that the initiative must be an ancestor of.
+  """
+  ancestors: InitiativeCollectionFilter
+  """
+  Compound filters, all of which need to be matched by the initiative.
+  """
+  and: [NullableInitiativeFilter!]
+  """
+  Comparator for the initiative completed at date.
+  """
+  completedAt: NullableDateComparator
+  """
+  Comparator for the created at date.
+  """
+  createdAt: DateComparator
+  """
+  Filters that the initiative creator must satisfy.
+  """
+  creator: NullableUserFilter
+  """
+  Comparator for the initiative health: onTrack, atRisk, offTrack
+  """
+  health: StringComparator
+  """
+  Comparator for the initiative health (with age): onTrack, atRisk, offTrack, outdated, noUpdate
+  """
+  healthWithAge: StringComparator
+  """
+  Comparator for the identifier.
+  """
+  id: IDComparator
+  """
+  Filters that the initiative updates must satisfy.
+  """
+  initiativeUpdates: InitiativeUpdatesCollectionFilter
+  """
+  Comparator for the initiative name.
+  """
+  name: StringComparator
+  """
+  Filter based on the existence of the relation.
+  """
+  null: Boolean
+  """
+  Compound filters, one of which need to be matched by the initiative.
+  """
+  or: [NullableInitiativeFilter!]
+  """
+  Filters that the initiative owner must satisfy.
+  """
+  owner: NullableUserFilter
+  """
+  Comparator for the initiative slug ID.
+  """
+  slugId: StringComparator
+  """
+  Comparator for the initiative started at date.
+  """
+  startedAt: NullableDateComparator
+  """
+  Comparator for the initiative status: Planned, Active, Completed
+  """
+  status: StringComparator
+  """
+  Comparator for the initiative target date.
+  """
+  targetDate: NullableDateComparator
+  """
+  Filters that the initiative teams must satisfy.
+  """
+  teams: TeamCollectionFilter
+  """
+  Comparator for the updated at date.
+  """
+  updatedAt: DateComparator
 }
 
 """
@@ -24975,6 +25544,10 @@ An organization. Organizations are root-level objects that contain user accounts
 """
 type Organization implements Node {
   """
+  [INTERNAL] Whether the organization has enabled agent automation.
+  """
+  agentAutomationEnabled: Boolean!
+  """
   [INTERNAL] Whether the organization has enabled the AI add-on (which at this point only includes triage suggestions).
   """
   aiAddonEnabled: Boolean!
@@ -25001,7 +25574,7 @@ type Organization implements Node {
   """
   Allowed authentication providers, empty array means all are allowed.
   """
-  allowedAuthServices: [String!]!
+  allowedAuthServices: [String!]! @deprecated(reason: "Use authSettings.allowedAuthServices instead.")
   """
   Allowed file upload content types
   """
@@ -25011,6 +25584,10 @@ type Organization implements Node {
   """
   archivedAt: DateTime
   """
+  Authentication settings for the organization.
+  """
+  authSettings: JSONObject!
+  """
   [INTERNAL] Whether code intelligence is enabled for the organization.
   """
   codeIntelligenceEnabled: Boolean!
@@ -25018,6 +25595,10 @@ type Organization implements Node {
   [INTERNAL] GitHub repository in owner/repo format for code intelligence.
   """
   codeIntelligenceRepository: String
+  """
+  [INTERNAL] Whether the organization has enabled the Coding Agent.
+  """
+  codingAgentEnabled: Boolean!
   """
   The time at which the entity was created.
   """
@@ -25081,7 +25662,7 @@ type Organization implements Node {
   """
   Whether to hide other organizations for new users signing up with email domains claimed by this organization.
   """
-  hideNonPrimaryOrganizations: Boolean!
+  hideNonPrimaryOrganizations: Boolean! @deprecated(reason: "Use authSettings.hideNonPrimaryOrganizations instead.")
   """
   Whether HIPAA compliance is enabled for organization.
   """
@@ -25172,6 +25753,10 @@ type Organization implements Node {
   [Internal] Whether the organization has enabled Linear Agent.
   """
   linearAgentEnabled: Boolean!
+  """
+  [Internal] Settings for Linear Agent features.
+  """
+  linearAgentSettings: JSONObject!
   """
   The organization's logo URL.
   """
@@ -25433,6 +26018,25 @@ type OrganizationAcceptedOrExpiredInviteDetailsPayload {
   The status of the invite.
   """
   status: OrganizationInviteStatus!
+}
+
+input OrganizationAuthSettingsInput {
+  """
+  [Internal] The minimum role required for the auth service bypass exemption.
+  """
+  allowedAuthServiceBypassRole: String
+  """
+  Allowed authentication providers, empty array means all are allowed.
+  """
+  allowedAuthServices: [String!]
+  """
+  Whether to disable admin/owner auth service bypass.
+  """
+  disableAuthServiceBypass: Boolean
+  """
+  Whether to hide non-primary organizations during signup for users with matching email domains.
+  """
+  hideNonPrimaryOrganizations: Boolean
 }
 
 type OrganizationCancelDeletePayload {
@@ -25821,6 +26425,28 @@ input OrganizationIpRestrictionInput {
   type: String!
 }
 
+input OrganizationLinearAgentMcpServerAllowlistEntryInput {
+  """
+  [Internal] The MCP server URL that Linear Agent is allowed to use.
+  """
+  url: String!
+}
+
+input OrganizationLinearAgentSettingsInput {
+  """
+  [Internal] The MCP server allowlist for Linear Agent. When unset, all MCP servers are allowed.
+  """
+  mcpServersAllowlist: [OrganizationLinearAgentMcpServerAllowlistEntryInput!]
+  """
+  [Internal] Whether the organization has enabled MCP servers for Linear Agent.
+  """
+  mcpServersEnabled: Boolean
+  """
+  [Internal] Whether the organization has enabled web search for Linear Agent.
+  """
+  webSearchEnabled: Boolean
+}
+
 type OrganizationMeta {
   """
   Allowed authentication providers, empty array means all are allowed.
@@ -25912,6 +26538,10 @@ type OrganizationStartTrialPayload {
 
 input OrganizationUpdateInput {
   """
+  [INTERNAL] Whether the organization has enabled agent automation.
+  """
+  agentAutomationEnabled: Boolean
+  """
   [INTERNAL] Whether the organization has enabled the AI add-on.
   """
   aiAddonEnabled: Boolean
@@ -25940,6 +26570,10 @@ input OrganizationUpdateInput {
   """
   allowedFileUploadContentTypes: [String!]
   """
+  The authentication settings for the organization.
+  """
+  authSettings: OrganizationAuthSettingsInput
+  """
   [INTERNAL] Whether code intelligence is enabled for the organization.
   """
   codeIntelligenceEnabled: Boolean
@@ -25947,6 +26581,10 @@ input OrganizationUpdateInput {
   [INTERNAL] GitHub repository in owner/repo format for code intelligence.
   """
   codeIntelligenceRepository: String
+  """
+  [INTERNAL] Whether the organization has enabled the Coding Agent.
+  """
+  codingAgentEnabled: Boolean
   """
   [INTERNAL] Configuration settings for the Customers feature.
   """
@@ -26015,6 +26653,10 @@ input OrganizationUpdateInput {
   [Internal] Whether the organization has enabled Linear Agent.
   """
   linearAgentEnabled: Boolean
+  """
+  [Internal] Settings for Linear Agent features.
+  """
+  linearAgentSettings: OrganizationLinearAgentSettingsInput
   """
   The logo of the organization.
   """
@@ -31177,6 +31819,10 @@ type PullRequest implements Node {
   """
   archivedAt: DateTime
   """
+  The base SHA of the pull request.
+  """
+  baseSha: String
+  """
   [Internal] The checks associated with the pull request.
   """
   checks: [PullRequestCheck!]!
@@ -31192,6 +31838,10 @@ type PullRequest implements Node {
   [Internal] The user who created the pull request.
   """
   creator: User
+  """
+  The head SHA of the pull request.
+  """
+  headSha: String
   """
   The unique identifier of the entity.
   """
@@ -31256,6 +31906,10 @@ type PullRequestCheck {
   """
   name: String!
   """
+  How the check should be opened in the client.
+  """
+  presentation: PullRequestCheckPresentation
+  """
   The date/time at which when the check was started.
   """
   startedAt: DateTime
@@ -31271,6 +31925,16 @@ type PullRequestCheck {
   The name of the workflow that triggered the check.
   """
   workflowName: String
+}
+
+"""
+[ALPHA] How a pull request check should be opened in the client.
+"""
+enum PullRequestCheckPresentation {
+  externalOnly
+  jobLogs
+  markdown
+  runLogs
 }
 
 """
@@ -33298,6 +33962,10 @@ type Query {
     """
     before: String
     """
+    Filter returned release pipelines.
+    """
+    filter: ReleasePipelineFilter
+    """
     The number of items to forward paginate (used with after). Defaults to 50.
     """
     first: Int
@@ -33343,6 +34011,10 @@ type Query {
     A cursor to be used with last for backward pagination.
     """
     before: String
+    """
+    Filter returned release stages.
+    """
+    filter: ReleaseStageFilter
     """
     The number of items to forward paginate (used with after). Defaults to 50.
     """
@@ -34326,6 +34998,48 @@ type Release implements Node {
   """
   id: ID!
   """
+  [ALPHA] Number of issues associated with the release.
+  """
+  issueCount(
+    """
+    Include archived issues in the count.
+    """
+    includeArchived: Boolean = false
+  ): Int!
+  """
+  [ALPHA] Issues associated with the release.
+  """
+  issues(
+    """
+    A cursor to be used with first for forward pagination
+    """
+    after: String
+    """
+    A cursor to be used with last for backward pagination.
+    """
+    before: String
+    """
+    Filter returned issues.
+    """
+    filter: IssueFilter
+    """
+    The number of items to forward paginate (used with after). Defaults to 50.
+    """
+    first: Int
+    """
+    Should archived resources be included (default: false)
+    """
+    includeArchived: Boolean
+    """
+    The number of items to backward paginate (used with before). Defaults to 50.
+    """
+    last: Int
+    """
+    By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
+    """
+    orderBy: PaginationOrderBy
+  ): IssueConnection!
+  """
   [Internal] Links associated with the release.
   """
   links(
@@ -34710,6 +35424,10 @@ type ReleasePipeline implements Node {
     By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
     """
     orderBy: PaginationOrderBy
+    """
+    [ALPHA] Sort returned releases.
+    """
+    sort: [ReleaseSortInput!]
   ): ReleaseConnection!
   """
   The pipeline's unique slug identifier.
@@ -34745,6 +35463,35 @@ type ReleasePipeline implements Node {
     orderBy: PaginationOrderBy
   ): ReleaseStageConnection!
   """
+  [ALPHA] Teams associated with this pipeline.
+  """
+  teams(
+    """
+    A cursor to be used with first for forward pagination
+    """
+    after: String
+    """
+    A cursor to be used with last for backward pagination.
+    """
+    before: String
+    """
+    The number of items to forward paginate (used with after). Defaults to 50.
+    """
+    first: Int
+    """
+    Should archived resources be included (default: false)
+    """
+    includeArchived: Boolean
+    """
+    The number of items to backward paginate (used with before). Defaults to 50.
+    """
+    last: Int
+    """
+    By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
+    """
+    orderBy: PaginationOrderBy
+  ): TeamConnection!
+  """
   The type of the pipeline.
   """
   type: ReleasePipelineType!
@@ -34753,6 +35500,10 @@ type ReleasePipeline implements Node {
       been updated after creation.
   """
   updatedAt: DateTime!
+  """
+  [Internal] Release pipeline URL.
+  """
+  url: String!
 }
 
 """
@@ -34796,6 +35547,10 @@ input ReleasePipelineCreateInput {
   The pipeline's unique slug identifier. If not provided, it will be auto-generated.
   """
   slugId: String
+  """
+  The identifiers of the teams this pipeline is associated with.
+  """
+  teamIds: [String!]
   """
   The type of the pipeline.
   """
@@ -34877,9 +35632,23 @@ input ReleasePipelineUpdateInput {
   """
   slugId: String
   """
+  The identifiers of the teams this pipeline is associated with.
+  """
+  teamIds: [String!]
+  """
   The type of the pipeline.
   """
   type: ReleasePipelineType
+}
+
+"""
+Release sorting options.
+"""
+input ReleaseSortInput {
+  """
+  Sort by release stage
+  """
+  stage: ReleaseStageSort
 }
 
 """
@@ -35068,6 +35837,20 @@ type ReleaseStagePayload {
   Whether the operation was successful.
   """
   success: Boolean!
+}
+
+"""
+Release stage sorting options.
+"""
+input ReleaseStageSort {
+  """
+  Whether nulls should be sorted first or last
+  """
+  nulls: PaginationNulls = last
+  """
+  The order for the individual sort
+  """
+  order: PaginationSortOrder
 }
 
 """
@@ -36315,22 +37098,6 @@ Comparator for issue source type.
 """
 input SourceMetadataComparator {
   """
-  Equals constraint.
-  """
-  eq: String
-  """
-  In-array constraint.
-  """
-  in: [String!]
-  """
-  Not-equals constraint.
-  """
-  neq: String
-  """
-  Not-in-array constraint.
-  """
-  nin: [String!]
-  """
   Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
   """
   null: Boolean
@@ -36621,6 +37388,301 @@ input SubTypeComparator {
   Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
   """
   null: Boolean
+}
+
+type Subscription {
+  """
+  Triggered when an agent activity is created
+  """
+  agentActivityCreated: AgentActivity!
+  """
+  Triggered when an agent activity is updated
+  """
+  agentActivityUpdated: AgentActivity!
+  """
+  Triggered when an agent session is created
+  """
+  agentSessionCreated: AgentSession!
+  """
+  Triggered when an agent session is updated
+  """
+  agentSessionUpdated: AgentSession!
+  """
+  Triggered when an ai conversation is updated
+  """
+  aiConversationUpdated: AiConversation!
+  """
+  Triggered when an ai prompt progress is created
+  """
+  aiPromptProgressCreated(filter: AiPromptProgressSubscriptionFilter): AiPromptProgress!
+  """
+  Triggered when an ai prompt progress is updated
+  """
+  aiPromptProgressUpdated(filter: AiPromptProgressSubscriptionFilter): AiPromptProgress!
+  """
+  Triggered when a comment is archived
+  """
+  commentArchived: Comment!
+  """
+  Triggered when a comment is created
+  """
+  commentCreated: Comment!
+  """
+  Triggered when a comment is deleted
+  """
+  commentDeleted: Comment!
+  """
+  Triggered when a a comment is unarchived
+  """
+  commentUnarchived: Comment!
+  """
+  Triggered when a comment is updated
+  """
+  commentUpdated: Comment!
+  """
+  Triggered when a cycle is archived
+  """
+  cycleArchived: Cycle!
+  """
+  Triggered when a cycle is created
+  """
+  cycleCreated: Cycle!
+  """
+  Triggered when a cycle is updated
+  """
+  cycleUpdated: Cycle!
+  """
+  Triggered when a document is archived
+  """
+  documentArchived: Document!
+  """
+  Triggered when a document content draft is created
+  """
+  documentContentDraftCreated: DocumentContentDraft!
+  """
+  Triggered when a document content draft is deleted
+  """
+  documentContentDraftDeleted: DocumentContentDraft!
+  """
+  Triggered when a document content draft is updated
+  """
+  documentContentDraftUpdated: DocumentContentDraft!
+  """
+  Triggered when a document is created
+  """
+  documentCreated: Document!
+  """
+  Triggered when a a document is unarchived
+  """
+  documentUnarchived: Document!
+  """
+  Triggered when a document is updated
+  """
+  documentUpdated: Document!
+  """
+  Triggered when a draft is created
+  """
+  draftCreated: Draft!
+  """
+  Triggered when a draft is deleted
+  """
+  draftDeleted: Draft!
+  """
+  Triggered when a draft is updated
+  """
+  draftUpdated: Draft!
+  """
+  Triggered when a favorite is created
+  """
+  favoriteCreated: Favorite!
+  """
+  Triggered when a favorite is deleted
+  """
+  favoriteDeleted: Favorite!
+  """
+  Triggered when a favorite is updated
+  """
+  favoriteUpdated: Favorite!
+  """
+  Triggered when an initiative is created
+  """
+  initiativeCreated: Initiative!
+  """
+  Triggered when an initiative is deleted
+  """
+  initiativeDeleted: Initiative!
+  """
+  Triggered when an initiative is updated
+  """
+  initiativeUpdated: Initiative!
+  """
+  Triggered when an issue is archived
+  """
+  issueArchived: Issue!
+  """
+  Triggered when an issue is created
+  """
+  issueCreated(filter: IssueSubscriptionFilter): Issue!
+  """
+  Triggered when an issue draft is created
+  """
+  issueDraftCreated: IssueDraft!
+  """
+  Triggered when an issue draft is deleted
+  """
+  issueDraftDeleted: IssueDraft!
+  """
+  Triggered when an issue draft is updated
+  """
+  issueDraftUpdated: IssueDraft!
+  """
+  Triggered when an issue history is created
+  """
+  issueHistoryCreated: IssueHistory!
+  """
+  Triggered when an issue history is updated
+  """
+  issueHistoryUpdated: IssueHistory!
+  """
+  Triggered when an issue label is created
+  """
+  issueLabelCreated: IssueLabel!
+  """
+  Triggered when an issue label is deleted
+  """
+  issueLabelDeleted: IssueLabel!
+  """
+  Triggered when an issue label is updated
+  """
+  issueLabelUpdated: IssueLabel!
+  """
+  Triggered when an issue relation is created
+  """
+  issueRelationCreated: IssueRelation!
+  """
+  Triggered when an issue relation is deleted
+  """
+  issueRelationDeleted: IssueRelation!
+  """
+  Triggered when an issue relation is updated
+  """
+  issueRelationUpdated: IssueRelation!
+  """
+  Triggered when a an issue is unarchived
+  """
+  issueUnarchived: Issue!
+  """
+  Triggered when an issue is updated
+  """
+  issueUpdated(filter: IssueSubscriptionFilter): Issue!
+  """
+  Triggered when a notification is archived
+  """
+  notificationArchived: Notification!
+  """
+  Triggered when a notification is created
+  """
+  notificationCreated: Notification!
+  """
+  Triggered when a notification is deleted
+  """
+  notificationDeleted: Notification!
+  """
+  Triggered when a a notification is unarchived
+  """
+  notificationUnarchived: Notification!
+  """
+  Triggered when a notification is updated
+  """
+  notificationUpdated: Notification!
+  """
+  Triggered when an organization is updated
+  """
+  organizationUpdated: Organization!
+  """
+  Triggered when a project is archived
+  """
+  projectArchived: Project!
+  """
+  Triggered when a project is created
+  """
+  projectCreated: Project!
+  """
+  Triggered when a a project is unarchived
+  """
+  projectUnarchived: Project!
+  """
+  Triggered when a project update is created
+  """
+  projectUpdateCreated: ProjectUpdate!
+  """
+  Triggered when a project update is deleted
+  """
+  projectUpdateDeleted: ProjectUpdate!
+  """
+  Triggered when a project update is updated
+  """
+  projectUpdateUpdated: ProjectUpdate!
+  """
+  Triggered when a project is updated
+  """
+  projectUpdated: Project!
+  """
+  Triggered when a roadmap is created
+  """
+  roadmapCreated: Roadmap!
+  """
+  Triggered when a roadmap is deleted
+  """
+  roadmapDeleted: Roadmap!
+  """
+  Triggered when a roadmap is updated
+  """
+  roadmapUpdated: Roadmap!
+  """
+  Triggered when a team is created
+  """
+  teamCreated: Team!
+  """
+  Triggered when a team is deleted
+  """
+  teamDeleted: Team!
+  """
+  Triggered when a team membership is created
+  """
+  teamMembershipCreated: TeamMembership!
+  """
+  Triggered when a team membership is deleted
+  """
+  teamMembershipDeleted: TeamMembership!
+  """
+  Triggered when a team membership is updated
+  """
+  teamMembershipUpdated: TeamMembership!
+  """
+  Triggered when a team is updated
+  """
+  teamUpdated: Team!
+  """
+  Triggered when an user is created
+  """
+  userCreated: User!
+  """
+  Triggered when an user is updated
+  """
+  userUpdated: User!
+  """
+  Triggered when a workflow state is archived
+  """
+  workflowStateArchived: WorkflowState!
+  """
+  Triggered when a workflow state is created
+  """
+  workflowStateCreated: WorkflowState!
+  """
+  Triggered when a workflow state is updated
+  """
+  workflowStateUpdated: WorkflowState!
 }
 
 type SuccessPayload {
@@ -37168,7 +38230,7 @@ type Team implements Node {
   """
   organization: Organization!
   """
-  [Internal] The team's parent team.
+  The team's parent team.
   """
   parent: Team
   """
@@ -37579,6 +38641,10 @@ input TeamCreateInput {
   The issue estimation type to use. Must be one of "notUsed", "exponential", "fibonacci", "linear", "tShirt".
   """
   issueEstimationType: String
+  """
+  The policy controlling whether and by whom issues in the team can be shared with non-team-members.
+  """
+  issueSharingPolicy: IssueSharingPolicy
   """
   The key of the team. If not given, the key will be generated based on the name of the team.
   """
@@ -38071,6 +39137,10 @@ input TeamUpdateInput {
   The issue estimation type to use. Must be one of "notUsed", "exponential", "fibonacci", "linear", "tShirt".
   """
   issueEstimationType: String
+  """
+  The policy controlling whether and by whom issues in the team can be shared with non-team-members.
+  """
+  issueSharingPolicy: IssueSharingPolicy
   """
   Whether new users should join this team by default. Mutation restricted to workspace admins or owners!
   """
@@ -39437,6 +40507,7 @@ input UserFilter {
 The types of flags that the user can have.
 """
 enum UserFlagType {
+  agentExamplesDismissed
   all
   analyticsWelcomeDismissed
   canPlaySnake
@@ -39480,6 +40551,8 @@ enum UserFlagType {
   teamsPageIntroductionDismissed
   threadedCommentsNudgeIsSeen
   triageWelcomeDismissed
+  tryCodexDismissed
+  tryCursorDismissed
   tryCyclesDismissed
   tryGithubDismissed
   tryInvitePeopleDismissed
@@ -40347,6 +41420,18 @@ type ViewPreferencesValues {
   """
   fieldTimeInCurrentStatus: Boolean
   """
+  The focus view grouping.
+  """
+  focusViewGrouping: String
+  """
+  The focus view ordering.
+  """
+  focusViewOrdering: String
+  """
+  The focus view ordering direction.
+  """
+  focusViewOrderingDirection: String
+  """
   List of column model IDs which should be hidden on a board.
   """
   hiddenColumns: [String!]
@@ -40699,9 +41784,17 @@ type ViewPreferencesValues {
   """
   releasePipelineFieldReleases: Boolean
   """
+  Whether to show the teams field for release pipelines.
+  """
+  releasePipelineFieldTeams: Boolean
+  """
   Whether to show the type field for release pipelines.
   """
   releasePipelineFieldType: Boolean
+  """
+  The release pipeline grouping.
+  """
+  releasePipelineGrouping: String
   """
   The release pipelines view ordering.
   """
@@ -40735,13 +41828,25 @@ type ViewPreferencesValues {
   """
   reviewViewOrdering: String
   """
+  Whether to show the completion field for scheduled pipeline releases.
+  """
+  scheduledPipelineReleaseFieldCompletion: Boolean
+  """
+  Whether to show the description field for scheduled pipeline releases.
+  """
+  scheduledPipelineReleaseFieldDescription: Boolean
+  """
   Whether to show the release date field for scheduled pipeline releases.
   """
   scheduledPipelineReleaseFieldReleaseDate: Boolean
   """
-  Whether to show the stage field for scheduled pipeline releases.
+  Whether to show the version field for scheduled pipeline releases.
   """
-  scheduledPipelineReleaseFieldStage: Boolean
+  scheduledPipelineReleaseFieldVersion: Boolean
+  """
+  The scheduled pipeline releases view grouping.
+  """
+  scheduledPipelineReleasesViewGrouping: String
   """
   The scheduled pipeline releases view ordering.
   """
@@ -40940,6 +42045,7 @@ enum ViewType {
   feedCreated
   feedFollowing
   feedPopular
+  focus
   inbox
   initiative
   initiativeOverview
@@ -41408,6 +42514,10 @@ type WorkflowDefinition implements Node {
   """
   project: Project
   """
+  The workflow definition's unique URL slug.
+  """
+  slugId: String!
+  """
   The sort order of the workflow definition within its siblings.
   """
   sortOrder: String!
@@ -41727,9 +42837,10 @@ enum WorkflowTriggerType {
 }
 
 enum WorkflowType {
-  custom
+  automation
   sla
   triage
+  triageAutomation
   viewSubscription
 }
 
