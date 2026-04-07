@@ -25,6 +25,11 @@ func NewNotificationCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewUnarchiveCommand(clientFactory))
 	cmd.AddCommand(NewSubscribeCommand(clientFactory))
 	cmd.AddCommand(NewUnsubscribeCommand(clientFactory))
+	cmd.AddCommand(NewArchiveAllCommand(clientFactory))
+	cmd.AddCommand(NewMarkReadAllCommand(clientFactory))
+	cmd.AddCommand(NewMarkUnreadAllCommand(clientFactory))
+	cmd.AddCommand(NewSnoozeAllCommand(clientFactory))
+	cmd.AddCommand(NewUnsnoozeAllCommand(clientFactory))
 
 	return cmd
 }
