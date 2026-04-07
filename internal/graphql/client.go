@@ -84,6 +84,11 @@ type LinearGraphQLClient interface {
 	NotificationSubscriptionCreate(ctx context.Context, input NotificationSubscriptionCreateInput, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionCreate, error)
 	NotificationSubscriptionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*NotificationSubscriptionDelete, error)
 	UnarchiveNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveNotification, error)
+	NotificationArchiveAll(ctx context.Context, input NotificationEntityInput, interceptors ...clientv2.RequestInterceptor) (*NotificationArchiveAll, error)
+	NotificationMarkReadAll(ctx context.Context, input NotificationEntityInput, readAt time.Time, interceptors ...clientv2.RequestInterceptor) (*NotificationMarkReadAll, error)
+	NotificationMarkUnreadAll(ctx context.Context, input NotificationEntityInput, interceptors ...clientv2.RequestInterceptor) (*NotificationMarkUnreadAll, error)
+	NotificationSnoozeAll(ctx context.Context, input NotificationEntityInput, snoozedUntilAt time.Time, interceptors ...clientv2.RequestInterceptor) (*NotificationSnoozeAll, error)
+	NotificationUnsnoozeAll(ctx context.Context, input NotificationEntityInput, unsnoozedAt time.Time, interceptors ...clientv2.RequestInterceptor) (*NotificationUnsnoozeAll, error)
 	ProjectMilestoneCreate(ctx context.Context, input ProjectMilestoneCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneCreate, error)
 	ProjectMilestoneUpdate(ctx context.Context, id string, input ProjectMilestoneUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneUpdate, error)
 	ProjectMilestoneDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectMilestoneDelete, error)
@@ -5631,6 +5636,61 @@ func (t *UnarchiveNotification_NotificationUnarchive) GetSuccess() bool {
 	return t.Success
 }
 
+type NotificationArchiveAll_NotificationArchiveAll struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationArchiveAll_NotificationArchiveAll) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationArchiveAll_NotificationArchiveAll{}
+	}
+	return t.Success
+}
+
+type NotificationMarkReadAll_NotificationMarkReadAll struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationMarkReadAll_NotificationMarkReadAll) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationMarkReadAll_NotificationMarkReadAll{}
+	}
+	return t.Success
+}
+
+type NotificationMarkUnreadAll_NotificationMarkUnreadAll struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationMarkUnreadAll_NotificationMarkUnreadAll) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationMarkUnreadAll_NotificationMarkUnreadAll{}
+	}
+	return t.Success
+}
+
+type NotificationSnoozeAll_NotificationSnoozeAll struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationSnoozeAll_NotificationSnoozeAll) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationSnoozeAll_NotificationSnoozeAll{}
+	}
+	return t.Success
+}
+
+type NotificationUnsnoozeAll_NotificationUnsnoozeAll struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *NotificationUnsnoozeAll_NotificationUnsnoozeAll) GetSuccess() bool {
+	if t == nil {
+		t = &NotificationUnsnoozeAll_NotificationUnsnoozeAll{}
+	}
+	return t.Success
+}
+
 type ProjectMilestoneCreate_ProjectMilestoneCreate_ProjectMilestone_Project struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -9905,6 +9965,61 @@ func (t *UnarchiveNotification) GetNotificationUnarchive() *UnarchiveNotificatio
 	return &t.NotificationUnarchive
 }
 
+type NotificationArchiveAll struct {
+	NotificationArchiveAll NotificationArchiveAll_NotificationArchiveAll "json:\"notificationArchiveAll\" graphql:\"notificationArchiveAll\""
+}
+
+func (t *NotificationArchiveAll) GetNotificationArchiveAll() *NotificationArchiveAll_NotificationArchiveAll {
+	if t == nil {
+		t = &NotificationArchiveAll{}
+	}
+	return &t.NotificationArchiveAll
+}
+
+type NotificationMarkReadAll struct {
+	NotificationMarkReadAll NotificationMarkReadAll_NotificationMarkReadAll "json:\"notificationMarkReadAll\" graphql:\"notificationMarkReadAll\""
+}
+
+func (t *NotificationMarkReadAll) GetNotificationMarkReadAll() *NotificationMarkReadAll_NotificationMarkReadAll {
+	if t == nil {
+		t = &NotificationMarkReadAll{}
+	}
+	return &t.NotificationMarkReadAll
+}
+
+type NotificationMarkUnreadAll struct {
+	NotificationMarkUnreadAll NotificationMarkUnreadAll_NotificationMarkUnreadAll "json:\"notificationMarkUnreadAll\" graphql:\"notificationMarkUnreadAll\""
+}
+
+func (t *NotificationMarkUnreadAll) GetNotificationMarkUnreadAll() *NotificationMarkUnreadAll_NotificationMarkUnreadAll {
+	if t == nil {
+		t = &NotificationMarkUnreadAll{}
+	}
+	return &t.NotificationMarkUnreadAll
+}
+
+type NotificationSnoozeAll struct {
+	NotificationSnoozeAll NotificationSnoozeAll_NotificationSnoozeAll "json:\"notificationSnoozeAll\" graphql:\"notificationSnoozeAll\""
+}
+
+func (t *NotificationSnoozeAll) GetNotificationSnoozeAll() *NotificationSnoozeAll_NotificationSnoozeAll {
+	if t == nil {
+		t = &NotificationSnoozeAll{}
+	}
+	return &t.NotificationSnoozeAll
+}
+
+type NotificationUnsnoozeAll struct {
+	NotificationUnsnoozeAll NotificationUnsnoozeAll_NotificationUnsnoozeAll "json:\"notificationUnsnoozeAll\" graphql:\"notificationUnsnoozeAll\""
+}
+
+func (t *NotificationUnsnoozeAll) GetNotificationUnsnoozeAll() *NotificationUnsnoozeAll_NotificationUnsnoozeAll {
+	if t == nil {
+		t = &NotificationUnsnoozeAll{}
+	}
+	return &t.NotificationUnsnoozeAll
+}
+
 type ProjectMilestoneCreate struct {
 	ProjectMilestoneCreate ProjectMilestoneCreate_ProjectMilestoneCreate "json:\"projectMilestoneCreate\" graphql:\"projectMilestoneCreate\""
 }
@@ -12926,6 +13041,129 @@ func (c *Client) UnarchiveNotification(ctx context.Context, id string, intercept
 	return &res, nil
 }
 
+const NotificationArchiveAllDocument = `mutation NotificationArchiveAll ($input: NotificationEntityInput!) {
+	notificationArchiveAll(input: $input) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationArchiveAll(ctx context.Context, input NotificationEntityInput, interceptors ...clientv2.RequestInterceptor) (*NotificationArchiveAll, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res NotificationArchiveAll
+	if err := c.Client.Post(ctx, "NotificationArchiveAll", NotificationArchiveAllDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationMarkReadAllDocument = `mutation NotificationMarkReadAll ($input: NotificationEntityInput!, $readAt: DateTime!) {
+	notificationMarkReadAll(input: $input, readAt: $readAt) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationMarkReadAll(ctx context.Context, input NotificationEntityInput, readAt time.Time, interceptors ...clientv2.RequestInterceptor) (*NotificationMarkReadAll, error) {
+	vars := map[string]any{
+		"input":  input,
+		"readAt": readAt,
+	}
+
+	var res NotificationMarkReadAll
+	if err := c.Client.Post(ctx, "NotificationMarkReadAll", NotificationMarkReadAllDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationMarkUnreadAllDocument = `mutation NotificationMarkUnreadAll ($input: NotificationEntityInput!) {
+	notificationMarkUnreadAll(input: $input) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationMarkUnreadAll(ctx context.Context, input NotificationEntityInput, interceptors ...clientv2.RequestInterceptor) (*NotificationMarkUnreadAll, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res NotificationMarkUnreadAll
+	if err := c.Client.Post(ctx, "NotificationMarkUnreadAll", NotificationMarkUnreadAllDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationSnoozeAllDocument = `mutation NotificationSnoozeAll ($input: NotificationEntityInput!, $snoozedUntilAt: DateTime!) {
+	notificationSnoozeAll(input: $input, snoozedUntilAt: $snoozedUntilAt) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationSnoozeAll(ctx context.Context, input NotificationEntityInput, snoozedUntilAt time.Time, interceptors ...clientv2.RequestInterceptor) (*NotificationSnoozeAll, error) {
+	vars := map[string]any{
+		"input":          input,
+		"snoozedUntilAt": snoozedUntilAt,
+	}
+
+	var res NotificationSnoozeAll
+	if err := c.Client.Post(ctx, "NotificationSnoozeAll", NotificationSnoozeAllDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const NotificationUnsnoozeAllDocument = `mutation NotificationUnsnoozeAll ($input: NotificationEntityInput!, $unsnoozedAt: DateTime!) {
+	notificationUnsnoozeAll(input: $input, unsnoozedAt: $unsnoozedAt) {
+		success
+	}
+}
+`
+
+func (c *Client) NotificationUnsnoozeAll(ctx context.Context, input NotificationEntityInput, unsnoozedAt time.Time, interceptors ...clientv2.RequestInterceptor) (*NotificationUnsnoozeAll, error) {
+	vars := map[string]any{
+		"input":       input,
+		"unsnoozedAt": unsnoozedAt,
+	}
+
+	var res NotificationUnsnoozeAll
+	if err := c.Client.Post(ctx, "NotificationUnsnoozeAll", NotificationUnsnoozeAllDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ProjectMilestoneCreateDocument = `mutation ProjectMilestoneCreate ($input: ProjectMilestoneCreateInput!) {
 	projectMilestoneCreate(input: $input) {
 		success
@@ -14509,6 +14747,11 @@ var DocumentOperationNames = map[string]string{
 	NotificationSubscriptionCreateDocument: "NotificationSubscriptionCreate",
 	NotificationSubscriptionDeleteDocument: "NotificationSubscriptionDelete",
 	UnarchiveNotificationDocument:          "UnarchiveNotification",
+	NotificationArchiveAllDocument:         "NotificationArchiveAll",
+	NotificationMarkReadAllDocument:        "NotificationMarkReadAll",
+	NotificationMarkUnreadAllDocument:      "NotificationMarkUnreadAll",
+	NotificationSnoozeAllDocument:          "NotificationSnoozeAll",
+	NotificationUnsnoozeAllDocument:        "NotificationUnsnoozeAll",
 	ProjectMilestoneCreateDocument:         "ProjectMilestoneCreate",
 	ProjectMilestoneUpdateDocument:         "ProjectMilestoneUpdate",
 	ProjectMilestoneDeleteDocument:         "ProjectMilestoneDelete",
