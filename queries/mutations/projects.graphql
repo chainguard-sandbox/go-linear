@@ -42,3 +42,73 @@ mutation UnarchiveProject($id: String!) {
     success
   }
 }
+
+mutation ProjectLabelCreate($input: ProjectLabelCreateInput!) {
+  projectLabelCreate(input: $input) {
+    success
+    projectLabel {
+      id
+      name
+      color
+      description
+      isGroup
+    }
+  }
+}
+
+mutation ProjectLabelUpdate($id: String!, $input: ProjectLabelUpdateInput!) {
+  projectLabelUpdate(id: $id, input: $input) {
+    success
+    projectLabel {
+      id
+      name
+      color
+      description
+      isGroup
+    }
+  }
+}
+
+mutation ProjectLabelDelete($id: String!) {
+  projectLabelDelete(id: $id) {
+    success
+  }
+}
+
+mutation ProjectRelationCreate($input: ProjectRelationCreateInput!) {
+  projectRelationCreate(input: $input) {
+    success
+    projectRelation {
+      id
+      type
+      anchorType
+      relatedAnchorType
+      project {
+        id
+        name
+      }
+      relatedProject {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation ProjectRelationUpdate($id: String!, $input: ProjectRelationUpdateInput!) {
+  projectRelationUpdate(id: $id, input: $input) {
+    success
+    projectRelation {
+      id
+      type
+      anchorType
+      relatedAnchorType
+    }
+  }
+}
+
+mutation ProjectRelationDelete($id: String!) {
+  projectRelationDelete(id: $id) {
+    success
+  }
+}

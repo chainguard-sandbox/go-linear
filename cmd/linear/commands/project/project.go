@@ -34,6 +34,14 @@ func NewProjectCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewStatusUpdateListCommand(clientFactory))
 	cmd.AddCommand(NewStatusUpdateGetCommand(clientFactory))
 	cmd.AddCommand(NewStatusUpdateDeleteCommand(clientFactory))
+	cmd.AddCommand(NewLabelListCommand(clientFactory))
+	cmd.AddCommand(NewLabelCreateCommand(clientFactory))
+	cmd.AddCommand(NewLabelUpdateCommand(clientFactory))
+	cmd.AddCommand(NewLabelDeleteCommand(clientFactory))
+	cmd.AddCommand(NewRelationListCommand(clientFactory))
+	cmd.AddCommand(NewRelationCreateCommand(clientFactory))
+	cmd.AddCommand(NewRelationUpdateCommand(clientFactory))
+	cmd.AddCommand(NewRelationDeleteCommand(clientFactory))
 
 	return cmd
 }

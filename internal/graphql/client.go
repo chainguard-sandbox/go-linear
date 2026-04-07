@@ -92,6 +92,12 @@ type LinearGraphQLClient interface {
 	DeleteProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteProject, error)
 	ArchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveProject, error)
 	UnarchiveProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveProject, error)
+	ProjectLabelCreate(ctx context.Context, input ProjectLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectLabelCreate, error)
+	ProjectLabelUpdate(ctx context.Context, id string, input ProjectLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectLabelUpdate, error)
+	ProjectLabelDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectLabelDelete, error)
+	ProjectRelationCreate(ctx context.Context, input ProjectRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectRelationCreate, error)
+	ProjectRelationUpdate(ctx context.Context, id string, input ProjectRelationUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectRelationUpdate, error)
+	ProjectRelationDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectRelationDelete, error)
 	ReactionCreate(ctx context.Context, input ReactionCreateInput, interceptors ...clientv2.RequestInterceptor) (*ReactionCreate, error)
 	ReactionDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ReactionDelete, error)
 	AddTeamMember(ctx context.Context, input TeamMembershipCreateInput, interceptors ...clientv2.RequestInterceptor) (*AddTeamMember, error)
@@ -109,6 +115,9 @@ type LinearGraphQLClient interface {
 	GetProject(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProject, error)
 	ListProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjects, error)
 	ListProjectsFiltered(ctx context.Context, first *int64, after *string, filter *ProjectFilter, interceptors ...clientv2.RequestInterceptor) (*ListProjectsFiltered, error)
+	ListProjectLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectLabels, error)
+	GetProjectLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectLabel, error)
+	ListProjectRelations(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectRelations, error)
 	GetRoadmap(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetRoadmap, error)
 	ListRoadmaps(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListRoadmaps, error)
 	SearchIssues(ctx context.Context, term string, first *int64, after *string, filter *IssueFilter, includeArchived *bool, interceptors ...clientv2.RequestInterceptor) (*SearchIssues, error)
@@ -5979,6 +5988,292 @@ func (t *UnarchiveProject_ProjectUnarchive) GetSuccess() bool {
 	return t.Success
 }
 
+type ProjectLabelCreate_ProjectLabelCreate_ProjectLabel struct {
+	Color       string  "json:\"color\" graphql:\"color\""
+	Description *string "json:\"description,omitempty\" graphql:\"description\""
+	ID          string  "json:\"id\" graphql:\"id\""
+	IsGroup     bool    "json:\"isGroup\" graphql:\"isGroup\""
+	Name        string  "json:\"name\" graphql:\"name\""
+}
+
+func (t *ProjectLabelCreate_ProjectLabelCreate_ProjectLabel) GetColor() string {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate_ProjectLabel{}
+	}
+	return t.Color
+}
+func (t *ProjectLabelCreate_ProjectLabelCreate_ProjectLabel) GetDescription() *string {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate_ProjectLabel{}
+	}
+	return t.Description
+}
+func (t *ProjectLabelCreate_ProjectLabelCreate_ProjectLabel) GetID() string {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate_ProjectLabel{}
+	}
+	return t.ID
+}
+func (t *ProjectLabelCreate_ProjectLabelCreate_ProjectLabel) GetIsGroup() bool {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate_ProjectLabel{}
+	}
+	return t.IsGroup
+}
+func (t *ProjectLabelCreate_ProjectLabelCreate_ProjectLabel) GetName() string {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate_ProjectLabel{}
+	}
+	return t.Name
+}
+
+type ProjectLabelCreate_ProjectLabelCreate struct {
+	ProjectLabel ProjectLabelCreate_ProjectLabelCreate_ProjectLabel "json:\"projectLabel\" graphql:\"projectLabel\""
+	Success      bool                                               "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectLabelCreate_ProjectLabelCreate) GetProjectLabel() *ProjectLabelCreate_ProjectLabelCreate_ProjectLabel {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate{}
+	}
+	return &t.ProjectLabel
+}
+func (t *ProjectLabelCreate_ProjectLabelCreate) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectLabelCreate_ProjectLabelCreate{}
+	}
+	return t.Success
+}
+
+type ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel struct {
+	Color       string  "json:\"color\" graphql:\"color\""
+	Description *string "json:\"description,omitempty\" graphql:\"description\""
+	ID          string  "json:\"id\" graphql:\"id\""
+	IsGroup     bool    "json:\"isGroup\" graphql:\"isGroup\""
+	Name        string  "json:\"name\" graphql:\"name\""
+}
+
+func (t *ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel) GetColor() string {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel{}
+	}
+	return t.Color
+}
+func (t *ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel) GetDescription() *string {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel{}
+	}
+	return t.Description
+}
+func (t *ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel) GetID() string {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel{}
+	}
+	return t.ID
+}
+func (t *ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel) GetIsGroup() bool {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel{}
+	}
+	return t.IsGroup
+}
+func (t *ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel) GetName() string {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel{}
+	}
+	return t.Name
+}
+
+type ProjectLabelUpdate_ProjectLabelUpdate struct {
+	ProjectLabel ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel "json:\"projectLabel\" graphql:\"projectLabel\""
+	Success      bool                                               "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectLabelUpdate_ProjectLabelUpdate) GetProjectLabel() *ProjectLabelUpdate_ProjectLabelUpdate_ProjectLabel {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate{}
+	}
+	return &t.ProjectLabel
+}
+func (t *ProjectLabelUpdate_ProjectLabelUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectLabelUpdate_ProjectLabelUpdate{}
+	}
+	return t.Success
+}
+
+type ProjectLabelDelete_ProjectLabelDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectLabelDelete_ProjectLabelDelete) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectLabelDelete_ProjectLabelDelete{}
+	}
+	return t.Success
+}
+
+type ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project) GetID() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project{}
+	}
+	return t.ID
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project) GetName() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project{}
+	}
+	return t.Name
+}
+
+type ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject) GetID() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject{}
+	}
+	return t.ID
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject) GetName() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject{}
+	}
+	return t.Name
+}
+
+type ProjectRelationCreate_ProjectRelationCreate_ProjectRelation struct {
+	AnchorType        string                                                                     "json:\"anchorType\" graphql:\"anchorType\""
+	ID                string                                                                     "json:\"id\" graphql:\"id\""
+	Project           ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project        "json:\"project\" graphql:\"project\""
+	RelatedAnchorType string                                                                     "json:\"relatedAnchorType\" graphql:\"relatedAnchorType\""
+	RelatedProject    ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject "json:\"relatedProject\" graphql:\"relatedProject\""
+	Type              string                                                                     "json:\"type\" graphql:\"type\""
+}
+
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation) GetAnchorType() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation{}
+	}
+	return t.AnchorType
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation) GetID() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation{}
+	}
+	return t.ID
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation) GetProject() *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_Project {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation{}
+	}
+	return &t.Project
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation) GetRelatedAnchorType() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation{}
+	}
+	return t.RelatedAnchorType
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation) GetRelatedProject() *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation_RelatedProject {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation{}
+	}
+	return &t.RelatedProject
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation) GetType() string {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate_ProjectRelation{}
+	}
+	return t.Type
+}
+
+type ProjectRelationCreate_ProjectRelationCreate struct {
+	ProjectRelation ProjectRelationCreate_ProjectRelationCreate_ProjectRelation "json:\"projectRelation\" graphql:\"projectRelation\""
+	Success         bool                                                        "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectRelationCreate_ProjectRelationCreate) GetProjectRelation() *ProjectRelationCreate_ProjectRelationCreate_ProjectRelation {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate{}
+	}
+	return &t.ProjectRelation
+}
+func (t *ProjectRelationCreate_ProjectRelationCreate) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectRelationCreate_ProjectRelationCreate{}
+	}
+	return t.Success
+}
+
+type ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation struct {
+	AnchorType        string "json:\"anchorType\" graphql:\"anchorType\""
+	ID                string "json:\"id\" graphql:\"id\""
+	RelatedAnchorType string "json:\"relatedAnchorType\" graphql:\"relatedAnchorType\""
+	Type              string "json:\"type\" graphql:\"type\""
+}
+
+func (t *ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation) GetAnchorType() string {
+	if t == nil {
+		t = &ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation{}
+	}
+	return t.AnchorType
+}
+func (t *ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation) GetID() string {
+	if t == nil {
+		t = &ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation{}
+	}
+	return t.ID
+}
+func (t *ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation) GetRelatedAnchorType() string {
+	if t == nil {
+		t = &ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation{}
+	}
+	return t.RelatedAnchorType
+}
+func (t *ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation) GetType() string {
+	if t == nil {
+		t = &ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation{}
+	}
+	return t.Type
+}
+
+type ProjectRelationUpdate_ProjectRelationUpdate struct {
+	ProjectRelation ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation "json:\"projectRelation\" graphql:\"projectRelation\""
+	Success         bool                                                        "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectRelationUpdate_ProjectRelationUpdate) GetProjectRelation() *ProjectRelationUpdate_ProjectRelationUpdate_ProjectRelation {
+	if t == nil {
+		t = &ProjectRelationUpdate_ProjectRelationUpdate{}
+	}
+	return &t.ProjectRelation
+}
+func (t *ProjectRelationUpdate_ProjectRelationUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectRelationUpdate_ProjectRelationUpdate{}
+	}
+	return t.Success
+}
+
+type ProjectRelationDelete_ProjectRelationDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *ProjectRelationDelete_ProjectRelationDelete) GetSuccess() bool {
+	if t == nil {
+		t = &ProjectRelationDelete_ProjectRelationDelete{}
+	}
+	return t.Success
+}
+
 type ReactionCreate_ReactionCreate_Reaction_User struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -7661,6 +7956,238 @@ func (t *ListProjectsFiltered_Projects) GetNodes() []*ListProjectsFiltered_Proje
 func (t *ListProjectsFiltered_Projects) GetPageInfo() *ListProjectsFiltered_Projects_PageInfo {
 	if t == nil {
 		t = &ListProjectsFiltered_Projects{}
+	}
+	return &t.PageInfo
+}
+
+type ListProjectLabels_ProjectLabels_Nodes struct {
+	Color       string  "json:\"color\" graphql:\"color\""
+	Description *string "json:\"description,omitempty\" graphql:\"description\""
+	ID          string  "json:\"id\" graphql:\"id\""
+	IsGroup     bool    "json:\"isGroup\" graphql:\"isGroup\""
+	Name        string  "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListProjectLabels_ProjectLabels_Nodes) GetColor() string {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListProjectLabels_ProjectLabels_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListProjectLabels_ProjectLabels_Nodes) GetID() string {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListProjectLabels_ProjectLabels_Nodes) GetIsGroup() bool {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_Nodes{}
+	}
+	return t.IsGroup
+}
+func (t *ListProjectLabels_ProjectLabels_Nodes) GetName() string {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_Nodes{}
+	}
+	return t.Name
+}
+
+type ListProjectLabels_ProjectLabels_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListProjectLabels_ProjectLabels_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListProjectLabels_ProjectLabels_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListProjectLabels_ProjectLabels struct {
+	Nodes    []*ListProjectLabels_ProjectLabels_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListProjectLabels_ProjectLabels_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListProjectLabels_ProjectLabels) GetNodes() []*ListProjectLabels_ProjectLabels_Nodes {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels{}
+	}
+	return t.Nodes
+}
+func (t *ListProjectLabels_ProjectLabels) GetPageInfo() *ListProjectLabels_ProjectLabels_PageInfo {
+	if t == nil {
+		t = &ListProjectLabels_ProjectLabels{}
+	}
+	return &t.PageInfo
+}
+
+type GetProjectLabel_ProjectLabel struct {
+	Color       string  "json:\"color\" graphql:\"color\""
+	Description *string "json:\"description,omitempty\" graphql:\"description\""
+	ID          string  "json:\"id\" graphql:\"id\""
+	IsGroup     bool    "json:\"isGroup\" graphql:\"isGroup\""
+	Name        string  "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetProjectLabel_ProjectLabel) GetColor() string {
+	if t == nil {
+		t = &GetProjectLabel_ProjectLabel{}
+	}
+	return t.Color
+}
+func (t *GetProjectLabel_ProjectLabel) GetDescription() *string {
+	if t == nil {
+		t = &GetProjectLabel_ProjectLabel{}
+	}
+	return t.Description
+}
+func (t *GetProjectLabel_ProjectLabel) GetID() string {
+	if t == nil {
+		t = &GetProjectLabel_ProjectLabel{}
+	}
+	return t.ID
+}
+func (t *GetProjectLabel_ProjectLabel) GetIsGroup() bool {
+	if t == nil {
+		t = &GetProjectLabel_ProjectLabel{}
+	}
+	return t.IsGroup
+}
+func (t *GetProjectLabel_ProjectLabel) GetName() string {
+	if t == nil {
+		t = &GetProjectLabel_ProjectLabel{}
+	}
+	return t.Name
+}
+
+type ListProjectRelations_ProjectRelations_Nodes_Project struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListProjectRelations_ProjectRelations_Nodes_Project) GetID() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes_Project{}
+	}
+	return t.ID
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes_Project) GetName() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes_Project{}
+	}
+	return t.Name
+}
+
+type ListProjectRelations_ProjectRelations_Nodes_RelatedProject struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListProjectRelations_ProjectRelations_Nodes_RelatedProject) GetID() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes_RelatedProject{}
+	}
+	return t.ID
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes_RelatedProject) GetName() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes_RelatedProject{}
+	}
+	return t.Name
+}
+
+type ListProjectRelations_ProjectRelations_Nodes struct {
+	AnchorType        string                                                     "json:\"anchorType\" graphql:\"anchorType\""
+	ID                string                                                     "json:\"id\" graphql:\"id\""
+	Project           ListProjectRelations_ProjectRelations_Nodes_Project        "json:\"project\" graphql:\"project\""
+	RelatedAnchorType string                                                     "json:\"relatedAnchorType\" graphql:\"relatedAnchorType\""
+	RelatedProject    ListProjectRelations_ProjectRelations_Nodes_RelatedProject "json:\"relatedProject\" graphql:\"relatedProject\""
+	Type              string                                                     "json:\"type\" graphql:\"type\""
+}
+
+func (t *ListProjectRelations_ProjectRelations_Nodes) GetAnchorType() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.AnchorType
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes) GetID() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes) GetProject() *ListProjectRelations_ProjectRelations_Nodes_Project {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes{}
+	}
+	return &t.Project
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes) GetRelatedAnchorType() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.RelatedAnchorType
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes) GetRelatedProject() *ListProjectRelations_ProjectRelations_Nodes_RelatedProject {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes{}
+	}
+	return &t.RelatedProject
+}
+func (t *ListProjectRelations_ProjectRelations_Nodes) GetType() string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.Type
+}
+
+type ListProjectRelations_ProjectRelations_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListProjectRelations_ProjectRelations_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListProjectRelations_ProjectRelations_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListProjectRelations_ProjectRelations struct {
+	Nodes    []*ListProjectRelations_ProjectRelations_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListProjectRelations_ProjectRelations_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListProjectRelations_ProjectRelations) GetNodes() []*ListProjectRelations_ProjectRelations_Nodes {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations{}
+	}
+	return t.Nodes
+}
+func (t *ListProjectRelations_ProjectRelations) GetPageInfo() *ListProjectRelations_ProjectRelations_PageInfo {
+	if t == nil {
+		t = &ListProjectRelations_ProjectRelations{}
 	}
 	return &t.PageInfo
 }
@@ -9969,6 +10496,72 @@ func (t *UnarchiveProject) GetProjectUnarchive() *UnarchiveProject_ProjectUnarch
 	return &t.ProjectUnarchive
 }
 
+type ProjectLabelCreate struct {
+	ProjectLabelCreate ProjectLabelCreate_ProjectLabelCreate "json:\"projectLabelCreate\" graphql:\"projectLabelCreate\""
+}
+
+func (t *ProjectLabelCreate) GetProjectLabelCreate() *ProjectLabelCreate_ProjectLabelCreate {
+	if t == nil {
+		t = &ProjectLabelCreate{}
+	}
+	return &t.ProjectLabelCreate
+}
+
+type ProjectLabelUpdate struct {
+	ProjectLabelUpdate ProjectLabelUpdate_ProjectLabelUpdate "json:\"projectLabelUpdate\" graphql:\"projectLabelUpdate\""
+}
+
+func (t *ProjectLabelUpdate) GetProjectLabelUpdate() *ProjectLabelUpdate_ProjectLabelUpdate {
+	if t == nil {
+		t = &ProjectLabelUpdate{}
+	}
+	return &t.ProjectLabelUpdate
+}
+
+type ProjectLabelDelete struct {
+	ProjectLabelDelete ProjectLabelDelete_ProjectLabelDelete "json:\"projectLabelDelete\" graphql:\"projectLabelDelete\""
+}
+
+func (t *ProjectLabelDelete) GetProjectLabelDelete() *ProjectLabelDelete_ProjectLabelDelete {
+	if t == nil {
+		t = &ProjectLabelDelete{}
+	}
+	return &t.ProjectLabelDelete
+}
+
+type ProjectRelationCreate struct {
+	ProjectRelationCreate ProjectRelationCreate_ProjectRelationCreate "json:\"projectRelationCreate\" graphql:\"projectRelationCreate\""
+}
+
+func (t *ProjectRelationCreate) GetProjectRelationCreate() *ProjectRelationCreate_ProjectRelationCreate {
+	if t == nil {
+		t = &ProjectRelationCreate{}
+	}
+	return &t.ProjectRelationCreate
+}
+
+type ProjectRelationUpdate struct {
+	ProjectRelationUpdate ProjectRelationUpdate_ProjectRelationUpdate "json:\"projectRelationUpdate\" graphql:\"projectRelationUpdate\""
+}
+
+func (t *ProjectRelationUpdate) GetProjectRelationUpdate() *ProjectRelationUpdate_ProjectRelationUpdate {
+	if t == nil {
+		t = &ProjectRelationUpdate{}
+	}
+	return &t.ProjectRelationUpdate
+}
+
+type ProjectRelationDelete struct {
+	ProjectRelationDelete ProjectRelationDelete_ProjectRelationDelete "json:\"projectRelationDelete\" graphql:\"projectRelationDelete\""
+}
+
+func (t *ProjectRelationDelete) GetProjectRelationDelete() *ProjectRelationDelete_ProjectRelationDelete {
+	if t == nil {
+		t = &ProjectRelationDelete{}
+	}
+	return &t.ProjectRelationDelete
+}
+
 type ReactionCreate struct {
 	ReactionCreate ReactionCreate_ReactionCreate "json:\"reactionCreate\" graphql:\"reactionCreate\""
 }
@@ -10154,6 +10747,39 @@ func (t *ListProjectsFiltered) GetProjects() *ListProjectsFiltered_Projects {
 		t = &ListProjectsFiltered{}
 	}
 	return &t.Projects
+}
+
+type ListProjectLabels struct {
+	ProjectLabels ListProjectLabels_ProjectLabels "json:\"projectLabels\" graphql:\"projectLabels\""
+}
+
+func (t *ListProjectLabels) GetProjectLabels() *ListProjectLabels_ProjectLabels {
+	if t == nil {
+		t = &ListProjectLabels{}
+	}
+	return &t.ProjectLabels
+}
+
+type GetProjectLabel struct {
+	ProjectLabel GetProjectLabel_ProjectLabel "json:\"projectLabel\" graphql:\"projectLabel\""
+}
+
+func (t *GetProjectLabel) GetProjectLabel() *GetProjectLabel_ProjectLabel {
+	if t == nil {
+		t = &GetProjectLabel{}
+	}
+	return &t.ProjectLabel
+}
+
+type ListProjectRelations struct {
+	ProjectRelations ListProjectRelations_ProjectRelations "json:\"projectRelations\" graphql:\"projectRelations\""
+}
+
+func (t *ListProjectRelations) GetProjectRelations() *ListProjectRelations_ProjectRelations {
+	if t == nil {
+		t = &ListProjectRelations{}
+	}
+	return &t.ProjectRelations
 }
 
 type GetRoadmap struct {
@@ -13112,6 +13738,186 @@ func (c *Client) UnarchiveProject(ctx context.Context, id string, interceptors .
 	return &res, nil
 }
 
+const ProjectLabelCreateDocument = `mutation ProjectLabelCreate ($input: ProjectLabelCreateInput!) {
+	projectLabelCreate(input: $input) {
+		success
+		projectLabel {
+			id
+			name
+			color
+			description
+			isGroup
+		}
+	}
+}
+`
+
+func (c *Client) ProjectLabelCreate(ctx context.Context, input ProjectLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectLabelCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res ProjectLabelCreate
+	if err := c.Client.Post(ctx, "ProjectLabelCreate", ProjectLabelCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ProjectLabelUpdateDocument = `mutation ProjectLabelUpdate ($id: String!, $input: ProjectLabelUpdateInput!) {
+	projectLabelUpdate(id: $id, input: $input) {
+		success
+		projectLabel {
+			id
+			name
+			color
+			description
+			isGroup
+		}
+	}
+}
+`
+
+func (c *Client) ProjectLabelUpdate(ctx context.Context, id string, input ProjectLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectLabelUpdate, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res ProjectLabelUpdate
+	if err := c.Client.Post(ctx, "ProjectLabelUpdate", ProjectLabelUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ProjectLabelDeleteDocument = `mutation ProjectLabelDelete ($id: String!) {
+	projectLabelDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ProjectLabelDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectLabelDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ProjectLabelDelete
+	if err := c.Client.Post(ctx, "ProjectLabelDelete", ProjectLabelDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ProjectRelationCreateDocument = `mutation ProjectRelationCreate ($input: ProjectRelationCreateInput!) {
+	projectRelationCreate(input: $input) {
+		success
+		projectRelation {
+			id
+			type
+			anchorType
+			relatedAnchorType
+			project {
+				id
+				name
+			}
+			relatedProject {
+				id
+				name
+			}
+		}
+	}
+}
+`
+
+func (c *Client) ProjectRelationCreate(ctx context.Context, input ProjectRelationCreateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectRelationCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res ProjectRelationCreate
+	if err := c.Client.Post(ctx, "ProjectRelationCreate", ProjectRelationCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ProjectRelationUpdateDocument = `mutation ProjectRelationUpdate ($id: String!, $input: ProjectRelationUpdateInput!) {
+	projectRelationUpdate(id: $id, input: $input) {
+		success
+		projectRelation {
+			id
+			type
+			anchorType
+			relatedAnchorType
+		}
+	}
+}
+`
+
+func (c *Client) ProjectRelationUpdate(ctx context.Context, id string, input ProjectRelationUpdateInput, interceptors ...clientv2.RequestInterceptor) (*ProjectRelationUpdate, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res ProjectRelationUpdate
+	if err := c.Client.Post(ctx, "ProjectRelationUpdate", ProjectRelationUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ProjectRelationDeleteDocument = `mutation ProjectRelationDelete ($id: String!) {
+	projectRelationDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) ProjectRelationDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ProjectRelationDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res ProjectRelationDelete
+	if err := c.Client.Post(ctx, "ProjectRelationDelete", ProjectRelationDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ReactionCreateDocument = `mutation ReactionCreate ($input: ReactionCreateInput!) {
 	reactionCreate(input: $input) {
 		success
@@ -13747,6 +14553,111 @@ func (c *Client) ListProjectsFiltered(ctx context.Context, first *int64, after *
 
 	var res ListProjectsFiltered
 	if err := c.Client.Post(ctx, "ListProjectsFiltered", ListProjectsFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListProjectLabelsDocument = `query ListProjectLabels ($first: Int, $after: String) {
+	projectLabels(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			color
+			description
+			isGroup
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListProjectLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectLabels, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListProjectLabels
+	if err := c.Client.Post(ctx, "ListProjectLabels", ListProjectLabelsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetProjectLabelDocument = `query GetProjectLabel ($id: String!) {
+	projectLabel(id: $id) {
+		id
+		name
+		color
+		description
+		isGroup
+	}
+}
+`
+
+func (c *Client) GetProjectLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectLabel, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetProjectLabel
+	if err := c.Client.Post(ctx, "GetProjectLabel", GetProjectLabelDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListProjectRelationsDocument = `query ListProjectRelations ($first: Int, $after: String) {
+	projectRelations(first: $first, after: $after) {
+		nodes {
+			id
+			type
+			anchorType
+			relatedAnchorType
+			project {
+				id
+				name
+			}
+			relatedProject {
+				id
+				name
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListProjectRelations(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectRelations, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListProjectRelations
+	if err := c.Client.Post(ctx, "ListProjectRelations", ListProjectRelationsDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -14421,6 +15332,12 @@ var DocumentOperationNames = map[string]string{
 	DeleteProjectDocument:                  "DeleteProject",
 	ArchiveProjectDocument:                 "ArchiveProject",
 	UnarchiveProjectDocument:               "UnarchiveProject",
+	ProjectLabelCreateDocument:             "ProjectLabelCreate",
+	ProjectLabelUpdateDocument:             "ProjectLabelUpdate",
+	ProjectLabelDeleteDocument:             "ProjectLabelDelete",
+	ProjectRelationCreateDocument:          "ProjectRelationCreate",
+	ProjectRelationUpdateDocument:          "ProjectRelationUpdate",
+	ProjectRelationDeleteDocument:          "ProjectRelationDelete",
 	ReactionCreateDocument:                 "ReactionCreate",
 	ReactionDeleteDocument:                 "ReactionDelete",
 	AddTeamMemberDocument:                  "AddTeamMember",
@@ -14438,6 +15355,9 @@ var DocumentOperationNames = map[string]string{
 	GetProjectDocument:                     "GetProject",
 	ListProjectsDocument:                   "ListProjects",
 	ListProjectsFilteredDocument:           "ListProjectsFiltered",
+	ListProjectLabelsDocument:              "ListProjectLabels",
+	GetProjectLabelDocument:                "GetProjectLabel",
+	ListProjectRelationsDocument:           "ListProjectRelations",
 	GetRoadmapDocument:                     "GetRoadmap",
 	ListRoadmapsDocument:                   "ListRoadmaps",
 	SearchIssuesDocument:                   "SearchIssues",
