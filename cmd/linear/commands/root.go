@@ -14,6 +14,7 @@ import (
 	"github.com/chainguard-dev/clog"
 	"github.com/spf13/cobra"
 
+	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/audit"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/attachment"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/comment"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/cycle"
@@ -297,6 +298,7 @@ Environment Variables:
 	}
 
 	// Add subcommands (ordered alphabetically)
+	rootCmd.AddCommand(audit.NewAuditCommand(getClient))
 	rootCmd.AddCommand(attachment.NewAttachmentCommand(getClient))
 	rootCmd.AddCommand(comment.NewCommentCommand(getClient))
 	rootCmd.AddCommand(cycle.NewCycleCommand(getClient))

@@ -1,0 +1,114 @@
+package audit
+
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
+	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
+)
+
+// NewListCommand creates the audit list command.
+func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	paginationFlags := &cli.PaginationFlags{}
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List audit log entries",
+		Long: `List audit log entries with optional filtering.
+
+Filters: --type (entry type), --actor (user ID), --ip, --created-after, --created-before
+
+Example: go-linear audit list --type=issue.create --limit=20
+Example: go-linear audit list --created-after=7d
+
+Related: audit_types`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, err := clientFactory()
+			if err != nil {
+				return err
+			}
+			defer client.Close()
+
+			return runList(cmd, client, paginationFlags)
+		},
+	}
+
+	cmd.Flags().String("type", "", "Filter by audit entry type")
+	cmd.Flags().String("actor", "", "Filter by actor user ID")
+	cmd.Flags().String("ip", "", "Filter by IP address")
+	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
+	cmd.Flags().String("created-before", "", "Created before date")
+	paginationFlags.Bind(cmd, 50)
+
+	return cmd
+}
+
+func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.PaginationFlags) error {
+	ctx := cmd.Context()
+
+	first := paginationFlags.LimitPtr()
+	var afterPtr *string
+	if paginationFlags.After != "" {
+		afterPtr = &paginationFlags.After
+	}
+
+	// Build filter
+	var filter *intgraphql.AuditEntryFilter
+	typeFlag, _ := cmd.Flags().GetString("type")
+	actorFlag, _ := cmd.Flags().GetString("actor")
+	ipFlag, _ := cmd.Flags().GetString("ip")
+	createdAfter, _ := cmd.Flags().GetString("created-after")
+	createdBefore, _ := cmd.Flags().GetString("created-before")
+
+	if typeFlag != "" || actorFlag != "" || ipFlag != "" || createdAfter != "" || createdBefore != "" {
+		filter = &intgraphql.AuditEntryFilter{}
+
+		if typeFlag != "" {
+			filter.Type = &intgraphql.StringComparator{Eq: &typeFlag}
+		}
+		if actorFlag != "" {
+			filter.Actor = &intgraphql.NullableUserFilter{
+				ID: &intgraphql.IDComparator{Eq: &actorFlag},
+			}
+		}
+		if ipFlag != "" {
+			filter.IP = &intgraphql.StringComparator{Eq: &ipFlag}
+		}
+
+		parser := dateparser.New()
+		if createdAfter != "" {
+			t, err := parser.Parse(createdAfter)
+			if err != nil {
+				return fmt.Errorf("invalid --created-after: %w", err)
+			}
+			if filter.CreatedAt == nil {
+				filter.CreatedAt = &intgraphql.DateComparator{}
+			}
+			s := t.Format("2006-01-02T15:04:05.000Z")
+			filter.CreatedAt.Gte = &s
+		}
+		if createdBefore != "" {
+			t, err := parser.Parse(createdBefore)
+			if err != nil {
+				return fmt.Errorf("invalid --created-before: %w", err)
+			}
+			if filter.CreatedAt == nil {
+				filter.CreatedAt = &intgraphql.DateComparator{}
+			}
+			s := t.Format("2006-01-02T15:04:05.000Z")
+			filter.CreatedAt.Lte = &s
+		}
+	}
+
+	entries, err := client.AuditEntries(ctx, first, afterPtr, filter)
+	if err != nil {
+		return fmt.Errorf("failed to list audit entries: %w", err)
+	}
+
+	return formatter.FormatJSON(cmd.OutOrStdout(), entries, true)
+}
