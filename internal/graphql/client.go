@@ -74,6 +74,8 @@ type LinearGraphQLClient interface {
 	DeleteIssue(ctx context.Context, id string, permanentlyDelete *bool, interceptors ...clientv2.RequestInterceptor) (*DeleteIssue, error)
 	ArchiveIssue(ctx context.Context, id string, trash *bool, interceptors ...clientv2.RequestInterceptor) (*ArchiveIssue, error)
 	UnarchiveIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveIssue, error)
+	IssueSubscribe(ctx context.Context, id string, userID *string, interceptors ...clientv2.RequestInterceptor) (*IssueSubscribe, error)
+	IssueUnsubscribe(ctx context.Context, id string, userID *string, interceptors ...clientv2.RequestInterceptor) (*IssueUnsubscribe, error)
 	CreateLabel(ctx context.Context, input IssueLabelCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateLabel, error)
 	UpdateLabel(ctx context.Context, id string, input IssueLabelUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateLabel, error)
 	DeleteLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteLabel, error)
@@ -5363,6 +5365,28 @@ func (t *UnarchiveIssue_IssueUnarchive) GetSuccess() bool {
 	return t.Success
 }
 
+type IssueSubscribe_IssueSubscribe struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueSubscribe_IssueSubscribe) GetSuccess() bool {
+	if t == nil {
+		t = &IssueSubscribe_IssueSubscribe{}
+	}
+	return t.Success
+}
+
+type IssueUnsubscribe_IssueUnsubscribe struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *IssueUnsubscribe_IssueUnsubscribe) GetSuccess() bool {
+	if t == nil {
+		t = &IssueUnsubscribe_IssueUnsubscribe{}
+	}
+	return t.Success
+}
+
 type CreateLabel_IssueLabelCreate_IssueLabel struct {
 	Color       string    "json:\"color\" graphql:\"color\""
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
@@ -9771,6 +9795,28 @@ func (t *UnarchiveIssue) GetIssueUnarchive() *UnarchiveIssue_IssueUnarchive {
 	return &t.IssueUnarchive
 }
 
+type IssueSubscribe struct {
+	IssueSubscribe IssueSubscribe_IssueSubscribe "json:\"issueSubscribe\" graphql:\"issueSubscribe\""
+}
+
+func (t *IssueSubscribe) GetIssueSubscribe() *IssueSubscribe_IssueSubscribe {
+	if t == nil {
+		t = &IssueSubscribe{}
+	}
+	return &t.IssueSubscribe
+}
+
+type IssueUnsubscribe struct {
+	IssueUnsubscribe IssueUnsubscribe_IssueUnsubscribe "json:\"issueUnsubscribe\" graphql:\"issueUnsubscribe\""
+}
+
+func (t *IssueUnsubscribe) GetIssueUnsubscribe() *IssueUnsubscribe_IssueUnsubscribe {
+	if t == nil {
+		t = &IssueUnsubscribe{}
+	}
+	return &t.IssueUnsubscribe
+}
+
 type CreateLabel struct {
 	IssueLabelCreate CreateLabel_IssueLabelCreate "json:\"issueLabelCreate\" graphql:\"issueLabelCreate\""
 }
@@ -12612,6 +12658,56 @@ func (c *Client) UnarchiveIssue(ctx context.Context, id string, interceptors ...
 	return &res, nil
 }
 
+const IssueSubscribeDocument = `mutation IssueSubscribe ($id: String!, $userId: String) {
+	issueSubscribe(id: $id, userId: $userId) {
+		success
+	}
+}
+`
+
+func (c *Client) IssueSubscribe(ctx context.Context, id string, userID *string, interceptors ...clientv2.RequestInterceptor) (*IssueSubscribe, error) {
+	vars := map[string]any{
+		"id":     id,
+		"userId": userID,
+	}
+
+	var res IssueSubscribe
+	if err := c.Client.Post(ctx, "IssueSubscribe", IssueSubscribeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const IssueUnsubscribeDocument = `mutation IssueUnsubscribe ($id: String!, $userId: String) {
+	issueUnsubscribe(id: $id, userId: $userId) {
+		success
+	}
+}
+`
+
+func (c *Client) IssueUnsubscribe(ctx context.Context, id string, userID *string, interceptors ...clientv2.RequestInterceptor) (*IssueUnsubscribe, error) {
+	vars := map[string]any{
+		"id":     id,
+		"userId": userID,
+	}
+
+	var res IssueUnsubscribe
+	if err := c.Client.Post(ctx, "IssueUnsubscribe", IssueUnsubscribeDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const CreateLabelDocument = `mutation CreateLabel ($input: IssueLabelCreateInput!) {
 	issueLabelCreate(input: $input) {
 		success
@@ -14403,6 +14499,8 @@ var DocumentOperationNames = map[string]string{
 	DeleteIssueDocument:                    "DeleteIssue",
 	ArchiveIssueDocument:                   "ArchiveIssue",
 	UnarchiveIssueDocument:                 "UnarchiveIssue",
+	IssueSubscribeDocument:                 "IssueSubscribe",
+	IssueUnsubscribeDocument:               "IssueUnsubscribe",
 	CreateLabelDocument:                    "CreateLabel",
 	UpdateLabelDocument:                    "UpdateLabel",
 	DeleteLabelDocument:                    "DeleteLabel",
