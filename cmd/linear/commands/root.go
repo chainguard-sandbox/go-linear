@@ -33,6 +33,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/template"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/user"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/viewer"
+	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/webhook"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
@@ -316,6 +317,7 @@ Environment Variables:
 	rootCmd.AddCommand(template.NewTemplateCommand(getClient))
 	rootCmd.AddCommand(user.NewUserCommand(getClient))
 	rootCmd.AddCommand(viewer.NewViewerCommand(getClient))
+	rootCmd.AddCommand(webhook.NewWebhookCommand(getClient))
 
 	return rootCmd
 }

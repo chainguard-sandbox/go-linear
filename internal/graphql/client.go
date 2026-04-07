@@ -100,6 +100,10 @@ type LinearGraphQLClient interface {
 	UpdateTeam(ctx context.Context, id string, input TeamUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateTeam, error)
 	DeleteTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteTeam, error)
 	UnarchiveTeam(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*UnarchiveTeam, error)
+	WebhookCreate(ctx context.Context, input WebhookCreateInput, interceptors ...clientv2.RequestInterceptor) (*WebhookCreate, error)
+	WebhookUpdate(ctx context.Context, id string, input WebhookUpdateInput, interceptors ...clientv2.RequestInterceptor) (*WebhookUpdate, error)
+	WebhookDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*WebhookDelete, error)
+	WebhookRotateSecret(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*WebhookRotateSecret, error)
 	ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error)
 	GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
@@ -122,6 +126,8 @@ type LinearGraphQLClient interface {
 	ListUsers(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListUsers, error)
 	ListUsersFiltered(ctx context.Context, first *int64, after *string, filter *UserFilter, interceptors ...clientv2.RequestInterceptor) (*ListUsersFiltered, error)
 	Viewer(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*Viewer, error)
+	GetWebhook(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetWebhook, error)
+	ListWebhooks(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListWebhooks, error)
 	GetWorkflowState(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetWorkflowState, error)
 	ListWorkflowStates(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListWorkflowStates, error)
 	ListWorkflowStatesFiltered(ctx context.Context, first *int64, after *string, filter *WorkflowStateFilter, interceptors ...clientv2.RequestInterceptor) (*ListWorkflowStatesFiltered, error)
@@ -6291,6 +6297,234 @@ func (t *UnarchiveTeam_TeamUnarchive) GetSuccess() bool {
 	return t.Success
 }
 
+type WebhookCreate_WebhookCreate_Webhook_Creator struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *WebhookCreate_WebhookCreate_Webhook_Creator) GetID() string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook_Creator{}
+	}
+	return t.ID
+}
+func (t *WebhookCreate_WebhookCreate_Webhook_Creator) GetName() string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook_Creator{}
+	}
+	return t.Name
+}
+
+type WebhookCreate_WebhookCreate_Webhook_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *WebhookCreate_WebhookCreate_Webhook_Team) GetID() string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook_Team{}
+	}
+	return t.ID
+}
+func (t *WebhookCreate_WebhookCreate_Webhook_Team) GetKey() string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook_Team{}
+	}
+	return t.Key
+}
+func (t *WebhookCreate_WebhookCreate_Webhook_Team) GetName() string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook_Team{}
+	}
+	return t.Name
+}
+
+type WebhookCreate_WebhookCreate_Webhook struct {
+	AllPublicTeams bool                                         "json:\"allPublicTeams\" graphql:\"allPublicTeams\""
+	CreatedAt      time.Time                                    "json:\"createdAt\" graphql:\"createdAt\""
+	Creator        *WebhookCreate_WebhookCreate_Webhook_Creator "json:\"creator,omitempty\" graphql:\"creator\""
+	Enabled        bool                                         "json:\"enabled\" graphql:\"enabled\""
+	ID             string                                       "json:\"id\" graphql:\"id\""
+	Label          *string                                      "json:\"label,omitempty\" graphql:\"label\""
+	ResourceTypes  []string                                     "json:\"resourceTypes\" graphql:\"resourceTypes\""
+	Secret         *string                                      "json:\"secret,omitempty\" graphql:\"secret\""
+	Team           *WebhookCreate_WebhookCreate_Webhook_Team    "json:\"team,omitempty\" graphql:\"team\""
+	URL            *string                                      "json:\"url,omitempty\" graphql:\"url\""
+}
+
+func (t *WebhookCreate_WebhookCreate_Webhook) GetAllPublicTeams() bool {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.AllPublicTeams
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return &t.CreatedAt
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetCreator() *WebhookCreate_WebhookCreate_Webhook_Creator {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.Creator
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetEnabled() bool {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.Enabled
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetID() string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.ID
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetLabel() *string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.Label
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetResourceTypes() []string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.ResourceTypes
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetSecret() *string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.Secret
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetTeam() *WebhookCreate_WebhookCreate_Webhook_Team {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.Team
+}
+func (t *WebhookCreate_WebhookCreate_Webhook) GetURL() *string {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate_Webhook{}
+	}
+	return t.URL
+}
+
+type WebhookCreate_WebhookCreate struct {
+	Success bool                                "json:\"success\" graphql:\"success\""
+	Webhook WebhookCreate_WebhookCreate_Webhook "json:\"webhook\" graphql:\"webhook\""
+}
+
+func (t *WebhookCreate_WebhookCreate) GetSuccess() bool {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate{}
+	}
+	return t.Success
+}
+func (t *WebhookCreate_WebhookCreate) GetWebhook() *WebhookCreate_WebhookCreate_Webhook {
+	if t == nil {
+		t = &WebhookCreate_WebhookCreate{}
+	}
+	return &t.Webhook
+}
+
+type WebhookUpdate_WebhookUpdate_Webhook struct {
+	Enabled       bool      "json:\"enabled\" graphql:\"enabled\""
+	ID            string    "json:\"id\" graphql:\"id\""
+	Label         *string   "json:\"label,omitempty\" graphql:\"label\""
+	ResourceTypes []string  "json:\"resourceTypes\" graphql:\"resourceTypes\""
+	UpdatedAt     time.Time "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL           *string   "json:\"url,omitempty\" graphql:\"url\""
+}
+
+func (t *WebhookUpdate_WebhookUpdate_Webhook) GetEnabled() bool {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate_Webhook{}
+	}
+	return t.Enabled
+}
+func (t *WebhookUpdate_WebhookUpdate_Webhook) GetID() string {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate_Webhook{}
+	}
+	return t.ID
+}
+func (t *WebhookUpdate_WebhookUpdate_Webhook) GetLabel() *string {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate_Webhook{}
+	}
+	return t.Label
+}
+func (t *WebhookUpdate_WebhookUpdate_Webhook) GetResourceTypes() []string {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate_Webhook{}
+	}
+	return t.ResourceTypes
+}
+func (t *WebhookUpdate_WebhookUpdate_Webhook) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate_Webhook{}
+	}
+	return &t.UpdatedAt
+}
+func (t *WebhookUpdate_WebhookUpdate_Webhook) GetURL() *string {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate_Webhook{}
+	}
+	return t.URL
+}
+
+type WebhookUpdate_WebhookUpdate struct {
+	Success bool                                "json:\"success\" graphql:\"success\""
+	Webhook WebhookUpdate_WebhookUpdate_Webhook "json:\"webhook\" graphql:\"webhook\""
+}
+
+func (t *WebhookUpdate_WebhookUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate{}
+	}
+	return t.Success
+}
+func (t *WebhookUpdate_WebhookUpdate) GetWebhook() *WebhookUpdate_WebhookUpdate_Webhook {
+	if t == nil {
+		t = &WebhookUpdate_WebhookUpdate{}
+	}
+	return &t.Webhook
+}
+
+type WebhookDelete_WebhookDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *WebhookDelete_WebhookDelete) GetSuccess() bool {
+	if t == nil {
+		t = &WebhookDelete_WebhookDelete{}
+	}
+	return t.Success
+}
+
+type WebhookRotateSecret_WebhookRotateSecret struct {
+	Secret  string "json:\"secret\" graphql:\"secret\""
+	Success bool   "json:\"success\" graphql:\"success\""
+}
+
+func (t *WebhookRotateSecret_WebhookRotateSecret) GetSecret() string {
+	if t == nil {
+		t = &WebhookRotateSecret_WebhookRotateSecret{}
+	}
+	return t.Secret
+}
+func (t *WebhookRotateSecret_WebhookRotateSecret) GetSuccess() bool {
+	if t == nil {
+		t = &WebhookRotateSecret_WebhookRotateSecret{}
+	}
+	return t.Success
+}
+
 type ListNotifications_Notifications_Nodes_User struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -8829,6 +9063,290 @@ func (t *Viewer_Viewer) GetName() string {
 	return t.Name
 }
 
+type GetWebhook_Webhook_Creator struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetWebhook_Webhook_Creator) GetDisplayName() string {
+	if t == nil {
+		t = &GetWebhook_Webhook_Creator{}
+	}
+	return t.DisplayName
+}
+func (t *GetWebhook_Webhook_Creator) GetID() string {
+	if t == nil {
+		t = &GetWebhook_Webhook_Creator{}
+	}
+	return t.ID
+}
+func (t *GetWebhook_Webhook_Creator) GetName() string {
+	if t == nil {
+		t = &GetWebhook_Webhook_Creator{}
+	}
+	return t.Name
+}
+
+type GetWebhook_Webhook_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetWebhook_Webhook_Team) GetID() string {
+	if t == nil {
+		t = &GetWebhook_Webhook_Team{}
+	}
+	return t.ID
+}
+func (t *GetWebhook_Webhook_Team) GetKey() string {
+	if t == nil {
+		t = &GetWebhook_Webhook_Team{}
+	}
+	return t.Key
+}
+func (t *GetWebhook_Webhook_Team) GetName() string {
+	if t == nil {
+		t = &GetWebhook_Webhook_Team{}
+	}
+	return t.Name
+}
+
+type GetWebhook_Webhook struct {
+	AllPublicTeams bool                        "json:\"allPublicTeams\" graphql:\"allPublicTeams\""
+	CreatedAt      time.Time                   "json:\"createdAt\" graphql:\"createdAt\""
+	Creator        *GetWebhook_Webhook_Creator "json:\"creator,omitempty\" graphql:\"creator\""
+	Enabled        bool                        "json:\"enabled\" graphql:\"enabled\""
+	ID             string                      "json:\"id\" graphql:\"id\""
+	Label          *string                     "json:\"label,omitempty\" graphql:\"label\""
+	ResourceTypes  []string                    "json:\"resourceTypes\" graphql:\"resourceTypes\""
+	Secret         *string                     "json:\"secret,omitempty\" graphql:\"secret\""
+	Team           *GetWebhook_Webhook_Team    "json:\"team,omitempty\" graphql:\"team\""
+	UpdatedAt      time.Time                   "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL            *string                     "json:\"url,omitempty\" graphql:\"url\""
+}
+
+func (t *GetWebhook_Webhook) GetAllPublicTeams() bool {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.AllPublicTeams
+}
+func (t *GetWebhook_Webhook) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetWebhook_Webhook) GetCreator() *GetWebhook_Webhook_Creator {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.Creator
+}
+func (t *GetWebhook_Webhook) GetEnabled() bool {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.Enabled
+}
+func (t *GetWebhook_Webhook) GetID() string {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.ID
+}
+func (t *GetWebhook_Webhook) GetLabel() *string {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.Label
+}
+func (t *GetWebhook_Webhook) GetResourceTypes() []string {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.ResourceTypes
+}
+func (t *GetWebhook_Webhook) GetSecret() *string {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.Secret
+}
+func (t *GetWebhook_Webhook) GetTeam() *GetWebhook_Webhook_Team {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.Team
+}
+func (t *GetWebhook_Webhook) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return &t.UpdatedAt
+}
+func (t *GetWebhook_Webhook) GetURL() *string {
+	if t == nil {
+		t = &GetWebhook_Webhook{}
+	}
+	return t.URL
+}
+
+type ListWebhooks_Webhooks_Nodes_Creator struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListWebhooks_Webhooks_Nodes_Creator) GetID() string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes_Creator{}
+	}
+	return t.ID
+}
+func (t *ListWebhooks_Webhooks_Nodes_Creator) GetName() string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes_Creator{}
+	}
+	return t.Name
+}
+
+type ListWebhooks_Webhooks_Nodes_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListWebhooks_Webhooks_Nodes_Team) GetID() string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes_Team{}
+	}
+	return t.ID
+}
+func (t *ListWebhooks_Webhooks_Nodes_Team) GetKey() string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes_Team{}
+	}
+	return t.Key
+}
+func (t *ListWebhooks_Webhooks_Nodes_Team) GetName() string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes_Team{}
+	}
+	return t.Name
+}
+
+type ListWebhooks_Webhooks_Nodes struct {
+	AllPublicTeams bool                                 "json:\"allPublicTeams\" graphql:\"allPublicTeams\""
+	CreatedAt      time.Time                            "json:\"createdAt\" graphql:\"createdAt\""
+	Creator        *ListWebhooks_Webhooks_Nodes_Creator "json:\"creator,omitempty\" graphql:\"creator\""
+	Enabled        bool                                 "json:\"enabled\" graphql:\"enabled\""
+	ID             string                               "json:\"id\" graphql:\"id\""
+	Label          *string                              "json:\"label,omitempty\" graphql:\"label\""
+	ResourceTypes  []string                             "json:\"resourceTypes\" graphql:\"resourceTypes\""
+	Team           *ListWebhooks_Webhooks_Nodes_Team    "json:\"team,omitempty\" graphql:\"team\""
+	UpdatedAt      time.Time                            "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL            *string                              "json:\"url,omitempty\" graphql:\"url\""
+}
+
+func (t *ListWebhooks_Webhooks_Nodes) GetAllPublicTeams() bool {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.AllPublicTeams
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetCreator() *ListWebhooks_Webhooks_Nodes_Creator {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.Creator
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetEnabled() bool {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.Enabled
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetID() string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetLabel() *string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.Label
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetResourceTypes() []string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.ResourceTypes
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetTeam() *ListWebhooks_Webhooks_Nodes_Team {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.Team
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *ListWebhooks_Webhooks_Nodes) GetURL() *string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_Nodes{}
+	}
+	return t.URL
+}
+
+type ListWebhooks_Webhooks_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListWebhooks_Webhooks_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListWebhooks_Webhooks_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListWebhooks_Webhooks_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListWebhooks_Webhooks struct {
+	Nodes    []*ListWebhooks_Webhooks_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListWebhooks_Webhooks_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListWebhooks_Webhooks) GetNodes() []*ListWebhooks_Webhooks_Nodes {
+	if t == nil {
+		t = &ListWebhooks_Webhooks{}
+	}
+	return t.Nodes
+}
+func (t *ListWebhooks_Webhooks) GetPageInfo() *ListWebhooks_Webhooks_PageInfo {
+	if t == nil {
+		t = &ListWebhooks_Webhooks{}
+	}
+	return &t.PageInfo
+}
+
 type GetWorkflowState_WorkflowState struct {
 	Color       string    "json:\"color\" graphql:\"color\""
 	CreatedAt   time.Time "json:\"createdAt\" graphql:\"createdAt\""
@@ -10057,6 +10575,50 @@ func (t *UnarchiveTeam) GetTeamUnarchive() *UnarchiveTeam_TeamUnarchive {
 	return &t.TeamUnarchive
 }
 
+type WebhookCreate struct {
+	WebhookCreate WebhookCreate_WebhookCreate "json:\"webhookCreate\" graphql:\"webhookCreate\""
+}
+
+func (t *WebhookCreate) GetWebhookCreate() *WebhookCreate_WebhookCreate {
+	if t == nil {
+		t = &WebhookCreate{}
+	}
+	return &t.WebhookCreate
+}
+
+type WebhookUpdate struct {
+	WebhookUpdate WebhookUpdate_WebhookUpdate "json:\"webhookUpdate\" graphql:\"webhookUpdate\""
+}
+
+func (t *WebhookUpdate) GetWebhookUpdate() *WebhookUpdate_WebhookUpdate {
+	if t == nil {
+		t = &WebhookUpdate{}
+	}
+	return &t.WebhookUpdate
+}
+
+type WebhookDelete struct {
+	WebhookDelete WebhookDelete_WebhookDelete "json:\"webhookDelete\" graphql:\"webhookDelete\""
+}
+
+func (t *WebhookDelete) GetWebhookDelete() *WebhookDelete_WebhookDelete {
+	if t == nil {
+		t = &WebhookDelete{}
+	}
+	return &t.WebhookDelete
+}
+
+type WebhookRotateSecret struct {
+	WebhookRotateSecret WebhookRotateSecret_WebhookRotateSecret "json:\"webhookRotateSecret\" graphql:\"webhookRotateSecret\""
+}
+
+func (t *WebhookRotateSecret) GetWebhookRotateSecret() *WebhookRotateSecret_WebhookRotateSecret {
+	if t == nil {
+		t = &WebhookRotateSecret{}
+	}
+	return &t.WebhookRotateSecret
+}
+
 type ListNotifications struct {
 	Notifications ListNotifications_Notifications "json:\"notifications\" graphql:\"notifications\""
 }
@@ -10297,6 +10859,28 @@ func (t *Viewer) GetViewer() *Viewer_Viewer {
 		t = &Viewer{}
 	}
 	return &t.Viewer
+}
+
+type GetWebhook struct {
+	Webhook GetWebhook_Webhook "json:\"webhook\" graphql:\"webhook\""
+}
+
+func (t *GetWebhook) GetWebhook() *GetWebhook_Webhook {
+	if t == nil {
+		t = &GetWebhook{}
+	}
+	return &t.Webhook
+}
+
+type ListWebhooks struct {
+	Webhooks ListWebhooks_Webhooks "json:\"webhooks\" graphql:\"webhooks\""
+}
+
+func (t *ListWebhooks) GetWebhooks() *ListWebhooks_Webhooks {
+	if t == nil {
+		t = &ListWebhooks{}
+	}
+	return &t.Webhooks
 }
 
 type GetWorkflowState struct {
@@ -13340,6 +13924,131 @@ func (c *Client) UnarchiveTeam(ctx context.Context, id string, interceptors ...c
 	return &res, nil
 }
 
+const WebhookCreateDocument = `mutation WebhookCreate ($input: WebhookCreateInput!) {
+	webhookCreate(input: $input) {
+		success
+		webhook {
+			id
+			label
+			url
+			enabled
+			allPublicTeams
+			resourceTypes
+			secret
+			createdAt
+			creator {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+		}
+	}
+}
+`
+
+func (c *Client) WebhookCreate(ctx context.Context, input WebhookCreateInput, interceptors ...clientv2.RequestInterceptor) (*WebhookCreate, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res WebhookCreate
+	if err := c.Client.Post(ctx, "WebhookCreate", WebhookCreateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const WebhookUpdateDocument = `mutation WebhookUpdate ($id: String!, $input: WebhookUpdateInput!) {
+	webhookUpdate(id: $id, input: $input) {
+		success
+		webhook {
+			id
+			label
+			url
+			enabled
+			resourceTypes
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) WebhookUpdate(ctx context.Context, id string, input WebhookUpdateInput, interceptors ...clientv2.RequestInterceptor) (*WebhookUpdate, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res WebhookUpdate
+	if err := c.Client.Post(ctx, "WebhookUpdate", WebhookUpdateDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const WebhookDeleteDocument = `mutation WebhookDelete ($id: String!) {
+	webhookDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) WebhookDelete(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*WebhookDelete, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res WebhookDelete
+	if err := c.Client.Post(ctx, "WebhookDelete", WebhookDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const WebhookRotateSecretDocument = `mutation WebhookRotateSecret ($id: String!) {
+	webhookRotateSecret(id: $id) {
+		success
+		secret
+	}
+}
+`
+
+func (c *Client) WebhookRotateSecret(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*WebhookRotateSecret, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res WebhookRotateSecret
+	if err := c.Client.Post(ctx, "WebhookRotateSecret", WebhookRotateSecretDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ListNotificationsDocument = `query ListNotifications ($first: Int, $after: String, $filter: NotificationFilter) {
 	notifications(first: $first, after: $after, filter: $filter) {
 		nodes {
@@ -14232,6 +14941,95 @@ func (c *Client) Viewer(ctx context.Context, interceptors ...clientv2.RequestInt
 	return &res, nil
 }
 
+const GetWebhookDocument = `query GetWebhook ($id: String!) {
+	webhook(id: $id) {
+		id
+		label
+		url
+		enabled
+		allPublicTeams
+		resourceTypes
+		secret
+		createdAt
+		updatedAt
+		creator {
+			id
+			name
+			displayName
+		}
+		team {
+			id
+			name
+			key
+		}
+	}
+}
+`
+
+func (c *Client) GetWebhook(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetWebhook, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetWebhook
+	if err := c.Client.Post(ctx, "GetWebhook", GetWebhookDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListWebhooksDocument = `query ListWebhooks ($first: Int, $after: String) {
+	webhooks(first: $first, after: $after) {
+		nodes {
+			id
+			label
+			url
+			enabled
+			allPublicTeams
+			resourceTypes
+			createdAt
+			updatedAt
+			creator {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListWebhooks(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListWebhooks, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListWebhooks
+	if err := c.Client.Post(ctx, "ListWebhooks", ListWebhooksDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetWorkflowStateDocument = `query GetWorkflowState ($id: String!) {
 	workflowState(id: $id) {
 		id
@@ -14429,6 +15227,10 @@ var DocumentOperationNames = map[string]string{
 	UpdateTeamDocument:                     "UpdateTeam",
 	DeleteTeamDocument:                     "DeleteTeam",
 	UnarchiveTeamDocument:                  "UnarchiveTeam",
+	WebhookCreateDocument:                  "WebhookCreate",
+	WebhookUpdateDocument:                  "WebhookUpdate",
+	WebhookDeleteDocument:                  "WebhookDelete",
+	WebhookRotateSecretDocument:            "WebhookRotateSecret",
 	ListNotificationsDocument:              "ListNotifications",
 	GetNotificationDocument:                "GetNotification",
 	GetOrganizationDocument:                "GetOrganization",
@@ -14451,6 +15253,8 @@ var DocumentOperationNames = map[string]string{
 	ListUsersDocument:                      "ListUsers",
 	ListUsersFilteredDocument:              "ListUsersFiltered",
 	ViewerDocument:                         "Viewer",
+	GetWebhookDocument:                     "GetWebhook",
+	ListWebhooksDocument:                   "ListWebhooks",
 	GetWorkflowStateDocument:               "GetWorkflowState",
 	ListWorkflowStatesDocument:             "ListWorkflowStates",
 	ListWorkflowStatesFilteredDocument:     "ListWorkflowStatesFiltered",

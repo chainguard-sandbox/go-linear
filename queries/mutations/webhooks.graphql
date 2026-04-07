@@ -1,0 +1,51 @@
+mutation WebhookCreate($input: WebhookCreateInput!) {
+  webhookCreate(input: $input) {
+    success
+    webhook {
+      id
+      label
+      url
+      enabled
+      allPublicTeams
+      resourceTypes
+      secret
+      createdAt
+      creator {
+        id
+        name
+      }
+      team {
+        id
+        name
+        key
+      }
+    }
+  }
+}
+
+mutation WebhookUpdate($id: String!, $input: WebhookUpdateInput!) {
+  webhookUpdate(id: $id, input: $input) {
+    success
+    webhook {
+      id
+      label
+      url
+      enabled
+      resourceTypes
+      updatedAt
+    }
+  }
+}
+
+mutation WebhookDelete($id: String!) {
+  webhookDelete(id: $id) {
+    success
+  }
+}
+
+mutation WebhookRotateSecret($id: String!) {
+  webhookRotateSecret(id: $id) {
+    success
+    secret
+  }
+}

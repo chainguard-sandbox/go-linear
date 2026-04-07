@@ -1,0 +1,51 @@
+query GetWebhook($id: String!) {
+  webhook(id: $id) {
+    id
+    label
+    url
+    enabled
+    allPublicTeams
+    resourceTypes
+    secret
+    createdAt
+    updatedAt
+    creator {
+      id
+      name
+      displayName
+    }
+    team {
+      id
+      name
+      key
+    }
+  }
+}
+
+query ListWebhooks($first: Int, $after: String) {
+  webhooks(first: $first, after: $after) {
+    nodes {
+      id
+      label
+      url
+      enabled
+      allPublicTeams
+      resourceTypes
+      createdAt
+      updatedAt
+      creator {
+        id
+        name
+      }
+      team {
+        id
+        name
+        key
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
