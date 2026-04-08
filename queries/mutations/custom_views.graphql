@@ -1,0 +1,39 @@
+mutation CreateCustomView($input: CustomViewCreateInput!) {
+  customViewCreate(input: $input) {
+    success
+    customView {
+      id
+      name
+      description
+      icon
+      color
+      filterData
+      modelName
+      shared
+      createdAt
+    }
+  }
+}
+
+mutation UpdateCustomView($id: String!, $input: CustomViewUpdateInput!) {
+  customViewUpdate(id: $id, input: $input) {
+    success
+    customView {
+      id
+      name
+      description
+      icon
+      color
+      filterData
+      modelName
+      shared
+      updatedAt
+    }
+  }
+}
+
+mutation DeleteCustomView($id: String!) {
+  customViewDelete(id: $id) {
+    success
+  }
+}

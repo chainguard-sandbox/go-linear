@@ -17,6 +17,8 @@ type LinearGraphQLClient interface {
 	GetComment(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
 	ListCommentsFiltered(ctx context.Context, first *int64, after *string, filter *CommentFilter, interceptors ...clientv2.RequestInterceptor) (*ListCommentsFiltered, error)
+	GetCustomView(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCustomView, error)
+	ListCustomViews(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCustomViews, error)
 	GetCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCycle, error)
 	ListCycles(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCycles, error)
 	ListCyclesFiltered(ctx context.Context, first *int64, after *string, filter *CycleFilter, interceptors ...clientv2.RequestInterceptor) (*ListCyclesFiltered, error)
@@ -46,6 +48,9 @@ type LinearGraphQLClient interface {
 	CreateComment(ctx context.Context, input CommentCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateComment, error)
 	UpdateComment(ctx context.Context, id string, input CommentUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateComment, error)
 	DeleteComment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteComment, error)
+	CreateCustomView(ctx context.Context, input CustomViewCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCustomView, error)
+	UpdateCustomView(ctx context.Context, id string, input CustomViewUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCustomView, error)
+	DeleteCustomView(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteCustomView, error)
 	CreateCycle(ctx context.Context, input CycleCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCycle, error)
 	UpdateCycle(ctx context.Context, id string, input CycleUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCycle, error)
 	ArchiveCycle(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*ArchiveCycle, error)
@@ -922,6 +927,336 @@ func (t *ListCommentsFiltered_Comments) GetNodes() []*ListCommentsFiltered_Comme
 func (t *ListCommentsFiltered_Comments) GetPageInfo() *ListCommentsFiltered_Comments_PageInfo {
 	if t == nil {
 		t = &ListCommentsFiltered_Comments{}
+	}
+	return &t.PageInfo
+}
+
+type GetCustomView_CustomView_Creator struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetCustomView_CustomView_Creator) GetID() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Creator{}
+	}
+	return t.ID
+}
+func (t *GetCustomView_CustomView_Creator) GetName() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Creator{}
+	}
+	return t.Name
+}
+
+type GetCustomView_CustomView_Owner struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetCustomView_CustomView_Owner) GetID() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Owner{}
+	}
+	return t.ID
+}
+func (t *GetCustomView_CustomView_Owner) GetName() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Owner{}
+	}
+	return t.Name
+}
+
+type GetCustomView_CustomView_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetCustomView_CustomView_Team) GetID() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Team{}
+	}
+	return t.ID
+}
+func (t *GetCustomView_CustomView_Team) GetKey() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Team{}
+	}
+	return t.Key
+}
+func (t *GetCustomView_CustomView_Team) GetName() string {
+	if t == nil {
+		t = &GetCustomView_CustomView_Team{}
+	}
+	return t.Name
+}
+
+type GetCustomView_CustomView struct {
+	Color                *string                          "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt            time.Time                        "json:\"createdAt\" graphql:\"createdAt\""
+	Creator              GetCustomView_CustomView_Creator "json:\"creator\" graphql:\"creator\""
+	Description          *string                          "json:\"description,omitempty\" graphql:\"description\""
+	FilterData           map[string]any                   "json:\"filterData\" graphql:\"filterData\""
+	Icon                 *string                          "json:\"icon,omitempty\" graphql:\"icon\""
+	ID                   string                           "json:\"id\" graphql:\"id\""
+	InitiativeFilterData map[string]any                   "json:\"initiativeFilterData,omitempty\" graphql:\"initiativeFilterData\""
+	ModelName            string                           "json:\"modelName\" graphql:\"modelName\""
+	Name                 string                           "json:\"name\" graphql:\"name\""
+	Owner                GetCustomView_CustomView_Owner   "json:\"owner\" graphql:\"owner\""
+	ProjectFilterData    map[string]any                   "json:\"projectFilterData,omitempty\" graphql:\"projectFilterData\""
+	Shared               bool                             "json:\"shared\" graphql:\"shared\""
+	Team                 *GetCustomView_CustomView_Team   "json:\"team,omitempty\" graphql:\"team\""
+	UpdatedAt            time.Time                        "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *GetCustomView_CustomView) GetColor() *string {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.Color
+}
+func (t *GetCustomView_CustomView) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return &t.CreatedAt
+}
+func (t *GetCustomView_CustomView) GetCreator() *GetCustomView_CustomView_Creator {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return &t.Creator
+}
+func (t *GetCustomView_CustomView) GetDescription() *string {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.Description
+}
+func (t *GetCustomView_CustomView) GetFilterData() map[string]any {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.FilterData
+}
+func (t *GetCustomView_CustomView) GetIcon() *string {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.Icon
+}
+func (t *GetCustomView_CustomView) GetID() string {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.ID
+}
+func (t *GetCustomView_CustomView) GetInitiativeFilterData() map[string]any {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.InitiativeFilterData
+}
+func (t *GetCustomView_CustomView) GetModelName() string {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.ModelName
+}
+func (t *GetCustomView_CustomView) GetName() string {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.Name
+}
+func (t *GetCustomView_CustomView) GetOwner() *GetCustomView_CustomView_Owner {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return &t.Owner
+}
+func (t *GetCustomView_CustomView) GetProjectFilterData() map[string]any {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.ProjectFilterData
+}
+func (t *GetCustomView_CustomView) GetShared() bool {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.Shared
+}
+func (t *GetCustomView_CustomView) GetTeam() *GetCustomView_CustomView_Team {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return t.Team
+}
+func (t *GetCustomView_CustomView) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &GetCustomView_CustomView{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListCustomViews_CustomViews_Nodes_Creator struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListCustomViews_CustomViews_Nodes_Creator) GetID() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes_Creator{}
+	}
+	return t.ID
+}
+func (t *ListCustomViews_CustomViews_Nodes_Creator) GetName() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes_Creator{}
+	}
+	return t.Name
+}
+
+type ListCustomViews_CustomViews_Nodes_Team struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Key  string "json:\"key\" graphql:\"key\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListCustomViews_CustomViews_Nodes_Team) GetID() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes_Team{}
+	}
+	return t.ID
+}
+func (t *ListCustomViews_CustomViews_Nodes_Team) GetKey() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes_Team{}
+	}
+	return t.Key
+}
+func (t *ListCustomViews_CustomViews_Nodes_Team) GetName() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes_Team{}
+	}
+	return t.Name
+}
+
+type ListCustomViews_CustomViews_Nodes struct {
+	Color       *string                                   "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Creator     ListCustomViews_CustomViews_Nodes_Creator "json:\"creator\" graphql:\"creator\""
+	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
+	Icon        *string                                   "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string                                    "json:\"id\" graphql:\"id\""
+	ModelName   string                                    "json:\"modelName\" graphql:\"modelName\""
+	Name        string                                    "json:\"name\" graphql:\"name\""
+	Shared      bool                                      "json:\"shared\" graphql:\"shared\""
+	Team        *ListCustomViews_CustomViews_Nodes_Team   "json:\"team,omitempty\" graphql:\"team\""
+	UpdatedAt   time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *ListCustomViews_CustomViews_Nodes) GetColor() *string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.Color
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetCreator() *ListCustomViews_CustomViews_Nodes_Creator {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return &t.Creator
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetDescription() *string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.Description
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetIcon() *string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.Icon
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetID() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetModelName() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.ModelName
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetName() string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.Name
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetShared() bool {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.Shared
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetTeam() *ListCustomViews_CustomViews_Nodes_Team {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return t.Team
+}
+func (t *ListCustomViews_CustomViews_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListCustomViews_CustomViews_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListCustomViews_CustomViews_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListCustomViews_CustomViews_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListCustomViews_CustomViews_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListCustomViews_CustomViews struct {
+	Nodes    []*ListCustomViews_CustomViews_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListCustomViews_CustomViews_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListCustomViews_CustomViews) GetNodes() []*ListCustomViews_CustomViews_Nodes {
+	if t == nil {
+		t = &ListCustomViews_CustomViews{}
+	}
+	return t.Nodes
+}
+func (t *ListCustomViews_CustomViews) GetPageInfo() *ListCustomViews_CustomViews_PageInfo {
+	if t == nil {
+		t = &ListCustomViews_CustomViews{}
 	}
 	return &t.PageInfo
 }
@@ -4034,6 +4369,187 @@ type DeleteComment_CommentDelete struct {
 func (t *DeleteComment_CommentDelete) GetSuccess() bool {
 	if t == nil {
 		t = &DeleteComment_CommentDelete{}
+	}
+	return t.Success
+}
+
+type CreateCustomView_CustomViewCreate_CustomView struct {
+	Color       *string        "json:\"color,omitempty\" graphql:\"color\""
+	CreatedAt   time.Time      "json:\"createdAt\" graphql:\"createdAt\""
+	Description *string        "json:\"description,omitempty\" graphql:\"description\""
+	FilterData  map[string]any "json:\"filterData\" graphql:\"filterData\""
+	Icon        *string        "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string         "json:\"id\" graphql:\"id\""
+	ModelName   string         "json:\"modelName\" graphql:\"modelName\""
+	Name        string         "json:\"name\" graphql:\"name\""
+	Shared      bool           "json:\"shared\" graphql:\"shared\""
+}
+
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetColor() *string {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.Color
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return &t.CreatedAt
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetDescription() *string {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.Description
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetFilterData() map[string]any {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.FilterData
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetIcon() *string {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.Icon
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetID() string {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.ID
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetModelName() string {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.ModelName
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetName() string {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.Name
+}
+func (t *CreateCustomView_CustomViewCreate_CustomView) GetShared() bool {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate_CustomView{}
+	}
+	return t.Shared
+}
+
+type CreateCustomView_CustomViewCreate struct {
+	CustomView CreateCustomView_CustomViewCreate_CustomView "json:\"customView\" graphql:\"customView\""
+	Success    bool                                         "json:\"success\" graphql:\"success\""
+}
+
+func (t *CreateCustomView_CustomViewCreate) GetCustomView() *CreateCustomView_CustomViewCreate_CustomView {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate{}
+	}
+	return &t.CustomView
+}
+func (t *CreateCustomView_CustomViewCreate) GetSuccess() bool {
+	if t == nil {
+		t = &CreateCustomView_CustomViewCreate{}
+	}
+	return t.Success
+}
+
+type UpdateCustomView_CustomViewUpdate_CustomView struct {
+	Color       *string        "json:\"color,omitempty\" graphql:\"color\""
+	Description *string        "json:\"description,omitempty\" graphql:\"description\""
+	FilterData  map[string]any "json:\"filterData\" graphql:\"filterData\""
+	Icon        *string        "json:\"icon,omitempty\" graphql:\"icon\""
+	ID          string         "json:\"id\" graphql:\"id\""
+	ModelName   string         "json:\"modelName\" graphql:\"modelName\""
+	Name        string         "json:\"name\" graphql:\"name\""
+	Shared      bool           "json:\"shared\" graphql:\"shared\""
+	UpdatedAt   time.Time      "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetColor() *string {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.Color
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetDescription() *string {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.Description
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetFilterData() map[string]any {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.FilterData
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetIcon() *string {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.Icon
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetID() string {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.ID
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetModelName() string {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.ModelName
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetName() string {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.Name
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetShared() bool {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return t.Shared
+}
+func (t *UpdateCustomView_CustomViewUpdate_CustomView) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate_CustomView{}
+	}
+	return &t.UpdatedAt
+}
+
+type UpdateCustomView_CustomViewUpdate struct {
+	CustomView UpdateCustomView_CustomViewUpdate_CustomView "json:\"customView\" graphql:\"customView\""
+	Success    bool                                         "json:\"success\" graphql:\"success\""
+}
+
+func (t *UpdateCustomView_CustomViewUpdate) GetCustomView() *UpdateCustomView_CustomViewUpdate_CustomView {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate{}
+	}
+	return &t.CustomView
+}
+func (t *UpdateCustomView_CustomViewUpdate) GetSuccess() bool {
+	if t == nil {
+		t = &UpdateCustomView_CustomViewUpdate{}
+	}
+	return t.Success
+}
+
+type DeleteCustomView_CustomViewDelete struct {
+	Success bool "json:\"success\" graphql:\"success\""
+}
+
+func (t *DeleteCustomView_CustomViewDelete) GetSuccess() bool {
+	if t == nil {
+		t = &DeleteCustomView_CustomViewDelete{}
 	}
 	return t.Success
 }
@@ -9144,6 +9660,28 @@ func (t *ListCommentsFiltered) GetComments() *ListCommentsFiltered_Comments {
 	return &t.Comments
 }
 
+type GetCustomView struct {
+	CustomView GetCustomView_CustomView "json:\"customView\" graphql:\"customView\""
+}
+
+func (t *GetCustomView) GetCustomView() *GetCustomView_CustomView {
+	if t == nil {
+		t = &GetCustomView{}
+	}
+	return &t.CustomView
+}
+
+type ListCustomViews struct {
+	CustomViews ListCustomViews_CustomViews "json:\"customViews\" graphql:\"customViews\""
+}
+
+func (t *ListCustomViews) GetCustomViews() *ListCustomViews_CustomViews {
+	if t == nil {
+		t = &ListCustomViews{}
+	}
+	return &t.CustomViews
+}
+
 type GetCycle struct {
 	Cycle GetCycle_Cycle "json:\"cycle\" graphql:\"cycle\""
 }
@@ -9461,6 +9999,39 @@ func (t *DeleteComment) GetCommentDelete() *DeleteComment_CommentDelete {
 		t = &DeleteComment{}
 	}
 	return &t.CommentDelete
+}
+
+type CreateCustomView struct {
+	CustomViewCreate CreateCustomView_CustomViewCreate "json:\"customViewCreate\" graphql:\"customViewCreate\""
+}
+
+func (t *CreateCustomView) GetCustomViewCreate() *CreateCustomView_CustomViewCreate {
+	if t == nil {
+		t = &CreateCustomView{}
+	}
+	return &t.CustomViewCreate
+}
+
+type UpdateCustomView struct {
+	CustomViewUpdate UpdateCustomView_CustomViewUpdate "json:\"customViewUpdate\" graphql:\"customViewUpdate\""
+}
+
+func (t *UpdateCustomView) GetCustomViewUpdate() *UpdateCustomView_CustomViewUpdate {
+	if t == nil {
+		t = &UpdateCustomView{}
+	}
+	return &t.CustomViewUpdate
+}
+
+type DeleteCustomView struct {
+	CustomViewDelete DeleteCustomView_CustomViewDelete "json:\"customViewDelete\" graphql:\"customViewDelete\""
+}
+
+func (t *DeleteCustomView) GetCustomViewDelete() *DeleteCustomView_CustomViewDelete {
+	if t == nil {
+		t = &DeleteCustomView{}
+	}
+	return &t.CustomViewDelete
 }
 
 type CreateCycle struct {
@@ -10620,6 +11191,102 @@ func (c *Client) ListCommentsFiltered(ctx context.Context, first *int64, after *
 	return &res, nil
 }
 
+const GetCustomViewDocument = `query GetCustomView ($id: String!) {
+	customView(id: $id) {
+		id
+		name
+		description
+		icon
+		color
+		filterData
+		projectFilterData
+		initiativeFilterData
+		modelName
+		shared
+		createdAt
+		updatedAt
+		creator {
+			id
+			name
+		}
+		owner {
+			id
+			name
+		}
+		team {
+			id
+			name
+			key
+		}
+	}
+}
+`
+
+func (c *Client) GetCustomView(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetCustomView, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetCustomView
+	if err := c.Client.Post(ctx, "GetCustomView", GetCustomViewDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListCustomViewsDocument = `query ListCustomViews ($first: Int, $after: String) {
+	customViews(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			description
+			icon
+			color
+			modelName
+			shared
+			createdAt
+			updatedAt
+			creator {
+				id
+				name
+			}
+			team {
+				id
+				name
+				key
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListCustomViews(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListCustomViews, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res ListCustomViews
+	if err := c.Client.Post(ctx, "ListCustomViews", ListCustomViewsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetCycleDocument = `query GetCycle ($id: String!) {
 	cycle(id: $id) {
 		id
@@ -11762,6 +12429,101 @@ func (c *Client) DeleteComment(ctx context.Context, id string, interceptors ...c
 
 	var res DeleteComment
 	if err := c.Client.Post(ctx, "DeleteComment", DeleteCommentDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const CreateCustomViewDocument = `mutation CreateCustomView ($input: CustomViewCreateInput!) {
+	customViewCreate(input: $input) {
+		success
+		customView {
+			id
+			name
+			description
+			icon
+			color
+			filterData
+			modelName
+			shared
+			createdAt
+		}
+	}
+}
+`
+
+func (c *Client) CreateCustomView(ctx context.Context, input CustomViewCreateInput, interceptors ...clientv2.RequestInterceptor) (*CreateCustomView, error) {
+	vars := map[string]any{
+		"input": input,
+	}
+
+	var res CreateCustomView
+	if err := c.Client.Post(ctx, "CreateCustomView", CreateCustomViewDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateCustomViewDocument = `mutation UpdateCustomView ($id: String!, $input: CustomViewUpdateInput!) {
+	customViewUpdate(id: $id, input: $input) {
+		success
+		customView {
+			id
+			name
+			description
+			icon
+			color
+			filterData
+			modelName
+			shared
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) UpdateCustomView(ctx context.Context, id string, input CustomViewUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateCustomView, error) {
+	vars := map[string]any{
+		"id":    id,
+		"input": input,
+	}
+
+	var res UpdateCustomView
+	if err := c.Client.Post(ctx, "UpdateCustomView", UpdateCustomViewDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const DeleteCustomViewDocument = `mutation DeleteCustomView ($id: String!) {
+	customViewDelete(id: $id) {
+		success
+	}
+}
+`
+
+func (c *Client) DeleteCustomView(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*DeleteCustomView, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res DeleteCustomView
+	if err := c.Client.Post(ctx, "DeleteCustomView", DeleteCustomViewDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -14346,6 +15108,8 @@ var DocumentOperationNames = map[string]string{
 	GetCommentDocument:                     "GetComment",
 	ListCommentsDocument:                   "ListComments",
 	ListCommentsFilteredDocument:           "ListCommentsFiltered",
+	GetCustomViewDocument:                  "GetCustomView",
+	ListCustomViewsDocument:                "ListCustomViews",
 	GetCycleDocument:                       "GetCycle",
 	ListCyclesDocument:                     "ListCycles",
 	ListCyclesFilteredDocument:             "ListCyclesFiltered",
@@ -14375,6 +15139,9 @@ var DocumentOperationNames = map[string]string{
 	CreateCommentDocument:                  "CreateComment",
 	UpdateCommentDocument:                  "UpdateComment",
 	DeleteCommentDocument:                  "DeleteComment",
+	CreateCustomViewDocument:               "CreateCustomView",
+	UpdateCustomViewDocument:               "UpdateCustomView",
+	DeleteCustomViewDocument:               "DeleteCustomView",
 	CreateCycleDocument:                    "CreateCycle",
 	UpdateCycleDocument:                    "UpdateCycle",
 	ArchiveCycleDocument:                   "ArchiveCycle",

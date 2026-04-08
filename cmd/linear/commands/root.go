@@ -16,6 +16,7 @@ import (
 
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/attachment"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/comment"
+	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/customview"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/cycle"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/document"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/favorite"
@@ -299,6 +300,7 @@ Environment Variables:
 	// Add subcommands (ordered alphabetically)
 	rootCmd.AddCommand(attachment.NewAttachmentCommand(getClient))
 	rootCmd.AddCommand(comment.NewCommentCommand(getClient))
+	rootCmd.AddCommand(customview.NewCustomViewCommand(getClient))
 	rootCmd.AddCommand(cycle.NewCycleCommand(getClient))
 	rootCmd.AddCommand(document.NewDocumentCommand(getClient))
 	rootCmd.AddCommand(favorite.NewFavoriteCommand(getClient))

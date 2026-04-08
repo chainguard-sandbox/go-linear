@@ -1,0 +1,58 @@
+query GetCustomView($id: String!) {
+  customView(id: $id) {
+    id
+    name
+    description
+    icon
+    color
+    filterData
+    projectFilterData
+    initiativeFilterData
+    modelName
+    shared
+    createdAt
+    updatedAt
+    creator {
+      id
+      name
+    }
+    owner {
+      id
+      name
+    }
+    team {
+      id
+      name
+      key
+    }
+  }
+}
+
+query ListCustomViews($first: Int, $after: String) {
+  customViews(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      description
+      icon
+      color
+      modelName
+      shared
+      createdAt
+      updatedAt
+      creator {
+        id
+        name
+      }
+      team {
+        id
+        name
+        key
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
