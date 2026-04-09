@@ -126,6 +126,7 @@ type IssueUpdateNullableInput struct {
 	Description     *string
 	StateID         *string
 	Priority        *int64
+	Estimate        Nullable[float64]
 	AddedLabelIds   []string
 	RemovedLabelIds []string
 
@@ -162,6 +163,14 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 	}
 	if i.Priority != nil {
 		m["priority"] = *i.Priority
+	}
+	if i.Estimate.IsSet() {
+		val, _ := i.Estimate.Get()
+		if val == nil {
+			m["estimate"] = nil
+		} else {
+			m["estimate"] = *val
+		}
 	}
 	if len(i.AddedLabelIds) > 0 {
 		m["addedLabelIds"] = i.AddedLabelIds

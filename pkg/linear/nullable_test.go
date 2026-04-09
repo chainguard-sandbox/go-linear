@@ -283,18 +283,67 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		}
 	})
 
+	// With value estimate
+	t.Run("with value estimate", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			Estimate: NewValue(float64(5)),
+		}
+		m := input.ToMap()
+		if m["estimate"] != float64(5) {
+			t.Errorf("Expected estimate=5, got %v", m["estimate"])
+		}
+	})
+
+	// With float estimate
+	t.Run("with float estimate", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			Estimate: NewValue(1.5),
+		}
+		m := input.ToMap()
+		if m["estimate"] != 1.5 {
+			t.Errorf("Expected estimate=1.5, got %v", m["estimate"])
+		}
+	})
+
+	// With null estimate (explicit clear)
+	t.Run("with null estimate", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			Estimate: NewNull[float64](),
+		}
+		m := input.ToMap()
+		if _, exists := m["estimate"]; !exists {
+			t.Error("Expected estimate to be in map")
+		}
+		if m["estimate"] != nil {
+			t.Errorf("Expected estimate=nil, got %v", m["estimate"])
+		}
+	})
+
+	// With unset estimate (should not appear in map)
+	t.Run("with unset estimate", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			Estimate: NewUnset[float64](),
+		}
+		m := input.ToMap()
+		if _, exists := m["estimate"]; exists {
+			t.Error("Expected estimate to NOT be in map for unset")
+		}
+	})
+
 	// All fields
 	t.Run("all fields", func(t *testing.T) {
 		title := "Title"
 		desc := "Desc"
 		state := "state-id"
 		priority := int64(1)
+		estimate := float64(3)
 		input := IssueUpdateNullableInput{
 			Title:           &title,
 			Description:     &desc,
 			AssigneeID:      NewValue("assignee-id"),
 			StateID:         &state,
 			Priority:        &priority,
+			Estimate:        NewValue(estimate),
 			AddedLabelIds:   []string{"label-1"},
 			RemovedLabelIds: []string{"label-2"},
 			CycleID:         NewValue("cycle-id"),
@@ -317,6 +366,9 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		}
 		if m["priority"] != priority {
 			t.Errorf("Expected priority=%d", priority)
+		}
+		if m["estimate"] != estimate {
+			t.Errorf("Expected estimate=%v, got %v", estimate, m["estimate"])
 		}
 		if m["cycleId"] != "cycle-id" {
 			t.Errorf("Expected cycleId=cycle-id")
