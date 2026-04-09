@@ -148,6 +148,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	if cmd.Flags().Changed("estimate") {
+		// "none" is handled by runUpdateWithNullable above; only numeric values reach here.
 		estimateStr, _ := cmd.Flags().GetString("estimate")
 		e, err := parseEstimate(estimateStr)
 		if err != nil {
