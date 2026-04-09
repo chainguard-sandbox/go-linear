@@ -286,18 +286,29 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 	// With value estimate
 	t.Run("with value estimate", func(t *testing.T) {
 		input := IssueUpdateNullableInput{
-			Estimate: NewValue(int64(5)),
+			Estimate: NewValue(float64(5)),
 		}
 		m := input.ToMap()
-		if m["estimate"] != int64(5) {
+		if m["estimate"] != float64(5) {
 			t.Errorf("Expected estimate=5, got %v", m["estimate"])
+		}
+	})
+
+	// With float estimate
+	t.Run("with float estimate", func(t *testing.T) {
+		input := IssueUpdateNullableInput{
+			Estimate: NewValue(1.5),
+		}
+		m := input.ToMap()
+		if m["estimate"] != 1.5 {
+			t.Errorf("Expected estimate=1.5, got %v", m["estimate"])
 		}
 	})
 
 	// With null estimate (explicit clear)
 	t.Run("with null estimate", func(t *testing.T) {
 		input := IssueUpdateNullableInput{
-			Estimate: NewNull[int64](),
+			Estimate: NewNull[float64](),
 		}
 		m := input.ToMap()
 		if _, exists := m["estimate"]; !exists {
@@ -311,7 +322,7 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 	// With unset estimate (should not appear in map)
 	t.Run("with unset estimate", func(t *testing.T) {
 		input := IssueUpdateNullableInput{
-			Estimate: NewUnset[int64](),
+			Estimate: NewUnset[float64](),
 		}
 		m := input.ToMap()
 		if _, exists := m["estimate"]; exists {
@@ -325,7 +336,7 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		desc := "Desc"
 		state := "state-id"
 		priority := int64(1)
-		estimate := int64(3)
+		estimate := float64(3)
 		input := IssueUpdateNullableInput{
 			Title:           &title,
 			Description:     &desc,
@@ -357,7 +368,7 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 			t.Errorf("Expected priority=%d", priority)
 		}
 		if m["estimate"] != estimate {
-			t.Errorf("Expected estimate=%d, got %v", estimate, m["estimate"])
+			t.Errorf("Expected estimate=%v, got %v", estimate, m["estimate"])
 		}
 		if m["cycleId"] != "cycle-id" {
 			t.Errorf("Expected cycleId=cycle-id")

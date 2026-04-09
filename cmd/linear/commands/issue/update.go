@@ -97,9 +97,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		}
 	}
 	if cmd.Flags().Changed("estimate") {
-		if estimate, _ := cmd.Flags().GetString("estimate"); estimate == "none" {
-			needsNullable = true
-		}
+		needsNullable = true
 	}
 
 	if needsNullable {
@@ -144,17 +142,6 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		}
 		p := int64(priority)
 		input.Priority = &p
-		updated = true
-	}
-
-	if cmd.Flags().Changed("estimate") {
-		// "none" is handled by runUpdateWithNullable above; only numeric values reach here.
-		estimateStr, _ := cmd.Flags().GetString("estimate")
-		e, err := parseEstimate(estimateStr)
-		if err != nil {
-			return err
-		}
-		input.Estimate = &e
 		updated = true
 	}
 
@@ -299,10 +286,10 @@ func contains(s, substr string) bool {
 	return len(s) >= len(substr) && findSubstring(s, substr)
 }
 
-func parseEstimate(s string) (int64, error) {
-	e, err := strconv.ParseInt(s, 10, 64)
+func parseEstimate(s string) (float64, error) {
+	e, err := strconv.ParseFloat(s, 64)
 	if err != nil || e < 0 {
-		return 0, fmt.Errorf("invalid estimate %q: must be a non-negative integer or 'none'", s)
+		return 0, fmt.Errorf("invalid estimate %q: must be a non-negative number or 'none'", s)
 	}
 	return e, nil
 }
@@ -359,7 +346,7 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	if cmd.Flags().Changed("estimate") {
 		estimateStr, _ := cmd.Flags().GetString("estimate")
 		if estimateStr == "none" {
-			input.Estimate = linear.NewNull[int64]()
+			input.Estimate = linear.NewNull[float64]()
 		} else {
 			e, err := parseEstimate(estimateStr)
 			if err != nil {
