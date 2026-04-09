@@ -24,7 +24,7 @@ func TestNewUpdateCommand(t *testing.T) {
 	t.Run("flags exist", func(t *testing.T) {
 		expectedFlags := []string{
 			"title", "description", "assignee", "state",
-			"priority", "cycle", "project", "parent",
+			"priority", "estimate", "cycle", "project", "parent",
 			"add-label", "remove-label",
 			"due-date", "milestone",
 		}
@@ -139,6 +139,40 @@ func TestRunUpdate(t *testing.T) {
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		cmd.SetArgs([]string{"ENG-123", "--project=Test Project"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("update estimate", func(t *testing.T) {
+		cmd := NewUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--estimate=5"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("clear estimate with none", func(t *testing.T) {
+		cmd := NewUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--estimate=none"})
 
 		err := cmd.Execute()
 		if err != nil {

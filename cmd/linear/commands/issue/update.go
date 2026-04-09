@@ -2,6 +2,7 @@ package issue
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -19,7 +20,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
+Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate (number or 'none' to clear), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
 
 Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
@@ -42,6 +43,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().String("assignee", "", "New assignee name, email, or ID (use 'none' to unassign)")
 	cmd.Flags().String("state", "", "New state name or ID")
 	cmd.Flags().Int("priority", -1, "New priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
+	cmd.Flags().String("estimate", "", "Story points/estimate (use 'none' to clear)")
 	cmd.Flags().String("cycle", "", "Cycle name or UUID (use 'none' to remove)")
 	cmd.Flags().String("project", "", "Project name or UUID (use 'none' to remove)")
 	cmd.Flags().String("parent", "", "Parent issue ID/identifier (use 'none' to remove)")
@@ -94,6 +96,11 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			needsNullable = true
 		}
 	}
+	if cmd.Flags().Changed("estimate") {
+		if estimate, _ := cmd.Flags().GetString("estimate"); estimate == "none" {
+			needsNullable = true
+		}
+	}
 
 	if needsNullable {
 		return runUpdateWithNullable(cmd, client, resolvedIssueID, res)
@@ -137,6 +144,16 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		}
 		p := int64(priority)
 		input.Priority = &p
+		updated = true
+	}
+
+	if cmd.Flags().Changed("estimate") {
+		estimateStr, _ := cmd.Flags().GetString("estimate")
+		e, err := parseEstimate(estimateStr)
+		if err != nil {
+			return err
+		}
+		input.Estimate = &e
 		updated = true
 	}
 
@@ -281,6 +298,14 @@ func contains(s, substr string) bool {
 	return len(s) >= len(substr) && findSubstring(s, substr)
 }
 
+func parseEstimate(s string) (int64, error) {
+	e, err := strconv.ParseInt(s, 10, 64)
+	if err != nil || e < 0 {
+		return 0, fmt.Errorf("invalid estimate %q: must be a non-negative integer or 'none'", s)
+	}
+	return e, nil
+}
+
 func findSubstring(s, substr string) bool {
 	for i := 0; i <= len(s)-len(substr); i++ {
 		if s[i:i+len(substr)] == substr {
@@ -328,6 +353,19 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	if priority, _ := cmd.Flags().GetInt("priority"); priority >= 0 {
 		p := int64(priority)
 		input.Priority = &p
+	}
+
+	if cmd.Flags().Changed("estimate") {
+		estimateStr, _ := cmd.Flags().GetString("estimate")
+		if estimateStr == "none" {
+			input.Estimate = linear.NewNull[int64]()
+		} else {
+			e, err := parseEstimate(estimateStr)
+			if err != nil {
+				return err
+			}
+			input.Estimate = linear.NewValue(e)
+		}
 	}
 
 	addLabels, _ := cmd.Flags().GetStringArray("add-label")
