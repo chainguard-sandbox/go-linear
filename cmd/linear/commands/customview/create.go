@@ -107,9 +107,8 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 func parseFilterData(value string) (*intgraphql.IssueFilter, error) {
 	var jsonData string
 
-	if strings.HasPrefix(value, "@") {
-		filename := strings.TrimPrefix(value, "@")
-		data, err := os.ReadFile(filename)
+	if filename, ok := strings.CutPrefix(value, "@"); ok {
+		data, err := os.ReadFile(filename) //nolint:gosec // user-provided filename is intentional CLI behavior // #nosec G304
 		if err != nil {
 			return nil, fmt.Errorf("reading file %s: %w", filename, err)
 		}
