@@ -270,6 +270,69 @@ const (
 			}
 		}
 	}`
+
+	mockProjectLabelsResponse = `{
+		"data": {
+			"projectLabels": {
+				"nodes": [
+					{"id": "plabel-123", "name": "Backend", "color": "#ff0000"}
+				],
+				"pageInfo": {"hasNextPage": false}
+			}
+		}
+	}`
+
+	mockProjectLabelCreateResponse = `{
+		"data": {
+			"projectLabelCreate": {
+				"success": true,
+				"projectLabel": {"id": "plabel-999", "name": "New Label", "color": "#00ff00"}
+			}
+		}
+	}`
+
+	mockProjectLabelUpdateResponse = `{
+		"data": {
+			"projectLabelUpdate": {
+				"success": true,
+				"projectLabel": {"id": "plabel-123", "name": "Updated Label"}
+			}
+		}
+	}`
+
+	mockProjectLabelDeleteResponse = `{
+		"data": {
+			"projectLabelDelete": {
+				"success": true
+			}
+		}
+	}`
+
+	mockProjectRelationCreateResponse = `{
+		"data": {
+			"projectRelationCreate": {
+				"success": true,
+				"projectRelation": {"id": "prel-999", "type": "blocks"}
+			}
+		}
+	}`
+
+	mockProjectRelationUpdateResponse = `{
+		"data": {
+			"projectRelationUpdate": {
+				"success": true,
+				"projectRelation": {"id": "prel-123", "type": "related"}
+			}
+		}
+	}`
+
+	mockProjectRelationDeleteResponse = `{
+		"data": {
+			"projectRelationDelete": {
+				"success": true
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -289,5 +352,12 @@ func defaultHandlers() map[string]string {
 		"DeleteProjectUpdate":    mockProjectUpdateDeleteResponse,
 		"UnarchiveProject":       mockProjectUnarchiveResponse,
 		"ArchiveProject":         mockProjectArchiveResponse,
+		"ListProjectLabels":      mockProjectLabelsResponse,
+		"ProjectLabelCreate":     mockProjectLabelCreateResponse,
+		"ProjectLabelUpdate":     mockProjectLabelUpdateResponse,
+		"ProjectLabelDelete":     mockProjectLabelDeleteResponse,
+		"ProjectRelationCreate":  mockProjectRelationCreateResponse,
+		"ProjectRelationUpdate":  mockProjectRelationUpdateResponse,
+		"ProjectRelationDelete":  mockProjectRelationDeleteResponse,
 	}
 }
