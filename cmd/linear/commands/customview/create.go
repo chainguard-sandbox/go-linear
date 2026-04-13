@@ -108,7 +108,7 @@ func parseFilterData(value string) (*intgraphql.IssueFilter, error) {
 	var jsonData string
 
 	if filename, ok := strings.CutPrefix(value, "@"); ok {
-		data, err := os.ReadFile(filename) //nolint:gosec // user-provided filename is intentional CLI behavior // #nosec G304
+		data, err := os.ReadFile(filename) // #nosec G304 -- user-provided filename is intentional CLI behavior
 		if err != nil {
 			return nil, fmt.Errorf("reading file %s: %w", filename, err)
 		}
