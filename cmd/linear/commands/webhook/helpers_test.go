@@ -80,11 +80,11 @@ const (
 
 func defaultHandlers() map[string]string {
 	return map[string]string{
-		"ListWebhooks":       mockWebhooksResponse,
-		"GetWebhook":         mockWebhookResponse,
-		"WebhookCreate":      mockWebhookCreateResponse,
-		"WebhookUpdate":      mockWebhookUpdateResponse,
-		"WebhookDelete":      mockWebhookDeleteResponse,
+		"ListWebhooks":        mockWebhooksResponse,
+		"GetWebhook":          mockWebhookResponse,
+		"WebhookCreate":       mockWebhookCreateResponse,
+		"WebhookUpdate":       mockWebhookUpdateResponse,
+		"WebhookDelete":       mockWebhookDeleteResponse,
 		"WebhookRotateSecret": mockWebhookRotateResponse,
 		"ListTeams":           mockTeamsResponse,
 	}
