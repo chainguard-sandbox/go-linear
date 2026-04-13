@@ -59,7 +59,7 @@ Related: webhook_get, webhook_create, webhook_delete`,
 			if cmd.Flags().Changed("resource-types") {
 				resourceTypesStr, _ := cmd.Flags().GetString("resource-types")
 				var resourceTypes []string
-				for _, rt := range strings.Split(resourceTypesStr, ",") {
+				for rt := range strings.SplitSeq(resourceTypesStr, ",") {
 					rt = strings.TrimSpace(rt)
 					if rt != "" {
 						resourceTypes = append(resourceTypes, rt)

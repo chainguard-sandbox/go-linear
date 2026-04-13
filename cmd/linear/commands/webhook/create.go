@@ -40,7 +40,7 @@ Related: webhook_list, webhook_get, webhook_update`,
 
 			// Parse resource types from comma-separated string
 			var resourceTypes []string
-			for _, rt := range strings.Split(resourceTypesStr, ",") {
+			for rt := range strings.SplitSeq(resourceTypesStr, ",") {
 				rt = strings.TrimSpace(rt)
 				if rt != "" {
 					resourceTypes = append(resourceTypes, rt)

@@ -59,7 +59,7 @@ const (
 		}
 	}`
 
-	mockWebhookRotateSecretResponse = `{
+	mockWebhookRotateResponse = `{
 		"data": {
 			"webhookRotateSecret": {
 				"success": true,
@@ -85,7 +85,7 @@ func defaultHandlers() map[string]string {
 		"WebhookCreate":      mockWebhookCreateResponse,
 		"WebhookUpdate":      mockWebhookUpdateResponse,
 		"WebhookDelete":      mockWebhookDeleteResponse,
-		"WebhookRotateSecret": mockWebhookRotateSecretResponse,
+		"WebhookRotateSecret": mockWebhookRotateResponse,
 		"ListTeams":           mockTeamsResponse,
 	}
 }

@@ -39,10 +39,11 @@ Related: webhook_get, webhook_update`,
 			// Print secret to stderr to avoid leaking it in captured stdout/logs
 			fmt.Fprintf(cmd.ErrOrStderr(), "New signing secret: %s\n", secret)
 
-			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]string{
+			result := map[string]string{ // #nosec G101 -- not a credential, value is redacted
 				"webhookId": args[0],
 				"secret":    "[redacted - see stderr]",
-			}, true)
+			}
+			return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 		},
 	}
 
