@@ -8,7 +8,9 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/config"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/fieldfilter"
+	issuefilter "github.com/chainguard-sandbox/go-linear/v2/internal/filter/issue"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
@@ -17,9 +19,11 @@ func NewSearchCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "search <query>",
 		Short: "Search issues by text query",
-		Long: `Search issues by text. Returns 8 default fields per result. Searches titles and descriptions. Use --count for totals.
+		Long: `Search issues by text with optional structured filters. Returns 8 default fields per result.
 
-Example: go-linear issue search "authentication bug" --limit=20
+Filters: --team (name/key), --assignee (name/email/'me'), --state, --priority (0-4), --label (repeatable)
+
+Example: go-linear issue search "authentication bug" --team=Engineering --limit=20
 
 Count: --count returns {"count": N} (see issue_list for details)
 Related: issue_list, issue_get`,
@@ -40,6 +44,13 @@ Related: issue_list, issue_get`,
 	cmd.Flags().BoolP("include-archived", "a", false, "Include archived issues")
 	cmd.Flags().Bool("count", false, "Return only count, not results (99% token reduction)")
 	cmd.Flags().String("fields", "", "defaults (id,identifier,title,url,state.name,team.key,priority,createdAt) | none | defaults,extra")
+
+	// Structured filters (same as issue list)
+	cmd.Flags().String("team", "", "Team name or key (e.g., 'Engineering', 'ENG')")
+	cmd.Flags().String("assignee", "", "Assignee name, email, or 'me'")
+	cmd.Flags().String("state", "", "State name (e.g., 'In Progress')")
+	cmd.Flags().Int("priority", -1, "Priority: 0=none, 1=urgent, 2=high, 3=normal, 4=low")
+	cmd.Flags().StringArray("label", []string{}, "Label names (repeatable)")
 
 	return cmd
 }
@@ -62,8 +73,16 @@ func runSearch(cmd *cobra.Command, client *linear.Client, query string) error {
 		includeArchivedPtr = &includeArchived
 	}
 
+	// Build filter from flags
+	res := resolver.New(client)
+	filterBuilder := issuefilter.NewIssueFilterBuilder(res)
+	if err := filterBuilder.FromFlags(ctx, cmd); err != nil {
+		return err
+	}
+	issueFilter := filterBuilder.Build()
+
 	// Search issues
-	searchResult, err := client.SearchIssues(ctx, query, &first, afterPtr, nil, includeArchivedPtr)
+	searchResult, err := client.SearchIssues(ctx, query, &first, afterPtr, issueFilter, includeArchivedPtr)
 	if err != nil {
 		return fmt.Errorf("failed to search issues: %w", err)
 	}
