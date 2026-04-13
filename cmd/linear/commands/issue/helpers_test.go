@@ -242,6 +242,22 @@ const (
 		}
 	}`
 
+	mockIssueSubscribeResponse = `{
+		"data": {
+			"issueSubscribe": {
+				"success": true
+			}
+		}
+	}`
+
+	mockIssueUnsubscribeResponse = `{
+		"data": {
+			"issueUnsubscribe": {
+				"success": true
+			}
+		}
+	}`
+
 	mockProjectsResponse = `{
 		"data": {
 			"projects": {
@@ -299,5 +315,7 @@ func defaultHandlers() map[string]string {
 		"IssueRelationCreate": mockIssueRelationCreateResponse,
 		"IssueRelationDelete": mockIssueRelationDeleteResponse,
 		"IssueRelationUpdate": mockIssueRelationUpdateResponse,
+		"IssueSubscribe":      mockIssueSubscribeResponse,
+		"IssueUnsubscribe":    mockIssueUnsubscribeResponse,
 	}
 }
