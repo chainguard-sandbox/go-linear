@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/chainguard-dev/clog"
+	"github.com/spf13/cobra"
+
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/attachment"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/audit"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/comment"
@@ -33,7 +35,6 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/user"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/viewer"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
-	"github.com/spf13/cobra"
 )
 
 // clientConfig holds parsed configuration from environment variables.
