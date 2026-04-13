@@ -82,21 +82,24 @@ jobs:
             PRERELEASE="--prerelease"
           fi
 
-          # Idempotent: if the release already exists (e.g., from a partial run),
-          # upload assets to it instead of failing. See v2.2.0/v2.2.1 incident.
-          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            # --clobber overwrites existing assets on workflow re-run
-            gh release upload "$VERSION" \
-              --repo "$GITHUB_REPOSITORY" \
-              --clobber \
-              dist/go-linear-* \
-              dist/checksums.txt
-          else
+          # Create draft release if it doesn't already exist (idempotent for re-runs).
+          if ! gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             gh release create "$VERSION" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$VERSION" \
               --generate-notes \
-              ${PRERELEASE:+"$PRERELEASE"} \
-              dist/go-linear-* \
-              dist/checksums.txt
+              --draft \
+              ${PRERELEASE:+"$PRERELEASE"}
           fi
+
+          # Upload artifacts to the draft release (--clobber handles re-runs).
+          gh release upload "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber \
+            dist/go-linear-* \
+            dist/checksums.txt
+
+          # Publish the release.
+          gh release edit "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false
