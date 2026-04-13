@@ -6,6 +6,12 @@ const (
 	mockSubscribeResponse           = `{"data": {"notificationSubscriptionCreate": {"success": true, "notificationSubscription": {"id": "sub-123"}}}}`
 	mockUnsubscribeResponse         = `{"data": {"notificationSubscriptionDelete": {"success": true}}}`
 	mockProjectsResponse            = `{"data": {"projects": {"nodes": [{"id": "proj-123", "name": "Test Project"}], "pageInfo": {"hasNextPage": false}}}}`
+	mockNotificationArchiveAllResponse   = `{"data": {"notificationArchiveAll": {"success": true}}}`
+	mockNotificationMarkReadAllResponse  = `{"data": {"notificationMarkReadAll": {"success": true}}}`
+	mockNotificationMarkUnreadAllResponse = `{"data": {"notificationMarkUnreadAll": {"success": true}}}`
+	mockNotificationSnoozeAllResponse    = `{"data": {"notificationSnoozeAll": {"success": true}}}`
+	mockNotificationUnsnoozeAllResponse  = `{"data": {"notificationUnsnoozeAll": {"success": true}}}`
+	mockIssuesResponse                   = `{"data": {"issues": {"nodes": [{"id": "issue-123", "identifier": "ENG-123", "title": "Test"}], "pageInfo": {"hasNextPage": false}}}}`
 )
 
 func defaultHandlers() map[string]string {
@@ -15,5 +21,12 @@ func defaultHandlers() map[string]string {
 		"NotificationSubscriptionCreate": mockSubscribeResponse,
 		"NotificationSubscriptionDelete": mockUnsubscribeResponse,
 		"ListProjects":                   mockProjectsResponse,
+		"NotificationArchiveAll":         mockNotificationArchiveAllResponse,
+		"NotificationMarkReadAll":        mockNotificationMarkReadAllResponse,
+		"NotificationMarkUnreadAll":      mockNotificationMarkUnreadAllResponse,
+		"NotificationSnoozeAll":          mockNotificationSnoozeAllResponse,
+		"NotificationUnsnoozeAll":        mockNotificationUnsnoozeAllResponse,
+		"SearchIssues":                   mockIssuesResponse,
+		"ListIssues":                     mockIssuesResponse,
 	}
 }

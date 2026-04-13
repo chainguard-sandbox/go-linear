@@ -53,7 +53,7 @@ func runSnoozeAll(cmd *cobra.Command, client *linear.Client) error {
 
 	untilStr, _ := cmd.Flags().GetString("until")
 	parser := dateparser.New()
-	until, err := parser.Parse(untilStr)
+	until, err := parser.ParseFuture(untilStr)
 	if err != nil {
 		return fmt.Errorf("invalid --until value: %w", err)
 	}
