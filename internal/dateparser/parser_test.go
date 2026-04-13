@@ -142,6 +142,75 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestParseFuture(t *testing.T) {
+	p := New()
+	now := time.Now().UTC()
+
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+		check   func(t *testing.T, result time.Time)
+	}{
+		{
+			name:    "3 days from now",
+			input:   "3d",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				threeDays := now.Add(3 * 24 * time.Hour)
+				if result.Year() != threeDays.Year() || result.Month() != threeDays.Month() || result.Day() != threeDays.Day() {
+					t.Errorf("ParseFuture('3d') = %v, want 3 days from now", result)
+				}
+			},
+		},
+		{
+			name:    "2 weeks from now",
+			input:   "2w",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				twoWeeks := now.Add(14 * 24 * time.Hour)
+				if result.Year() != twoWeeks.Year() || result.Month() != twoWeeks.Month() || result.Day() != twoWeeks.Day() {
+					t.Errorf("ParseFuture('2w') = %v, want 2 weeks from now", result)
+				}
+			},
+		},
+		{
+			name:    "ISO date unchanged",
+			input:   "2025-12-10",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				if result.Year() != 2025 || result.Month() != 12 || result.Day() != 10 {
+					t.Errorf("ParseFuture() = %v, want 2025-12-10", result)
+				}
+			},
+		},
+		{
+			name:    "tomorrow unchanged",
+			input:   "tomorrow",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				tomorrow := now.Add(24 * time.Hour)
+				if result.Year() != tomorrow.Year() || result.Month() != tomorrow.Month() || result.Day() != tomorrow.Day() {
+					t.Errorf("ParseFuture('tomorrow') = %v, want tomorrow", result)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := p.ParseFuture(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseFuture() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && tt.check != nil {
+				tt.check(t, result)
+			}
+		})
+	}
+}
+
 func TestMustParse(t *testing.T) {
 	p := New()
 
