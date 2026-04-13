@@ -22,7 +22,8 @@ func TestNewSearchCommand(t *testing.T) {
 	})
 
 	t.Run("flags exist", func(t *testing.T) {
-		expectedFlags := []string{"limit", "fields", "count", "include-archived"}
+		expectedFlags := []string{"limit", "fields", "count", "include-archived",
+			"team", "assignee", "state", "priority", "label"}
 		for _, flag := range expectedFlags {
 			if cmd.Flags().Lookup(flag) == nil {
 				t.Errorf("Expected flag %q not found", flag)
@@ -91,6 +92,94 @@ func TestRunSearch(t *testing.T) {
 		err := cmd.Execute()
 		if err != nil {
 			t.Fatalf("Execute() error = %v", err)
+		}
+	})
+
+	t.Run("search with team filter", func(t *testing.T) {
+		cmd := NewSearchCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"test", "--team=ENG"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("search with priority filter", func(t *testing.T) {
+		cmd := NewSearchCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"test", "--priority=2"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("search with state filter", func(t *testing.T) {
+		cmd := NewSearchCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"test", "--state=In Progress"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("search with multiple filters", func(t *testing.T) {
+		cmd := NewSearchCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"test", "--team=ENG", "--priority=1", "--state=Todo"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+	})
+
+	t.Run("search with count and filter", func(t *testing.T) {
+		cmd := NewSearchCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"test", "--team=ENG", "--count"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Errorf("Output should be valid JSON: %v", err)
+		}
+		if _, ok := result["count"]; !ok {
+			t.Error("Expected 'count' field in output")
 		}
 	})
 }
