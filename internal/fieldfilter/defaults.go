@@ -125,6 +125,14 @@ var BuiltinDefaults = map[string][]string{
 		"id", "name", "description", "templateData", "createdAt",
 	},
 
+	// Webhook commands
+	"webhook.list": {
+		"id", "label", "url", "enabled", "resourceTypes", "createdAt",
+	},
+	"webhook.get": {
+		"id", "label", "url", "enabled", "resourceTypes", "createdAt",
+	},
+
 	// Favorite commands (no list, only create/delete)
 
 	// Reaction commands (no list, only create/delete)

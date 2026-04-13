@@ -36,9 +36,12 @@ Related: webhook_get, webhook_update`,
 				return fmt.Errorf("failed to rotate webhook secret: %w", err)
 			}
 
+			// Print secret to stderr to avoid leaking it in captured stdout/logs
+			fmt.Fprintf(cmd.ErrOrStderr(), "New signing secret: %s\n", secret)
+
 			return formatter.FormatJSON(cmd.OutOrStdout(), map[string]string{
 				"webhookId": args[0],
-				"secret":    secret,
+				"secret":    "[redacted - see stderr]",
 			}, true)
 		},
 	}
