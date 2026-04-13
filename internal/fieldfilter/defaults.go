@@ -125,6 +125,14 @@ var BuiltinDefaults = map[string][]string{
 		"id", "name", "description", "templateData", "createdAt",
 	},
 
+	// Custom view commands
+	"custom-view.list": {
+		"id", "name", "shared", "modelName",
+	},
+	"custom-view.get": {
+		"id", "name", "description", "filterData", "shared",
+	},
+
 	// Favorite commands (no list, only create/delete)
 
 	// Reaction commands (no list, only create/delete)
