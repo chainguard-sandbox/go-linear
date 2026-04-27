@@ -58,3 +58,15 @@ mutation UnarchiveIssue($id: String!) {
     success
   }
 }
+
+mutation IssueSubscribe($id: String!, $userId: String) {
+  issueSubscribe(id: $id, userId: $userId) {
+    success
+  }
+}
+
+mutation IssueUnsubscribe($id: String!, $userId: String) {
+  issueUnsubscribe(id: $id, userId: $userId) {
+    success
+  }
+}
