@@ -44,6 +44,9 @@ jobs:
 
           mkdir -p dist
 
+          # Cache commit timestamp for reproducible BuildDate (GNU date -d, Linux only)
+          BUILD_DATE=$(date -u -d @$(git log -1 --pretty=%ct) +%Y-%m-%dT%H:%M:%SZ)
+
           for platform in "${platforms[@]}"; do
             GOOS="${platform%/*}"
             GOARCH="${platform#*/}"
@@ -60,7 +63,7 @@ jobs:
                 -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.Version=${VERSION} \
                 -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.GitCommit=${GITHUB_SHA} \
                 -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.GitTreeState=clean \
-                -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.BuildDate=${BUILD_DATE}" \
               -o "$output" \
               ./cmd/linear
           done
@@ -79,10 +82,24 @@ jobs:
             PRERELEASE="--prerelease"
           fi
 
-          gh release create "$VERSION" \
+          # Create draft release if it doesn't already exist (idempotent for re-runs).
+          if ! gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$VERSION" \
+              --generate-notes \
+              --draft \
+              ${PRERELEASE:+"$PRERELEASE"}
+          fi
+
+          # Upload artifacts to the draft release (--clobber handles re-runs).
+          gh release upload "$VERSION" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "$VERSION" \
-            --generate-notes \
-            $PRERELEASE \
+            --clobber \
             dist/go-linear-* \
             dist/checksums.txt
+
+          # Publish the release.
+          gh release edit "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false
