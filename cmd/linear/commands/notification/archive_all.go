@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -8,6 +9,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
@@ -40,8 +42,9 @@ Related: notification_archive, notification_mark-read-all`,
 
 func runArchiveAll(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
-	input, err := buildEntityInput(cmd)
+	input, err := buildEntityInput(cmd, ctx, res)
 	if err != nil {
 		return err
 	}
@@ -58,27 +61,40 @@ func runArchiveAll(cmd *cobra.Command, client *linear.Client) error {
 
 // addEntityFlags adds the common entity filter flags for bulk notification operations.
 func addEntityFlags(cmd *cobra.Command) {
-	cmd.Flags().String("issue", "", "Issue ID (e.g., ENG-123 or UUID)")
-	cmd.Flags().String("project", "", "Project ID (UUID)")
-	cmd.Flags().String("initiative", "", "Initiative ID (UUID)")
+	cmd.Flags().String("issue", "", "Issue identifier or UUID (e.g., ENG-123)")
+	cmd.Flags().String("project", "", "Project name or UUID")
+	cmd.Flags().String("initiative", "", "Initiative name or UUID")
 	cmd.Flags().String("notification", "", "Notification ID (UUID)")
 }
 
-// buildEntityInput constructs a NotificationEntityInput from flags.
-func buildEntityInput(cmd *cobra.Command) (intgraphql.NotificationEntityInput, error) {
+// buildEntityInput constructs a NotificationEntityInput from flags, resolving
+// human-readable identifiers (issue keys, project/initiative names) to UUIDs.
+func buildEntityInput(cmd *cobra.Command, ctx context.Context, res *resolver.Resolver) (intgraphql.NotificationEntityInput, error) {
 	input := intgraphql.NotificationEntityInput{}
 	set := 0
 
 	if v, _ := cmd.Flags().GetString("issue"); v != "" {
-		input.IssueID = &v
+		id, err := res.ResolveIssue(ctx, v)
+		if err != nil {
+			return input, fmt.Errorf("failed to resolve issue: %w", err)
+		}
+		input.IssueID = &id
 		set++
 	}
 	if v, _ := cmd.Flags().GetString("project"); v != "" {
-		input.ProjectID = &v
+		id, err := res.ResolveProject(ctx, v)
+		if err != nil {
+			return input, fmt.Errorf("failed to resolve project: %w", err)
+		}
+		input.ProjectID = &id
 		set++
 	}
 	if v, _ := cmd.Flags().GetString("initiative"); v != "" {
-		input.InitiativeID = &v
+		id, err := res.ResolveInitiative(ctx, v)
+		if err != nil {
+			return input, fmt.Errorf("failed to resolve initiative: %w", err)
+		}
+		input.InitiativeID = &id
 		set++
 	}
 	if v, _ := cmd.Flags().GetString("notification"); v != "" {

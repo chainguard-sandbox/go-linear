@@ -9,6 +9,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
@@ -38,15 +39,16 @@ Related: notification_unsnooze-all, notification_archive-all`,
 	}
 
 	addEntityFlags(cmd)
-	cmd.Flags().String("until", "", "Snooze until (ISO8601, 'tomorrow', '3d', '1h')")
+	cmd.Flags().String("until", "", "Snooze until (ISO8601, 'tomorrow', '3d', '2w')")
 	_ = cmd.MarkFlagRequired("until")
 	return cmd
 }
 
 func runSnoozeAll(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
+	res := resolver.New(client)
 
-	input, err := buildEntityInput(cmd)
+	input, err := buildEntityInput(cmd, ctx, res)
 	if err != nil {
 		return err
 	}

@@ -90,9 +90,9 @@ func (p Parser) Parse(input string) (time.Time, error) {
 
 // ParseFuture parses a date string treating durations as future offsets.
 //
-// Identical to Parse for absolute dates and named dates. For duration formats
-// ("7d", "2w", "3m"), the duration is added to now instead of subtracted.
+// For duration formats ("7d", "2w", "3m"), the duration is added to now.
 // Use this for snooze/deadline inputs where "3d" means "3 days from now".
+// Unlike Parse, "yesterday" is rejected as it is never a future date.
 func (p Parser) ParseFuture(input string) (time.Time, error) {
 	if input == "" {
 		return time.Time{}, fmt.Errorf("empty date string")
@@ -114,8 +114,7 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 	case "today":
 		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC), nil
 	case "yesterday":
-		yesterday := now.Add(-24 * time.Hour)
-		return time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 0, 0, 0, 0, time.UTC), nil
+		return time.Time{}, fmt.Errorf("'yesterday' is not a future date")
 	case "tomorrow":
 		tomorrow := now.Add(24 * time.Hour)
 		return time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 0, 0, 0, 0, time.UTC), nil
@@ -142,11 +141,10 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 			return time.Time{}, fmt.Errorf("invalid duration unit: %s", unit)
 		}
 
-		result := now.Add(duration)
-		return time.Date(result.Year(), result.Month(), result.Day(), 0, 0, 0, 0, time.UTC), nil
+		return now.Add(duration), nil
 	}
 
-	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'today', 'yesterday', '7d', '2w', '3m')", input)
+	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'tomorrow', '3d', '2w', '3m')", input)
 }
 
 // MustParse parses a date string and panics on error.
