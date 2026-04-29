@@ -2,10 +2,13 @@ package issue
 
 import (
 	"fmt"
+	"slices"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
@@ -19,7 +22,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate, --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
+Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate, --team, --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --snooze-until (duration or 'none'), --add-label, --remove-label, --add-subscriber, --remove-subscriber, --trash, --untrash, --link-pr
 
 Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
@@ -49,6 +52,12 @@ Related: issue_get, issue_create`,
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
 	cmd.Flags().Int("estimate", -1, "Story points/estimate (-1 = no change)")
+	cmd.Flags().String("team", "", "Move issue to a different team (name or ID)")
+	cmd.Flags().String("snooze-until", "", "Snooze issue in triage until date/duration (e.g. '3d', '2w', 'tomorrow', use 'none' to unsnooze)")
+	cmd.Flags().StringArray("add-subscriber", []string{}, "Add subscribers (name/email/ID, repeatable)")
+	cmd.Flags().StringArray("remove-subscriber", []string{}, "Remove subscribers (name/email/ID, repeatable)")
+	cmd.Flags().Bool("trash", false, "Move issue to trash")
+	cmd.Flags().Bool("untrash", false, "Restore issue from trash")
 	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD, use 'none' to remove)")
 	cmd.Flags().String("milestone", "", "Project milestone UUID (use 'none' to remove)")
 
@@ -92,6 +101,11 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 	if cmd.Flags().Changed("milestone") {
 		if milestone, _ := cmd.Flags().GetString("milestone"); milestone == "none" {
+			needsNullable = true
+		}
+	}
+	if cmd.Flags().Changed("snooze-until") {
+		if s, _ := cmd.Flags().GetString("snooze-until"); s == "none" {
 			needsNullable = true
 		}
 	}
@@ -251,6 +265,63 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			}
 			input.ProjectMilestoneID = &milestoneID
 		}
+		updated = true
+	}
+
+	if team, _ := cmd.Flags().GetString("team"); team != "" {
+		teamID, err := res.ResolveTeam(ctx, team)
+		if err != nil {
+			return fmt.Errorf("failed to resolve team: %w", err)
+		}
+		input.TeamID = &teamID
+		updated = true
+	}
+
+	if cmd.Flags().Changed("snooze-until") {
+		snoozeUntil, _ := cmd.Flags().GetString("snooze-until")
+		dp := dateparser.New()
+		t, err := dp.ParseFuture(snoozeUntil)
+		if err != nil {
+			return fmt.Errorf("invalid snooze-until: %w", err)
+		}
+		input.SnoozedUntilAt = &t
+		updated = true
+	}
+
+	addSubscribers, _ := cmd.Flags().GetStringArray("add-subscriber")
+	removeSubscribers, _ := cmd.Flags().GetStringArray("remove-subscriber")
+	if len(addSubscribers) > 0 || len(removeSubscribers) > 0 {
+		currentIDs, err := client.IssueSubscriberIDs(ctx, resolvedIssueID)
+		if err != nil {
+			return fmt.Errorf("failed to fetch current subscribers: %w", err)
+		}
+		for _, s := range addSubscribers {
+			id, err := res.ResolveUser(ctx, s)
+			if err != nil {
+				return fmt.Errorf("failed to resolve subscriber %q: %w", s, err)
+			}
+			if !slices.Contains(currentIDs, id) {
+				currentIDs = append(currentIDs, id)
+			}
+		}
+		for _, s := range removeSubscribers {
+			id, err := res.ResolveUser(ctx, s)
+			if err != nil {
+				return fmt.Errorf("failed to resolve subscriber %q: %w", s, err)
+			}
+			currentIDs = slices.DeleteFunc(currentIDs, func(x string) bool { return x == id })
+		}
+		input.SubscriberIds = currentIDs
+		updated = true
+	}
+
+	if trash, _ := cmd.Flags().GetBool("trash"); trash {
+		t := true
+		input.Trashed = &t
+		updated = true
+	} else if untrash, _ := cmd.Flags().GetBool("untrash"); untrash {
+		f := false
+		input.Trashed = &f
 		updated = true
 	}
 
@@ -430,6 +501,62 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 			}
 			input.ProjectMilestoneID = linear.NewValue(milestoneID)
 		}
+	}
+
+	if team, _ := cmd.Flags().GetString("team"); team != "" {
+		teamID, err := res.ResolveTeam(ctx, team)
+		if err != nil {
+			return fmt.Errorf("failed to resolve team: %w", err)
+		}
+		input.TeamID = &teamID
+	}
+
+	if cmd.Flags().Changed("snooze-until") {
+		snoozeUntil, _ := cmd.Flags().GetString("snooze-until")
+		if snoozeUntil == "none" {
+			input.SnoozedUntilAt = linear.NewNull[time.Time]()
+		} else {
+			dp := dateparser.New()
+			t, err := dp.ParseFuture(snoozeUntil)
+			if err != nil {
+				return fmt.Errorf("invalid snooze-until: %w", err)
+			}
+			input.SnoozedUntilAt = linear.NewValue(t)
+		}
+	}
+
+	addSubscribers, _ := cmd.Flags().GetStringArray("add-subscriber")
+	removeSubscribers, _ := cmd.Flags().GetStringArray("remove-subscriber")
+	if len(addSubscribers) > 0 || len(removeSubscribers) > 0 {
+		currentIDs, err := client.IssueSubscriberIDs(ctx, issueID)
+		if err != nil {
+			return fmt.Errorf("failed to fetch current subscribers: %w", err)
+		}
+		for _, s := range addSubscribers {
+			id, err := res.ResolveUser(ctx, s)
+			if err != nil {
+				return fmt.Errorf("failed to resolve subscriber %q: %w", s, err)
+			}
+			if !slices.Contains(currentIDs, id) {
+				currentIDs = append(currentIDs, id)
+			}
+		}
+		for _, s := range removeSubscribers {
+			id, err := res.ResolveUser(ctx, s)
+			if err != nil {
+				return fmt.Errorf("failed to resolve subscriber %q: %w", s, err)
+			}
+			currentIDs = slices.DeleteFunc(currentIDs, func(x string) bool { return x == id })
+		}
+		input.SubscriberIDs = currentIDs
+	}
+
+	if trash, _ := cmd.Flags().GetBool("trash"); trash {
+		t := true
+		input.Trashed = &t
+	} else if untrash, _ := cmd.Flags().GetBool("untrash"); untrash {
+		f := false
+		input.Trashed = &f
 	}
 
 	// Use nullable update method

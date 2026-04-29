@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
@@ -127,6 +128,9 @@ type IssueUpdateNullableInput struct {
 	StateID         *string
 	Priority        *int64
 	Estimate        *int64
+	TeamID          *string
+	SubscriberIDs   []string
+	Trashed         *bool
 	AddedLabelIds   []string
 	RemovedLabelIds []string
 
@@ -137,6 +141,7 @@ type IssueUpdateNullableInput struct {
 	ProjectID          Nullable[string]
 	DueDate            Nullable[string]
 	ProjectMilestoneID Nullable[string]
+	SnoozedUntilAt     Nullable[time.Time]
 }
 
 // ToMap converts to map for JSON encoding with explicit null support.
@@ -166,6 +171,15 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 	}
 	if i.Estimate != nil {
 		m["estimate"] = *i.Estimate
+	}
+	if i.TeamID != nil {
+		m["teamId"] = *i.TeamID
+	}
+	if len(i.SubscriberIDs) > 0 {
+		m["subscriberIds"] = i.SubscriberIDs
+	}
+	if i.Trashed != nil {
+		m["trashed"] = *i.Trashed
 	}
 	if len(i.AddedLabelIds) > 0 {
 		m["addedLabelIds"] = i.AddedLabelIds
@@ -221,6 +235,16 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 				m["projectMilestoneId"] = nil // Explicit null
 			} else {
 				m["projectMilestoneId"] = *val
+			}
+		}
+	}
+
+	if i.SnoozedUntilAt.IsSet() {
+		if val, ok := i.SnoozedUntilAt.Get(); ok {
+			if val == nil {
+				m["snoozedUntilAt"] = nil // Explicit null clears the snooze
+			} else {
+				m["snoozedUntilAt"] = val.Format("2006-01-02T15:04:05.000Z")
 			}
 		}
 	}
