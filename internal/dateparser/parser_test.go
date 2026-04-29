@@ -184,6 +184,11 @@ func TestParseFuture(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "today is rejected",
+			input:   "today",
+			wantErr: true,
+		},
+		{
 			name:    "ISO date unchanged",
 			input:   "2025-12-10",
 			wantErr: false,

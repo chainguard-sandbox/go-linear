@@ -112,7 +112,7 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 	now := time.Now().UTC()
 	switch strings.ToLower(input) {
 	case "today":
-		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC), nil
+		return time.Time{}, fmt.Errorf("'today' is ambiguous as a future date; use 'tomorrow' or a duration like '1d'")
 	case "yesterday":
 		return time.Time{}, fmt.Errorf("'yesterday' is not a future date")
 	case "tomorrow":
