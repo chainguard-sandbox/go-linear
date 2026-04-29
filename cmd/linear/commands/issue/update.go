@@ -19,7 +19,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
+Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate, --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
 
 Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
@@ -48,6 +48,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
+	cmd.Flags().Int("estimate", -1, "Story points/estimate (-1 = no change)")
 	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD, use 'none' to remove)")
 	cmd.Flags().String("milestone", "", "Project milestone UUID (use 'none' to remove)")
 
@@ -137,6 +138,12 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		}
 		p := int64(priority)
 		input.Priority = &p
+		updated = true
+	}
+
+	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
+		e := int64(estimate)
+		input.Estimate = &e
 		updated = true
 	}
 
@@ -328,6 +335,11 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	if priority, _ := cmd.Flags().GetInt("priority"); priority >= 0 {
 		p := int64(priority)
 		input.Priority = &p
+	}
+
+	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
+		e := int64(estimate)
+		input.Estimate = &e
 	}
 
 	addLabels, _ := cmd.Flags().GetStringArray("add-label")
