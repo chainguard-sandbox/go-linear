@@ -51,6 +51,20 @@ func TestRunArchiveAll(t *testing.T) {
 			t.Error("Expected error when no entity flag provided")
 		}
 	})
+
+	t.Run("rejects multiple entity flags", func(t *testing.T) {
+		cmd := NewArchiveAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{
+			"--issue=00000000-0000-0000-0000-000000000001",
+			"--project=00000000-0000-0000-0000-000000000002",
+		})
+		if err := cmd.Execute(); err == nil {
+			t.Error("Expected error when multiple entity flags provided")
+		}
+	})
 }
 
 func TestRunMarkReadAll(t *testing.T) {

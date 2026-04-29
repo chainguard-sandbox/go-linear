@@ -93,6 +93,8 @@ func (p Parser) Parse(input string) (time.Time, error) {
 // For duration formats ("7d", "2w", "3m"), the duration is added to now.
 // Use this for snooze/deadline inputs where "3d" means "3 days from now".
 // Unlike Parse, "today" and "yesterday" are rejected as non-future dates.
+// Note: ISO 8601 absolute dates are accepted as-is without futurity checks;
+// callers are responsible for validating that the result is in the future.
 func (p Parser) ParseFuture(input string) (time.Time, error) {
 	if input == "" {
 		return time.Time{}, fmt.Errorf("empty date string")
