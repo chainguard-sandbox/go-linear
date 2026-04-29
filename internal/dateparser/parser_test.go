@@ -161,6 +161,10 @@ func TestParseFuture(t *testing.T) {
 				if result.Year() != threeDays.Year() || result.Month() != threeDays.Month() || result.Day() != threeDays.Day() {
 					t.Errorf("ParseFuture('3d') = %v, want 3 days from now", result)
 				}
+				// Time-of-day should be preserved, not truncated to midnight.
+				if result.Hour() == 0 && result.Minute() == 0 && result.Second() == 0 && now.Hour() != 0 {
+					t.Errorf("ParseFuture('3d') truncated to midnight; got %v", result)
+				}
 			},
 		},
 		{
@@ -173,6 +177,11 @@ func TestParseFuture(t *testing.T) {
 					t.Errorf("ParseFuture('2w') = %v, want 2 weeks from now", result)
 				}
 			},
+		},
+		{
+			name:    "yesterday is rejected",
+			input:   "yesterday",
+			wantErr: true,
 		},
 		{
 			name:    "ISO date unchanged",
