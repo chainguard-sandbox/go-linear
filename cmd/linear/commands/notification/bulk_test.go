@@ -126,6 +126,17 @@ func TestRunSnoozeAll(t *testing.T) {
 			t.Fatalf("Execute() error = %v", err)
 		}
 	})
+
+	t.Run("rejects past ISO date", func(t *testing.T) {
+		cmd := NewSnoozeAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--until=2020-01-01"})
+		if err := cmd.Execute(); err == nil {
+			t.Error("Expected error for past --until value")
+		}
+	})
 }
 
 func TestRunUnsnoozeAll(t *testing.T) {
