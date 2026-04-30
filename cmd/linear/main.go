@@ -18,6 +18,7 @@ package main
 import (
 	"os"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/njayp/ophis"
 
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands"
@@ -26,13 +27,9 @@ import (
 func main() {
 	rootCmd := commands.NewRootCommand()
 
-	// Add ophis MCP integration
-	// This single line exposes the entire CLI as an MCP server!
-	// Ophis recursively walks the Cobra command tree and generates:
-	// - JSON schemas from command flags
-	// - MCP tool definitions
-	// - Tool execution by spawning CLI subprocesses
-	rootCmd.AddCommand(ophis.Command(nil))
+	rootCmd.AddCommand(ophis.Command(&ophis.Config{
+		Transport: &fixFlagsTransport{inner: &mcp.StdioTransport{}},
+	}))
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
