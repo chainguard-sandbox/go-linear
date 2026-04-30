@@ -14,10 +14,12 @@ import (
 
 // NewLabelDeleteCommand creates the project label-delete command.
 func NewLabelDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "label-delete <label-id>",
 		Short: "Delete a project label",
-		Long: `⚠️ Delete a project label. Cannot be undone. Prompts unless --yes.
+		Long: `Delete a project label. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear project label-delete <uuid>
 
@@ -30,29 +32,25 @@ Related: project_label-list, project_label-create`,
 			}
 			defer client.Close()
 
-			return runLabelDelete(cmd, client, args[0])
+			return runLabelDelete(cmd, client, args[0], confirmFlags)
 		},
 	}
 
-	cmd.Flags().Bool("yes", false, "Skip confirmation prompt")
+	confirmFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runLabelDelete(cmd *cobra.Command, client *linear.Client, labelID string) error {
+func runLabelDelete(cmd *cobra.Command, client *linear.Client, labelID string, confirmFlags *cli.ConfirmationFlags) error {
 	ctx := cmd.Context()
 
-	yes, _ := cmd.Flags().GetBool("yes")
-	if !yes {
-		fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Are you sure you want to delete this project label? This cannot be undone.\n")
+	if !confirmFlags.Yes {
+		fmt.Fprintf(cmd.OutOrStderr(), "Delete project label %s? This cannot be undone.\n", labelID)
 		fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
-
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
-		response = strings.TrimSpace(response)
-
-		if !strings.EqualFold(response, "yes") {
-			fmt.Fprintln(cmd.OutOrStderr(), "Canceled")
+		if !strings.EqualFold(strings.TrimSpace(response), "yes") {
+			fmt.Fprintln(cmd.OutOrStderr(), "Canceled.")
 			return nil
 		}
 	}
@@ -62,6 +60,6 @@ func runLabelDelete(cmd *cobra.Command, client *linear.Client, labelID string) e
 		return fmt.Errorf("failed to delete project label: %w", err)
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "✓ Deleted project label\n")
+	fmt.Fprintf(cmd.OutOrStdout(), "Deleted project label\n")
 	return nil
 }

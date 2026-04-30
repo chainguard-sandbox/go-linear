@@ -12,6 +12,8 @@ import (
 
 // NewRelationListCommand creates the project relation-list command.
 func NewRelationListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	paginationFlags := &cli.PaginationFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "relation-list",
 		Short: "List project relations",
@@ -28,17 +30,19 @@ Related: project_relation-create, project_relation-update, project_relation-dele
 			}
 			defer client.Close()
 
-			return runRelationList(cmd, client)
+			return runRelationList(cmd, client, paginationFlags)
 		},
 	}
+
+	paginationFlags.Bind(cmd, 250)
 
 	return cmd
 }
 
-func runRelationList(cmd *cobra.Command, client *linear.Client) error {
+func runRelationList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
 
-	relations, err := client.ProjectRelations(ctx, nil, nil)
+	relations, err := client.ProjectRelations(ctx, paginationFlags.LimitPtr(), paginationFlags.AfterPtr())
 	if err != nil {
 		return fmt.Errorf("failed to list project relations: %w", err)
 	}

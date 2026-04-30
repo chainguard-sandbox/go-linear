@@ -14,10 +14,12 @@ import (
 
 // NewRelationDeleteCommand creates the project relation-delete command.
 func NewRelationDeleteCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	confirmFlags := &cli.ConfirmationFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "relation-delete <relation-id>",
 		Short: "Delete a project relation",
-		Long: `⚠️ Delete a project relation. Cannot be undone. Prompts unless --yes.
+		Long: `Delete a project relation. Cannot be undone. Prompts unless --yes.
 
 Example: go-linear project relation-delete <uuid>
 
@@ -30,29 +32,25 @@ Related: project_relation-list, project_relation-create`,
 			}
 			defer client.Close()
 
-			return runRelationDelete(cmd, client, args[0])
+			return runRelationDelete(cmd, client, args[0], confirmFlags)
 		},
 	}
 
-	cmd.Flags().Bool("yes", false, "Skip confirmation prompt")
+	confirmFlags.Bind(cmd)
 
 	return cmd
 }
 
-func runRelationDelete(cmd *cobra.Command, client *linear.Client, relationID string) error {
+func runRelationDelete(cmd *cobra.Command, client *linear.Client, relationID string, confirmFlags *cli.ConfirmationFlags) error {
 	ctx := cmd.Context()
 
-	yes, _ := cmd.Flags().GetBool("yes")
-	if !yes {
-		fmt.Fprintf(cmd.OutOrStderr(), "⚠️  Are you sure you want to delete this project relation? This cannot be undone.\n")
+	if !confirmFlags.Yes {
+		fmt.Fprintf(cmd.OutOrStderr(), "Delete project relation %s? This cannot be undone.\n", relationID)
 		fmt.Fprint(cmd.OutOrStderr(), "Type 'yes' to confirm: ")
-
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
-		response = strings.TrimSpace(response)
-
-		if !strings.EqualFold(response, "yes") {
-			fmt.Fprintln(cmd.OutOrStderr(), "Canceled")
+		if !strings.EqualFold(strings.TrimSpace(response), "yes") {
+			fmt.Fprintln(cmd.OutOrStderr(), "Canceled.")
 			return nil
 		}
 	}
@@ -62,6 +60,6 @@ func runRelationDelete(cmd *cobra.Command, client *linear.Client, relationID str
 		return fmt.Errorf("failed to delete project relation: %w", err)
 	}
 
-	fmt.Fprintf(cmd.OutOrStdout(), "✓ Deleted project relation\n")
+	fmt.Fprintf(cmd.OutOrStdout(), "Deleted project relation\n")
 	return nil
 }

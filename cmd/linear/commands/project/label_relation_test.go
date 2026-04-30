@@ -56,6 +56,20 @@ func TestRunLabelList(t *testing.T) {
 	}
 }
 
+func TestRunLabelListPagination(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewLabelListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--limit=10"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() with --limit error = %v", err)
+	}
+}
+
 func TestRunLabelUpdate(t *testing.T) {
 	server := mockServer(t, defaultHandlers())
 	defer server.Close()
@@ -101,6 +115,110 @@ func TestRunRelationCreate(t *testing.T) {
 	})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
+	}
+}
+
+func TestRunRelationCreateInvalidType(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewRelationCreateCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+	cmd.SetArgs([]string{
+		"--project=00000000-0000-0000-0000-000000000001",
+		"--related-project=00000000-0000-0000-0000-000000000002",
+		"--type=depends_on",
+		"--anchor-type=project",
+		"--related-anchor-type=project",
+	})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() expected error for invalid --type, got nil")
+	}
+}
+
+func TestRunRelationCreateInvalidAnchorType(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewRelationCreateCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+	cmd.SetArgs([]string{
+		"--project=00000000-0000-0000-0000-000000000001",
+		"--related-project=00000000-0000-0000-0000-000000000002",
+		"--type=blocks",
+		"--anchor-type=invalid",
+		"--related-anchor-type=project",
+	})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() expected error for invalid --anchor-type, got nil")
+	}
+}
+
+func TestRunRelationList(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewRelationListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	var result any
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+		t.Fatalf("Output should be valid JSON: %v", err)
+	}
+}
+
+func TestRunRelationListPagination(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewRelationListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--limit=10"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() with --limit error = %v", err)
+	}
+}
+
+func TestRunRelationUpdate(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewRelationUpdateCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"prel-123", "--type=related"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+}
+
+func TestRunRelationUpdateInvalidType(t *testing.T) {
+	server := mockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewRelationUpdateCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+	cmd.SetArgs([]string{"prel-123", "--type=depends_on"})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() expected error for invalid --type, got nil")
 	}
 }
 

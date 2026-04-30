@@ -12,6 +12,8 @@ import (
 
 // NewLabelListCommand creates the project label-list command.
 func NewLabelListCommand(clientFactory cli.ClientFactory) *cobra.Command {
+	paginationFlags := &cli.PaginationFlags{}
+
 	cmd := &cobra.Command{
 		Use:   "label-list",
 		Short: "List project labels",
@@ -28,17 +30,19 @@ Related: project_label-create, project_label-update, project_label-delete`,
 			}
 			defer client.Close()
 
-			return runLabelList(cmd, client)
+			return runLabelList(cmd, client, paginationFlags)
 		},
 	}
+
+	paginationFlags.Bind(cmd, 250)
 
 	return cmd
 }
 
-func runLabelList(cmd *cobra.Command, client *linear.Client) error {
+func runLabelList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.PaginationFlags) error {
 	ctx := cmd.Context()
 
-	labels, err := client.ProjectLabels(ctx, nil, nil)
+	labels, err := client.ProjectLabels(ctx, paginationFlags.LimitPtr(), paginationFlags.AfterPtr())
 	if err != nil {
 		return fmt.Errorf("failed to list project labels: %w", err)
 	}

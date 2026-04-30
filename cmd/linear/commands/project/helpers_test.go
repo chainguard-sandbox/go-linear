@@ -333,6 +333,17 @@ const (
 			}
 		}
 	}`
+
+	mockProjectRelationsResponse = `{
+		"data": {
+			"projectRelations": {
+				"nodes": [
+					{"id": "prel-123", "type": "blocks"}
+				],
+				"pageInfo": {"hasNextPage": false}
+			}
+		}
+	}`
 )
 
 func defaultHandlers() map[string]string {
@@ -359,5 +370,6 @@ func defaultHandlers() map[string]string {
 		"ProjectRelationCreate":  mockProjectRelationCreateResponse,
 		"ProjectRelationUpdate":  mockProjectRelationUpdateResponse,
 		"ProjectRelationDelete":  mockProjectRelationDeleteResponse,
+		"ListProjectRelations":   mockProjectRelationsResponse,
 	}
 }
