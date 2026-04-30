@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 )
@@ -59,7 +60,7 @@ func TestFixDoubleEncodedFlags(t *testing.T) {
 			}
 			gotB, _ := json.Marshal(got)
 			wantB, _ := json.Marshal(want)
-			if string(gotB) != string(wantB) {
+			if !bytes.Equal(gotB, wantB) {
 				t.Errorf("got %s, want %s", gotB, wantB)
 			}
 		})

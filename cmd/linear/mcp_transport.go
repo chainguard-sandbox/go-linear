@@ -30,7 +30,7 @@ type fixFlagsConn struct {
 	delegate mcp.Connection
 }
 
-func (c *fixFlagsConn) SessionID() string                          { return c.delegate.SessionID() }
+func (c *fixFlagsConn) SessionID() string { return c.delegate.SessionID() }
 func (c *fixFlagsConn) Write(ctx context.Context, msg jsonrpc.Message) error {
 	return c.delegate.Write(ctx, msg)
 }
@@ -47,8 +47,8 @@ func (c *fixFlagsConn) Read(ctx context.Context) (jsonrpc.Message, error) {
 		return msg, nil
 	}
 
-	fixed, err := fixDoubleEncodedFlags(req.Params)
-	if err != nil || fixed == nil {
+	fixed, _ := fixDoubleEncodedFlags(req.Params)
+	if fixed == nil {
 		return msg, nil
 	}
 	req.Params = fixed
@@ -71,18 +71,36 @@ func fixDoubleEncodedFlags(raw json.RawMessage) (json.RawMessage, error) {
 		return nil, nil
 	}
 
-	// Check if flags is a JSON string (double-encoded)
-	var flagsStr string
-	if err := json.Unmarshal(flagsRaw, &flagsStr); err != nil {
-		return nil, nil // flags is already an object, no fix needed
+	// If flags is not a JSON string, it's already an object — no fix needed.
+	flagsStr, ok := asJSONString(flagsRaw)
+	if !ok {
+		return nil, nil
 	}
 
-	// Decode the inner JSON string into an object
-	var flagsObj json.RawMessage
-	if err := json.Unmarshal([]byte(flagsStr), &flagsObj); err != nil {
-		return nil, nil // inner value isn't valid JSON, leave it alone
+	// Decode the inner JSON string into an object; leave it alone if invalid.
+	flagsObj, ok := asJSONObject([]byte(flagsStr))
+	if !ok {
+		return nil, nil
 	}
 
 	params.Arguments["flags"] = flagsObj
 	return json.Marshal(params)
+}
+
+// asJSONString returns the string value if raw is a JSON string, else ("", false).
+func asJSONString(raw json.RawMessage) (string, bool) {
+	var s string
+	if err := json.Unmarshal(raw, &s); err != nil {
+		return "", false
+	}
+	return s, true
+}
+
+// asJSONObject returns raw as a RawMessage if it is valid JSON object/array, else (nil, false).
+func asJSONObject(data []byte) (json.RawMessage, bool) {
+	var obj json.RawMessage
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil, false
+	}
+	return obj, true
 }
