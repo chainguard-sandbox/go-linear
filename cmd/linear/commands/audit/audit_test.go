@@ -225,8 +225,36 @@ func TestRunListTypeFilterVariables(t *testing.T) {
 	if !ok {
 		t.Fatalf("filter[type] = %T, want map", filter["type"])
 	}
-	if eq, _ := typ["eq"].(string); !strings.EqualFold(eq, "issue.create") {
+	if eq, _ := typ["eq"].(string); eq != "issue.create" {
 		t.Errorf("type.eq = %q, want issue.create", eq)
+	}
+}
+
+func TestRunListTypeNormalized(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--type=Issue.Create"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	typ, ok := filter["type"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[type] = %T, want map", filter["type"])
+	}
+	if eq, _ := typ["eq"].(string); eq != "issue.create" {
+		t.Errorf("type.eq = %q, want %q (should be lowercased)", eq, "issue.create")
 	}
 }
 
@@ -372,7 +400,7 @@ func TestRunListInvertedDateRange(t *testing.T) {
 	cmd := NewListCommand(factory)
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	// after=7d is ~April 2026, before=30d is ~April 2026 but earlier — inverted
+	// after=7d (~7 days ago) is more recent than before=30d (~30 days ago) — range is inverted
 	cmd.SetArgs([]string{"--created-after=7d", "--created-before=30d"})
 
 	err := cmd.Execute()
@@ -463,11 +491,19 @@ func TestRunTypes(t *testing.T) {
 		t.Fatalf("Execute() error = %v", err)
 	}
 
-	var result []any
+	var result []map[string]any
 	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
 		t.Fatalf("Output should be valid JSON array: %v", err)
 	}
 	if len(result) == 0 {
 		t.Error("Expected non-empty types list")
+	}
+	for i, entry := range result {
+		if _, ok := entry["type"].(string); !ok {
+			t.Errorf("result[%d] missing string 'type' field", i)
+		}
+		if _, ok := entry["description"].(string); !ok {
+			t.Errorf("result[%d] missing string 'description' field", i)
+		}
 	}
 }

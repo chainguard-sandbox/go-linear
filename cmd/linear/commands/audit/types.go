@@ -21,7 +21,7 @@ Use this to discover valid values for the --type filter in audit list. Requires 
 
 Example: go-linear audit types
 
-Related: audit list`,
+Related: audit_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

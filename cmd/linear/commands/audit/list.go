@@ -2,6 +2,7 @@ package audit
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -26,10 +27,12 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 Filters: --type (entry type), --actor (user name, email, or ID), --ip, --country-code, --created-after, --created-before
 Date filters accept ISO8601, relative durations ('7d', '2w'), or 'yesterday'. Comparisons are inclusive.
 
+Note: output may include sensitive values in metadata and requestInformation fields (e.g. session tokens, headers).
+
 Example: go-linear audit list --type=issue.create --limit=20
 Example: go-linear audit list --actor=jane@example.com --created-after=7d
 
-Related: audit types`,
+Related: audit_types`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -74,7 +77,8 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 		filter = &intgraphql.AuditEntryFilter{}
 
 		if typeFlag != "" {
-			filter.Type = &intgraphql.StringComparator{Eq: &typeFlag}
+			normalized := strings.ToLower(typeFlag)
+			filter.Type = &intgraphql.StringComparator{Eq: &normalized}
 		}
 		if actorFlag != "" {
 			res := resolver.New(client)
