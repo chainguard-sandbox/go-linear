@@ -124,8 +124,7 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 	case "yesterday":
 		return time.Time{}, fmt.Errorf("'yesterday' is not a future date")
 	case "tomorrow":
-		tomorrow := now.Add(24 * time.Hour)
-		return time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 0, 0, 0, 0, time.UTC), nil
+		return now.Add(24 * time.Hour), nil
 	}
 
 	// Try duration format (e.g., "7d", "2w", "3m") — future direction

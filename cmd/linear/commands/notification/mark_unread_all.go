@@ -35,12 +35,18 @@ Related: notification_mark-read-all, notification_archive-all`,
 	}
 
 	addEntityFlags(cmd)
+	cmd.Flags().Bool("yes", false, "Confirm bulk mark-unread without prompt")
 	return cmd
 }
 
 func runMarkUnreadAll(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
+
+	yes, _ := cmd.Flags().GetBool("yes")
+	if !yes {
+		return fmt.Errorf("mark-unread-all marks all notifications as unread for the entity; pass --yes to confirm")
+	}
 
 	input, err := buildEntityInput(cmd, ctx, res)
 	if err != nil {
