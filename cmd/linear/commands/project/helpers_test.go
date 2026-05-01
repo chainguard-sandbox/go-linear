@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
@@ -42,6 +43,56 @@ func mockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 		}
 		_, _ = w.Write([]byte(`{"data":{}}`))
 	}))
+}
+
+// mockServerCapture returns a test server and a function that returns the
+// GraphQL variables from the most recent request. Used to assert that the
+// correct fields are sent to the API.
+func mockServerCapture(t *testing.T, handlers map[string]string) (*httptest.Server, func() map[string]any) {
+	t.Helper()
+	var mu sync.Mutex
+	var last map[string]any
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var reqBody struct {
+			Query         string         `json:"query"`
+			OperationName string         `json:"operationName"`
+			Variables     map[string]any `json:"variables"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+
+		mu.Lock()
+		last = reqBody.Variables
+		mu.Unlock()
+
+		query := strings.ToLower(reqBody.Query)
+		opName := strings.ToLower(reqBody.OperationName)
+
+		for key, response := range handlers {
+			if strings.EqualFold(key, opName) {
+				_, _ = w.Write([]byte(response))
+				return
+			}
+		}
+		for key, response := range handlers {
+			if strings.Contains(query, strings.ToLower(key)) {
+				_, _ = w.Write([]byte(response))
+				return
+			}
+		}
+		_, _ = w.Write([]byte(`{"data":{}}`))
+	}))
+
+	return server, func() map[string]any {
+		mu.Lock()
+		defer mu.Unlock()
+		return last
+	}
 }
 
 func testFactory(t *testing.T, serverURL string) cli.ClientFactory {

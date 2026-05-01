@@ -207,6 +207,36 @@ func TestRunRelationUpdate(t *testing.T) {
 	}
 }
 
+func TestRunLabelUpdateZeroValuePropagates(t *testing.T) {
+	server, lastVars := mockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testFactory(t, server.URL)
+
+	cmd := NewLabelUpdateCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"plabel-123", "--name="})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	input, ok := vars["input"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[input] type = %T, want map", vars["input"])
+	}
+	name, ok := input["name"]
+	if !ok {
+		t.Error("input.name missing: --name= should propagate empty string, not be dropped")
+	}
+	if name != "" {
+		t.Errorf("input.name = %q, want empty string", name)
+	}
+}
+
 func TestRunRelationUpdateInvalidType(t *testing.T) {
 	server := mockServer(t, defaultHandlers())
 	defer server.Close()

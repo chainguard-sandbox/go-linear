@@ -49,11 +49,11 @@ Related: project_relation-create, project_relation-delete, project_relation-list
 	return cmd
 }
 
-var validRelationTypes = map[string]bool{"blocks": true, "dependsOn": true, "related": true}
-var validAnchorTypes = map[string]bool{"project": true, "milestone": true}
-
 func runRelationUpdate(cmd *cobra.Command, client *linear.Client, relationID string) error {
 	ctx := cmd.Context()
+
+	validRelationTypes := map[string]bool{"blocks": true, "dependsOn": true, "related": true}
+	validAnchorTypes := map[string]bool{"project": true, "milestone": true}
 
 	input := intgraphql.ProjectRelationUpdateInput{}
 

@@ -62,6 +62,9 @@ func runRelationCreate(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
 
+	validRelationTypes := map[string]bool{"blocks": true, "dependsOn": true, "related": true}
+	validAnchorTypes := map[string]bool{"project": true, "milestone": true}
+
 	projectName, _ := cmd.Flags().GetString("project")
 	projectID, err := res.ResolveProject(ctx, projectName)
 	if err != nil {
@@ -97,11 +100,13 @@ func runRelationCreate(cmd *cobra.Command, client *linear.Client) error {
 		RelatedAnchorType: relatedAnchorType,
 	}
 
-	if milestoneID, _ := cmd.Flags().GetString("project-milestone"); milestoneID != "" {
+	if cmd.Flags().Changed("project-milestone") {
+		milestoneID, _ := cmd.Flags().GetString("project-milestone")
 		input.ProjectMilestoneID = &milestoneID
 	}
 
-	if relMilestoneID, _ := cmd.Flags().GetString("related-project-milestone"); relMilestoneID != "" {
+	if cmd.Flags().Changed("related-project-milestone") {
+		relMilestoneID, _ := cmd.Flags().GetString("related-project-milestone")
 		input.RelatedProjectMilestoneID = &relMilestoneID
 	}
 
