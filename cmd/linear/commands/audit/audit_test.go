@@ -3,7 +3,9 @@ package audit
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/chainguard-sandbox/go-linear/v2/internal/testutil"
 )
@@ -107,6 +109,125 @@ func TestRunList(t *testing.T) {
 			t.Fatalf("Execute() error = %v", err)
 		}
 	})
+}
+
+func TestRunListCreatedAfterVariables(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--created-after=7d"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	createdAt, ok := filter["createdAt"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[createdAt] = %T, want map", filter["createdAt"])
+	}
+	gte, ok := createdAt["gte"].(string)
+	if !ok {
+		t.Fatalf("createdAt[gte] = %T, want string", createdAt["gte"])
+	}
+
+	parsed, err := time.Parse(time.RFC3339, gte)
+	if err != nil {
+		t.Fatalf("createdAt.gte %q is not valid RFC3339: %v", gte, err)
+	}
+
+	// Should be approximately 7 days ago — within a 1-day window either side
+	expected := time.Now().UTC().Add(-7 * 24 * time.Hour)
+	diff := parsed.Sub(expected)
+	if diff < -25*time.Hour || diff > 25*time.Hour {
+		t.Errorf("createdAt.gte = %v, want ~7 days ago (%v)", parsed, expected)
+	}
+}
+
+func TestRunListActorResolvesName(t *testing.T) {
+	handlers := defaultHandlers()
+	handlers["ListUsers"] = testutil.MockUsersResponse
+
+	server, lastVars := testutil.MockServerCapture(t, handlers)
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	// "Test User" will be resolved via ResolveUser → ListUsers mock → "user-123"
+	cmd.SetArgs([]string{"--actor=Test User"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	actor, ok := filter["actor"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[actor] = %T, want map", filter["actor"])
+	}
+	id, ok := actor["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("actor[id] = %T, want map", actor["id"])
+	}
+	eq, ok := id["eq"].(string)
+	if !ok {
+		t.Fatalf("id[eq] = %T, want string", id["eq"])
+	}
+	if eq != "user-123" {
+		t.Errorf("actor.id.eq = %q, want %q", eq, "user-123")
+	}
+}
+
+func TestRunListTypeFilterVariables(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--type=issue.create"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	typ, ok := filter["type"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[type] = %T, want map", filter["type"])
+	}
+	if eq, _ := typ["eq"].(string); !strings.EqualFold(eq, "issue.create") {
+		t.Errorf("type.eq = %q, want issue.create", eq)
+	}
 }
 
 func TestRunTypes(t *testing.T) {
