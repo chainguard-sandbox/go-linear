@@ -35,11 +35,12 @@ Related: project_label-list, project_label-update, project_label-delete`,
 		},
 	}
 
-	_ = cmd.MarkFlagRequired("name")
 	cmd.Flags().String("name", "", "Label name (required)")
 	cmd.Flags().String("color", "", "Label color as hex string (e.g. #ff0000)")
 	cmd.Flags().String("description", "", "Label description")
 	cmd.Flags().String("parent-id", "", "Parent label ID for grouping")
+
+	_ = cmd.MarkFlagRequired("name")
 
 	return cmd
 }
@@ -53,15 +54,18 @@ func runLabelCreate(cmd *cobra.Command, client *linear.Client) error {
 		Name: name,
 	}
 
-	if color, _ := cmd.Flags().GetString("color"); color != "" {
+	if cmd.Flags().Changed("color") {
+		color, _ := cmd.Flags().GetString("color")
 		input.Color = &color
 	}
 
-	if desc, _ := cmd.Flags().GetString("description"); desc != "" {
+	if cmd.Flags().Changed("description") {
+		desc, _ := cmd.Flags().GetString("description")
 		input.Description = &desc
 	}
 
-	if parentID, _ := cmd.Flags().GetString("parent-id"); parentID != "" {
+	if cmd.Flags().Changed("parent-id") {
+		parentID, _ := cmd.Flags().GetString("parent-id")
 		input.ParentID = &parentID
 	}
 
