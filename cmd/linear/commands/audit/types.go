@@ -17,11 +17,11 @@ func NewTypesCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "List available audit entry types",
 		Long: `List all available audit entry types with descriptions.
 
-Use this to discover valid values for the --type filter in audit list.
+Use this to discover valid values for the --type filter in audit list. Requires Admin or Owner role.
 
 Example: go-linear audit types
 
-Related: audit_list`,
+Related: audit list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {

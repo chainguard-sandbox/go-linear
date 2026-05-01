@@ -298,8 +298,8 @@ Environment Variables:
 	}
 
 	// Add subcommands (ordered alphabetically)
-	rootCmd.AddCommand(audit.NewAuditCommand(getClient))
 	rootCmd.AddCommand(attachment.NewAttachmentCommand(getClient))
+	rootCmd.AddCommand(audit.NewAuditCommand(getClient))
 	rootCmd.AddCommand(comment.NewCommentCommand(getClient))
 	rootCmd.AddCommand(cycle.NewCycleCommand(getClient))
 	rootCmd.AddCommand(document.NewDocumentCommand(getClient))

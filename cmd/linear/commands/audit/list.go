@@ -2,6 +2,7 @@ package audit
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
@@ -19,14 +21,15 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List audit log entries",
-		Long: `List audit log entries with optional filtering.
+		Long: `List audit log entries with optional filtering. Requires Admin or Owner role.
 
-Filters: --type (entry type), --actor (user ID), --ip, --created-after, --created-before
+Filters: --type (entry type), --actor (user name, email, or ID), --ip, --created-after, --created-before
+Date filters accept ISO8601, relative durations ('7d', '2w'), or 'yesterday'. Comparisons are inclusive.
 
 Example: go-linear audit list --type=issue.create --limit=20
-Example: go-linear audit list --created-after=7d
+Example: go-linear audit list --actor=jane@example.com --created-after=7d
 
-Related: audit_types`,
+Related: audit types`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := clientFactory()
 			if err != nil {
@@ -38,11 +41,11 @@ Related: audit_types`,
 		},
 	}
 
-	cmd.Flags().String("type", "", "Filter by audit entry type")
-	cmd.Flags().String("actor", "", "Filter by actor user ID")
+	cmd.Flags().String("type", "", "Filter by audit entry type (see: audit types)")
+	cmd.Flags().String("actor", "", "Filter by actor (name, email, or user ID)")
 	cmd.Flags().String("ip", "", "Filter by IP address")
-	cmd.Flags().String("created-after", "", "Created after date (ISO8601, 'yesterday', '7d')")
-	cmd.Flags().String("created-before", "", "Created before date")
+	cmd.Flags().String("created-after", "", "Created after date, inclusive (ISO8601, 'yesterday', '7d')")
+	cmd.Flags().String("created-before", "", "Created before date, inclusive (ISO8601, 'yesterday', '7d')")
 	paginationFlags.Bind(cmd, 50)
 
 	return cmd
@@ -72,8 +75,13 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 			filter.Type = &intgraphql.StringComparator{Eq: &typeFlag}
 		}
 		if actorFlag != "" {
+			res := resolver.New(client)
+			actorID, err := res.ResolveUser(ctx, actorFlag)
+			if err != nil {
+				return fmt.Errorf("failed to resolve --actor: %w", err)
+			}
 			filter.Actor = &intgraphql.NullableUserFilter{
-				ID: &intgraphql.IDComparator{Eq: &actorFlag},
+				ID: &intgraphql.IDComparator{Eq: &actorID},
 			}
 		}
 		if ipFlag != "" {
@@ -89,7 +97,7 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 			if filter.CreatedAt == nil {
 				filter.CreatedAt = &intgraphql.DateComparator{}
 			}
-			s := t.Format("2006-01-02T15:04:05.000Z")
+			s := t.UTC().Format(time.RFC3339)
 			filter.CreatedAt.Gte = &s
 		}
 		if createdBefore != "" {
@@ -100,7 +108,7 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 			if filter.CreatedAt == nil {
 				filter.CreatedAt = &intgraphql.DateComparator{}
 			}
-			s := t.Format("2006-01-02T15:04:05.000Z")
+			s := t.UTC().Format(time.RFC3339)
 			filter.CreatedAt.Lte = &s
 		}
 	}
