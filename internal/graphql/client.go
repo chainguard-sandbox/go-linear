@@ -13,6 +13,8 @@ type LinearGraphQLClient interface {
 	GetAttachment(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetAttachment, error)
 	ListAttachments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListAttachments, error)
 	ListAttachmentsFiltered(ctx context.Context, first *int64, after *string, filter *AttachmentFilter, interceptors ...clientv2.RequestInterceptor) (*ListAttachmentsFiltered, error)
+	ListAuditEntries(ctx context.Context, first *int64, after *string, filter *AuditEntryFilter, interceptors ...clientv2.RequestInterceptor) (*ListAuditEntries, error)
+	ListAuditEntryTypes(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListAuditEntryTypes, error)
 	BatchUpdateIssues(ctx context.Context, ids []string, input IssueUpdateInput, interceptors ...clientv2.RequestInterceptor) (*BatchUpdateIssues, error)
 	GetComment(ctx context.Context, id string, childrenLimit *int64, childrenAfter *string, interceptors ...clientv2.RequestInterceptor) (*GetComment, error)
 	ListComments(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListComments, error)
@@ -394,6 +396,159 @@ func (t *ListAttachmentsFiltered_Attachments) GetPageInfo() *ListAttachmentsFilt
 		t = &ListAttachmentsFiltered_Attachments{}
 	}
 	return &t.PageInfo
+}
+
+type ListAuditEntries_AuditEntries_Nodes_Actor struct {
+	Email string "json:\"email\" graphql:\"email\""
+	ID    string "json:\"id\" graphql:\"id\""
+	Name  string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListAuditEntries_AuditEntries_Nodes_Actor) GetEmail() string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes_Actor{}
+	}
+	return t.Email
+}
+func (t *ListAuditEntries_AuditEntries_Nodes_Actor) GetID() string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes_Actor{}
+	}
+	return t.ID
+}
+func (t *ListAuditEntries_AuditEntries_Nodes_Actor) GetName() string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes_Actor{}
+	}
+	return t.Name
+}
+
+type ListAuditEntries_AuditEntries_Nodes struct {
+	Actor              *ListAuditEntries_AuditEntries_Nodes_Actor "json:\"actor,omitempty\" graphql:\"actor\""
+	ActorID            *string                                    "json:\"actorId,omitempty\" graphql:\"actorId\""
+	CountryCode        *string                                    "json:\"countryCode,omitempty\" graphql:\"countryCode\""
+	CreatedAt          time.Time                                  "json:\"createdAt\" graphql:\"createdAt\""
+	ID                 string                                     "json:\"id\" graphql:\"id\""
+	IP                 *string                                    "json:\"ip,omitempty\" graphql:\"ip\""
+	Metadata           map[string]any                             "json:\"metadata,omitempty\" graphql:\"metadata\""
+	RequestInformation map[string]any                             "json:\"requestInformation,omitempty\" graphql:\"requestInformation\""
+	Type               string                                     "json:\"type\" graphql:\"type\""
+	UpdatedAt          time.Time                                  "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *ListAuditEntries_AuditEntries_Nodes) GetActor() *ListAuditEntries_AuditEntries_Nodes_Actor {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.Actor
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetActorID() *string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.ActorID
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetCountryCode() *string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.CountryCode
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return &t.CreatedAt
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetID() string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetIP() *string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.IP
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetMetadata() map[string]any {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.Metadata
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetRequestInformation() map[string]any {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.RequestInformation
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetType() string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return t.Type
+}
+func (t *ListAuditEntries_AuditEntries_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type ListAuditEntries_AuditEntries_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *ListAuditEntries_AuditEntries_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *ListAuditEntries_AuditEntries_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type ListAuditEntries_AuditEntries struct {
+	Nodes    []*ListAuditEntries_AuditEntries_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo ListAuditEntries_AuditEntries_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *ListAuditEntries_AuditEntries) GetNodes() []*ListAuditEntries_AuditEntries_Nodes {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries{}
+	}
+	return t.Nodes
+}
+func (t *ListAuditEntries_AuditEntries) GetPageInfo() *ListAuditEntries_AuditEntries_PageInfo {
+	if t == nil {
+		t = &ListAuditEntries_AuditEntries{}
+	}
+	return &t.PageInfo
+}
+
+type ListAuditEntryTypes_AuditEntryTypes struct {
+	Description string "json:\"description\" graphql:\"description\""
+	Type        string "json:\"type\" graphql:\"type\""
+}
+
+func (t *ListAuditEntryTypes_AuditEntryTypes) GetDescription() string {
+	if t == nil {
+		t = &ListAuditEntryTypes_AuditEntryTypes{}
+	}
+	return t.Description
+}
+func (t *ListAuditEntryTypes_AuditEntryTypes) GetType() string {
+	if t == nil {
+		t = &ListAuditEntryTypes_AuditEntryTypes{}
+	}
+	return t.Type
 }
 
 type BatchUpdateIssues_IssueBatchUpdate_Issues_State struct {
@@ -9124,6 +9279,28 @@ func (t *ListAttachmentsFiltered) GetAttachments() *ListAttachmentsFiltered_Atta
 	return &t.Attachments
 }
 
+type ListAuditEntries struct {
+	AuditEntries ListAuditEntries_AuditEntries "json:\"auditEntries\" graphql:\"auditEntries\""
+}
+
+func (t *ListAuditEntries) GetAuditEntries() *ListAuditEntries_AuditEntries {
+	if t == nil {
+		t = &ListAuditEntries{}
+	}
+	return &t.AuditEntries
+}
+
+type ListAuditEntryTypes struct {
+	AuditEntryTypes []*ListAuditEntryTypes_AuditEntryTypes "json:\"auditEntryTypes\" graphql:\"auditEntryTypes\""
+}
+
+func (t *ListAuditEntryTypes) GetAuditEntryTypes() []*ListAuditEntryTypes_AuditEntryTypes {
+	if t == nil {
+		t = &ListAuditEntryTypes{}
+	}
+	return t.AuditEntryTypes
+}
+
 type BatchUpdateIssues struct {
 	IssueBatchUpdate BatchUpdateIssues_IssueBatchUpdate "json:\"issueBatchUpdate\" graphql:\"issueBatchUpdate\""
 }
@@ -10477,6 +10654,74 @@ func (c *Client) ListAttachmentsFiltered(ctx context.Context, first *int64, afte
 
 	var res ListAttachmentsFiltered
 	if err := c.Client.Post(ctx, "ListAttachmentsFiltered", ListAttachmentsFilteredDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListAuditEntriesDocument = `query ListAuditEntries ($first: Int, $after: String, $filter: AuditEntryFilter) {
+	auditEntries(first: $first, after: $after, filter: $filter) {
+		nodes {
+			id
+			type
+			actorId
+			ip
+			countryCode
+			createdAt
+			updatedAt
+			metadata
+			requestInformation
+			actor {
+				id
+				name
+				email
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) ListAuditEntries(ctx context.Context, first *int64, after *string, filter *AuditEntryFilter, interceptors ...clientv2.RequestInterceptor) (*ListAuditEntries, error) {
+	vars := map[string]any{
+		"first":  first,
+		"after":  after,
+		"filter": filter,
+	}
+
+	var res ListAuditEntries
+	if err := c.Client.Post(ctx, "ListAuditEntries", ListAuditEntriesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ListAuditEntryTypesDocument = `query ListAuditEntryTypes {
+	auditEntryTypes {
+		type
+		description
+	}
+}
+`
+
+func (c *Client) ListAuditEntryTypes(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListAuditEntryTypes, error) {
+	vars := map[string]any{}
+
+	var res ListAuditEntryTypes
+	if err := c.Client.Post(ctx, "ListAuditEntryTypes", ListAuditEntryTypesDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -14438,6 +14683,8 @@ var DocumentOperationNames = map[string]string{
 	GetAttachmentDocument:                  "GetAttachment",
 	ListAttachmentsDocument:                "ListAttachments",
 	ListAttachmentsFilteredDocument:        "ListAttachmentsFiltered",
+	ListAuditEntriesDocument:               "ListAuditEntries",
+	ListAuditEntryTypesDocument:            "ListAuditEntryTypes",
 	BatchUpdateIssuesDocument:              "BatchUpdateIssues",
 	GetCommentDocument:                     "GetComment",
 	ListCommentsDocument:                   "ListComments",

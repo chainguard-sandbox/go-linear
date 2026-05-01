@@ -6,18 +6,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
-// MockServer creates a test server that handles Linear API queries.
-// Handlers are matched by GraphQL operation name (case-insensitive).
-func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
+// makeHandler builds an HTTP handler that dispatches GraphQL requests by
+// operation name and optionally calls onRequest with the decoded variables.
+func makeHandler(t *testing.T, handlers map[string]string, onRequest func(map[string]any)) http.Handler {
 	t.Helper()
-
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		var reqBody struct {
@@ -32,6 +32,10 @@ func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 			return
 		}
 
+		if onRequest != nil {
+			onRequest(reqBody.Variables)
+		}
+
 		// Match by operation name (case-insensitive)
 		for key, response := range handlers {
 			if strings.EqualFold(key, reqBody.OperationName) {
@@ -43,7 +47,36 @@ func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 		// No match - log and return empty response
 		t.Logf("No handler for operation: %s", reqBody.OperationName)
 		_, _ = w.Write([]byte(`{"data":{}}`))
+	})
+}
+
+// MockServer creates a test server that handles Linear API queries.
+// Handlers are matched by GraphQL operation name (case-insensitive).
+func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(makeHandler(t, handlers, nil))
+}
+
+// MockServerCapture creates a test server that captures GraphQL variables from
+// each request. The returned function returns the variables from the most recent
+// request, for use in asserting that the correct fields were sent to the API.
+func MockServerCapture(t *testing.T, handlers map[string]string) (*httptest.Server, func() map[string]any) {
+	t.Helper()
+
+	var mu sync.Mutex
+	var last map[string]any
+
+	server := httptest.NewServer(makeHandler(t, handlers, func(vars map[string]any) {
+		mu.Lock()
+		last = vars
+		mu.Unlock()
 	}))
+
+	return server, func() map[string]any {
+		mu.Lock()
+		defer mu.Unlock()
+		return last
+	}
 }
 
 // TestFactory creates a cli.ClientFactory that connects to the given test server.
