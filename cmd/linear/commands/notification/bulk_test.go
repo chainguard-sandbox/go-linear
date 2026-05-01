@@ -79,6 +79,13 @@ func TestRunMarkReadAll(t *testing.T) {
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
 	}
+	var result map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+		t.Fatalf("Output should be valid JSON: %v", err)
+	}
+	if result["success"] != true {
+		t.Error("Expected success: true")
+	}
 }
 
 func TestRunMarkUnreadAll(t *testing.T) {
@@ -92,6 +99,13 @@ func TestRunMarkUnreadAll(t *testing.T) {
 	cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
+	}
+	var result map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+		t.Fatalf("Output should be valid JSON: %v", err)
+	}
+	if result["success"] != true {
+		t.Error("Expected success: true")
 	}
 }
 
@@ -150,5 +164,12 @@ func TestRunUnsnoozeAll(t *testing.T) {
 	cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
+	}
+	var result map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+		t.Fatalf("Output should be valid JSON: %v", err)
+	}
+	if result["success"] != true {
+		t.Error("Expected success: true")
 	}
 }
