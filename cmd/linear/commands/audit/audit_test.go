@@ -34,7 +34,7 @@ func TestNewListCommand(t *testing.T) {
 		t.Errorf("Use = %q, want %q", cmd.Use, "list")
 	}
 
-	expectedFlags := []string{"type", "actor", "ip", "created-after", "created-before", "limit"}
+	expectedFlags := []string{"type", "actor", "ip", "country-code", "created-after", "created-before", "limit"}
 	for _, flag := range expectedFlags {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("Expected flag %q not found", flag)
@@ -227,6 +227,205 @@ func TestRunListTypeFilterVariables(t *testing.T) {
 	}
 	if eq, _ := typ["eq"].(string); !strings.EqualFold(eq, "issue.create") {
 		t.Errorf("type.eq = %q, want issue.create", eq)
+	}
+}
+
+func TestRunListIPFilterVariables(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--ip=1.2.3.4"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	ip, ok := filter["ip"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[ip] = %T, want map", filter["ip"])
+	}
+	if eq, _ := ip["eq"].(string); eq != "1.2.3.4" {
+		t.Errorf("ip.eq = %q, want %q", eq, "1.2.3.4")
+	}
+}
+
+func TestRunListCountryCodeFilterVariables(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--country-code=US"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	cc, ok := filter["countryCode"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[countryCode] = %T, want map", filter["countryCode"])
+	}
+	if eq, _ := cc["eq"].(string); eq != "US" {
+		t.Errorf("countryCode.eq = %q, want %q", eq, "US")
+	}
+}
+
+func TestRunListCreatedBeforeVariables(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--created-before=2025-12-31"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	createdAt, ok := filter["createdAt"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[createdAt] = %T, want map", filter["createdAt"])
+	}
+	lte, ok := createdAt["lte"].(string)
+	if !ok {
+		t.Fatalf("createdAt[lte] = %T, want string", createdAt["lte"])
+	}
+	if _, err := time.Parse(time.RFC3339, lte); err != nil {
+		t.Errorf("createdAt.lte %q is not valid RFC3339: %v", lte, err)
+	}
+	if createdAt["gte"] != nil {
+		t.Errorf("createdAt.gte should be absent, got %v", createdAt["gte"])
+	}
+}
+
+func TestRunListCreatedDateRange(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--created-after=7d", "--created-before=2025-12-31"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	filter, ok := vars["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("variables[filter] = %T, want map", vars["filter"])
+	}
+	createdAt, ok := filter["createdAt"].(map[string]any)
+	if !ok {
+		t.Fatalf("filter[createdAt] = %T, want map", filter["createdAt"])
+	}
+	if _, ok := createdAt["gte"].(string); !ok {
+		t.Errorf("createdAt.gte missing or not string, got %T", createdAt["gte"])
+	}
+	if _, ok := createdAt["lte"].(string); !ok {
+		t.Errorf("createdAt.lte missing or not string, got %T", createdAt["lte"])
+	}
+}
+
+func TestRunListInvalidCreatedAfter(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--created-after=not-a-date"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute() expected error for invalid --created-after, got nil")
+	}
+	if !strings.Contains(err.Error(), "created-after") {
+		t.Errorf("error %q should mention 'created-after'", err.Error())
+	}
+}
+
+func TestRunListActorNotFound(t *testing.T) {
+	handlers := defaultHandlers()
+	// Return empty users list so resolver fails to find the actor
+	handlers["ListUsers"] = `{"data":{"users":{"nodes":[],"pageInfo":{"hasNextPage":false}}}}`
+
+	server := testutil.MockServer(t, handlers)
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--actor=nobody"})
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Execute() expected error when actor not found, got nil")
+	}
+}
+
+func TestRunListAfterCursorForwarded(t *testing.T) {
+	server, lastVars := testutil.MockServerCapture(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--after=cursor-abc123"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	vars := lastVars()
+	if vars == nil {
+		t.Fatal("no variables captured")
+	}
+	after, ok := vars["after"].(string)
+	if !ok {
+		t.Fatalf("vars[after] = %T, want string", vars["after"])
+	}
+	if after != "cursor-abc123" {
+		t.Errorf("after = %q, want %q", after, "cursor-abc123")
 	}
 }
 
