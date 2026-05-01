@@ -13,12 +13,11 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
-// MockServer creates a test server that handles Linear API queries.
-// Handlers are matched by GraphQL operation name (case-insensitive).
-func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
+// makeHandler builds an HTTP handler that dispatches GraphQL requests by
+// operation name and optionally calls onRequest with the decoded variables.
+func makeHandler(t *testing.T, handlers map[string]string, onRequest func(map[string]any)) http.Handler {
 	t.Helper()
-
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		var reqBody struct {
@@ -31,6 +30,10 @@ func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 			t.Logf("Failed to decode request: %v", err)
 			http.Error(w, "Bad request", http.StatusBadRequest)
 			return
+		}
+
+		if onRequest != nil {
+			onRequest(reqBody.Variables)
 		}
 
 		// Match by operation name (case-insensitive)
@@ -44,7 +47,14 @@ func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
 		// No match - log and return empty response
 		t.Logf("No handler for operation: %s", reqBody.OperationName)
 		_, _ = w.Write([]byte(`{"data":{}}`))
-	}))
+	})
+}
+
+// MockServer creates a test server that handles Linear API queries.
+// Handlers are matched by GraphQL operation name (case-insensitive).
+func MockServer(t *testing.T, handlers map[string]string) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(makeHandler(t, handlers, nil))
 }
 
 // MockServerCapture creates a test server that captures GraphQL variables from
@@ -56,34 +66,10 @@ func MockServerCapture(t *testing.T, handlers map[string]string) (*httptest.Serv
 	var mu sync.Mutex
 	var last map[string]any
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		var reqBody struct {
-			Query         string         `json:"query"`
-			OperationName string         `json:"operationName"`
-			Variables     map[string]any `json:"variables"`
-		}
-
-		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-			t.Logf("Failed to decode request: %v", err)
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
-
+	server := httptest.NewServer(makeHandler(t, handlers, func(vars map[string]any) {
 		mu.Lock()
-		last = reqBody.Variables
+		last = vars
 		mu.Unlock()
-
-		for key, response := range handlers {
-			if strings.EqualFold(key, reqBody.OperationName) {
-				_, _ = w.Write([]byte(response))
-				return
-			}
-		}
-
-		t.Logf("No handler for operation: %s", reqBody.OperationName)
-		_, _ = w.Write([]byte(`{"data":{}}`))
 	}))
 
 	return server, func() map[string]any {
