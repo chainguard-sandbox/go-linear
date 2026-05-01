@@ -189,13 +189,18 @@ func TestParseFuture(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:  "ISO date accepted as-is (futurity not checked)",
+			name:  "future ISO date accepted",
 			input: "2099-01-01",
 			check: func(t *testing.T, result time.Time) {
 				if result.Year() != 2099 || result.Month() != 1 || result.Day() != 1 {
 					t.Errorf("ParseFuture() = %v, want 2099-01-01", result)
 				}
 			},
+		},
+		{
+			name:    "past ISO date rejected",
+			input:   "2020-01-01",
+			wantErr: true,
 		},
 		{
 			name:    "tomorrow unchanged",

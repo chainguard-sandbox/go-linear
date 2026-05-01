@@ -37,7 +37,7 @@ func buildEntityInput(cmd *cobra.Command, ctx context.Context, res *resolver.Res
 		if err != nil {
 			return input, fmt.Errorf("failed to resolve project: %w", err)
 		}
-		input.ProjectID = &id
+		input.ProjectUpdateID = &id
 		set++
 	}
 	if v, _ := cmd.Flags().GetString("initiative"); v != "" {

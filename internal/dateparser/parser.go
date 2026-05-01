@@ -92,9 +92,7 @@ func (p Parser) Parse(input string) (time.Time, error) {
 //
 // For duration formats ("7d", "2w", "3m"), the duration is added to now.
 // Use this for snooze/deadline inputs where "3d" means "3 days from now".
-// Unlike Parse, "today" and "yesterday" are rejected as non-future dates.
-// Note: ISO 8601 absolute dates are accepted as-is without futurity checks;
-// callers are responsible for validating that the result is in the future.
+// Unlike Parse, "today", "yesterday", and past ISO 8601 dates are rejected.
 func (p Parser) ParseFuture(input string) (time.Time, error) {
 	if input == "" {
 		return time.Time{}, fmt.Errorf("empty date string")
@@ -102,12 +100,20 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 
 	// Try ISO 8601 date only
 	if t, err := time.Parse("2006-01-02", input); err == nil {
-		return t.UTC(), nil
+		t = t.UTC()
+		if !t.After(time.Now().UTC()) {
+			return time.Time{}, fmt.Errorf("date %s is not in the future", input)
+		}
+		return t, nil
 	}
 
 	// Try ISO 8601 with time
 	if t, err := time.Parse(time.RFC3339, input); err == nil {
-		return t.UTC(), nil
+		t = t.UTC()
+		if !t.After(time.Now().UTC()) {
+			return time.Time{}, fmt.Errorf("date %s is not in the future", input)
+		}
+		return t, nil
 	}
 
 	// Try named dates
