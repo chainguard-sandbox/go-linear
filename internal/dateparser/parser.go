@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var durationRegex = regexp.MustCompile(`^(\d+)([dwm])$`)
+var durationRegex = regexp.MustCompile(`^(\d+)([hdwm])$`)
 
 // Parser parses date strings in various formats.
 type Parser struct{}
@@ -70,6 +70,9 @@ func (p Parser) Parse(input string) (time.Time, error) {
 		var duration time.Duration
 
 		switch unit {
+		case "h":
+			// Hours preserve wall-clock time; no midnight truncation.
+			return now.Add(-time.Duration(amount) * time.Hour), nil
 		case "d":
 			duration = time.Duration(amount) * 24 * time.Hour
 		case "w":
@@ -85,7 +88,7 @@ func (p Parser) Parse(input string) (time.Time, error) {
 		return time.Date(result.Year(), result.Month(), result.Day(), 0, 0, 0, 0, time.UTC), nil
 	}
 
-	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'today', 'yesterday', '7d', '2w', '3m')", input)
+	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'today', 'yesterday', '4h', '7d', '2w', '3m')", input)
 }
 
 // ParseFuture parses a date string treating durations as future offsets.
@@ -138,6 +141,8 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 		var duration time.Duration
 
 		switch unit {
+		case "h":
+			duration = time.Duration(amount) * time.Hour
 		case "d":
 			duration = time.Duration(amount) * 24 * time.Hour
 		case "w":
@@ -151,7 +156,7 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 		return now.Add(duration), nil
 	}
 
-	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'tomorrow', '3d', '2w', '3m')", input)
+	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'tomorrow', '4h', '3d', '2w', '3m')", input)
 }
 
 // MustParse parses a date string and panics on error.
