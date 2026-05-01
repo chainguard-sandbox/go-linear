@@ -34,7 +34,7 @@ func TestNewListCommand(t *testing.T) {
 		t.Errorf("Use = %q, want %q", cmd.Use, "list")
 	}
 
-	expectedFlags := []string{"type", "actor", "ip", "country-code", "created-after", "created-before", "limit"}
+	expectedFlags := []string{"type", "actor", "ip", "country-code", "created-after", "created-before", "limit", "after"}
 	for _, flag := range expectedFlags {
 		if cmd.Flags().Lookup(flag) == nil {
 			t.Errorf("Expected flag %q not found", flag)
@@ -409,6 +409,25 @@ func TestRunListInvertedDateRange(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "created-after") || !strings.Contains(err.Error(), "created-before") {
 		t.Errorf("error %q should mention both flags", err.Error())
+	}
+}
+
+func TestRunListInvalidCreatedBefore(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetArgs([]string{"--created-before=not-a-date"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute() expected error for invalid --created-before, got nil")
+	}
+	if !strings.Contains(err.Error(), "created-before") {
+		t.Errorf("error %q should mention 'created-before'", err.Error())
 	}
 }
 

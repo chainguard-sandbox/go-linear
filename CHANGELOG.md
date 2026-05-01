@@ -61,6 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**Audit Log** (2 commands, requires Admin or Owner role):
+- `audit list` — paginated listing with filters: `--type`, `--actor` (name/email/ID), `--ip`, `--country-code`, `--created-after`, `--created-before`
+- `audit types` — list all valid `--type` values with descriptions
+
 **Lifecycle Management** (12 commands):
 - `issue archive` / `issue unarchive` / `issue delete --permanent`
 - `initiative archive` / `initiative unarchive` / `initiative list-sub`
