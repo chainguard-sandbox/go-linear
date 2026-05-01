@@ -23,7 +23,7 @@ func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "List audit log entries",
 		Long: `List audit log entries with optional filtering. Requires Admin or Owner role.
 
-Filters: --type (entry type), --actor (user name, email, or ID), --ip, --created-after, --created-before
+Filters: --type (entry type), --actor (user name, email, or ID), --ip, --country-code, --created-after, --created-before
 Date filters accept ISO8601, relative durations ('7d', '2w'), or 'yesterday'. Comparisons are inclusive.
 
 Example: go-linear audit list --type=issue.create --limit=20
@@ -44,6 +44,7 @@ Related: audit types`,
 	cmd.Flags().String("type", "", "Filter by audit entry type (see: audit types)")
 	cmd.Flags().String("actor", "", "Filter by actor (name, email, or user ID)")
 	cmd.Flags().String("ip", "", "Filter by IP address")
+	cmd.Flags().String("country-code", "", "Filter by country code (e.g. US, DE)")
 	cmd.Flags().String("created-after", "", "Created after date, inclusive (ISO8601, 'yesterday', '7d')")
 	cmd.Flags().String("created-before", "", "Created before date, inclusive (ISO8601, 'yesterday', '7d')")
 	paginationFlags.Bind(cmd, 50)
@@ -65,10 +66,11 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 	typeFlag, _ := cmd.Flags().GetString("type")
 	actorFlag, _ := cmd.Flags().GetString("actor")
 	ipFlag, _ := cmd.Flags().GetString("ip")
+	countryCodeFlag, _ := cmd.Flags().GetString("country-code")
 	createdAfter, _ := cmd.Flags().GetString("created-after")
 	createdBefore, _ := cmd.Flags().GetString("created-before")
 
-	if typeFlag != "" || actorFlag != "" || ipFlag != "" || createdAfter != "" || createdBefore != "" {
+	if typeFlag != "" || actorFlag != "" || ipFlag != "" || countryCodeFlag != "" || createdAfter != "" || createdBefore != "" {
 		filter = &intgraphql.AuditEntryFilter{}
 
 		if typeFlag != "" {
@@ -86,6 +88,9 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 		}
 		if ipFlag != "" {
 			filter.IP = &intgraphql.StringComparator{Eq: &ipFlag}
+		}
+		if countryCodeFlag != "" {
+			filter.CountryCode = &intgraphql.StringComparator{Eq: &countryCodeFlag}
 		}
 
 		parser := dateparser.New()
