@@ -28,7 +28,7 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--yes"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -41,12 +41,74 @@ func TestRunArchiveAll(t *testing.T) {
 		}
 	})
 
+	t.Run("archive all for project UUID", func(t *testing.T) {
+		cmd := NewArchiveAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000002", "--yes"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Fatalf("Output should be valid JSON: %v", err)
+		}
+		if result["success"] != true {
+			t.Error("Expected success: true")
+		}
+	})
+
+	t.Run("archive all for initiative UUID", func(t *testing.T) {
+		cmd := NewArchiveAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--initiative=00000000-0000-0000-0000-000000000003", "--yes"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Fatalf("Output should be valid JSON: %v", err)
+		}
+		if result["success"] != true {
+			t.Error("Expected success: true")
+		}
+	})
+
+	t.Run("archive all for notification UUID", func(t *testing.T) {
+		cmd := NewArchiveAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--notification=00000000-0000-0000-0000-000000000004", "--yes"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Fatalf("Output should be valid JSON: %v", err)
+		}
+		if result["success"] != true {
+			t.Error("Expected success: true")
+		}
+	})
+
+	t.Run("requires --yes confirmation", func(t *testing.T) {
+		cmd := NewArchiveAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
+		if err := cmd.Execute(); err == nil {
+			t.Error("Expected error when --yes is not provided")
+		}
+	})
+
 	t.Run("requires entity flag", func(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{})
+		cmd.SetArgs([]string{"--yes"})
 		if err := cmd.Execute(); err == nil {
 			t.Error("Expected error when no entity flag provided")
 		}
@@ -60,6 +122,7 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd.SetArgs([]string{
 			"--issue=00000000-0000-0000-0000-000000000001",
 			"--project=00000000-0000-0000-0000-000000000002",
+			"--yes",
 		})
 		if err := cmd.Execute(); err == nil {
 			t.Error("Expected error when multiple entity flags provided")
@@ -93,20 +156,33 @@ func TestRunMarkUnreadAll(t *testing.T) {
 	defer server.Close()
 	factory := testutil.TestFactory(t, server.URL)
 
-	cmd := NewMarkUnreadAllCommand(factory)
-	var buf bytes.Buffer
-	cmd.SetOut(&buf)
-	cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v", err)
-	}
-	var result map[string]any
-	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
-		t.Fatalf("Output should be valid JSON: %v", err)
-	}
-	if result["success"] != true {
-		t.Error("Expected success: true")
-	}
+	t.Run("mark unread for issue", func(t *testing.T) {
+		cmd := NewMarkUnreadAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--yes"})
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Fatalf("Output should be valid JSON: %v", err)
+		}
+		if result["success"] != true {
+			t.Error("Expected success: true")
+		}
+	})
+
+	t.Run("requires --yes confirmation", func(t *testing.T) {
+		cmd := NewMarkUnreadAllCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
+		if err := cmd.Execute(); err == nil {
+			t.Error("Expected error when --yes is not provided")
+		}
+	})
 }
 
 func TestRunSnoozeAll(t *testing.T) {

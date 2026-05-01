@@ -203,13 +203,20 @@ func TestParseFuture(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "tomorrow unchanged",
+			name:    "tomorrow is 24h from now (wall-clock preserved)",
 			input:   "tomorrow",
 			wantErr: false,
 			check: func(t *testing.T, result time.Time) {
-				tomorrow := now.Add(24 * time.Hour)
-				if result.Year() != tomorrow.Year() || result.Month() != tomorrow.Month() || result.Day() != tomorrow.Day() {
-					t.Errorf("ParseFuture('tomorrow') = %v, want tomorrow", result)
+				expected := now.Add(24 * time.Hour)
+				diff := result.Sub(expected)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > time.Second {
+					t.Errorf("ParseFuture('tomorrow') = %v, want ~%v (24h from now)", result, expected)
+				}
+				if result.Hour() == 0 && result.Minute() == 0 && result.Second() == 0 && now.Hour() != 0 {
+					t.Errorf("ParseFuture('tomorrow') truncated to midnight; got %v", result)
 				}
 			},
 		},

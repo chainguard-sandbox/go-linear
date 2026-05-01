@@ -13,7 +13,7 @@ import (
 // addEntityFlags adds the common entity filter flags for bulk notification operations.
 func addEntityFlags(cmd *cobra.Command) {
 	cmd.Flags().String("issue", "", "Issue identifier or UUID (e.g., ENG-123)")
-	cmd.Flags().String("project", "", "Project name or UUID")
+	cmd.Flags().String("project", "", "Project name or UUID (deprecated by Linear API; may stop working server-side)")
 	cmd.Flags().String("initiative", "", "Initiative name or UUID")
 	cmd.Flags().String("notification", "", "Notification ID (UUID)")
 }
@@ -24,32 +24,51 @@ func buildEntityInput(cmd *cobra.Command, ctx context.Context, res *resolver.Res
 	input := intgraphql.NotificationEntityInput{}
 	set := 0
 
-	if v, _ := cmd.Flags().GetString("issue"); v != "" {
-		id, err := res.ResolveIssue(ctx, v)
+	issueVal, err := cmd.Flags().GetString("issue")
+	if err != nil {
+		return input, err
+	}
+	if issueVal != "" {
+		id, err := res.ResolveIssue(ctx, issueVal)
 		if err != nil {
 			return input, fmt.Errorf("failed to resolve issue: %w", err)
 		}
 		input.IssueID = &id
 		set++
 	}
-	if v, _ := cmd.Flags().GetString("project"); v != "" {
-		id, err := res.ResolveProject(ctx, v)
+
+	projectVal, err := cmd.Flags().GetString("project")
+	if err != nil {
+		return input, err
+	}
+	if projectVal != "" {
+		id, err := res.ResolveProject(ctx, projectVal)
 		if err != nil {
 			return input, fmt.Errorf("failed to resolve project: %w", err)
 		}
-		input.ProjectUpdateID = &id
+		input.ProjectID = &id
 		set++
 	}
-	if v, _ := cmd.Flags().GetString("initiative"); v != "" {
-		id, err := res.ResolveInitiative(ctx, v)
+
+	initiativeVal, err := cmd.Flags().GetString("initiative")
+	if err != nil {
+		return input, err
+	}
+	if initiativeVal != "" {
+		id, err := res.ResolveInitiative(ctx, initiativeVal)
 		if err != nil {
 			return input, fmt.Errorf("failed to resolve initiative: %w", err)
 		}
 		input.InitiativeID = &id
 		set++
 	}
-	if v, _ := cmd.Flags().GetString("notification"); v != "" {
-		input.ID = &v
+
+	notifVal, err := cmd.Flags().GetString("notification")
+	if err != nil {
+		return input, err
+	}
+	if notifVal != "" {
+		input.ID = &notifVal
 		set++
 	}
 
