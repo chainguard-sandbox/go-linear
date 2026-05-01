@@ -17,7 +17,7 @@ import (
 //   - AuditEntries with nodes and pageInfo
 //   - error: Non-nil if query fails
 //
-// Permissions Required: Admin
+// Permissions Required: Admin or Owner
 //
 // Related: [AuditEntryTypes]
 func (c *Client) AuditEntries(ctx context.Context, first *int64, after *string, filter *intgraphql.AuditEntryFilter) (*intgraphql.ListAuditEntries_AuditEntries, error) {
@@ -34,7 +34,7 @@ func (c *Client) AuditEntries(ctx context.Context, first *int64, after *string, 
 //   - Array of AuditEntryType with type and description
 //   - error: Non-nil if query fails
 //
-// Permissions Required: Admin
+// Permissions Required: Admin or Owner
 //
 // Related: [AuditEntries]
 func (c *Client) AuditEntryTypes(ctx context.Context) ([]*intgraphql.ListAuditEntryTypes_AuditEntryTypes, error) {

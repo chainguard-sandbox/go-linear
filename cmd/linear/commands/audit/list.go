@@ -116,6 +116,11 @@ func runList(cmd *cobra.Command, client *linear.Client, paginationFlags *cli.Pag
 			s := t.UTC().Format(time.RFC3339)
 			filter.CreatedAt.Lte = &s
 		}
+		if filter.CreatedAt != nil && filter.CreatedAt.Gte != nil && filter.CreatedAt.Lte != nil {
+			if *filter.CreatedAt.Gte > *filter.CreatedAt.Lte {
+				return fmt.Errorf("--created-after must be earlier than --created-before")
+			}
+		}
 	}
 
 	entries, err := client.AuditEntries(ctx, first, afterPtr, filter)

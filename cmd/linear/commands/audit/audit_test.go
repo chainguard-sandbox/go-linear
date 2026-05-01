@@ -92,7 +92,7 @@ func TestRunList(t *testing.T) {
 		cmd := NewListCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--created-before=2025-12-31"})
+		cmd.SetArgs([]string{"--created-before=7d"})
 
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
@@ -300,7 +300,7 @@ func TestRunListCreatedBeforeVariables(t *testing.T) {
 	cmd := NewListCommand(factory)
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	cmd.SetArgs([]string{"--created-before=2025-12-31"})
+	cmd.SetArgs([]string{"--created-before=7d"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
@@ -338,7 +338,7 @@ func TestRunListCreatedDateRange(t *testing.T) {
 	cmd := NewListCommand(factory)
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	cmd.SetArgs([]string{"--created-after=7d", "--created-before=2025-12-31"})
+	cmd.SetArgs([]string{"--created-after=30d", "--created-before=7d"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v", err)
@@ -361,6 +361,26 @@ func TestRunListCreatedDateRange(t *testing.T) {
 	}
 	if _, ok := createdAt["lte"].(string); !ok {
 		t.Errorf("createdAt.lte missing or not string, got %T", createdAt["lte"])
+	}
+}
+
+func TestRunListInvertedDateRange(t *testing.T) {
+	server := testutil.MockServer(t, defaultHandlers())
+	defer server.Close()
+	factory := testutil.TestFactory(t, server.URL)
+
+	cmd := NewListCommand(factory)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	// after=7d is ~April 2026, before=30d is ~April 2026 but earlier — inverted
+	cmd.SetArgs([]string{"--created-after=7d", "--created-before=30d"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("Execute() expected error for inverted date range, got nil")
+	}
+	if !strings.Contains(err.Error(), "created-after") || !strings.Contains(err.Error(), "created-before") {
+		t.Errorf("error %q should mention both flags", err.Error())
 	}
 }
 
