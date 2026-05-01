@@ -24,6 +24,7 @@ Requires exactly one of: --issue, --project, --initiative, --notification
 Requires --until to specify when notifications should reappear.
 
 Example: go-linear notification snooze-all --issue=ENG-123 --until=tomorrow
+Example: go-linear notification snooze-all --issue=ENG-123 --until=4h
 Example: go-linear notification snooze-all --issue=ENG-123 --until=3d
 
 Related: notification_unsnooze-all, notification_archive-all`,
@@ -39,7 +40,7 @@ Related: notification_unsnooze-all, notification_archive-all`,
 	}
 
 	addEntityFlags(cmd)
-	cmd.Flags().String("until", "", "Snooze until: ISO8601 date, 'tomorrow' (24h from now), or duration like '3d', '2w'")
+	cmd.Flags().String("until", "", "Snooze until: ISO8601 date, 'tomorrow' (24h from now), or duration like '4h', '3d', '2w'")
 	_ = cmd.MarkFlagRequired("until")
 	return cmd
 }

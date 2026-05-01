@@ -79,6 +79,21 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:    "4 hours ago",
+			input:   "4h",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				fourHoursAgo := now.Add(-4 * time.Hour)
+				diff := fourHoursAgo.Sub(result)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > time.Minute {
+					t.Errorf("Parse('4h') = %v, want ~4 hours ago", result)
+				}
+			},
+		},
+		{
 			name:    "7 days ago",
 			input:   "7d",
 			wantErr: false,
@@ -152,6 +167,21 @@ func TestParseFuture(t *testing.T) {
 		wantErr bool
 		check   func(t *testing.T, result time.Time)
 	}{
+		{
+			name:    "4 hours from now",
+			input:   "4h",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				expected := now.Add(4 * time.Hour)
+				diff := result.Sub(expected)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > time.Minute {
+					t.Errorf("ParseFuture('4h') = %v, want ~4 hours from now", result)
+				}
+			},
+		},
 		{
 			name:    "3 days from now",
 			input:   "3d",
