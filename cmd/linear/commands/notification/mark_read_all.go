@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
-	"github.com/spf13/cobra"
 )
 
 // NewMarkReadAllCommand creates the notification mark-read-all command.

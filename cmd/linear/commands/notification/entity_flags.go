@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
-	"github.com/spf13/cobra"
 )
 
 // addEntityFlags adds the common entity filter flags for bulk notification operations.

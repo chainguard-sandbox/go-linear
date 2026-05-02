@@ -3,11 +3,12 @@ package notification
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/resolver"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
-	"github.com/spf13/cobra"
 )
 
 // NewMarkUnreadAllCommand creates the notification mark-unread-all command.

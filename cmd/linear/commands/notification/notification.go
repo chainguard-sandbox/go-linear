@@ -2,8 +2,9 @@
 package notification
 
 import (
-	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/spf13/cobra"
+
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 )
 
 // cli.ClientFactory is a function that creates a Linear client.

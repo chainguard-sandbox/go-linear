@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
 	"github.com/chainguard-sandbox/go-linear/v2/internal/formatter"
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
-	"github.com/spf13/cobra"
 )
 
 // NewUpdateCommand creates the notification update command.

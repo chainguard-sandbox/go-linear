@@ -3,9 +3,10 @@ package notification
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
-	"github.com/spf13/cobra"
 )
 
 // NewArchiveCommand creates the notification archive command.
