@@ -22,53 +22,23 @@ func addEntityFlags(cmd *cobra.Command) {
 // human-readable identifiers (issue keys, project/initiative names) to UUIDs.
 func buildEntityInput(cmd *cobra.Command, ctx context.Context, res *resolver.Resolver) (intgraphql.NotificationEntityInput, error) {
 	input := intgraphql.NotificationEntityInput{}
+
+	issueVal, _ := cmd.Flags().GetString("issue")
+	projectVal, _ := cmd.Flags().GetString("project")
+	initiativeVal, _ := cmd.Flags().GetString("initiative")
+	notifVal, _ := cmd.Flags().GetString("notification")
+
 	set := 0
-
-	issueVal, err := cmd.Flags().GetString("issue")
-	if err != nil {
-		return input, err
-	}
 	if issueVal != "" {
-		id, err := res.ResolveIssue(ctx, issueVal)
-		if err != nil {
-			return input, fmt.Errorf("failed to resolve issue: %w", err)
-		}
-		input.IssueID = &id
 		set++
-	}
-
-	projectVal, err := cmd.Flags().GetString("project")
-	if err != nil {
-		return input, err
 	}
 	if projectVal != "" {
-		id, err := res.ResolveProject(ctx, projectVal)
-		if err != nil {
-			return input, fmt.Errorf("failed to resolve project: %w", err)
-		}
-		input.ProjectID = &id
 		set++
-	}
-
-	initiativeVal, err := cmd.Flags().GetString("initiative")
-	if err != nil {
-		return input, err
 	}
 	if initiativeVal != "" {
-		id, err := res.ResolveInitiative(ctx, initiativeVal)
-		if err != nil {
-			return input, fmt.Errorf("failed to resolve initiative: %w", err)
-		}
-		input.InitiativeID = &id
 		set++
 	}
-
-	notifVal, err := cmd.Flags().GetString("notification")
-	if err != nil {
-		return input, err
-	}
 	if notifVal != "" {
-		input.ID = &notifVal
 		set++
 	}
 
@@ -77,6 +47,29 @@ func buildEntityInput(cmd *cobra.Command, ctx context.Context, res *resolver.Res
 	}
 	if set > 1 {
 		return input, fmt.Errorf("only one of --issue, --project, --initiative, or --notification may be specified")
+	}
+
+	switch {
+	case issueVal != "":
+		id, err := res.ResolveIssue(ctx, issueVal)
+		if err != nil {
+			return input, fmt.Errorf("failed to resolve issue: %w", err)
+		}
+		input.IssueID = &id
+	case projectVal != "":
+		id, err := res.ResolveProject(ctx, projectVal)
+		if err != nil {
+			return input, fmt.Errorf("failed to resolve project: %w", err)
+		}
+		input.ProjectID = &id
+	case initiativeVal != "":
+		id, err := res.ResolveInitiative(ctx, initiativeVal)
+		if err != nil {
+			return input, fmt.Errorf("failed to resolve initiative: %w", err)
+		}
+		input.InitiativeID = &id
+	case notifVal != "":
+		input.ID = &notifVal
 	}
 
 	return input, nil

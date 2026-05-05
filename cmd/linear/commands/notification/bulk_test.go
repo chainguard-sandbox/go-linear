@@ -160,7 +160,7 @@ func TestRunMarkUnreadAll(t *testing.T) {
 		cmd := NewMarkUnreadAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--yes"})
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -170,17 +170,6 @@ func TestRunMarkUnreadAll(t *testing.T) {
 		}
 		if result["success"] != true {
 			t.Error("Expected success: true")
-		}
-	})
-
-	t.Run("requires --yes confirmation", func(t *testing.T) {
-		cmd := NewMarkUnreadAllCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
-		if err := cmd.Execute(); err == nil {
-			t.Error("Expected error when --yes is not provided")
 		}
 	})
 }

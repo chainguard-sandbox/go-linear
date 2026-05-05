@@ -47,12 +47,6 @@ Related: notification_unsnooze-all, notification_archive-all`,
 
 func runSnoozeAll(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
-	res := resolver.New(client)
-
-	input, err := buildEntityInput(cmd, ctx, res)
-	if err != nil {
-		return err
-	}
 
 	untilStr, _ := cmd.Flags().GetString("until")
 	parser := dateparser.New()
@@ -60,9 +54,14 @@ func runSnoozeAll(cmd *cobra.Command, client *linear.Client) error {
 	if err != nil {
 		return fmt.Errorf("invalid --until value: %w", err)
 	}
-
 	if until.Before(time.Now()) {
 		return fmt.Errorf("--until must be in the future")
+	}
+
+	res := resolver.New(client)
+	input, err := buildEntityInput(cmd, ctx, res)
+	if err != nil {
+		return err
 	}
 
 	if err := client.NotificationSnoozeAll(ctx, input, until); err != nil {
