@@ -28,7 +28,7 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001", "--yes"})
+		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -45,7 +45,7 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000002", "--yes"})
+		cmd.SetArgs([]string{"--project=00000000-0000-0000-0000-000000000002"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -62,7 +62,7 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--initiative=00000000-0000-0000-0000-000000000003", "--yes"})
+		cmd.SetArgs([]string{"--initiative=00000000-0000-0000-0000-000000000003"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -79,7 +79,7 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"--notification=00000000-0000-0000-0000-000000000004", "--yes"})
+		cmd.SetArgs([]string{"--notification=00000000-0000-0000-0000-000000000004"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -92,23 +92,12 @@ func TestRunArchiveAll(t *testing.T) {
 		}
 	})
 
-	t.Run("requires --yes confirmation", func(t *testing.T) {
-		cmd := NewArchiveAllCommand(factory)
-		var buf bytes.Buffer
-		cmd.SetOut(&buf)
-		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"--issue=00000000-0000-0000-0000-000000000001"})
-		if err := cmd.Execute(); err == nil {
-			t.Error("Expected error when --yes is not provided")
-		}
-	})
-
 	t.Run("requires entity flag", func(t *testing.T) {
 		cmd := NewArchiveAllCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
 		cmd.SetErr(&buf)
-		cmd.SetArgs([]string{"--yes"})
+		cmd.SetArgs([]string{})
 		if err := cmd.Execute(); err == nil {
 			t.Error("Expected error when no entity flag provided")
 		}
@@ -122,7 +111,6 @@ func TestRunArchiveAll(t *testing.T) {
 		cmd.SetArgs([]string{
 			"--issue=00000000-0000-0000-0000-000000000001",
 			"--project=00000000-0000-0000-0000-000000000002",
-			"--yes",
 		})
 		if err := cmd.Execute(); err == nil {
 			t.Error("Expected error when multiple entity flags provided")

@@ -35,18 +35,12 @@ Related: notification_archive, notification_mark-read-all`,
 	}
 
 	addEntityFlags(cmd)
-	cmd.Flags().Bool("yes", false, "Confirm bulk archive without prompt")
 	return cmd
 }
 
 func runArchiveAll(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
-
-	yes, _ := cmd.Flags().GetBool("yes")
-	if !yes {
-		return fmt.Errorf("archive-all archives all notifications for the entity; pass --yes to confirm")
-	}
 
 	input, err := buildEntityInput(cmd, ctx, res)
 	if err != nil {
