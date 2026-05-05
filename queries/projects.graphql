@@ -99,3 +99,52 @@ query ListProjectsFiltered($first: Int, $after: String, $filter: ProjectFilter) 
     }
   }
 }
+
+query ListProjectLabels($first: Int, $after: String) {
+  projectLabels(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      color
+      description
+      isGroup
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query GetProjectLabel($id: String!) {
+  projectLabel(id: $id) {
+    id
+    name
+    color
+    description
+    isGroup
+  }
+}
+
+query ListProjectRelations($first: Int, $after: String) {
+  projectRelations(first: $first, after: $after) {
+    nodes {
+      id
+      type
+      anchorType
+      relatedAnchorType
+      project {
+        id
+        name
+      }
+      relatedProject {
+        id
+        name
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
