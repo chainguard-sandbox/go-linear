@@ -79,6 +79,21 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:    "4 hours ago",
+			input:   "4h",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				fourHoursAgo := now.Add(-4 * time.Hour)
+				diff := fourHoursAgo.Sub(result)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > time.Minute {
+					t.Errorf("Parse('4h') = %v, want ~4 hours ago", result)
+				}
+			},
+		},
+		{
 			name:    "7 days ago",
 			input:   "7d",
 			wantErr: false,
@@ -133,6 +148,115 @@ func TestParse(t *testing.T) {
 			result, err := p.Parse(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && tt.check != nil {
+				tt.check(t, result)
+			}
+		})
+	}
+}
+
+func TestParseFuture(t *testing.T) {
+	p := New()
+	now := time.Now().UTC()
+
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+		check   func(t *testing.T, result time.Time)
+	}{
+		{
+			name:    "4 hours from now",
+			input:   "4h",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				expected := now.Add(4 * time.Hour)
+				diff := result.Sub(expected)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > time.Minute {
+					t.Errorf("ParseFuture('4h') = %v, want ~4 hours from now", result)
+				}
+			},
+		},
+		{
+			name:    "3 days from now",
+			input:   "3d",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				threeDays := now.Add(3 * 24 * time.Hour)
+				if result.Year() != threeDays.Year() || result.Month() != threeDays.Month() || result.Day() != threeDays.Day() {
+					t.Errorf("ParseFuture('3d') = %v, want 3 days from now", result)
+				}
+				// Time-of-day should be preserved, not truncated to midnight.
+				if result.Hour() == 0 && result.Minute() == 0 && result.Second() == 0 && now.Hour() != 0 {
+					t.Errorf("ParseFuture('3d') truncated to midnight; got %v", result)
+				}
+			},
+		},
+		{
+			name:    "2 weeks from now",
+			input:   "2w",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				twoWeeks := now.Add(14 * 24 * time.Hour)
+				if result.Year() != twoWeeks.Year() || result.Month() != twoWeeks.Month() || result.Day() != twoWeeks.Day() {
+					t.Errorf("ParseFuture('2w') = %v, want 2 weeks from now", result)
+				}
+			},
+		},
+		{
+			name:    "yesterday is rejected",
+			input:   "yesterday",
+			wantErr: true,
+		},
+		{
+			name:    "today is rejected",
+			input:   "today",
+			wantErr: true,
+		},
+		{
+			name:  "future ISO date accepted",
+			input: "2099-01-01",
+			check: func(t *testing.T, result time.Time) {
+				if result.Year() != 2099 || result.Month() != 1 || result.Day() != 1 {
+					t.Errorf("ParseFuture() = %v, want 2099-01-01", result)
+				}
+			},
+		},
+		{
+			name:    "past ISO date rejected",
+			input:   "2020-01-01",
+			wantErr: true,
+		},
+		{
+			name:    "tomorrow is 24h from now (wall-clock preserved)",
+			input:   "tomorrow",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				expected := now.Add(24 * time.Hour)
+				diff := result.Sub(expected)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > time.Second {
+					t.Errorf("ParseFuture('tomorrow') = %v, want ~%v (24h from now)", result, expected)
+				}
+				if result.Hour() == 0 && result.Minute() == 0 && result.Second() == 0 && now.Hour() != 0 {
+					t.Errorf("ParseFuture('tomorrow') truncated to midnight; got %v", result)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := p.ParseFuture(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseFuture() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && tt.check != nil {

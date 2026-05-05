@@ -37,3 +37,33 @@ mutation UnarchiveNotification($id: String!) {
     success
   }
 }
+
+mutation NotificationArchiveAll($input: NotificationEntityInput!) {
+  notificationArchiveAll(input: $input) {
+    success
+  }
+}
+
+mutation NotificationMarkReadAll($input: NotificationEntityInput!, $readAt: DateTime!) {
+  notificationMarkReadAll(input: $input, readAt: $readAt) {
+    success
+  }
+}
+
+mutation NotificationMarkUnreadAll($input: NotificationEntityInput!) {
+  notificationMarkUnreadAll(input: $input) {
+    success
+  }
+}
+
+mutation NotificationSnoozeAll($input: NotificationEntityInput!, $snoozedUntilAt: DateTime!) {
+  notificationSnoozeAll(input: $input, snoozedUntilAt: $snoozedUntilAt) {
+    success
+  }
+}
+
+mutation NotificationUnsnoozeAll($input: NotificationEntityInput!, $unsnoozedAt: DateTime!) {
+  notificationUnsnoozeAll(input: $input, unsnoozedAt: $unsnoozedAt) {
+    success
+  }
+}
