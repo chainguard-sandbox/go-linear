@@ -1,0 +1,31 @@
+query ListAuditEntries($first: Int, $after: String, $filter: AuditEntryFilter) {
+  auditEntries(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      type
+      actorId
+      ip
+      countryCode
+      createdAt
+      updatedAt
+      metadata
+      requestInformation
+      actor {
+        id
+        name
+        email
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query ListAuditEntryTypes {
+  auditEntryTypes {
+    type
+    description
+  }
+}

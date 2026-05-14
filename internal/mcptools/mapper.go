@@ -271,6 +271,10 @@ func initSpecialCases() map[string]string {
 		"linear_reaction_create": "ReactionPayload",
 		"linear_reaction_delete": "ArchivePayload",
 
+		// Audit log commands (non-standard naming: types is not a connection)
+		"linear_audit_list":  "AuditEntryConnection",
+		"linear_audit_types": "AuditEntryType",
+
 		// Organization view (single entity, not a list)
 		"linear_organization": "Organization",
 
