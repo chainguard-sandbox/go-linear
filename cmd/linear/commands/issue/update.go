@@ -3,6 +3,7 @@ package issue
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,7 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Update an existing issue",
 		Long: `Update issue. Modifies existing data.
 
-Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate, --team, --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --snooze-until (duration or 'none'), --add-label, --remove-label, --add-subscriber, --remove-subscriber, --trash, --untrash, --link-pr
+Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate (integer or 'none'), --team, --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --snooze-until (duration or 'none'), --add-label, --remove-label, --add-subscriber, --remove-subscriber, --trash, --untrash, --link-pr
 
 Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
 
@@ -51,7 +52,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().StringArray("add-label", []string{}, "Add labels (repeatable)")
 	cmd.Flags().StringArray("remove-label", []string{}, "Remove labels (repeatable)")
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
-	cmd.Flags().Int("estimate", -1, "Story points/estimate (-1 = no change)")
+	cmd.Flags().String("estimate", "", "Story points/estimate (integer, or 'none' to clear)")
 	cmd.Flags().String("team", "", "Move issue to a different team (name or ID)")
 	cmd.Flags().String("snooze-until", "", "Snooze issue in triage until date/duration (e.g. '3d', '2w', 'tomorrow', use 'none' to unsnooze)")
 	cmd.Flags().StringArray("add-subscriber", []string{}, "Add subscribers (name/email/ID, repeatable)")
@@ -110,6 +111,11 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			needsNullable = true
 		}
 	}
+	if cmd.Flags().Changed("estimate") {
+		if e, _ := cmd.Flags().GetString("estimate"); e == "none" {
+			needsNullable = true
+		}
+	}
 	if cmd.Flags().Changed("snooze-until") {
 		if s, _ := cmd.Flags().GetString("snooze-until"); s == "none" {
 			needsNullable = true
@@ -161,8 +167,13 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		updated = true
 	}
 
-	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
-		e := int64(estimate)
+	if cmd.Flags().Changed("estimate") {
+		estimateStr, _ := cmd.Flags().GetString("estimate")
+		n, err := strconv.Atoi(estimateStr)
+		if err != nil || n < 0 {
+			return fmt.Errorf("invalid estimate %q: must be a non-negative integer or 'none'", estimateStr)
+		}
+		e := int64(n)
 		input.Estimate = &e
 		updated = true
 	}
@@ -414,9 +425,18 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 		input.Priority = &p
 	}
 
-	if estimate, _ := cmd.Flags().GetInt("estimate"); estimate >= 0 {
-		e := int64(estimate)
-		input.Estimate = &e
+	if cmd.Flags().Changed("estimate") {
+		estimateStr, _ := cmd.Flags().GetString("estimate")
+		if estimateStr == "none" {
+			input.Estimate = linear.NewNull[int64]()
+		} else {
+			n, err := strconv.Atoi(estimateStr)
+			if err != nil || n < 0 {
+				return fmt.Errorf("invalid estimate %q: must be a non-negative integer or 'none'", estimateStr)
+			}
+			e := int64(n)
+			input.Estimate = linear.NewValue(e)
+		}
 	}
 
 	addLabels, _ := cmd.Flags().GetStringArray("add-label")
@@ -569,6 +589,18 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	result, err := client.IssueUpdateNullable(ctx, issueID, input)
 	if err != nil {
 		return fmt.Errorf("failed to update issue: %w", err)
+	}
+
+	// Link GitHub PR if specified
+	if prURL, _ := cmd.Flags().GetString("link-pr"); prURL != "" {
+		fullURL := prURL
+		if !contains(prURL, "://") {
+			fullURL = "https://github.com/" + prURL
+		}
+		_, err := client.AttachmentLinkGitHubPR(ctx, issueID, fullURL)
+		if err != nil {
+			return fmt.Errorf("failed to link GitHub PR: %w", err)
+		}
 	}
 
 	// Format output
