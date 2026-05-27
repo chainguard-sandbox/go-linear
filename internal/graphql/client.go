@@ -33,6 +33,7 @@ type LinearGraphQLClient interface {
 	ListSubInitiatives(ctx context.Context, id string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListSubInitiatives, error)
 	GetIssueSuggestionsForIssue(ctx context.Context, issueID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSuggestionsForIssue, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
+	GetIssueSubscribers(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSubscribers, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
 	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
@@ -3067,6 +3068,39 @@ func (t *GetIssue_Issue) GetURL() string {
 		t = &GetIssue_Issue{}
 	}
 	return t.URL
+}
+
+type GetIssueSubscribers_Issue_Subscribers_Nodes struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *GetIssueSubscribers_Issue_Subscribers_Nodes) GetID() string {
+	if t == nil {
+		t = &GetIssueSubscribers_Issue_Subscribers_Nodes{}
+	}
+	return t.ID
+}
+
+type GetIssueSubscribers_Issue_Subscribers struct {
+	Nodes []*GetIssueSubscribers_Issue_Subscribers_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *GetIssueSubscribers_Issue_Subscribers) GetNodes() []*GetIssueSubscribers_Issue_Subscribers_Nodes {
+	if t == nil {
+		t = &GetIssueSubscribers_Issue_Subscribers{}
+	}
+	return t.Nodes
+}
+
+type GetIssueSubscribers_Issue struct {
+	Subscribers GetIssueSubscribers_Issue_Subscribers "json:\"subscribers\" graphql:\"subscribers\""
+}
+
+func (t *GetIssueSubscribers_Issue) GetSubscribers() *GetIssueSubscribers_Issue_Subscribers {
+	if t == nil {
+		t = &GetIssueSubscribers_Issue{}
+	}
+	return &t.Subscribers
 }
 
 type ListIssues_Issues_Nodes_State struct {
@@ -9320,6 +9354,17 @@ func (t *GetIssue) GetIssue() *GetIssue_Issue {
 	return &t.Issue
 }
 
+type GetIssueSubscribers struct {
+	Issue GetIssueSubscribers_Issue "json:\"issue\" graphql:\"issue\""
+}
+
+func (t *GetIssueSubscribers) GetIssue() *GetIssueSubscribers_Issue {
+	if t == nil {
+		t = &GetIssueSubscribers{}
+	}
+	return &t.Issue
+}
+
 type ListIssues struct {
 	Issues ListIssues_Issues "json:\"issues\" graphql:\"issues\""
 }
@@ -11312,6 +11357,34 @@ func (c *Client) GetIssue(ctx context.Context, id string, interceptors ...client
 
 	var res GetIssue
 	if err := c.Client.Post(ctx, "GetIssue", GetIssueDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetIssueSubscribersDocument = `query GetIssueSubscribers ($id: String!) {
+	issue(id: $id) {
+		subscribers(first: 250) {
+			nodes {
+				id
+			}
+		}
+	}
+}
+`
+
+func (c *Client) GetIssueSubscribers(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSubscribers, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res GetIssueSubscribers
+	if err := c.Client.Post(ctx, "GetIssueSubscribers", GetIssueSubscribersDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -14362,6 +14435,7 @@ var DocumentOperationNames = map[string]string{
 	ListSubInitiativesDocument:             "ListSubInitiatives",
 	GetIssueSuggestionsForIssueDocument:    "GetIssueSuggestionsForIssue",
 	GetIssueDocument:                       "GetIssue",
+	GetIssueSubscribersDocument:            "GetIssueSubscribers",
 	ListIssuesDocument:                     "ListIssues",
 	ListIssuesFilteredDocument:             "ListIssuesFiltered",
 	GetLabelDocument:                       "GetLabel",

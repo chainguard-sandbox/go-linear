@@ -137,7 +137,8 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 			return time.Time{}, fmt.Errorf("invalid duration unit: %s", unit)
 		}
 
-		return now.Add(duration), nil
+		result := now.Add(duration)
+		return time.Date(result.Year(), result.Month(), result.Day(), 0, 0, 0, 0, time.UTC), nil
 	}
 
 	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'tomorrow', '3d', '2w', '3m')", input)

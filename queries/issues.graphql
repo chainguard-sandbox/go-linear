@@ -39,6 +39,16 @@ query GetIssue($id: String!) {
   }
 }
 
+query GetIssueSubscribers($id: String!) {
+  issue(id: $id) {
+    subscribers(first: 250) {
+      nodes {
+        id
+      }
+    }
+  }
+}
+
 query ListIssues($first: Int, $after: String) {
   issues(first: $first, after: $after) {
     nodes {

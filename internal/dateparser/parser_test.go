@@ -142,6 +142,131 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestParseFuture(t *testing.T) {
+	p := New()
+	now := time.Now().UTC()
+
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+		check   func(t *testing.T, result time.Time)
+	}{
+		{
+			name:    "empty string",
+			input:   "",
+			wantErr: true,
+		},
+		{
+			name:    "ISO 8601 date",
+			input:   "2099-12-10",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				if result.Year() != 2099 || result.Month() != 12 || result.Day() != 10 {
+					t.Errorf("ParseFuture() = %v, want 2099-12-10", result)
+				}
+			},
+		},
+		{
+			name:    "RFC3339",
+			input:   "2099-12-10T15:04:05Z",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				if result.Year() != 2099 || result.Month() != 12 || result.Day() != 10 {
+					t.Errorf("ParseFuture() = %v, want 2099-12-10", result)
+				}
+			},
+		},
+		{
+			name:    "tomorrow",
+			input:   "tomorrow",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				tomorrow := now.Add(24 * time.Hour)
+				if result.Year() != tomorrow.Year() || result.Month() != tomorrow.Month() || result.Day() != tomorrow.Day() {
+					t.Errorf("ParseFuture('tomorrow') = %v, want tomorrow", result)
+				}
+				if result.Hour() != 0 || result.Minute() != 0 || result.Second() != 0 {
+					t.Errorf("ParseFuture('tomorrow') time = %v, want 00:00:00", result)
+				}
+			},
+		},
+		{
+			name:    "today rejected",
+			input:   "today",
+			wantErr: true,
+		},
+		{
+			name:    "yesterday rejected",
+			input:   "yesterday",
+			wantErr: true,
+		},
+		{
+			name:    "7 days forward",
+			input:   "7d",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				sevenDaysAhead := now.Add(7 * 24 * time.Hour)
+				if result.Year() != sevenDaysAhead.Year() || result.Month() != sevenDaysAhead.Month() || result.Day() != sevenDaysAhead.Day() {
+					t.Errorf("ParseFuture('7d') = %v, want 7 days ahead", result)
+				}
+				if result.Hour() != 0 || result.Minute() != 0 || result.Second() != 0 {
+					t.Errorf("ParseFuture('7d') time = %v, want 00:00:00", result)
+				}
+			},
+		},
+		{
+			name:    "2 weeks forward",
+			input:   "2w",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				twoWeeksAhead := now.Add(14 * 24 * time.Hour)
+				if result.Year() != twoWeeksAhead.Year() || result.Month() != twoWeeksAhead.Month() || result.Day() != twoWeeksAhead.Day() {
+					t.Errorf("ParseFuture('2w') = %v, want 2 weeks ahead", result)
+				}
+			},
+		},
+		{
+			name:    "3 months forward",
+			input:   "3m",
+			wantErr: false,
+			check: func(t *testing.T, result time.Time) {
+				threeMonthsAhead := now.Add(90 * 24 * time.Hour)
+				diff := threeMonthsAhead.Sub(result)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > 2*24*time.Hour {
+					t.Errorf("ParseFuture('3m') = %v, want approximately 3 months ahead", result)
+				}
+			},
+		},
+		{
+			name:    "none rejected",
+			input:   "none",
+			wantErr: true,
+		},
+		{
+			name:    "invalid format",
+			input:   "invalid",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := p.ParseFuture(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseFuture() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && tt.check != nil {
+				tt.check(t, result)
+			}
+		})
+	}
+}
+
 func TestMustParse(t *testing.T) {
 	p := New()
 

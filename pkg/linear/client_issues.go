@@ -1,12 +1,8 @@
 package linear
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
@@ -599,73 +595,14 @@ func (c *Client) IssueSuggestions(ctx context.Context, issueID string, first *in
 
 // IssueSubscriberIDs fetches the current subscriber UUIDs for an issue.
 func (c *Client) IssueSubscriberIDs(ctx context.Context, issueID string) ([]string, error) {
-	const query = `query IssueSubscribers($id: String!) {
-		issue(id: $id) {
-			subscribers { nodes { id } }
-		}
-	}`
-
-	reqBody := map[string]any{
-		"query":         query,
-		"operationName": "IssueSubscribers",
-		"variables":     map[string]any{"id": issueID},
-	}
-	jsonData, err := json.Marshal(reqBody)
+	resp, err := c.gqlClient.GetIssueSubscribers(ctx, issueID)
 	if err != nil {
-		return nil, err
+		return nil, wrapGraphQLError("issue subscribers query", err)
 	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", c.config.BaseURL, bytes.NewReader(jsonData))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", c.config.UserAgent)
-
-	authValue, err := c.credentialProvider.Get(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get credential: %w", err)
-	}
-	authValue = normalizeAuthHeader(authValue)
-	req.Header.Set("Authorization", authValue)
-
-	resp, err := c.config.HTTPClient.Do(req) // #nosec G704
-	if err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("nil response from HTTP client")
-	}
-	defer resp.Body.Close()
-
-	const maxResponseSize = 10 * 1024 * 1024
-	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		Data struct {
-			Issue struct {
-				Subscribers struct {
-					Nodes []struct {
-						ID string `json:"id"`
-					} `json:"nodes"`
-				} `json:"subscribers"`
-			} `json:"issue"`
-		} `json:"data"`
-		Errors []map[string]any `json:"errors"`
-	}
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
-	}
-	if len(result.Errors) > 0 {
-		return nil, fmt.Errorf("GraphQL error: %v", result.Errors[0])
-	}
-
-	ids := make([]string, 0, len(result.Data.Issue.Subscribers.Nodes))
-	for _, n := range result.Data.Issue.Subscribers.Nodes {
-		ids = append(ids, n.ID)
+	nodes := resp.Issue.Subscribers.GetNodes()
+	ids := make([]string, 0, len(nodes))
+	for _, n := range nodes {
+		ids = append(ids, n.GetID())
 	}
 	return ids, nil
 }

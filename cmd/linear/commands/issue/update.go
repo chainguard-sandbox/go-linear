@@ -68,6 +68,12 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	ctx := cmd.Context()
 	res := resolver.New(client)
 
+	trash, _ := cmd.Flags().GetBool("trash")
+	untrash, _ := cmd.Flags().GetBool("untrash")
+	if trash && untrash {
+		return fmt.Errorf("--trash and --untrash are mutually exclusive")
+	}
+
 	// Resolve issue ID (converts identifier like ENG-123 to UUID)
 	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
 	if err != nil {
@@ -315,11 +321,11 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		updated = true
 	}
 
-	if trash, _ := cmd.Flags().GetBool("trash"); trash {
+	if trash {
 		t := true
 		input.Trashed = &t
 		updated = true
-	} else if untrash, _ := cmd.Flags().GetBool("untrash"); untrash {
+	} else if untrash {
 		f := false
 		input.Trashed = &f
 		updated = true
