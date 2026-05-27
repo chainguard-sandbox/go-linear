@@ -45,7 +45,10 @@ func TestNullable_RoundTrip(t *testing.T) {
 	t.Run("int values", func(t *testing.T) {
 		for _, n := range []int{0, 1, -1, 42, 1<<31 - 1, -(1 << 31)} {
 			original := NewValue(n)
-			data, _ := json.Marshal(original)
+			data, err := json.Marshal(original)
+			if err != nil {
+				t.Fatalf("RoundTrip(%d) Marshal: %v", n, err)
+			}
 			var decoded Nullable[int]
 			if err := json.Unmarshal(data, &decoded); err != nil {
 				t.Fatalf("RoundTrip(%d) Unmarshal: %v", n, err)

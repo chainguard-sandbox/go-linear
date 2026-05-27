@@ -69,8 +69,14 @@ func TestNewForList_PreservesWrapperFields(t *testing.T) {
 			t.Errorf("wrapper field %q missing from output", key)
 		}
 	}
-	nodes := obj["nodes"].([]any)
-	inner := nodes[0].(map[string]any)
+	nodesRaw, ok := obj["nodes"].([]any)
+	if !ok || len(nodesRaw) == 0 {
+		t.Fatal("nodes is missing or empty")
+	}
+	inner, ok := nodesRaw[0].(map[string]any)
+	if !ok {
+		t.Fatal("nodes[0] is not a JSON object")
+	}
 	if _, ok := inner["extra"]; ok {
 		t.Error("inner field 'extra' should have been filtered out")
 	}
