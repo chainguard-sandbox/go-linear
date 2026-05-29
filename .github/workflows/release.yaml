@@ -46,7 +46,7 @@ jobs:
           mkdir -p dist
 
           # Cache commit timestamp for reproducible BuildDate (GNU date -d, Linux only)
-          BUILD_DATE=$(date -u -d @$(git log -1 --pretty=%ct) +%Y-%m-%dT%H:%M:%SZ)
+          BUILD_DATE=$(date -u -d "@$(git log -1 --pretty=%ct)" +%Y-%m-%dT%H:%M:%SZ)
 
           for platform in "${platforms[@]}"; do
             GOOS="${platform%/*}"
