@@ -9,10 +9,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   check-updates:
@@ -23,7 +20,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -41,20 +38,20 @@ jobs:
         id: check
         run: |
           if [ ! -f "schema.graphql" ]; then
-            echo "updates=unknown" >> $GITHUB_OUTPUT
+            echo "updates=unknown" >> "$GITHUB_OUTPUT"
             echo "::warning::schema.graphql not found in repository"
             exit 0
           fi
 
           if ! diff -q schema.graphql upstream-schema.graphql > /dev/null 2>&1; then
-            echo "updates=true" >> $GITHUB_OUTPUT
+            echo "updates=true" >> "$GITHUB_OUTPUT"
             echo "::warning::Upstream schema has changes"
 
             # Show diff summary
             echo "Schema diff:"
             diff schema.graphql upstream-schema.graphql || true
           else
-            echo "updates=false" >> $GITHUB_OUTPUT
+            echo "updates=false" >> "$GITHUB_OUTPUT"
             echo "✅ Schema is up to date"
           fi
 
@@ -65,7 +62,7 @@ jobs:
           # Fetch package.json to get version
           VERSION=$(curl -sSL https://raw.githubusercontent.com/linear/linear/master/packages/sdk/package.json | \
             jq -r '.version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Upstream version: $VERSION"
 
       - name: Create issue if updates found

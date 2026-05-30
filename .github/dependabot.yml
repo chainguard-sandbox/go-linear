@@ -7,7 +7,7 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "America/Los_Angeles"
@@ -29,13 +29,13 @@ updates:
           - "minor"
           - "patch"
     cooldown:
-      default-days: 7
+      default-days: 3
 
   # GitHub Actions dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "America/Los_Angeles"
@@ -49,4 +49,4 @@ updates:
       prefix: "chore"
       include: "scope"
     cooldown:
-      default-days: 7
+      default-days: 3
