@@ -22,14 +22,26 @@ func TestParse_RelativeDatesArePast(t *testing.T) {
 	}
 }
 
+// mustParse parses input, failing the test if Parse returns an error for an
+// input the caller assumes is valid. Swallowing the error would otherwise
+// surface as a misleading ordering assertion on a zero-value time.
+func mustParse(t *testing.T, p Parser, input string) time.Time {
+	t.Helper()
+	result, err := p.Parse(input)
+	if err != nil {
+		t.Fatalf("Parse(%q): unexpected error: %v", input, err)
+	}
+	return result
+}
+
 // Property: larger N in "Nd" → earlier timestamp (strictly monotonic).
 func TestParse_RelativeDay_Monotonic(t *testing.T) {
 	p := New()
 	pairs := [][2]int{{1, 2}, {2, 7}, {7, 14}, {14, 30}, {30, 90}, {90, 365}}
 	for _, pair := range pairs {
 		smaller, larger := pair[0], pair[1]
-		t1, _ := p.Parse(fmt.Sprintf("%dd", smaller))
-		t2, _ := p.Parse(fmt.Sprintf("%dd", larger))
+		t1 := mustParse(t, p, fmt.Sprintf("%dd", smaller))
+		t2 := mustParse(t, p, fmt.Sprintf("%dd", larger))
 		if !t1.After(t2) {
 			t.Errorf("%dd (%v) should be after %dd (%v)", smaller, t1, larger, t2)
 		}
@@ -40,9 +52,9 @@ func TestParse_RelativeDay_Monotonic(t *testing.T) {
 // (smaller offset = more recent = larger timestamp).
 func TestParse_UnitOrdering(t *testing.T) {
 	p := New()
-	d1, _ := p.Parse("1d")
-	w1, _ := p.Parse("1w")
-	m1, _ := p.Parse("1m")
+	d1 := mustParse(t, p, "1d")
+	w1 := mustParse(t, p, "1w")
+	m1 := mustParse(t, p, "1m")
 	if !d1.After(w1) {
 		t.Errorf("1d (%v) should be after 1w (%v)", d1, w1)
 	}
@@ -54,9 +66,9 @@ func TestParse_UnitOrdering(t *testing.T) {
 // Property: yesterday < today < tomorrow.
 func TestParse_NamedDateOrdering(t *testing.T) {
 	p := New()
-	yesterday, _ := p.Parse("yesterday")
-	today, _ := p.Parse("today")
-	tomorrow, _ := p.Parse("tomorrow")
+	yesterday := mustParse(t, p, "yesterday")
+	today := mustParse(t, p, "today")
+	tomorrow := mustParse(t, p, "tomorrow")
 	if !today.After(yesterday) {
 		t.Errorf("today (%v) should be after yesterday (%v)", today, yesterday)
 	}

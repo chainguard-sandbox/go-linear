@@ -1,6 +1,7 @@
 package fieldfilter
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -249,5 +250,5 @@ func jsonEqual(a, b []byte) bool {
 	}
 	na, _ := json.Marshal(va)
 	nb, _ := json.Marshal(vb)
-	return string(na) == string(nb)
+	return bytes.Equal(na, nb)
 }
