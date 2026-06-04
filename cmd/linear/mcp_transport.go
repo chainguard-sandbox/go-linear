@@ -112,6 +112,9 @@ func asJSONObjectMap(raw json.RawMessage) (map[string]json.RawMessage, bool) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		return nil, false
 	}
+	if m == nil { // JSON null unmarshals without error into a nil map
+		return nil, false
+	}
 	return m, true
 }
 
