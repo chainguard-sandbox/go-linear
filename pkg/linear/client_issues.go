@@ -386,8 +386,8 @@ func (c *Client) IssueUnarchive(ctx context.Context, id string) error {
 //	term := "login"
 //	first := int64(50)
 //	priorityHigh := float64(2)
-//	filter := &intgraphql.IssueFilter{
-//	    Priority: &intgraphql.NullableNumberComparator{Eq: &priorityHigh},
+//	filter := &linear.IssueFilter{
+//	    Priority: &linear.NullableNumberComparator{Eq: &priorityHigh},
 //	}
 //	issues, err := client.SearchIssues(ctx, term, &first, nil, filter, nil)
 //

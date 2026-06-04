@@ -166,3 +166,65 @@ type ProjectCreateInput = intgraphql.ProjectCreateInput
 //
 // See internal/graphql/models.go for complete field list.
 type ProjectUpdateInput = intgraphql.ProjectUpdateInput
+
+// Server-side filter and result types re-exported from internal/graphql.
+//
+// IssuesFiltered, SearchIssues, and ProjectsFiltered take these filter types
+// and return these result types. Because internal/graphql cannot be imported
+// from outside the module, external consumers could see the method signatures
+// but never construct the arguments or use the returns. Re-exporting via type
+// aliases closes that gap without changing the generated implementation (#85).
+
+// IssueFilter is the server-side filter for IssuesFiltered and SearchIssues.
+// See internal/graphql/models.go for the complete field list (And/Or plus
+// per-field comparators).
+type IssueFilter = intgraphql.IssueFilter
+
+// ProjectFilter is the server-side filter for ProjectsFiltered.
+// See internal/graphql/models.go for the complete field list.
+type ProjectFilter = intgraphql.ProjectFilter
+
+// Result-type alias names intentionally mirror the generated gqlgenc type
+// names so go doc shows the same identifier for the method return and the
+// alias; ST1003 (underscores) is suppressed for that reason.
+
+// ListIssuesFiltered_Issues is the paginated result of IssuesFiltered
+// (Nodes + PageInfo).
+type ListIssuesFiltered_Issues = intgraphql.ListIssuesFiltered_Issues //nolint:staticcheck // ST1003: mirrors generated gqlgenc result type name
+
+// SearchIssues_SearchIssues is the paginated result of SearchIssues
+// (Nodes + PageInfo + TotalCount).
+type SearchIssues_SearchIssues = intgraphql.SearchIssues_SearchIssues //nolint:staticcheck // ST1003: mirrors generated gqlgenc result type name
+
+// ListProjectsFiltered_Projects is the paginated result of ProjectsFiltered
+// (Nodes + PageInfo).
+type ListProjectsFiltered_Projects = intgraphql.ListProjectsFiltered_Projects //nolint:staticcheck // ST1003: mirrors generated gqlgenc result type name
+
+// Filter leaf types — the nested-filter and comparator types used by the fields
+// of IssueFilter and ProjectFilter. Without these, the filter aliases above are
+// only nameable, not populatable: a consumer could declare an IssueFilter but
+// not set a single condition, because every field is typed with an internal
+// type. This is the common subset covering project / state / assignee / priority
+// / id / date / string filtering. The full transitive set is large and tracks
+// the generated models, so it will be emitted automatically alongside the
+// gqlgenc generation in a follow-up (see #85); these hand-written aliases cover
+// the frequent cases until then.
+//
+// The first group are nested filters reachable from common IssueFilter /
+// ProjectFilter fields; the second are terminal scalar comparators whose own
+// fields are plain scalars/slices.
+type (
+	WorkflowStateFilter   = intgraphql.WorkflowStateFilter   // IssueFilter.State
+	NullableProjectFilter = intgraphql.NullableProjectFilter // IssueFilter.Project
+	NullableUserFilter    = intgraphql.NullableUserFilter    // IssueFilter.Assignee / Creator / ...
+
+	IDComparator             = intgraphql.IDComparator
+	IssueIDComparator        = intgraphql.IssueIDComparator
+	NumberComparator         = intgraphql.NumberComparator
+	NullableNumberComparator = intgraphql.NullableNumberComparator
+	StringComparator         = intgraphql.StringComparator
+	NullableStringComparator = intgraphql.NullableStringComparator
+	DateComparator           = intgraphql.DateComparator
+	NullableDateComparator   = intgraphql.NullableDateComparator
+	BooleanComparator        = intgraphql.BooleanComparator
+)
