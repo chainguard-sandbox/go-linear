@@ -2,6 +2,7 @@ package linear
 
 import (
 	"encoding/json"
+	"math"
 	"testing"
 	"unicode/utf8"
 )
@@ -59,6 +60,36 @@ func TestNullable_RoundTrip(t *testing.T) {
 			}
 		}
 	})
+
+	// float64 is the production type for IssueUpdateNullableInput.Estimate.
+	t.Run("float64 values", func(t *testing.T) {
+		for _, f := range []float64{0.0, 1.5, -1.5, 5.0, 1e9} {
+			original := NewValue(f)
+			data, err := json.Marshal(original)
+			if err != nil {
+				t.Fatalf("RoundTrip(%v) Marshal: %v", f, err)
+			}
+			var decoded Nullable[float64]
+			if err := json.Unmarshal(data, &decoded); err != nil {
+				t.Fatalf("RoundTrip(%v) Unmarshal: %v", f, err)
+			}
+			v, ok := decoded.Get()
+			if !ok || v == nil || *v != f {
+				t.Errorf("RoundTrip(%v): got (%v, %v)", f, v, ok)
+			}
+		}
+	})
+}
+
+// MarshalJSON on Nullable[float64] with NaN or Inf must return an error —
+// encoding/json rejects these as unsupported values. Callers must validate
+// float64 inputs before constructing a Nullable[float64].
+func TestNullable_Float64MarshalError(t *testing.T) {
+	for _, f := range []float64{math.NaN(), math.Inf(1), math.Inf(-1)} {
+		if _, err := json.Marshal(NewValue(f)); err == nil {
+			t.Errorf("json.Marshal(NewValue(%v)) expected error, got nil", f)
+		}
+	}
 }
 
 // UnmarshalJSON returns an error when JSON type doesn't match T.
@@ -99,6 +130,34 @@ func TestNullable_StateInvariant(t *testing.T) {
 				t.Errorf("Get() v==nil is %v, want %v", v == nil, c.isNil)
 			}
 		})
+	}
+}
+
+// MarshalJSON on an unset Nullable returns "null" and round-trips to Null (not Unset).
+// This is intentional: the pointer-omitempty approach relies on *Nullable[T] being nil
+// (omitted by omitempty) to represent Unset — if a bare Nullable[T] in the Unset state
+// is ever marshaled directly, it collapses to Null. Callers must use *Nullable[T] with
+// omitempty in struct fields to preserve the three-way distinction over the wire.
+func TestNullable_UnsetMarshalCollapses(t *testing.T) {
+	n := NewUnset[string]()
+	data, err := json.Marshal(n)
+	if err != nil {
+		t.Fatalf("Marshal(Unset): %v", err)
+	}
+	if string(data) != "null" {
+		t.Errorf("Marshal(Unset) = %s, want null", data)
+	}
+	// Unmarshal("null") produces Null state (isSet=true, value=nil), not Unset.
+	var decoded Nullable[string]
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+	v, ok := decoded.Get()
+	if !ok {
+		t.Error("decoded.Get() ok = false, want true (Null state, not Unset)")
+	}
+	if v != nil {
+		t.Errorf("decoded.Get() v = %v, want nil (Null state)", v)
 	}
 }
 
