@@ -1,6 +1,7 @@
 package issue
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -263,22 +264,33 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	// Link GitHub PR if specified
-	if prURL, _ := cmd.Flags().GetString("link-pr"); prURL != "" {
-		// Convert short format (owner/repo#123) to full URL if needed
-		fullURL := prURL
-		if !contains(prURL, "://") {
-			// Assume GitHub format: owner/repo#123
-			fullURL = "https://github.com/" + prURL
-		}
-
-		_, err := client.AttachmentLinkGitHubPR(ctx, resolvedIssueID, fullURL)
-		if err != nil {
-			return fmt.Errorf("failed to link GitHub PR: %w", err)
-		}
+	if err := linkGitHubPR(ctx, cmd, client, resolvedIssueID); err != nil {
+		return err
 	}
 
 	// Format output
 	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
+}
+
+// linkGitHubPR links a GitHub PR to the issue if --link-pr is specified.
+func linkGitHubPR(ctx context.Context, cmd *cobra.Command, client *linear.Client, issueID string) error {
+	prURL, _ := cmd.Flags().GetString("link-pr")
+	if prURL == "" {
+		return nil
+	}
+
+	// Convert short format (owner/repo#123) to full URL if needed
+	fullURL := prURL
+	if !contains(prURL, "://") {
+		// Assume GitHub format: owner/repo#123
+		fullURL = "https://github.com/" + prURL
+	}
+
+	_, err := client.AttachmentLinkGitHubPR(ctx, issueID, fullURL)
+	if err != nil {
+		return fmt.Errorf("failed to link GitHub PR: %w", err)
+	}
+	return nil
 }
 
 // contains checks if a string contains a substring
@@ -450,6 +462,11 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 	result, err := client.IssueUpdateNullable(ctx, issueID, input)
 	if err != nil {
 		return fmt.Errorf("failed to update issue: %w", err)
+	}
+
+	// Link GitHub PR if specified
+	if err := linkGitHubPR(ctx, cmd, client, issueID); err != nil {
+		return err
 	}
 
 	// Format output
