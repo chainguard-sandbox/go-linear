@@ -69,6 +69,8 @@ func fixDoubleEncodedFlags(raw json.RawMessage) (json.RawMessage, error) {
 		return nil, err
 	}
 
+	// JSON null unmarshals to a nil map without error; the "arguments" lookup
+	// below misses on a nil map, so null params fall through to (nil, nil).
 	argsRaw, ok := params["arguments"]
 	if !ok {
 		return nil, nil
@@ -120,11 +122,14 @@ func asJSONObjectMap(raw json.RawMessage) (map[string]json.RawMessage, bool) {
 
 // asJSONString returns the string value if raw is a JSON string, else ("", false).
 func asJSONString(raw json.RawMessage) (string, bool) {
-	var s string
+	var s *string
 	if err := json.Unmarshal(raw, &s); err != nil {
 		return "", false
 	}
-	return s, true
+	if s == nil { // JSON null unmarshals without error into a nil pointer
+		return "", false
+	}
+	return *s, true
 }
 
 // asJSONObject returns data as a RawMessage if it is a valid JSON object, else (nil, false).
