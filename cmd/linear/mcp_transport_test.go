@@ -153,6 +153,8 @@ func TestAsJSONObjectMap(t *testing.T) {
 			wantOK: false,
 		},
 		{
+			// encoding/json accepts surrounding whitespace, so this is
+			// caught by the nil-map guard, not the parse-error path.
 			name:   "whitespace-padded null is rejected",
 			input:  ` null `,
 			wantOK: false,
@@ -226,6 +228,83 @@ func TestAsJSONObjectMap(t *testing.T) {
 				if _, present := m[tt.wantKey]; !present {
 					t.Errorf("asJSONObjectMap(%q) missing expected key %q: %v", tt.input, tt.wantKey, m)
 				}
+			}
+		})
+	}
+}
+
+func TestAsJSONString(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		wantOK bool
+		want   string // expected value when wantOK
+	}{
+		{
+			name:   "null is rejected",
+			input:  `null`,
+			wantOK: false,
+		},
+		{
+			// encoding/json accepts surrounding whitespace, so this is
+			// caught by the nil-pointer guard, not the parse-error path.
+			name:   "whitespace-padded null is rejected",
+			input:  ` null `,
+			wantOK: false,
+		},
+		{
+			name:   "string is accepted",
+			input:  `"s"`,
+			wantOK: true,
+			want:   "s",
+		},
+		{
+			name:   "empty string is accepted",
+			input:  `""`,
+			wantOK: true,
+			want:   "",
+		},
+		{
+			name:   "object is rejected",
+			input:  `{}`,
+			wantOK: false,
+		},
+		{
+			name:   "array is rejected",
+			input:  `["s"]`,
+			wantOK: false,
+		},
+		{
+			name:   "scalar number is rejected",
+			input:  `42`,
+			wantOK: false,
+		},
+		{
+			name:   "empty input is rejected",
+			input:  ``,
+			wantOK: false,
+		},
+		{
+			name:   "malformed JSON is rejected",
+			input:  `"unterminated`,
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s, ok := asJSONString(json.RawMessage(tt.input))
+			if ok != tt.wantOK {
+				t.Fatalf("asJSONString(%q) ok = %v, want %v", tt.input, ok, tt.wantOK)
+			}
+			if !ok {
+				if s != "" {
+					t.Errorf("asJSONString(%q) returned %q with ok=false, want empty string", tt.input, s)
+				}
+				return
+			}
+			if s != tt.want {
+				t.Errorf("asJSONString(%q) = %q, want %q", tt.input, s, tt.want)
 			}
 		})
 	}
