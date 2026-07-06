@@ -137,6 +137,100 @@ func TestFixDoubleEncodedFlags(t *testing.T) {
 	}
 }
 
+// asJSONObjectMap returns ok=false for anything that is not a JSON object.
+// JSON null is the subtle case: json.Unmarshal accepts null into a map with a
+// nil error and a nil map, so it must be rejected explicitly.
+func TestAsJSONObjectMap(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantOK  bool
+		wantKey string // if set, key must be present in the returned map
+	}{
+		{
+			name:   "null is rejected",
+			input:  `null`,
+			wantOK: false,
+		},
+		{
+			name:   "whitespace-padded null is rejected",
+			input:  ` null `,
+			wantOK: false,
+		},
+		{
+			name:   "empty object is accepted",
+			input:  `{}`,
+			wantOK: true,
+		},
+		{
+			name:    "object with key is accepted",
+			input:   `{"a":1}`,
+			wantOK:  true,
+			wantKey: "a",
+		},
+		{
+			name:    "object with nested object value is accepted",
+			input:   `{"a":{"b":1}}`,
+			wantOK:  true,
+			wantKey: "a",
+		},
+		{
+			name:    "object with multiple keys is accepted",
+			input:   `{"a":1,"b":2}`,
+			wantOK:  true,
+			wantKey: "b",
+		},
+		{
+			name:   "empty input is rejected",
+			input:  ``,
+			wantOK: false,
+		},
+		{
+			name:   "array is rejected",
+			input:  `[1]`,
+			wantOK: false,
+		},
+		{
+			name:   "scalar number is rejected",
+			input:  `42`,
+			wantOK: false,
+		},
+		{
+			name:   "scalar string is rejected",
+			input:  `"s"`,
+			wantOK: false,
+		},
+		{
+			name:   "malformed JSON is rejected",
+			input:  `{malformed`,
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m, ok := asJSONObjectMap(json.RawMessage(tt.input))
+			if ok != tt.wantOK {
+				t.Fatalf("asJSONObjectMap(%q) ok = %v, want %v", tt.input, ok, tt.wantOK)
+			}
+			if !ok {
+				if m != nil {
+					t.Errorf("asJSONObjectMap(%q) returned non-nil map %v with ok=false", tt.input, m)
+				}
+				return
+			}
+			if m == nil {
+				t.Errorf("asJSONObjectMap(%q) returned nil map with ok=true", tt.input)
+			}
+			if tt.wantKey != "" {
+				if _, present := m[tt.wantKey]; !present {
+					t.Errorf("asJSONObjectMap(%q) missing expected key %q: %v", tt.input, tt.wantKey, m)
+				}
+			}
+		})
+	}
+}
+
 // Outer-params parse error must be returned to the caller, not swallowed.
 func TestFixDoubleEncodedFlags_OuterParseError(t *testing.T) {
 	cases := []string{
