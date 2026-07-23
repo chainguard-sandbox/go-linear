@@ -262,7 +262,7 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 			}
 			issue, err := client.Issue(ctx, resolvedIssueID)
 			if err != nil {
-				return fmt.Errorf("failed to fetch issue: %w", err)
+				return fmt.Errorf("PR linked, but failed to fetch issue: %w", err)
 			}
 			// Print the same shape the update mutation returns so the
 			// command's output schema does not depend on which flags ran.

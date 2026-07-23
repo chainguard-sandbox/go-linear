@@ -442,7 +442,7 @@ func TestRunUpdate_LinkPROnly(t *testing.T) {
 		cmd := NewUpdateCommand(factory)
 		var buf bytes.Buffer
 		cmd.SetOut(&buf)
-		cmd.SetArgs([]string{"ENG-123", "--link-pr=owner/repo#1"})
+		cmd.SetArgs([]string{"ENG-123", "--link-pr=https://github.com/owner/repo/pull/1"})
 
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v", err)
@@ -456,6 +456,9 @@ func TestRunUpdate_LinkPROnly(t *testing.T) {
 		}
 		if got := captured.LinkPRVars["issueId"]; got != "issue-123" {
 			t.Errorf("issueId = %v, want %q", got, "issue-123")
+		}
+		if got := captured.LinkPRVars["url"]; got != "https://github.com/owner/repo/pull/1" {
+			t.Errorf("url = %v, want %q", got, "https://github.com/owner/repo/pull/1")
 		}
 
 		var result map[string]any
@@ -517,6 +520,9 @@ func TestRunUpdate_LinkPROnly(t *testing.T) {
 		}
 		if !strings.Contains(err.Error(), "failed to link GitHub PR") {
 			t.Errorf("error = %q, want it to mention failing to link the GitHub PR", err)
+		}
+		if captured.LinkPRVars == nil {
+			t.Error("no AttachmentLinkGitHubPR mutation captured; error came from the wrong place")
 		}
 		if captured.Input != nil {
 			t.Errorf("UpdateIssue mutation ran with input %v, want no mutation", captured.Input)
