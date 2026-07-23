@@ -48,6 +48,10 @@ jobs:
           if [ -z "$SHA" ]; then
             SHA=$(printf '%s\n' "$TAGS" | awk -v t="refs/tags/${LATEST_TAG}" '$2==t {print $1}')
           fi
+          if [ -z "$SHA" ]; then
+            echo "::error::could not resolve commit SHA for ${LATEST_TAG}"
+            exit 1
+          fi
           {
             echo "tag=$LATEST_TAG"
             echo "sha=$SHA"
@@ -59,7 +63,7 @@ jobs:
         env:
           UPSTREAM_SHA: ${{ steps.upstream.outputs.sha }}
         run: |
-          curl -sSL "https://raw.githubusercontent.com/linear/linear/${UPSTREAM_SHA}/packages/sdk/src/schema.graphql" \
+          curl -sSL --fail "https://raw.githubusercontent.com/linear/linear/${UPSTREAM_SHA}/packages/sdk/src/schema.graphql" \
             -o upstream-schema.graphql
 
       - name: Compare schemas
