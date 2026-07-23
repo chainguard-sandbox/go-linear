@@ -17,7 +17,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-      pull-requests: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
@@ -28,10 +27,42 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Fetch upstream schema
+      - name: Resolve latest upstream release
+        id: upstream
         run: |
-          # Download just the schema file (no full clone)
-          curl -sSL https://raw.githubusercontent.com/linear/linear/master/packages/sdk/src/schema.graphql \
+          # Resolve the newest @linear/sdk release tag and its commit SHA via
+          # the git protocol, then fetch the schema at that immutable SHA.
+          # Comparing against a release (not the moving master branch) matches
+          # what make sync-upstream targets and avoids an unpinned download.
+          TAGS=$(git ls-remote --tags https://github.com/linear/linear.git 'refs/tags/@linear/sdk@*')
+          LATEST_TAG=$(printf '%s\n' "$TAGS" \
+            | sed -n 's|.*\trefs/tags/\(@linear/sdk@[0-9][0-9.]*\)$|\1|p' \
+            | sort -t '@' -k 3 -V | tail -1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "::error::could not resolve latest @linear/sdk release tag"
+            exit 1
+          fi
+          # Annotated tags list a dereferenced ^{} commit; prefer it.
+          SHA=$(printf '%s\n' "$TAGS" | awk -v t="refs/tags/${LATEST_TAG}^{}" '$2==t {print $1}')
+          if [ -z "$SHA" ]; then
+            SHA=$(printf '%s\n' "$TAGS" | awk -v t="refs/tags/${LATEST_TAG}" '$2==t {print $1}')
+          fi
+          if ! printf '%s\n' "$SHA" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "::error::could not resolve a valid commit SHA for ${LATEST_TAG} (got: ${SHA})"
+            exit 1
+          fi
+          {
+            echo "tag=$LATEST_TAG"
+            echo "sha=$SHA"
+            echo "version=${LATEST_TAG##*@}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Latest upstream release: $LATEST_TAG ($SHA)"
+
+      - name: Fetch upstream schema at release SHA
+        env:
+          UPSTREAM_SHA: ${{ steps.upstream.outputs.sha }}
+        run: |
+          curl -sSL --fail "https://raw.githubusercontent.com/linear/linear/${UPSTREAM_SHA}/packages/sdk/src/schema.graphql" \
             -o upstream-schema.graphql
 
       - name: Compare schemas
@@ -55,21 +86,11 @@ jobs:
             echo "✅ Schema is up to date"
           fi
 
-      - name: Get upstream version
-        if: steps.check.outputs.updates == 'true'
-        id: version
-        run: |
-          # Fetch package.json to get version
-          VERSION=$(curl -sSL https://raw.githubusercontent.com/linear/linear/master/packages/sdk/package.json | \
-            jq -r '.version')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Upstream version: $VERSION"
-
       - name: Create issue if updates found
         if: steps.check.outputs.updates == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          UPSTREAM_VERSION: ${{ steps.version.outputs.version }}
+          UPSTREAM_VERSION: ${{ steps.upstream.outputs.version }}
         with:
           script: |
             const version = process.env.UPSTREAM_VERSION;
