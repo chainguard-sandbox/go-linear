@@ -480,3 +480,104 @@ func TestRunUpdate_LinkPRError(t *testing.T) {
 		})
 	}
 }
+
+// --link-pr with no other flags must link the PR without running an
+// IssueUpdate mutation, then print the issue.
+func TestRunUpdate_LinkPROnly(t *testing.T) {
+	t.Run("links PR and skips update mutation", func(t *testing.T) {
+		server, captured := captureUpdateServer(t)
+		defer server.Close()
+		factory := func() (*linear.Client, error) {
+			return linear.NewClient("test_api_key", linear.WithBaseURL(server.URL))
+		}
+
+		cmd := NewUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--link-pr=https://github.com/owner/repo/pull/1"})
+
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+
+		if captured.Input != nil {
+			t.Errorf("UpdateIssue mutation ran with input %v, want no mutation", captured.Input)
+		}
+		if captured.LinkPRVars == nil {
+			t.Fatal("no AttachmentLinkGitHubPR mutation captured")
+		}
+		if got := captured.LinkPRVars["issueId"]; got != "issue-123" {
+			t.Errorf("issueId = %v, want %q", got, "issue-123")
+		}
+		if got := captured.LinkPRVars["url"]; got != "https://github.com/owner/repo/pull/1" {
+			t.Errorf("url = %v, want %q", got, "https://github.com/owner/repo/pull/1")
+		}
+
+		var result map[string]any
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Fatalf("Output should be valid JSON: %v", err)
+		}
+		if got := result["identifier"]; got != "ENG-123" {
+			t.Errorf("output identifier = %v, want %q (the fetched issue)", got, "ENG-123")
+		}
+		if got := result["id"]; got != "issue-123" {
+			t.Errorf("output id = %v, want %q", got, "issue-123")
+		}
+		if got := result["title"]; got != "Test Issue" {
+			t.Errorf("output title = %v, want %q", got, "Test Issue")
+		}
+		if _, exists := result["assignee"]; exists {
+			t.Error("output contains assignee key; want the update-result shape, not the full GetIssue shape")
+		}
+	})
+
+	t.Run("no flags at all still errors", func(t *testing.T) {
+		server, _ := captureUpdateServer(t)
+		defer server.Close()
+		factory := func() (*linear.Client, error) {
+			return linear.NewClient("test_api_key", linear.WithBaseURL(server.URL))
+		}
+
+		cmd := NewUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{"ENG-123"})
+
+		err := cmd.Execute()
+		if err == nil {
+			t.Fatal("Execute() succeeded, want no-fields error")
+		}
+		if !strings.Contains(err.Error(), "no fields to update specified") {
+			t.Errorf("error = %v, want no-fields error", err)
+		}
+	})
+
+	t.Run("link failure surfaces as error", func(t *testing.T) {
+		server, captured := captureUpdateServerWithLinkPR(t, `{"data":{"attachmentLinkGitHubPR":{"success":false}}}`)
+		defer server.Close()
+		factory := func() (*linear.Client, error) {
+			return linear.NewClient("test_api_key", linear.WithBaseURL(server.URL))
+		}
+
+		cmd := NewUpdateCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
+		cmd.SetArgs([]string{"ENG-123", "--link-pr=owner/repo#1"})
+
+		err := cmd.Execute()
+		if err == nil {
+			t.Fatal("expected error when AttachmentLinkGitHubPR fails")
+		}
+		if !strings.Contains(err.Error(), "failed to link GitHub PR") {
+			t.Errorf("error = %q, want it to mention failing to link the GitHub PR", err)
+		}
+		if captured.LinkPRVars == nil {
+			t.Error("no AttachmentLinkGitHubPR mutation captured; error came from the wrong place")
+		}
+		if captured.Input != nil {
+			t.Errorf("UpdateIssue mutation ran with input %v, want no mutation", captured.Input)
+		}
+	})
+}

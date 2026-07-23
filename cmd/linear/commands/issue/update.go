@@ -261,6 +261,27 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	}
 
 	if !updated {
+		// --link-pr on its own is a valid operation: link the PR without
+		// running an update mutation, then print the issue as usual.
+		if prURL, _ := cmd.Flags().GetString("link-pr"); prURL != "" {
+			if err := linkGitHubPR(ctx, cmd, client, resolvedIssueID); err != nil {
+				return err
+			}
+			issue, err := client.Issue(ctx, resolvedIssueID)
+			if err != nil {
+				return fmt.Errorf("PR linked, but failed to fetch issue: %w", err)
+			}
+			// Print the same shape the update mutation returns so the
+			// command's output schema does not depend on which flags ran.
+			return formatter.FormatJSON(cmd.OutOrStdout(), &intgraphql.UpdateIssue_IssueUpdate_Issue{
+				Description: issue.Description,
+				ID:          issue.ID,
+				Identifier:  issue.Identifier,
+				Priority:    issue.Priority,
+				Title:       issue.Title,
+				UpdatedAt:   issue.UpdatedAt,
+			}, true)
+		}
 		return fmt.Errorf("no fields to update specified")
 	}
 
