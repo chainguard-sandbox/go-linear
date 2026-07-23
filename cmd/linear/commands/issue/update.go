@@ -3,6 +3,7 @@ package issue
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -60,6 +61,12 @@ Related: issue_get, issue_create`,
 func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
+
+	// Validate --link-pr before any API call so an invalid value cannot
+	// leave the issue partially updated.
+	if _, err := resolveLinkPRURL(cmd); err != nil {
+		return err
+	}
 
 	// Resolve issue ID (converts identifier like ENG-123 to UUID)
 	resolvedIssueID, err := res.ResolveIssue(ctx, issueID)
@@ -272,21 +279,46 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
 }
 
-// linkGitHubPR links a GitHub PR to the issue if --link-pr is specified.
-func linkGitHubPR(ctx context.Context, cmd *cobra.Command, client *linear.Client, issueID string) error {
+// shortPRFormat matches the owner/repo#number short format accepted by
+// --link-pr. The owner and repo groups are deliberately asymmetric,
+// mirroring GitHub's naming rules: owners are alphanumeric-and-hyphen and
+// cannot start or end with a hyphen, while repo names also allow '.' and
+// '_' and may start or end with any of them (e.g. myorg/.github).
+var shortPRFormat = regexp.MustCompile(`^([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)/([A-Za-z0-9._-]+)#([0-9]+)$`)
+
+// resolveLinkPRURL validates the --link-pr flag value and converts the
+// short format (owner/repo#123) to a canonical GitHub PR URL. Returns ""
+// when the flag is unset.
+func resolveLinkPRURL(cmd *cobra.Command) (string, error) {
 	prURL, _ := cmd.Flags().GetString("link-pr")
 	if prURL == "" {
+		return "", nil
+	}
+
+	// Full URLs bypass local validation deliberately: the attachment API
+	// accepts PR URLs on any host (e.g. GitHub Enterprise).
+	if contains(prURL, "://") {
+		return prURL, nil
+	}
+
+	m := shortPRFormat.FindStringSubmatch(prURL)
+	if m == nil {
+		return "", fmt.Errorf("invalid --link-pr value %q: expected owner/repo#number or a full URL", prURL)
+	}
+	return fmt.Sprintf("https://github.com/%s/%s/pull/%s", m[1], m[2], m[3]), nil
+}
+
+// linkGitHubPR links a GitHub PR to the issue if --link-pr is specified.
+func linkGitHubPR(ctx context.Context, cmd *cobra.Command, client *linear.Client, issueID string) error {
+	fullURL, err := resolveLinkPRURL(cmd)
+	if err != nil {
+		return err
+	}
+	if fullURL == "" {
 		return nil
 	}
 
-	// Convert short format (owner/repo#123) to full URL if needed
-	fullURL := prURL
-	if !contains(prURL, "://") {
-		// Assume GitHub format: owner/repo#123
-		fullURL = "https://github.com/" + prURL
-	}
-
-	_, err := client.AttachmentLinkGitHubPR(ctx, issueID, fullURL)
+	_, err = client.AttachmentLinkGitHubPR(ctx, issueID, fullURL)
 	if err != nil {
 		return fmt.Errorf("failed to link GitHub PR: %w", err)
 	}

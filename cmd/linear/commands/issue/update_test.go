@@ -322,11 +322,6 @@ func TestRunUpdate_EstimatePayload(t *testing.T) {
 }
 
 func TestRunUpdate_LinkPR(t *testing.T) {
-	// wantURL values for short-format inputs reflect the current
-	// owner/repo#N -> https://github.com/owner/repo#N conversion, not a
-	// canonical GitHub PR URL shape.
-	// TODO(#115): fix the conversion to produce /pull/N and update these
-	// expectations together with it.
 	tests := []struct {
 		name    string
 		args    []string
@@ -335,17 +330,27 @@ func TestRunUpdate_LinkPR(t *testing.T) {
 		{
 			name:    "link-pr with estimate in nullable path",
 			args:    []string{"ENG-123", "--estimate=5", "--link-pr=owner/repo#1"},
-			wantURL: "https://github.com/owner/repo#1",
+			wantURL: "https://github.com/owner/repo/pull/1",
 		},
 		{
 			name:    "link-pr with assignee none in nullable path",
 			args:    []string{"ENG-123", "--assignee=none", "--link-pr=owner/repo#2"},
-			wantURL: "https://github.com/owner/repo#2",
+			wantURL: "https://github.com/owner/repo/pull/2",
 		},
 		{
 			name:    "link-pr with title in standard path",
 			args:    []string{"ENG-123", "--title=x", "--link-pr=owner/repo#3"},
-			wantURL: "https://github.com/owner/repo#3",
+			wantURL: "https://github.com/owner/repo/pull/3",
+		},
+		{
+			name:    "link-pr with hyphenated owner and dotted repo",
+			args:    []string{"ENG-123", "--title=x", "--link-pr=my-org/repo.name#45"},
+			wantURL: "https://github.com/my-org/repo.name/pull/45",
+		},
+		{
+			name:    "link-pr with dot-leading repo",
+			args:    []string{"ENG-123", "--title=x", "--link-pr=myorg/.github#12"},
+			wantURL: "https://github.com/myorg/.github/pull/12",
 		},
 		{
 			name:    "link-pr with full URL passed through unchanged",
@@ -379,6 +384,53 @@ func TestRunUpdate_LinkPR(t *testing.T) {
 			}
 			if got := captured.LinkPRVars["issueId"]; got != "issue-123" {
 				t.Errorf("issueId = %v, want %q", got, "issue-123")
+			}
+		})
+	}
+}
+
+// A short-format value that is not owner/repo#number must be rejected
+// instead of being blindly prefixed with https://github.com/.
+func TestRunUpdate_LinkPRInvalidFormat(t *testing.T) {
+	tests := []struct {
+		name   string
+		linkPR string
+	}{
+		{name: "bare word", linkPR: "banana"},
+		{name: "missing number", linkPR: "owner/repo"},
+		{name: "non-numeric number", linkPR: "owner/repo#abc"},
+		{name: "extra path segment", linkPR: "owner/repo/extra#1"},
+		{name: "leading hyphen in owner", linkPR: "-owner/repo#1"},
+		{name: "trailing hyphen in owner", linkPR: "owner-/repo#1"},
+		{name: "schemeless full PR path", linkPR: "owner/repo/pull/5"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, captured := captureUpdateServer(t)
+			defer server.Close()
+			factory := func() (*linear.Client, error) {
+				return linear.NewClient("test_api_key", linear.WithBaseURL(server.URL))
+			}
+
+			cmd := NewUpdateCommand(factory)
+			var buf bytes.Buffer
+			cmd.SetOut(&buf)
+			cmd.SetErr(&buf)
+			cmd.SetArgs([]string{"ENG-123", "--title=x", "--link-pr=" + tt.linkPR})
+
+			err := cmd.Execute()
+			if err == nil {
+				t.Fatal("Execute() succeeded, want invalid --link-pr error")
+			}
+			if !strings.Contains(err.Error(), "invalid --link-pr value") {
+				t.Errorf("error = %v, want it to mention invalid --link-pr value", err)
+			}
+			if captured.LinkPRVars != nil {
+				t.Errorf("AttachmentLinkGitHubPR was called with %v, want no call", captured.LinkPRVars)
+			}
+			if captured.Input != nil {
+				t.Errorf("UpdateIssue ran with input %v, want no mutation for an invalid --link-pr", captured.Input)
 			}
 		})
 	}
