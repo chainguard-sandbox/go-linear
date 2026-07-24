@@ -284,11 +284,9 @@ download:  ## Download dependencies
 # Schema management
 #
 
-schema:  ## Download Linear GraphQL schema
-	@echo "Downloading Linear GraphQL schema..."
-	@mkdir -p .
-	@curl -sSL https://raw.githubusercontent.com/linear/linear/master/packages/sdk/src/schema.graphql -o schema.graphql
-	@echo "✓ Schema downloaded to schema.graphql"
+# The schema is only ever updated from the pinned upstream submodule so the
+# source is an exact, hash-recorded release tag — never a moving branch.
+schema: sync-schema  ## Copy the GraphQL schema from the pinned upstream submodule
 
 #
 # Upstream sync (maintainers only)

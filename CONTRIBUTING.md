@@ -37,6 +37,8 @@ make sync-upstream   # fetch latest schema, regenerate code, run tests
 
 Review the diff carefully — new types are added to `internal/graphql/models.go` and `schema.graphql`. Verify that removed or renamed upstream types don't break existing queries in `queries/`.
 
+This is the only sanctioned way to update `schema.graphql`: the submodule pins an exact release tag whose commit hash is recorded in git, so the schema's provenance is verifiable. Never hand-download the schema from the upstream repo's `master` branch — a moving ref with no integrity check. `make schema` is an alias for the submodule copy, and the weekly `sync-check` workflow compares against the latest release tag by commit SHA for the same reason.
+
 ## MCP Tool Documentation
 
 Every token in MCP tool descriptions is permanent overhead for the entire session. Optimize ruthlessly.
