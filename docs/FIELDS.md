@@ -167,7 +167,8 @@ mkdir -p ~/.config/linear
 - state.{id, name, type, color}
 - team.{id, name, key, icon, color}
 - assignee.{id, name, displayName, email}
-- creator.{id, name, email}
+- creator.{id, name, displayName, email} (null when created by an integration)
+- botActor.{id, name} (set when created by an OAuth app/integration)
 - cycle.{id, name, startsAt, endsAt}
 - project.{id, name, color}
 
