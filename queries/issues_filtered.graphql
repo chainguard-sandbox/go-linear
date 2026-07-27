@@ -27,6 +27,16 @@ query ListIssuesFiltered($first: Int, $after: String, $filter: IssueFilter) {
         displayName
         email
       }
+      creator {
+        id
+        name
+        email
+        displayName
+      }
+      botActor {
+        id
+        name
+      }
     }
     pageInfo {
       hasNextPage
