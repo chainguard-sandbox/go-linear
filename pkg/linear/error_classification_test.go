@@ -288,8 +288,7 @@ func TestErrorContext_Unwrap(t *testing.T) {
 	}
 
 	// Test errors.As
-	var target *ErrorContext
-	if !errors.As(wrappedErr, &target) {
+	if _, ok := errors.AsType[*ErrorContext](wrappedErr); !ok {
 		t.Error("errors.As should work with ErrorContext")
 	}
 }

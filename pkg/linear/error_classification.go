@@ -201,26 +201,22 @@ func SanitizeError(operation string, err error) *ErrorContext {
 	}
 
 	// Handle already-sanitized errors
-	var errCtx *ErrorContext
-	if errors.As(err, &errCtx) {
+	if errCtx, ok := errors.AsType[*ErrorContext](err); ok {
 		return errCtx
 	}
 
 	// Handle LinearError types
-	var linearErr *LinearError
-	if errors.As(err, &linearErr) {
+	if linearErr, ok := errors.AsType[*LinearError](err); ok {
 		return sanitizeLinearError(operation, linearErr)
 	}
 
 	// Handle rate limit errors specially
-	var rateLimitErr *RateLimitError
-	if errors.As(err, &rateLimitErr) {
+	if rateLimitErr, ok := errors.AsType[*RateLimitError](err); ok {
 		return sanitizeRateLimitError(operation, rateLimitErr)
 	}
 
 	// Handle authentication errors
-	var authErr *AuthenticationError
-	if errors.As(err, &authErr) {
+	if authErr, ok := errors.AsType[*AuthenticationError](err); ok {
 		return &ErrorContext{
 			Class:      ErrorClassConfiguration,
 			Severity:   SeverityError,
@@ -233,8 +229,7 @@ func SanitizeError(operation string, err error) *ErrorContext {
 	}
 
 	// Handle forbidden errors
-	var forbiddenErr *ForbiddenError
-	if errors.As(err, &forbiddenErr) {
+	if forbiddenErr, ok := errors.AsType[*ForbiddenError](err); ok {
 		return &ErrorContext{
 			Class:      ErrorClassPermission,
 			Severity:   SeverityError,
