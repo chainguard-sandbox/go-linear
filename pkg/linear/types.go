@@ -184,6 +184,9 @@ type IssueFilter = intgraphql.IssueFilter
 // See internal/graphql/models.go for the complete field list.
 type ProjectFilter = intgraphql.ProjectFilter
 
+// TeamFilter is the server-side type for filtering teams, used in various queries.
+type TeamFilter = intgraphql.TeamFilter
+
 // Result-type alias names intentionally mirror the generated gqlgenc type
 // names so go doc shows the same identifier for the method return and the
 // alias; ST1003 (underscores) is suppressed for that reason.
