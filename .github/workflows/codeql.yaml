@@ -40,7 +40,7 @@ jobs:
           check-latest: true
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@42947a340483f03ba47bb1a039b2c519aab3df85 # v3.37.8
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           languages: go
           build-mode: manual
