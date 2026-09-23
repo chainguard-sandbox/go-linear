@@ -247,6 +247,9 @@ go-linear document delete <uuid>
 - `go-linear viewer` - Get current user
 - `go-linear status` - Check rate limits
 
+**Escape Hatch (1)**:
+- `go-linear graphql --query '...'` - Run a raw GraphQL query/mutation (CLI-only, not exposed via MCP; mutations require `--allow-mutation`)
+
 ## Output
 
 All commands output JSON. Use `--fields` to control which fields appear. Pipe to `jq` for human-readable formatting.
