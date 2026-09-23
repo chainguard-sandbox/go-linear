@@ -24,11 +24,24 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands"
 )
 
+// mcpSelectors returns the ophis command selectors used to build the MCP tool
+// set. The `graphql` escape hatch is a CLI-only command: it can run arbitrary
+// mutations (behind --allow-mutation) and is deliberately NOT exposed as an MCP
+// tool, so an agent cannot reach unrestricted GraphQL. Every other command is
+// exposed with all of its flags. This is the single source of truth for the
+// exclusion (see main_test.go).
+func mcpSelectors() []ophis.Selector {
+	return []ophis.Selector{{
+		CmdSelector: ophis.ExcludeCmdsContaining("graphql"),
+	}}
+}
+
 func main() {
 	rootCmd := commands.NewRootCommand()
 
 	rootCmd.AddCommand(ophis.Command(&ophis.Config{
 		Transport: &fixFlagsTransport{inner: &mcp.StdioTransport{}},
+		Selectors: mcpSelectors(),
 	}))
 
 	if err := rootCmd.Execute(); err != nil {

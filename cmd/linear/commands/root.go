@@ -20,6 +20,7 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/cycle"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/document"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/favorite"
+	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/graphql"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/initiative"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/issue"
 	"github.com/chainguard-sandbox/go-linear/v2/cmd/linear/commands/label"
@@ -304,6 +305,7 @@ Environment Variables:
 	rootCmd.AddCommand(cycle.NewCycleCommand(getClient))
 	rootCmd.AddCommand(document.NewDocumentCommand(getClient))
 	rootCmd.AddCommand(favorite.NewFavoriteCommand(getClient))
+	rootCmd.AddCommand(graphql.NewGraphQLCommand(getClient))
 	rootCmd.AddCommand(initiative.NewInitiativeCommand(getClient))
 	rootCmd.AddCommand(issue.NewIssueCommand(getClient))
 	rootCmd.AddCommand(label.NewLabelCommand(getClient))
