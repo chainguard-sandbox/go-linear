@@ -32,6 +32,16 @@ query GetIssue($id: String!) {
       name
       displayName
     }
+    creator {
+      id
+      name
+      email
+      displayName
+    }
+    botActor {
+      id
+      name
+    }
     projectMilestone {
       id
       name
@@ -68,6 +78,16 @@ query ListIssues($first: Int, $after: String) {
         name
         displayName
         email
+      }
+      creator {
+        id
+        name
+        email
+        displayName
+      }
+      botActor {
+        id
+        name
       }
       projectMilestone {
         id

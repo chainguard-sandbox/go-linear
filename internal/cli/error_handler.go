@@ -62,8 +62,7 @@ func (h *ErrorHandler) Handle(ctx context.Context, operation string, err error) 
 // toErrorContext converts various error types to ErrorContext.
 func (h *ErrorHandler) toErrorContext(operation string, err error) *linear.ErrorContext {
 	// Handle resolver errors specially
-	var resErr *resolver.ResolutionError
-	if errors.As(err, &resErr) {
+	if resErr, ok := errors.AsType[*resolver.ResolutionError](err); ok {
 		return resErr.ToErrorContext(operation)
 	}
 

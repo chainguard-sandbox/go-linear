@@ -3092,6 +3092,56 @@ func (t *GetIssue_Issue_Assignee) GetName() string {
 	return t.Name
 }
 
+type GetIssue_Issue_Creator struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	Email       string "json:\"email\" graphql:\"email\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetIssue_Issue_Creator) GetDisplayName() string {
+	if t == nil {
+		t = &GetIssue_Issue_Creator{}
+	}
+	return t.DisplayName
+}
+func (t *GetIssue_Issue_Creator) GetEmail() string {
+	if t == nil {
+		t = &GetIssue_Issue_Creator{}
+	}
+	return t.Email
+}
+func (t *GetIssue_Issue_Creator) GetID() string {
+	if t == nil {
+		t = &GetIssue_Issue_Creator{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_Creator) GetName() string {
+	if t == nil {
+		t = &GetIssue_Issue_Creator{}
+	}
+	return t.Name
+}
+
+type GetIssue_Issue_BotActor struct {
+	ID   *string "json:\"id,omitempty\" graphql:\"id\""
+	Name *string "json:\"name,omitempty\" graphql:\"name\""
+}
+
+func (t *GetIssue_Issue_BotActor) GetID() *string {
+	if t == nil {
+		t = &GetIssue_Issue_BotActor{}
+	}
+	return t.ID
+}
+func (t *GetIssue_Issue_BotActor) GetName() *string {
+	if t == nil {
+		t = &GetIssue_Issue_BotActor{}
+	}
+	return t.Name
+}
+
 type GetIssue_Issue_ProjectMilestone struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -3113,7 +3163,9 @@ func (t *GetIssue_Issue_ProjectMilestone) GetName() string {
 type GetIssue_Issue struct {
 	ArchivedAt       *time.Time                       "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee         *GetIssue_Issue_Assignee         "json:\"assignee,omitempty\" graphql:\"assignee\""
+	BotActor         *GetIssue_Issue_BotActor         "json:\"botActor,omitempty\" graphql:\"botActor\""
 	CreatedAt        time.Time                        "json:\"createdAt\" graphql:\"createdAt\""
+	Creator          *GetIssue_Issue_Creator          "json:\"creator,omitempty\" graphql:\"creator\""
 	Description      *string                          "json:\"description,omitempty\" graphql:\"description\""
 	DueDate          *string                          "json:\"dueDate,omitempty\" graphql:\"dueDate\""
 	Estimate         *float64                         "json:\"estimate,omitempty\" graphql:\"estimate\""
@@ -3143,11 +3195,23 @@ func (t *GetIssue_Issue) GetAssignee() *GetIssue_Issue_Assignee {
 	}
 	return t.Assignee
 }
+func (t *GetIssue_Issue) GetBotActor() *GetIssue_Issue_BotActor {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.BotActor
+}
 func (t *GetIssue_Issue) GetCreatedAt() *time.Time {
 	if t == nil {
 		t = &GetIssue_Issue{}
 	}
 	return &t.CreatedAt
+}
+func (t *GetIssue_Issue) GetCreator() *GetIssue_Issue_Creator {
+	if t == nil {
+		t = &GetIssue_Issue{}
+	}
+	return t.Creator
 }
 func (t *GetIssue_Issue) GetDescription() *string {
 	if t == nil {
@@ -3315,6 +3379,56 @@ func (t *ListIssues_Issues_Nodes_Assignee) GetName() string {
 	return t.Name
 }
 
+type ListIssues_Issues_Nodes_Creator struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	Email       string "json:\"email\" graphql:\"email\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssues_Issues_Nodes_Creator) GetDisplayName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Creator{}
+	}
+	return t.DisplayName
+}
+func (t *ListIssues_Issues_Nodes_Creator) GetEmail() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Creator{}
+	}
+	return t.Email
+}
+func (t *ListIssues_Issues_Nodes_Creator) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Creator{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_Creator) GetName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Creator{}
+	}
+	return t.Name
+}
+
+type ListIssues_Issues_Nodes_BotActor struct {
+	ID   *string "json:\"id,omitempty\" graphql:\"id\""
+	Name *string "json:\"name,omitempty\" graphql:\"name\""
+}
+
+func (t *ListIssues_Issues_Nodes_BotActor) GetID() *string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_BotActor{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_BotActor) GetName() *string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_BotActor{}
+	}
+	return t.Name
+}
+
 type ListIssues_Issues_Nodes_ProjectMilestone struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -3336,7 +3450,9 @@ func (t *ListIssues_Issues_Nodes_ProjectMilestone) GetName() string {
 type ListIssues_Issues_Nodes struct {
 	ArchivedAt       *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee         *ListIssues_Issues_Nodes_Assignee         "json:\"assignee,omitempty\" graphql:\"assignee\""
+	BotActor         *ListIssues_Issues_Nodes_BotActor         "json:\"botActor,omitempty\" graphql:\"botActor\""
 	CreatedAt        time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Creator          *ListIssues_Issues_Nodes_Creator          "json:\"creator,omitempty\" graphql:\"creator\""
 	Description      *string                                   "json:\"description,omitempty\" graphql:\"description\""
 	DueDate          *string                                   "json:\"dueDate,omitempty\" graphql:\"dueDate\""
 	ID               string                                    "json:\"id\" graphql:\"id\""
@@ -3364,11 +3480,23 @@ func (t *ListIssues_Issues_Nodes) GetAssignee() *ListIssues_Issues_Nodes_Assigne
 	}
 	return t.Assignee
 }
+func (t *ListIssues_Issues_Nodes) GetBotActor() *ListIssues_Issues_Nodes_BotActor {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.BotActor
+}
 func (t *ListIssues_Issues_Nodes) GetCreatedAt() *time.Time {
 	if t == nil {
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return &t.CreatedAt
+}
+func (t *ListIssues_Issues_Nodes) GetCreator() *ListIssues_Issues_Nodes_Creator {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.Creator
 }
 func (t *ListIssues_Issues_Nodes) GetDescription() *string {
 	if t == nil {
@@ -3560,10 +3688,62 @@ func (t *ListIssuesFiltered_Issues_Nodes_Assignee) GetName() string {
 	return t.Name
 }
 
+type ListIssuesFiltered_Issues_Nodes_Creator struct {
+	DisplayName string "json:\"displayName\" graphql:\"displayName\""
+	Email       string "json:\"email\" graphql:\"email\""
+	ID          string "json:\"id\" graphql:\"id\""
+	Name        string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_Creator) GetDisplayName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Creator{}
+	}
+	return t.DisplayName
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Creator) GetEmail() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Creator{}
+	}
+	return t.Email
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Creator) GetID() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Creator{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Creator) GetName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Creator{}
+	}
+	return t.Name
+}
+
+type ListIssuesFiltered_Issues_Nodes_BotActor struct {
+	ID   *string "json:\"id,omitempty\" graphql:\"id\""
+	Name *string "json:\"name,omitempty\" graphql:\"name\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_BotActor) GetID() *string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_BotActor{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes_BotActor) GetName() *string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_BotActor{}
+	}
+	return t.Name
+}
+
 type ListIssuesFiltered_Issues_Nodes struct {
 	ArchivedAt  *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee    *ListIssuesFiltered_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	BotActor    *ListIssuesFiltered_Issues_Nodes_BotActor "json:\"botActor,omitempty\" graphql:\"botActor\""
 	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Creator     *ListIssuesFiltered_Issues_Nodes_Creator  "json:\"creator,omitempty\" graphql:\"creator\""
 	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
 	ID          string                                    "json:\"id\" graphql:\"id\""
 	Identifier  string                                    "json:\"identifier\" graphql:\"identifier\""
@@ -3589,11 +3769,23 @@ func (t *ListIssuesFiltered_Issues_Nodes) GetAssignee() *ListIssuesFiltered_Issu
 	}
 	return t.Assignee
 }
+func (t *ListIssuesFiltered_Issues_Nodes) GetBotActor() *ListIssuesFiltered_Issues_Nodes_BotActor {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.BotActor
+}
 func (t *ListIssuesFiltered_Issues_Nodes) GetCreatedAt() *time.Time {
 	if t == nil {
 		t = &ListIssuesFiltered_Issues_Nodes{}
 	}
 	return &t.CreatedAt
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetCreator() *ListIssuesFiltered_Issues_Nodes_Creator {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.Creator
 }
 func (t *ListIssuesFiltered_Issues_Nodes) GetDescription() *string {
 	if t == nil {
@@ -12329,6 +12521,16 @@ const GetIssueDocument = `query GetIssue ($id: String!) {
 			name
 			displayName
 		}
+		creator {
+			id
+			name
+			email
+			displayName
+		}
+		botActor {
+			id
+			name
+		}
 		projectMilestone {
 			id
 			name
@@ -12383,6 +12585,16 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 				name
 				displayName
 				email
+			}
+			creator {
+				id
+				name
+				email
+				displayName
+			}
+			botActor {
+				id
+				name
 			}
 			projectMilestone {
 				id
@@ -12443,6 +12655,16 @@ const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $afte
 				name
 				displayName
 				email
+			}
+			creator {
+				id
+				name
+				email
+				displayName
+			}
+			botActor {
+				id
+				name
 			}
 		}
 		pageInfo {

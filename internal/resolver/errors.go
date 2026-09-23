@@ -139,8 +139,7 @@ func newAmbiguousError(entityType, input string, matches []string) error {
 // newFetchError creates a ResolutionError for fetch failures.
 func newFetchError(entityType string, fetchErr error) error {
 	// Check if it's already a Linear API error
-	var linearErr *linear.LinearError
-	if errors.As(fetchErr, &linearErr) {
+	if linearErr, ok := errors.AsType[*linear.LinearError](fetchErr); ok {
 		return &ResolutionError{
 			EntityType: entityType,
 			Input:      "",

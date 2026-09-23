@@ -444,6 +444,8 @@ type AgentActivityPromptContent struct {
 	Body string `json:"body"`
 	// [Internal] The prompt content as ProseMirror document.
 	BodyData map[string]any `json:"bodyData"`
+	// A short title capturing the intent of the prompt.
+	Title *string `json:"title,omitempty"`
 	// The type of activity.
 	Type AgentActivityType `json:"type"`
 }
@@ -512,6 +514,14 @@ type AgentActivityWebhookPayload struct {
 
 func (AgentActivityWebhookPayload) IsDataWebhookPayload() {}
 
+// The outcome of retrying a loop run blocked by its trusted-source policy.
+type AgentAutomationRetryResolution struct {
+	// Identifier of the replacement AI conversation. Null when no replacement run was scheduled.
+	AiConversationID *string `json:"aiConversationId,omitempty"`
+	// Whether a replacement run was scheduled or the loop could no longer be retried.
+	Status AgentAutomationRetryResolutionStatus `json:"status"`
+}
+
 // A session representing an AI coding agent's work on an issue or conversation. Agent sessions track the lifecycle of an agent's engagement, from creation through active work to completion or dismissal. Each session is associated with an agent user (the bot), optionally a human creator, an issue, and a comment thread where the agent posts updates. Sessions contain activities that record the agent's observable steps and can be linked to pull requests created during the work.
 type AgentSession struct {
 	// Activities associated with this agent session.
@@ -548,6 +558,8 @@ type AgentSession struct {
 	Issue *Issue `json:"issue,omitempty"`
 	// A dynamically updated plan describing the agent's execution strategy, including steps to be taken and their current status. Updated as the agent progresses through its work. Null if no plan has been set.
 	Plan *string `json:"plan,omitempty"`
+	// The pull request this agent session is anchored to, when started from a pull request.
+	PullRequest *PullRequest `json:"pullRequest,omitempty"`
 	// [Internal] Pull requests associated with this agent session.
 	PullRequests *AgentSessionToPullRequestConnection `json:"pullRequests"`
 	// The agent session's unique URL slug.
@@ -567,8 +579,12 @@ type AgentSession struct {
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
-	// The URL to the agent session page in the Linear app. Null for direct chat sessions without an associated issue.
+	// The URL to the agent session page in the Linear app. Null when no issue is associated.
 	URL *string `json:"url,omitempty"`
+	// [Internal] The coding agent's live working-tree diff metadata (changes not yet pushed to origin), reported by the sandbox. Per-file content is fetched on demand from the workspace-diff-blob route. Null when in sync.
+	WorkspaceDiff *string `json:"workspaceDiff,omitempty"`
+	// [Internal] Per-file list of the agent's live working-tree diff at the given content hash. Served behind a repository-read-access gate (the synced summary carries only aggregate counts); null when the requester lacks repository access or there is no current diff.
+	WorkspaceDiffFiles []*AgentSessionWorkspaceDiffFile `json:"workspaceDiffFiles,omitempty"`
 }
 
 func (AgentSession) IsNode() {}
@@ -586,7 +602,7 @@ type AgentSessionConnection struct {
 type AgentSessionCreateInput struct {
 	// The app user (agent) to create a session for.
 	AppUserID string `json:"appUserId"`
-	// [Internal] Serialized JSON representing the page contexts this session is related to. Used for direct chat sessions to provide context about the current page (e.g., Issue, Project).
+	// [Internal] No longer supported.
 	Context map[string]any `json:"context,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
@@ -792,6 +808,20 @@ type AgentSessionWebhookPayload struct {
 
 func (AgentSessionWebhookPayload) IsDataWebhookPayload() {}
 
+// [Internal] One changed file in a coding agent's live working-tree diff.
+type AgentSessionWorkspaceDiffFile struct {
+	// Lines added in this file.
+	Additions int64 `json:"additions"`
+	// Lines removed in this file.
+	Deletions int64 `json:"deletions"`
+	// Previous path, when the file was renamed or copied.
+	OldPath *string `json:"oldPath,omitempty"`
+	// Path of the changed file (the new path, for renames).
+	Path string `json:"path"`
+	// Kind of change: added, modified, deleted, renamed, copied, type_changed, unmerged, unknown.
+	State string `json:"state"`
+}
+
 // A user-defined skill that can be saved and reused in conversations with the Linear Agent. Skills can be private to a user or shared with a team.
 type AgentSkill struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
@@ -810,6 +840,8 @@ type AgentSkill struct {
 	Icon *string `json:"icon,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
+	// The parent-team skill this skill was inherited from. Null if the skill is not inherited.
+	InheritedFrom *AgentSkill `json:"inheritedFrom,omitempty"`
 	// The user who last updated the skill. Null if unknown.
 	LastUpdatedBy *User `json:"lastUpdatedBy,omitempty"`
 	// The time the skill was last used by anyone in the workspace. Null if it has never been used.
@@ -918,17 +950,25 @@ type AiConversation struct {
 	Context map[string]any `json:"context"`
 	// The time at which the entity was created.
 	CreatedAt time.Time `json:"createdAt"`
+	// [Internal] The document this shared conversation is attached to. Null if the conversation is private.
+	Document *Document `json:"document,omitempty"`
 	// [Internal] The log ID of the AI response.
 	EvalLogID *string `json:"evalLogId,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
 	// The source from which this conversation was initiated, such as direct chat, an issue comment, a Slack thread, Microsoft Teams, or a workflow automation.
 	InitialSource AiConversationInitialSource `json:"initialSource"`
+	// [Internal] The initiative this shared conversation is attached to. Null if the conversation is private.
+	Initiative *Initiative `json:"initiative,omitempty"`
 	// The iteration ID when this conversation is part of an agentic workflow. Used to track multi-step workflow executions. Null for non-workflow conversations.
 	IterationID *string `json:"iterationId,omitempty"`
 	// The ordered sequence of conversation parts (prompts, text responses, reasoning steps, tool calls, errors, and widgets) that make up this conversation's visible history.
 	Parts []AiConversationPart `json:"parts,omitempty"`
-	// The time when the user marked the conversation as read. Null if the user hasn't read the conversation.
+	// [Internal] The project this shared conversation is attached to. Null if the conversation is private.
+	Project *Project `json:"project,omitempty"`
+	// [Internal] The pull request this shared conversation is attached to. Null if the conversation is private.
+	PullRequest *PullRequest `json:"pullRequest,omitempty"`
+	// The time when the current user marked the conversation as read. Null if the user hasn't read the conversation.
 	ReadAt *time.Time `json:"readAt,omitempty"`
 	// The conversation's unique URL slug.
 	SlugID string `json:"slugId"`
@@ -941,6 +981,8 @@ type AiConversation struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	// The user who the conversation belongs to.
 	User *User `json:"user,omitempty"`
+	// [Internal] User-specific state for the AI conversation, including per-user read state.
+	UserState []*AiConversationUserState `json:"userState"`
 	// [Internal] The cron workflow definition that created this conversation.
 	WorkflowCronJobDefinition *WorkflowCronJobDefinition `json:"workflowCronJobDefinition,omitempty"`
 	// [Internal] The workflow definition that created this conversation.
@@ -951,6 +993,31 @@ func (AiConversation) IsNode() {}
 
 // The unique identifier of the entity.
 func (this AiConversation) GetID() string { return this.ID }
+
+// A silent acknowledgement emitted by the agent in place of a generated reply.
+type AiConversationAckPart struct {
+	// The ID of the part.
+	ID string `json:"id"`
+	// The kind of acknowledgement the agent expressed.
+	Kind AiConversationAckKind `json:"kind"`
+	// The metadata of the part.
+	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The type of the part.
+	Type AiConversationPartType `json:"type"`
+}
+
+func (AiConversationAckPart) IsAiConversationBasePart() {}
+
+// The ID of the part.
+func (this AiConversationAckPart) GetID() string { return this.ID }
+
+// The metadata of the part.
+func (this AiConversationAckPart) GetMetadata() *AiConversationPartMetadata { return this.Metadata }
+
+// The type of the part.
+func (this AiConversationAckPart) GetType() AiConversationPartType { return this.Type }
+
+func (AiConversationAckPart) IsAiConversationPart() {}
 
 type AiConversationBashToolCall struct {
 	// The arguments to the tool call.
@@ -1026,6 +1093,8 @@ type AiConversationCreateEntityToolCall struct {
 	RawArgs *string `json:"rawArgs,omitempty"`
 	// The result of the tool call.
 	RawResult *string `json:"rawResult,omitempty"`
+	// The result of the tool call.
+	Result *AiConversationCreateEntityToolCallResult `json:"result,omitempty"`
 }
 
 func (AiConversationCreateEntityToolCall) IsAiConversationBaseToolCall() {}
@@ -1047,6 +1116,10 @@ func (AiConversationCreateEntityToolCall) IsAiConversationToolCall() {}
 type AiConversationCreateEntityToolCallArgs struct {
 	Count *float64 `json:"count,omitempty"`
 	Type  string   `json:"type"`
+}
+
+type AiConversationCreateEntityToolCallResult struct {
+	StartedAgentSessions []*AiConversationSearchEntitiesToolCallResultEntities `json:"startedAgentSessions,omitempty"`
 }
 
 type AiConversationCreateSandboxToolCall struct {
@@ -1248,6 +1321,8 @@ type AiConversationErrorPart struct {
 	Message string `json:"message"`
 	// The metadata of the part.
 	Metadata *AiConversationPartMetadata `json:"metadata"`
+	// The outcome of retrying this error's loop run. Null when the run has not been reconsidered.
+	RetryResolution *AgentAutomationRetryResolution `json:"retryResolution,omitempty"`
 	// The type of the part.
 	Type AiConversationPartType `json:"type"`
 }
@@ -1630,6 +1705,39 @@ type AiConversationNavigateToPageToolCallResult struct {
 	Urls []string `json:"urls"`
 }
 
+type AiConversationNotifyUsersToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationNotifyUsersToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo         `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationNotifyUsersToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationNotifyUsersToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationNotifyUsersToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationNotifyUsersToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationNotifyUsersToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationNotifyUsersToolCall) IsAiConversationToolCall() {}
+
+type AiConversationNotifyUsersToolCallArgs struct {
+	Summary *string  `json:"summary,omitempty"`
+	UserIds []string `json:"userIds"`
+}
+
 // Metadata about a part in an AI conversation.
 type AiConversationPartMetadata struct {
 	// The time when the part ended, as an ISO 8601 string.
@@ -1677,9 +1785,8 @@ func (this AiConversationPromptCodingSessionToolCall) GetRawResult() *string { r
 func (AiConversationPromptCodingSessionToolCall) IsAiConversationToolCall() {}
 
 type AiConversationPromptCodingSessionToolCallArgs struct {
-	AgentSessionID string `json:"agentSessionId"`
-	Prompt         string `json:"prompt"`
-	Queued         *bool  `json:"queued,omitempty"`
+	Prompt string `json:"prompt"`
+	Queued *bool  `json:"queued,omitempty"`
 }
 
 type AiConversationPromptCodingSessionToolCallResult struct {
@@ -1820,6 +1927,41 @@ type AiConversationQueryViewToolCallArgsView struct {
 	Group          *AiConversationSearchEntitiesToolCallResultEntities `json:"group,omitempty"`
 	PredefinedView *string                                             `json:"predefinedView,omitempty"`
 	Type           string                                              `json:"type"`
+}
+
+type AiConversationReadFileToolCall struct {
+	// The arguments to the tool call.
+	Args        *AiConversationReadFileToolCallArgs `json:"args,omitempty"`
+	DisplayInfo *AiConversationToolDisplayInfo      `json:"displayInfo"`
+	// The name of the tool that was called.
+	Name AiConversationTool `json:"name"`
+	// The arguments of the tool call.
+	RawArgs *string `json:"rawArgs,omitempty"`
+	// The result of the tool call.
+	RawResult *string `json:"rawResult,omitempty"`
+}
+
+func (AiConversationReadFileToolCall) IsAiConversationBaseToolCall() {}
+func (this AiConversationReadFileToolCall) GetDisplayInfo() *AiConversationToolDisplayInfo {
+	return this.DisplayInfo
+}
+
+// The name of the tool that was called.
+func (this AiConversationReadFileToolCall) GetName() AiConversationTool { return this.Name }
+
+// The arguments of the tool call.
+func (this AiConversationReadFileToolCall) GetRawArgs() *string { return this.RawArgs }
+
+// The result of the tool call.
+func (this AiConversationReadFileToolCall) GetRawResult() *string { return this.RawResult }
+
+func (AiConversationReadFileToolCall) IsAiConversationToolCall() {}
+
+type AiConversationReadFileToolCallArgs struct {
+	AssetURL *string                                 `json:"assetUrl,omitempty"`
+	Mode     *AiConversationReadFileToolCallArgsMode `json:"mode,omitempty"`
+	Name     *string                                 `json:"name,omitempty"`
+	Query    *string                                 `json:"query,omitempty"`
 }
 
 type AiConversationReadSandboxFileToolCall struct {
@@ -2387,6 +2529,8 @@ type AiConversationUpdateEntityToolCall struct {
 	RawArgs *string `json:"rawArgs,omitempty"`
 	// The result of the tool call.
 	RawResult *string `json:"rawResult,omitempty"`
+	// The result of the tool call.
+	Result *AiConversationUpdateEntityToolCallResult `json:"result,omitempty"`
 }
 
 func (AiConversationUpdateEntityToolCall) IsAiConversationBaseToolCall() {}
@@ -2408,6 +2552,18 @@ func (AiConversationUpdateEntityToolCall) IsAiConversationToolCall() {}
 type AiConversationUpdateEntityToolCallArgs struct {
 	Entities []*AiConversationSearchEntitiesToolCallResultEntities `json:"entities,omitempty"`
 	Entity   *AiConversationSearchEntitiesToolCallResultEntities   `json:"entity,omitempty"`
+}
+
+type AiConversationUpdateEntityToolCallResult struct {
+	StartedAgentSessions []*AiConversationSearchEntitiesToolCallResultEntities `json:"startedAgentSessions,omitempty"`
+}
+
+// [Internal] Per-user state for an AI conversation, tracking read status and other user-specific data.
+type AiConversationUserState struct {
+	// The time at which the user most recently viewed the conversation.
+	LastReadAt *time.Time `json:"lastReadAt,omitempty"`
+	// The ID of the user this state belongs to.
+	UserID string `json:"userId"`
 }
 
 type AiConversationWebSearchToolCall struct {
@@ -3406,6 +3562,8 @@ type CommentCollectionFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// [Internal] Filters that the comment's initiative must satisfy.
 	Initiative *NullableInitiativeFilter `json:"initiative,omitempty"`
+	// Filters that the comment's initiative update must satisfy.
+	InitiativeUpdate *NullableInitiativeUpdateFilter `json:"initiativeUpdate,omitempty"`
 	// Filters that the comment's issue must satisfy.
 	Issue *NullableIssueFilter `json:"issue,omitempty"`
 	// Comparator for the collection length.
@@ -3496,6 +3654,8 @@ type CommentFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// [Internal] Filters that the comment's initiative must satisfy.
 	Initiative *NullableInitiativeFilter `json:"initiative,omitempty"`
+	// Filters that the comment's initiative update must satisfy.
+	InitiativeUpdate *NullableInitiativeUpdateFilter `json:"initiativeUpdate,omitempty"`
 	// Filters that the comment's issue must satisfy.
 	Issue *NullableIssueFilter `json:"issue,omitempty"`
 	// Filters that the comment's customer needs must satisfy.
@@ -5858,6 +6018,62 @@ func (this DeletePayload) GetLastSyncID() float64 { return this.LastSyncID }
 // Whether the operation was successful.
 func (this DeletePayload) GetSuccess() bool { return this.Success }
 
+// [Internal] A first-class code diff. Starts as the live working-tree state of a coding session and is promoted to a review by linking it to a pull request, while continuing to represent local, uncommitted changes.
+type Diff struct {
+	// [Internal] The total number of added lines across the diff.
+	Additions float64 `json:"additions"`
+	// The agent session the diff belongs to.
+	AgentSession *AgentSession `json:"agentSession,omitempty"`
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// [Internal] The opaque content hash identifying the diff's content in code.storage.
+	ContentHash string `json:"contentHash"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The user responsible for the diff.
+	Creator *User `json:"creator,omitempty"`
+	// [Internal] The total number of deleted lines across the diff.
+	Deletions float64 `json:"deletions"`
+	// [Internal] The number of changed files in the diff.
+	FileCount float64 `json:"fileCount"`
+	// [Internal] Per-file metadata for the diff. Served behind a repository-read-access gate (the synced row carries only aggregate counts); null when the requester lacks repository access or the diff is empty.
+	Files []*DiffFile `json:"files,omitempty"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// The workspace the diff belongs to.
+	Organization *Organization `json:"organization"`
+	// The pull request the diff was promoted to when opened for review.
+	PullRequest *PullRequest `json:"pullRequest,omitempty"`
+	// [Internal] The diff's unique URL slug.
+	SlugID string `json:"slugId"`
+	// [Internal] Whether oversized files were omitted when the diff was computed.
+	Truncated bool `json:"truncated"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (Diff) IsNode() {}
+
+// The unique identifier of the entity.
+func (this Diff) GetID() string { return this.ID }
+
+// [Internal] One changed file in a diff.
+type DiffFile struct {
+	// Lines added in this file.
+	Additions int64 `json:"additions"`
+	// Lines removed in this file.
+	Deletions int64 `json:"deletions"`
+	// Previous path, when the file was renamed or copied.
+	OldPath *string `json:"oldPath,omitempty"`
+	// True when the file's diff was omitted for exceeding the size budget; its contents are not shown.
+	Omitted *bool `json:"omitted,omitempty"`
+	// Path of the changed file (the new path, for renames).
+	Path string `json:"path"`
+	// The kind of change for this file.
+	State DiffFileState `json:"state"`
+}
+
 // A rich-text document that lives within a project, initiative, team, issue, release, or cycle. Documents support collaborative editing via ProseMirror/Yjs and store their content in a separate DocumentContent entity. Each document is associated with exactly one parent entity.
 type Document struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
@@ -6091,6 +6307,40 @@ type DocumentContentHistoryType struct {
 	// Metadata associated with the history entry, including content diffs and AI-generated change summaries.
 	Metadata *string `json:"metadata,omitempty"`
 }
+
+// A pending revision of document content. Revisions are seeded from the live document state and stored as base64-encoded Yjs state updates, allowing automation edits to accumulate without affecting the published document until the changes are explicitly applied.
+type DocumentContentRevision struct {
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The live document content state this revision was last refreshed from, as a base64-encoded Yjs state update.
+	BaseContentState string `json:"baseContentState"`
+	// Hash of the revision state that should be summarized.
+	ContentHash *string `json:"contentHash,omitempty"`
+	// The pending revision content state as a base64-encoded Yjs state update. This represents the revision that has not yet been applied to the live document.
+	ContentState string `json:"contentState"`
+	// The workflow definitions that contributed edits to this revision.
+	ContributorWorkflowDefinitionIds []string `json:"contributorWorkflowDefinitionIds"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The document content that this revision is based on.
+	DocumentContent *DocumentContent `json:"documentContent"`
+	// The identifier of the document content that this revision is based on.
+	DocumentContentID string `json:"documentContentId"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// A short summary of the pending revision changes.
+	Summary *string `json:"summary,omitempty"`
+	// Hash of the revision state that the summary describes.
+	SummaryContentHash *string `json:"summaryContentHash,omitempty"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (DocumentContentRevision) IsNode() {}
+
+// The unique identifier of the entity.
+func (this DocumentContentRevision) GetID() string { return this.ID }
 
 // Input for creating a new document.
 type DocumentCreateInput struct {
@@ -6656,6 +6906,8 @@ type EmailIntakeAddress struct {
 	IssueCreatedAutoReply *string `json:"issueCreatedAutoReply,omitempty"`
 	// Whether the auto-reply for issue created is enabled.
 	IssueCreatedAutoReplyEnabled bool `json:"issueCreatedAutoReplyEnabled"`
+	// The last time an inbound email was successfully ingested for this address.
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty"`
 	// The workspace that the email address is associated with.
 	Organization *Organization `json:"organization"`
 	// Whether to reopen completed or canceled issues when a substantive email reply is received.
@@ -7191,8 +7443,10 @@ type FacetEdge struct {
 	Node   *Facet `json:"node"`
 }
 
-// A user's bookmarked item that appears in their sidebar for quick access. Favorites can reference various entity types including issues, projects, cycles, views, documents, initiatives, labels, users, customers, dashboards, and pull requests. Favorites can be organized into folders and ordered by the user. Each favorite is owned by a single user and links to exactly one target entity (or is a folder containing other favorites).
+// A user's bookmarked item that appears in their sidebar for quick access. Favorites can reference various entity types including issues, projects, cycles, views, documents, initiatives, labels, users, customers, dashboards, pull requests, and Agent conversations. Favorites can be organized into folders and ordered by the user. Each favorite is owned by a single user and links to exactly one target entity (or is a folder containing other favorites).
 type Favorite struct {
+	// [INTERNAL] The favorited Agent conversation.
+	AiConversation *AiConversation `json:"aiConversation,omitempty"`
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 	// Children of the favorite. Only applies to favorites of type folder.
@@ -7223,6 +7477,8 @@ type Favorite struct {
 	ID string `json:"id"`
 	// The favorited initiative.
 	Initiative *Initiative `json:"initiative,omitempty"`
+	// [INTERNAL] The favorited initiative label.
+	InitiativeLabel *InitiativeLabel `json:"initiativeLabel,omitempty"`
 	// The targeted tab of the initiative.
 	InitiativeTab *InitiativeTab `json:"initiativeTab,omitempty"`
 	// The favorited issue.
@@ -7285,6 +7541,8 @@ type FavoriteConnection struct {
 
 // Input for creating a favorite. Exactly one target entity must be specified (e.g., issueId, projectId, customViewId, folderName, etc.).
 type FavoriteCreateInput struct {
+	// [INTERNAL] The identifier of the Agent conversation to favorite.
+	AiConversationID *string `json:"aiConversationId,omitempty"`
 	// The identifier of the custom view to favorite.
 	CustomViewID *string `json:"customViewId,omitempty"`
 	// The identifier of the customer to favorite.
@@ -7303,6 +7561,8 @@ type FavoriteCreateInput struct {
 	ID *string `json:"id,omitempty"`
 	// [INTERNAL] The identifier of the initiative to favorite.
 	InitiativeID *string `json:"initiativeId,omitempty"`
+	// [INTERNAL] The identifier of the initiative label to favorite.
+	InitiativeLabelID *string `json:"initiativeLabelId,omitempty"`
 	// The tab of the initiative to favorite.
 	InitiativeTab *InitiativeTab `json:"initiativeTab,omitempty"`
 	// The identifier of the issue to favorite. Can be a UUID or issue identifier (e.g., 'LIN-123').
@@ -7684,17 +7944,17 @@ type GitHubRepoInput struct {
 }
 
 type GitHubRepoMappingInput struct {
-	// Whether the sync for this mapping is bidirectional.
+	// Whether Linear-created issues matching this mapping will create GitHub issues.
 	Bidirectional *bool `json:"bidirectional,omitempty"`
-	// Whether this mapping is the default one for issue creation.
+	// Whether this mapping is the default destination for Linear-created issues that do not match a label-filtered mapping.
 	Default *bool `json:"default,omitempty"`
-	// Labels to filter incoming GitHub issue creation by.
+	// Label names used as a creation filter. When set, only issues matching one of these labels will create a synced issue for this mapping.
 	GitHubLabels []string `json:"gitHubLabels,omitempty"`
 	// The GitHub repo id.
 	GitHubRepoID float64 `json:"gitHubRepoId"`
 	// The unique identifier for this mapping.
 	ID string `json:"id"`
-	// The Linear team id to map to the given project.
+	// The Linear team id to map to the GitHub repository.
 	LinearTeamID string `json:"linearTeamId"`
 }
 
@@ -7884,6 +8144,8 @@ type IdentityProvider struct {
 	SsoSignAlgo *string `json:"ssoSignAlgo,omitempty"`
 	// X.509 Signing Certificate in string form.
 	SsoSigningCert *string `json:"ssoSigningCert,omitempty"`
+	// The time at which the current SAML configuration was marked as verified. Null if it has not been verified. Cleared whenever the SAML configuration changes.
+	SsoVerifiedAt *time.Time `json:"ssoVerifiedAt,omitempty"`
 	// The type of identity provider.
 	Type IdentityProviderType `json:"type"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
@@ -7954,9 +8216,9 @@ type Initiative struct {
 	InitiativeUpdates *InitiativeUpdateConnection `json:"initiativeUpdates"`
 	// Settings for all integrations associated with that initiative.
 	IntegrationsSettings *IntegrationsSettings `json:"integrationsSettings,omitempty"`
-	// [Internal] The IDs of the initiative labels associated with this initiative.
+	// The IDs of the initiative labels associated with this initiative.
 	LabelIds []string `json:"labelIds"`
-	// [Internal] Labels associated with this initiative.
+	// Labels associated with this initiative.
 	Labels *InitiativeLabelConnection `json:"labels"`
 	// The most recent status update posted for this initiative. Null if no updates have been posted.
 	LastUpdate *InitiativeUpdate `json:"lastUpdate,omitempty"`
@@ -7976,9 +8238,9 @@ type Initiative struct {
 	ParentInitiatives *InitiativeConnection `json:"parentInitiatives"`
 	// [Internal] Identifiers (default and custom) that this initiative has previously held. Used to resolve URLs that referenced an older identifier.
 	PreviousIdentifiers []string `json:"previousIdentifiers"`
-	// [Internal] The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
+	// The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
 	Priority int64 `json:"priority"`
-	// [Internal] The sort order of the initiative within the workspace when ordered by priority.
+	// The sort order of the initiative within the workspace when ordered by priority.
 	PrioritySortOrder float64 `json:"prioritySortOrder"`
 	// Projects associated with the initiative.
 	Projects *ProjectConnection `json:"projects"`
@@ -8011,6 +8273,8 @@ type Initiative struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	// Initiative URL.
 	URL string `json:"url"`
+	// [ALPHA] The visibility of the initiative, derived from its lead team. Public when no lead team is assigned.
+	Visibility InitiativeVisibility `json:"visibility"`
 }
 
 func (Initiative) IsNode() {}
@@ -8072,7 +8336,7 @@ type InitiativeCollectionFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// Filters that the initiative updates must satisfy.
 	InitiativeUpdates *InitiativeUpdatesCollectionFilter `json:"initiativeUpdates,omitempty"`
-	// [Internal] Filters that the initiative labels must satisfy.
+	// Filters that the initiative labels must satisfy.
 	Labels *InitiativeLabelCollectionFilter `json:"labels,omitempty"`
 	// [ALPHA] Filters that the initiative lead team must satisfy.
 	LeadTeam *NullableTeamFilter `json:"leadTeam,omitempty"`
@@ -8084,7 +8348,7 @@ type InitiativeCollectionFilter struct {
 	Or []*InitiativeCollectionFilter `json:"or,omitempty"`
 	// Filters that the initiative owner must satisfy.
 	Owner *NullableUserFilter `json:"owner,omitempty"`
-	// [Internal] Comparator for the initiative priority.
+	// Comparator for the initiative priority.
 	Priority *NullableNumberComparator `json:"priority,omitempty"`
 	// Comparator for the initiative slug ID.
 	SlugID *StringComparator `json:"slugId,omitempty"`
@@ -8120,7 +8384,7 @@ type InitiativeCreateInput struct {
 	Icon *string `json:"icon,omitempty"`
 	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
 	ID *string `json:"id,omitempty"`
-	// [Internal] The identifiers of the initiative labels associated with this initiative.
+	// The identifiers of the initiative labels associated with this initiative.
 	LabelIds []string `json:"labelIds,omitempty"`
 	// [ALPHA] The team that leads the initiative.
 	LeadTeamID *string `json:"leadTeamId,omitempty"`
@@ -8128,9 +8392,9 @@ type InitiativeCreateInput struct {
 	Name string `json:"name"`
 	// The owner of the initiative.
 	OwnerID *string `json:"ownerId,omitempty"`
-	// [Internal] The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
+	// The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
 	Priority *int64 `json:"priority,omitempty"`
-	// [Internal] The sort order of the initiative within the workspace, when ordered by priority.
+	// The sort order of the initiative within the workspace, when ordered by priority.
 	PrioritySortOrder *float64 `json:"prioritySortOrder,omitempty"`
 	// The sort order of the initiative within the workspace.
 	SortOrder *float64 `json:"sortOrder,omitempty"`
@@ -8180,7 +8444,7 @@ type InitiativeFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// Filters that the initiative updates must satisfy.
 	InitiativeUpdates *InitiativeUpdatesCollectionFilter `json:"initiativeUpdates,omitempty"`
-	// [Internal] Filters that the initiative labels must satisfy.
+	// Filters that the initiative labels must satisfy.
 	Labels *InitiativeLabelCollectionFilter `json:"labels,omitempty"`
 	// [ALPHA] Filters that the initiative lead team must satisfy.
 	LeadTeam *NullableTeamFilter `json:"leadTeam,omitempty"`
@@ -8190,7 +8454,7 @@ type InitiativeFilter struct {
 	Or []*InitiativeFilter `json:"or,omitempty"`
 	// Filters that the initiative owner must satisfy.
 	Owner *NullableUserFilter `json:"owner,omitempty"`
-	// [Internal] Comparator for the initiative priority.
+	// Comparator for the initiative priority.
 	Priority *NullableNumberComparator `json:"priority,omitempty"`
 	// Comparator for the initiative slug ID.
 	SlugID *StringComparator `json:"slugId,omitempty"`
@@ -8204,6 +8468,14 @@ type InitiativeFilter struct {
 	Teams *TeamCollectionFilter `json:"teams,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+}
+
+// The result of an AI-generated initiative filter suggestion based on a text prompt.
+type InitiativeFilterSuggestionPayload struct {
+	// The json filter that is suggested.
+	Filter map[string]any `json:"filter,omitempty"`
+	// The log id of the prompt that created this filter.
+	LogID *string `json:"logId,omitempty"`
 }
 
 // Initiative health sorting options.
@@ -8260,6 +8532,8 @@ type InitiativeHistoryEdge struct {
 type InitiativeLabel struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// Children of the label.
+	Children *InitiativeLabelConnection `json:"children"`
 	// The label's color as a HEX string (e.g., '#EB5757'). Used for visual identification of the label in the UI.
 	Color string `json:"color"`
 	// The time at which the entity was created.
@@ -8270,6 +8544,8 @@ type InitiativeLabel struct {
 	Description *string `json:"description,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
+	// Initiatives associated with the label.
+	Initiatives *InitiativeConnection `json:"initiatives"`
 	// Whether the label is a group. When true, this label acts as a container for child labels and cannot be directly applied to issues or projects. When false, the label can be directly applied.
 	IsGroup bool `json:"isGroup"`
 	// The date when the label was last applied to an issue, project, or initiative. Null if the label has never been applied.
@@ -8342,6 +8618,24 @@ type InitiativeLabelConnection struct {
 	PageInfo *PageInfo              `json:"pageInfo"`
 }
 
+// Input for creating a new initiative label. A name is required. The label is created as a workspace-level label available to all initiatives.
+type InitiativeLabelCreateInput struct {
+	// The color of the label.
+	Color *string `json:"color,omitempty"`
+	// The description of the label.
+	Description *string `json:"description,omitempty"`
+	// The identifier in UUID v4 format. If none is provided, the backend will generate one.
+	ID *string `json:"id,omitempty"`
+	// Whether the label is a group.
+	IsGroup *bool `json:"isGroup,omitempty"`
+	// The name of the label.
+	Name string `json:"name"`
+	// The identifier of the parent label.
+	ParentID *string `json:"parentId,omitempty"`
+	// The time at which the label was retired. Set to null to restore a retired label.
+	RetiredAt *time.Time `json:"retiredAt,omitempty"`
+}
+
 type InitiativeLabelEdge struct {
 	// Used in `before` and `after` args
 	Cursor string           `json:"cursor"`
@@ -8370,6 +8664,32 @@ type InitiativeLabelFilter struct {
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
 
+// The result of an initiative label mutation.
+type InitiativeLabelPayload struct {
+	// The label that was created or updated.
+	InitiativeLabel *InitiativeLabel `json:"initiativeLabel"`
+	// The identifier of the last sync operation.
+	LastSyncID float64 `json:"lastSyncId"`
+	// Whether the operation was successful.
+	Success bool `json:"success"`
+}
+
+// Input for updating an existing initiative label. All fields are optional; only provided fields will be updated.
+type InitiativeLabelUpdateInput struct {
+	// The color of the label.
+	Color *string `json:"color,omitempty"`
+	// The description of the label.
+	Description *string `json:"description,omitempty"`
+	// Whether the label is a group.
+	IsGroup *bool `json:"isGroup,omitempty"`
+	// The name of the label.
+	Name *string `json:"name,omitempty"`
+	// The identifier of the parent label.
+	ParentID *string `json:"parentId,omitempty"`
+	// The time at which the label was retired. Set to null to restore a retired label.
+	RetiredAt *time.Time `json:"retiredAt,omitempty"`
+}
+
 // Payload for an initiative label webhook.
 type InitiativeLabelWebhookPayload struct {
 	// The time at which the entity was archived.
@@ -8392,6 +8712,26 @@ type InitiativeLabelWebhookPayload struct {
 	ParentID *string `json:"parentId,omitempty"`
 	// The time at which the entity was updated.
 	UpdatedAt string `json:"updatedAt"`
+}
+
+// [Internal] Impact summary for changing an initiative's lead team.
+type InitiativeLeadTeamChangeImpact struct {
+	// The number of editable matching sub-initiatives whose lead team would change if the update is applied to descendants. Matching sub-initiatives currently have the same lead team as the selected initiative had before the change.
+	AffectedDescendantCount int64 `json:"affectedDescendantCount"`
+	// Whether the changed initiatives may gain or lose access restrictions because the current or next lead team is not public.
+	VisibilityMayChange bool `json:"visibilityMayChange"`
+}
+
+// [Internal] The payload returned by the initiative lead team update mutation.
+type InitiativeLeadTeamUpdatePayload struct {
+	// [Internal] The matching sub-initiatives whose lead team was also changed.
+	AffectedDescendants []*Initiative `json:"affectedDescendants"`
+	// The initiative that was created or updated.
+	Initiative *Initiative `json:"initiative"`
+	// The identifier of the last sync operation.
+	LastSyncID float64 `json:"lastSyncId"`
+	// Whether the operation was successful.
+	Success bool `json:"success"`
 }
 
 // Initiative manual sorting options.
@@ -9035,7 +9375,7 @@ type InitiativeUpdateInput struct {
 	FrequencyResolution *FrequencyResolutionType `json:"frequencyResolution,omitempty"`
 	// The initiative's icon.
 	Icon *string `json:"icon,omitempty"`
-	// [Internal] The identifiers of the initiative labels associated with this initiative.
+	// The identifiers of the initiative labels associated with this initiative.
 	LabelIds []string `json:"labelIds,omitempty"`
 	// [ALPHA] The team that leads the initiative. Set to null to clear.
 	LeadTeamID *string `json:"leadTeamId,omitempty"`
@@ -9043,9 +9383,9 @@ type InitiativeUpdateInput struct {
 	Name *string `json:"name,omitempty"`
 	// The owner of the initiative.
 	OwnerID *string `json:"ownerId,omitempty"`
-	// [Internal] The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
+	// The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
 	Priority *int64 `json:"priority,omitempty"`
-	// [Internal] The sort order of the initiative within the workspace, when ordered by priority.
+	// The sort order of the initiative within the workspace, when ordered by priority.
 	PrioritySortOrder *float64 `json:"prioritySortOrder,omitempty"`
 	// The sort order of the initiative within the workspace.
 	SortOrder *float64 `json:"sortOrder,omitempty"`
@@ -9205,10 +9545,14 @@ type InitiativeWebhookPayload struct {
 	ID string `json:"id"`
 	// The human-readable identifier of the initiative.
 	Identifier *string `json:"identifier,omitempty"`
+	// The IDs of the initiative labels associated with this initiative.
+	LabelIds []string `json:"labelIds"`
 	// The last update for this initiative.
 	LastUpdate *InitiativeUpdateChildWebhookPayload `json:"lastUpdate,omitempty"`
 	// The ID of the last update for this initiative.
 	LastUpdateID *string `json:"lastUpdateId,omitempty"`
+	// The ID of the team that leads the initiative.
+	LeadTeamID *string `json:"leadTeamId,omitempty"`
 	// The name of the initiative.
 	Name string `json:"name"`
 	// The ID of the organization this initiative belongs to.
@@ -9223,6 +9567,8 @@ type InitiativeWebhookPayload struct {
 	ParentInitiatives []*InitiativeChildWebhookPayload `json:"parentInitiatives,omitempty"`
 	// Previous identifiers of the initiative.
 	PreviousIdentifiers []string `json:"previousIdentifiers,omitempty"`
+	// The priority of the initiative. 0 = No priority, 1 = Urgent, 2 = High, 3 = Medium, 4 = Low.
+	Priority float64 `json:"priority"`
 	// The projects associated with the initiative.
 	Projects []*ProjectChildWebhookPayload `json:"projects,omitempty"`
 	// The unique slug identifier of the initiative.
@@ -9459,6 +9805,8 @@ type IntegrationUpdateInput struct {
 	Settings *IntegrationSettingsInput `json:"settings,omitempty"`
 	// The ID of the workflow definition draft that this integration should be assigned to.
 	WorkflowDefinitionDraftID *string `json:"workflowDefinitionDraftId,omitempty"`
+	// The ID of the workflow definition that this integration should be assigned to.
+	WorkflowDefinitionID *string `json:"workflowDefinitionId,omitempty"`
 }
 
 // The configuration of all integrations for different entities. Controls Slack notification preferences for a specific team, project, initiative, or custom view. Exactly one of teamId, projectId, customViewId, or initiativeId must be set, determining which entity these integration settings apply to.
@@ -9603,12 +9951,16 @@ type IntercomSettingsInput struct {
 	AutomateTicketReopeningOnProjectCancellation *bool `json:"automateTicketReopeningOnProjectCancellation,omitempty"`
 	// Whether a ticket should be automatically reopened when its linked Linear project is completed.
 	AutomateTicketReopeningOnProjectCompletion *bool `json:"automateTicketReopeningOnProjectCompletion,omitempty"`
+	// [INTERNAL] An optional destination team ID for issues created by automatic Intercom conversation intake.
+	AutomaticConversationIntakeTeamID *string `json:"automaticConversationIntakeTeamId,omitempty"`
 	// [ALPHA] Whether customer and customer requests should not be automatically created when conversations are linked to a Linear issue.
 	DisableCustomerRequestsAutoCreation *bool `json:"disableCustomerRequestsAutoCreation,omitempty"`
 	// Whether Linear Agent should be enabled for this integration.
 	EnableAiIntake *bool `json:"enableAiIntake,omitempty"`
 	// Whether Linear Agent should process supported attachments from Intercom conversations during AI intake. When false, attachments are omitted from the prompt.
 	EnableAiIntakeAttachmentProcessing *bool `json:"enableAiIntakeAttachmentProcessing,omitempty"`
+	// [INTERNAL] Whether new Intercom conversations should automatically create Linear issues with Linear Agent.
+	EnableAutomaticConversationIntake *bool `json:"enableAutomaticConversationIntake,omitempty"`
 	// Whether an internal message should be added when someone comments on an issue.
 	SendNoteOnComment *bool `json:"sendNoteOnComment,omitempty"`
 	// Whether an internal message should be added when a Linear issue changes status (for status types except completed or canceled).
@@ -9653,7 +10005,7 @@ type Issue struct {
 	CanceledAt *time.Time `json:"canceledAt,omitempty"`
 	// Children of the issue.
 	Children *IssueConnection `json:"children"`
-	// Comments associated with the issue.
+	// Comments associated with the issue, including inline comments on the issue's description.
 	Comments *CommentConnection `json:"comments"`
 	// The time at which the issue was moved into completed state.
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
@@ -10657,7 +11009,7 @@ type IssueHistoryTriageRuleMetadata struct {
 	UpdatedByTriageRule *WorkflowDefinition `json:"updatedByTriageRule,omitempty"`
 }
 
-// Metadata about a workflow automation that made changes to an issue. Links the issue history entry back to the workflow definition that triggered the change, and optionally to any AI conversation involved in the automation.
+// Metadata about a loop that made changes to an issue. Links the issue history entry back to the workflow definition that triggered the change, and optionally to any AI conversation involved in the loop.
 type IssueHistoryWorkflowMetadata struct {
 	// The AI conversation associated with the workflow.
 	AiConversation *AiConversation `json:"aiConversation,omitempty"`
@@ -11358,7 +11710,7 @@ type IssueSearchResult struct {
 	CanceledAt *time.Time `json:"canceledAt,omitempty"`
 	// Children of the issue.
 	Children *IssueConnection `json:"children"`
-	// Comments associated with the issue.
+	// Comments associated with the issue, including inline comments on the issue's description.
 	Comments *CommentConnection `json:"comments"`
 	// The time at which the issue was moved into completed state.
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
@@ -11966,7 +12318,7 @@ type IssueUpdateInput struct {
 	TeamID *string `json:"teamId,omitempty"`
 	// The issue title.
 	Title *string `json:"title,omitempty"`
-	// Whether the issue has been trashed.
+	// Whether the issue has been trashed. Set to true to trash, or null to restore.
 	Trashed *bool `json:"trashed,omitempty"`
 	// [Internal] Whether this issue has been explicitly marked as trusted.
 	Trusted *bool `json:"trusted,omitempty"`
@@ -12692,6 +13044,8 @@ type NotificationFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// Compound filters, one of which need to be matched by the notification.
 	Or []*NotificationFilter `json:"or,omitempty"`
+	// Comparator for the notification subscription type.
+	SubscriptionType *NotificationSubscriptionTypeComparator `json:"subscriptionType,omitempty"`
 	// Comparator for the notification type.
 	Type *StringComparator `json:"type,omitempty"`
 	// Comparator for the updated at date.
@@ -12760,6 +13114,18 @@ type NotificationSubscriptionPayload struct {
 	Success bool `json:"success"`
 }
 
+// Comparator for notification subscription type.
+type NotificationSubscriptionTypeComparator struct {
+	// Equals constraint.
+	Eq *NotificationSubscriptionType `json:"eq,omitempty"`
+	// In-array constraint.
+	In []NotificationSubscriptionType `json:"in,omitempty"`
+	// Not-equals constraint.
+	Neq *NotificationSubscriptionType `json:"neq,omitempty"`
+	// Not-in-array constraint.
+	Nin []NotificationSubscriptionType `json:"nin,omitempty"`
+}
+
 // Input for updating an existing notification subscription. Allows changing the subscribed notification types and active state.
 type NotificationSubscriptionUpdateInput struct {
 	// Whether the subscription is active.
@@ -12801,6 +13167,8 @@ type NullableCommentFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// [Internal] Filters that the comment's initiative must satisfy.
 	Initiative *NullableInitiativeFilter `json:"initiative,omitempty"`
+	// Filters that the comment's initiative update must satisfy.
+	InitiativeUpdate *NullableInitiativeUpdateFilter `json:"initiativeUpdate,omitempty"`
 	// Filters that the comment's issue must satisfy.
 	Issue *NullableIssueFilter `json:"issue,omitempty"`
 	// Filters that the comment's customer needs must satisfy.
@@ -12999,7 +13367,7 @@ type NullableInitiativeFilter struct {
 	ID *IDComparator `json:"id,omitempty"`
 	// Filters that the initiative updates must satisfy.
 	InitiativeUpdates *InitiativeUpdatesCollectionFilter `json:"initiativeUpdates,omitempty"`
-	// [Internal] Filters that the initiative labels must satisfy.
+	// Filters that the initiative labels must satisfy.
 	Labels *InitiativeLabelCollectionFilter `json:"labels,omitempty"`
 	// [ALPHA] Filters that the initiative lead team must satisfy.
 	LeadTeam *NullableTeamFilter `json:"leadTeam,omitempty"`
@@ -13011,7 +13379,7 @@ type NullableInitiativeFilter struct {
 	Or []*NullableInitiativeFilter `json:"or,omitempty"`
 	// Filters that the initiative owner must satisfy.
 	Owner *NullableUserFilter `json:"owner,omitempty"`
-	// [Internal] Comparator for the initiative priority.
+	// Comparator for the initiative priority.
 	Priority *NullableNumberComparator `json:"priority,omitempty"`
 	// Comparator for the initiative slug ID.
 	SlugID *StringComparator `json:"slugId,omitempty"`
@@ -13025,6 +13393,28 @@ type NullableInitiativeFilter struct {
 	Teams *TeamCollectionFilter `json:"teams,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+}
+
+// Nullable initiative update filtering options.
+type NullableInitiativeUpdateFilter struct {
+	// Compound filters, all of which need to be matched by the initiative update.
+	And []*NullableInitiativeUpdateFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Filters that the initiative update initiative must satisfy.
+	Initiative *InitiativeFilter `json:"initiative,omitempty"`
+	// Filter based on the existence of the relation.
+	Null *bool `json:"null,omitempty"`
+	// Compound filters, one of which need to be matched by the initiative update.
+	Or []*NullableInitiativeUpdateFilter `json:"or,omitempty"`
+	// Filters that the initiative updates reactions must satisfy.
+	Reactions *ReactionCollectionFilter `json:"reactions,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// Filters that the initiative update creator must satisfy.
+	User *UserFilter `json:"user,omitempty"`
 }
 
 // Issue filtering options.
@@ -13389,6 +13779,8 @@ type NullableTeamFilter struct {
 	Null *bool `json:"null,omitempty"`
 	// Compound filters, one of which need to be matched by the team.
 	Or []*NullableTeamFilter `json:"or,omitempty"`
+	// Filters that the team's owners must satisfy.
+	Owners *UserCollectionFilter `json:"owners,omitempty"`
 	// Filters that the team's parent must satisfy.
 	Parent *NullableTeamFilter `json:"parent,omitempty"`
 	// [DEPRECATED] Comparator for the team privacy.
@@ -13401,6 +13793,8 @@ type NullableTeamFilter struct {
 	RetiredAt *NullableDateComparator `json:"retiredAt,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// [Internal] Filters that the team's members must satisfy. Alias of `members` matching the filter shape produced by the app; prefer `members`.
+	Users *UserCollectionFilter `json:"users,omitempty"`
 	// Comparator for the team visibility.
 	Visibility *TeamVisibilityComparator `json:"visibility,omitempty"`
 }
@@ -13960,6 +14354,8 @@ type Organization struct {
 	CustomersEnabled bool `json:"customersEnabled"`
 	// Default schedule for how often feed summaries are generated.
 	DefaultFeedSummarySchedule *FeedSummarySchedule `json:"defaultFeedSummarySchedule,omitempty"`
+	// The default home view for members of the workspace who have not chosen their own default.
+	DefaultHomeView *string `json:"defaultHomeView,omitempty"`
 	// The time at which deletion of the workspace was requested. Null if no deletion has been requested.
 	DeletionRequestedAt *time.Time `json:"deletionRequestedAt,omitempty"`
 	// [Internal] Facets associated with the workspace, used for configuring custom views and filters.
@@ -14020,6 +14416,8 @@ type Organization struct {
 	ProjectUpdateRemindersHour float64 `json:"projectUpdateRemindersHour"`
 	// [DEPRECATED] The frequency at which to prompt for project updates.
 	ProjectUpdatesReminderFrequency ProjectUpdateReminderFrequency `json:"projectUpdatesReminderFrequency"`
+	// How Linear suggests and links issues for pull requests that have none linked: 'off', 'suggest', or 'autoOnMerge'.
+	PullRequestIssueMode string `json:"pullRequestIssueMode"`
 	// Whether the workspace generates AI Pull Request guides for new pull requests.
 	PullRequestTourEnabled bool `json:"pullRequestTourEnabled"`
 	// The feature release channel the workspace belongs to, which controls access to pre-release features.
@@ -14111,6 +14509,8 @@ type OrganizationCancelDeletePayload struct {
 
 // [Internal] Input for updating Coding Sessions settings for the workspace.
 type OrganizationCodingAgentSettingsInput struct {
+	// [Internal] Whether Coding Sessions require uploaded user commit signing keys.
+	CommitSigningEnabled *bool `json:"commitSigningEnabled,omitempty"`
 	// [Internal] The provider-agnostic reasoning effort level used for Coding Sessions. Clamped to the selected model's provider when the session runs.
 	Effort *string `json:"effort,omitempty"`
 	// [Internal] The model preference used for Coding Sessions.
@@ -14355,17 +14755,17 @@ type OrganizationLinearAgentSettingsInput struct {
 	McpServersEnabled *bool `json:"mcpServersEnabled,omitempty"`
 	// [Internal] Whether all MCP servers or only approved MCP servers are allowed for Linear Agent.
 	McpServersMode *LinearAgentMcpServersMode `json:"mcpServersMode,omitempty"`
-	// [Internal] Trusted-source allowlist for Linear Agent automations.
+	// [Internal] Trusted-source allowlist for loops.
 	TrustedSourcesAllowlist []*OrganizationLinearAgentTrustedSourcesAllowlistEntryInput `json:"trustedSourcesAllowlist,omitempty"`
-	// [Internal] Whether external trusted sources are disabled or restricted to approved sources for agent automations.
+	// [Internal] Whether external trusted sources are disabled or restricted to approved sources for loops.
 	TrustedSourcesMode *LinearAgentTrustedSourcesMode `json:"trustedSourcesMode,omitempty"`
 	// [Internal] Whether the workspace has enabled web search for Linear Agent.
 	WebSearchEnabled *bool `json:"webSearchEnabled,omitempty"`
 }
 
-// [Internal] A trusted-source entry for the Linear Agent automation allowlist.
+// [Internal] A trusted-source entry for the loop allowlist.
 type OrganizationLinearAgentTrustedSourcesAllowlistEntryInput struct {
-	// [Internal] The trusted-source key that Linear Agent automations are allowed to use.
+	// [Internal] The trusted-source key that loops are allowed to use.
 	Key string `json:"key"`
 }
 
@@ -14401,7 +14801,7 @@ type OrganizationSecuritySettingsInput struct {
 	AgentGuidanceRole *UserRoleType `json:"agentGuidanceRole,omitempty"`
 	// The minimum role required to manage API settings.
 	APISettingsRole *UserRoleType `json:"apiSettingsRole,omitempty"`
-	// The minimum role required to manage workspace automations.
+	// The minimum role required to manage workspace loops.
 	AutomationManagementRole *UserRoleType `json:"automationManagementRole,omitempty"`
 	// The minimum role required to import data.
 	ImportRole *UserRoleType `json:"importRole,omitempty"`
@@ -14441,7 +14841,7 @@ type OrganizationThemeSettingsInput struct {
 
 // Input for updating the workspace.
 type OrganizationUpdateInput struct {
-	// [INTERNAL] Whether the workspace has enabled agent automation.
+	// [INTERNAL] Whether the workspace has enabled loops.
 	AgentAutomationEnabled *bool `json:"agentAutomationEnabled,omitempty"`
 	// [INTERNAL] Whether the workspace has enabled the AI add-on.
 	AiAddonEnabled *bool `json:"aiAddonEnabled,omitempty"`
@@ -14469,6 +14869,8 @@ type OrganizationUpdateInput struct {
 	CustomersEnabled *bool `json:"customersEnabled,omitempty"`
 	// Default schedule for how often feed summaries are generated.
 	DefaultFeedSummarySchedule *FeedSummarySchedule `json:"defaultFeedSummarySchedule,omitempty"`
+	// The default home view for members of the workspace who have not chosen their own default.
+	DefaultHomeView *string `json:"defaultHomeView,omitempty"`
 	// Whether the workspace has enabled the feed feature.
 	FeedEnabled *bool `json:"feedEnabled,omitempty"`
 	// The month at which the fiscal year starts.
@@ -14509,6 +14911,8 @@ type OrganizationUpdateInput struct {
 	ProjectUpdateRemindersDay *Day `json:"projectUpdateRemindersDay,omitempty"`
 	// The hour at which project updates are sent.
 	ProjectUpdateRemindersHour *float64 `json:"projectUpdateRemindersHour,omitempty"`
+	// How Linear suggests and links issues for pull requests that have none linked: 'off', 'suggest', or 'autoOnMerge'.
+	PullRequestIssueMode *string `json:"pullRequestIssueMode,omitempty"`
 	// Whether the workspace generates AI Pull Request guides for new pull requests.
 	PullRequestTourEnabled *bool `json:"pullRequestTourEnabled,omitempty"`
 	// Whether the workspace has opted for reduced customer support attachment information.
@@ -14660,6 +15064,56 @@ type PartialNotificationChannelPreferencesInput struct {
 	Mobile *bool `json:"mobile,omitempty"`
 	// Whether notifications are currently enabled for Slack.
 	Slack *bool `json:"slack,omitempty"`
+}
+
+// [INTERNAL] Input for a Startup Program partner application submitted from the website.
+type PartnerApplicationCreateInput struct {
+	// Number of cohorts run per year (accelerators and programs).
+	CohortsPerYear *string `json:"cohortsPerYear,omitempty"`
+	// Number of companies per cohort (accelerators and programs).
+	CompaniesPerCohort *string `json:"companiesPerCohort,omitempty"`
+	// Whether the applicant confirmed the distribution terms.
+	Consent bool `json:"consent"`
+	// One-line description of what the organization does.
+	Description string `json:"description"`
+	// Channels the organization will use to distribute the offer.
+	DistributionChannels []string `json:"distributionChannels,omitempty"`
+	// Business email of the applicant.
+	Email string `json:"email"`
+	// Full name of the applicant.
+	FullName string `json:"fullName"`
+	// Stages the firm primarily invests at (venture capital firms).
+	InvestmentStages []string `json:"investmentStages,omitempty"`
+	// Number of active members or startups in the network (communities).
+	NetworkSize *string `json:"networkSize,omitempty"`
+	// Whether the organization already offers software perks from other companies.
+	OffersSoftwarePerks *string `json:"offersSoftwarePerks,omitempty"`
+	// Name of the partner organization.
+	OrganizationName string `json:"organizationName"`
+	// Type of the partner organization (e.g., venture capital firm, accelerator).
+	OrganizationType string `json:"organizationType"`
+	// Website of the partner organization.
+	OrganizationWebsite string `json:"organizationWebsite"`
+	// Which other software perks the organization offers, when applicable.
+	OtherPerks *string `json:"otherPerks,omitempty"`
+	// Number of active portfolio companies (venture capital firms).
+	PortfolioCompanies *string `json:"portfolioCompanies,omitempty"`
+	// Primary countries or regions the organization operates in.
+	Region string `json:"region"`
+	// The applicant's role or title at the organization.
+	Role string `json:"role"`
+}
+
+// [Internal] Public details of an active partner-program offer.
+type PartnerOfferDetailsPayload struct {
+	// The unique identifier of the offer.
+	ID string `json:"id"`
+	// Display name of the partner.
+	PartnerName string `json:"partnerName"`
+	// Stable, URL-safe identifier for the partner.
+	PartnerSlug string `json:"partnerSlug"`
+	// Short-lived signed token to carry the redemption through signup. Embeds a freshly minted redemption identifier, the offer identifier, and its mint and expiry times.
+	Token string `json:"token"`
 }
 
 type PasskeyLoginStartResponse struct {
@@ -14892,6 +15346,8 @@ type PrioritySort struct {
 	Nulls *PaginationNulls `json:"nulls,omitempty"`
 	// The order for the individual sort
 	Order *PaginationSortOrder `json:"order,omitempty"`
+	// Whether to tiebreak issues sharing a priority by their priority sort order
+	UsePrioritySortOrderTiebreaker *bool `json:"usePrioritySortOrderTiebreaker,omitempty"`
 }
 
 // A product announcement shown in targeted workspace inbox notifications. Product announcements store reusable launch copy and are sent to specific recipients through related notifications.
@@ -15643,6 +16099,8 @@ type ProjectLabel struct {
 	Description *string `json:"description,omitempty"`
 	// The unique identifier of the entity.
 	ID string `json:"id"`
+	// [Internal] The original workspace or parent-team label that this label was inherited from. Null if the label is not inherited.
+	InheritedFrom *ProjectLabel `json:"inheritedFrom,omitempty"`
 	// Whether the label is a group. When true, this label acts as a container for child labels and cannot be directly applied to issues or projects. When false, the label can be directly applied.
 	IsGroup bool `json:"isGroup"`
 	// The date when the label was last applied to an issue, project, or initiative. Null if the label has never been applied.
@@ -15659,6 +16117,8 @@ type ProjectLabel struct {
 	RetiredAt *time.Time `json:"retiredAt,omitempty"`
 	// The user who retired the label. Retired labels cannot be applied to new projects but remain on existing ones. Null if the label is active.
 	RetiredBy *User `json:"retiredBy,omitempty"`
+	// [Internal] The team that the label is scoped to. If null, the label is a workspace-level label available to all teams in the workspace.
+	Team *Team `json:"team,omitempty"`
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -15717,7 +16177,7 @@ type ProjectLabelConnection struct {
 	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
-// Input for creating a new project label. A name is required. The label is created as a workspace-level label available to all projects.
+// Input for creating a new project label. A name is required. If no team is specified, the label is created as a workspace-level label available to all teams.
 type ProjectLabelCreateInput struct {
 	// The color of the label.
 	Color *string `json:"color,omitempty"`
@@ -15733,6 +16193,8 @@ type ProjectLabelCreateInput struct {
 	ParentID *string `json:"parentId,omitempty"`
 	// The time at which the label was retired. Set to null to restore a retired label.
 	RetiredAt *time.Time `json:"retiredAt,omitempty"`
+	// [Internal] The team associated with the label. If not given, the label will be associated with the entire workspace.
+	TeamID *string `json:"teamId,omitempty"`
 }
 
 type ProjectLabelEdge struct {
@@ -17237,6 +17699,8 @@ func (ProjectWebhookPayload) IsDataWebhookPayload() {}
 type PullRequest struct {
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// Whether auto-merge is enabled for the pull request.
+	AutoMergeEnabled bool `json:"autoMergeEnabled"`
 	// The Git SHA of the base commit on the target branch that the pull request is compared against. Null if not yet synced.
 	BaseSha *string `json:"baseSha,omitempty"`
 	// [Internal] The CI/CD checks and status checks associated with the pull request, synced from the hosting provider.
@@ -17261,6 +17725,8 @@ type PullRequest struct {
 	Number float64 `json:"number"`
 	// The time at which the pull request was opened.
 	OpenedAt time.Time `json:"openedAt"`
+	// Emoji reaction summary for this pull request, grouped by emoji type. Each entry contains the emoji name, count, and the IDs of users who reacted.
+	ReactionData map[string]any `json:"reactionData"`
 	// The pull request's unique URL slug, used to construct human-readable URLs within the Linear app.
 	SlugID string `json:"slugId"`
 	// The source (head) branch of the pull request that contains the proposed changes.
@@ -17305,7 +17771,7 @@ type PullRequestCheck struct {
 
 // [ALPHA] A Git commit associated with a pull request, including metadata about the commit's content and authors.
 type PullRequestCommit struct {
-	// Number of additions in this commit.
+	// Number of additions in this commit. 0 when the hosting provider did not report per-commit diff stats.
 	Additions float64 `json:"additions"`
 	// External user IDs for commit authors (includes co-authors).
 	AuthorExternalUserIds []string `json:"authorExternalUserIds"`
@@ -17315,7 +17781,7 @@ type PullRequestCommit struct {
 	ChangedFiles *float64 `json:"changedFiles,omitempty"`
 	// The timestamp when the commit was committed, as an ISO 8601 string.
 	CommittedAt string `json:"committedAt"`
-	// Number of deletions in this commit.
+	// Number of deletions in this commit. 0 when the hosting provider did not report per-commit diff stats.
 	Deletions float64 `json:"deletions"`
 	// Whether this commit is a merge commit (has multiple parents). Merge commits are typically filtered out when counting diff stats.
 	IsMergeCommit *bool `json:"isMergeCommit,omitempty"`
@@ -17325,6 +17791,24 @@ type PullRequestCommit struct {
 	ParentShas []string `json:"parentShas,omitempty"`
 	// The Git commit SHA.
 	Sha string `json:"sha"`
+	// Signature verification metadata for this commit. Null if the hosting provider did not return signature information.
+	Signature *PullRequestCommitSignature `json:"signature,omitempty"`
+}
+
+// Signature verification metadata for a Git commit associated with a pull request.
+type PullRequestCommitSignature struct {
+	// Whether the hosting provider considers the signature valid and verified.
+	IsVerified bool `json:"isVerified"`
+	// The hex-encoded fingerprint of the SSH key that signed this commit. Null for non-SSH signatures.
+	KeyFingerprint *string `json:"keyFingerprint,omitempty"`
+	// The hex-encoded ID of the GPG key that signed this commit. Null for non-GPG signatures.
+	KeyID *string `json:"keyId,omitempty"`
+	// The provider-specific verification state for the signature.
+	State string `json:"state"`
+	// The type of signature reported for this commit.
+	Type string `json:"type"`
+	// Whether the commit was signed with the hosting provider's signing key.
+	WasSignedByProvider *bool `json:"wasSignedByProvider,omitempty"`
 }
 
 // [Internal] Merge settings and capabilities for a pull request's repository, including which merge methods are allowed and whether features like merge queues and auto-merge are enabled.
@@ -17871,7 +18355,7 @@ type ReleaseCollectionFilter struct {
 
 // Input for completing a release in a specific pipeline.
 type ReleaseCompleteInput struct {
-	// The commit SHA associated with this completion. If a completed release with this SHA already exists, it will be returned instead of completing a new release.
+	// The commit SHA to store when moving a release to completed. With a version, an existing SHA is preserved. Without a version, this SHA replaces the started release's SHA and is used to detect retries.
 	CommitSha *string `json:"commitSha,omitempty"`
 	// Documents to attach to the completed release. Existing documents with the same title are updated.
 	Documents []*ReleaseDocumentInput `json:"documents,omitempty"`
@@ -17889,7 +18373,7 @@ type ReleaseCompleteInput struct {
 
 // Base input for completing a release. Contains the optional version and commit SHA. The pipeline ID is provided separately or inferred from the access key.
 type ReleaseCompleteInputBase struct {
-	// The commit SHA associated with this completion. If a completed release with this SHA already exists, it will be returned instead of completing a new release.
+	// The commit SHA to store when moving a release to completed. With a version, an existing SHA is preserved. Without a version, this SHA replaces the started release's SHA and is used to detect retries.
 	CommitSha *string `json:"commitSha,omitempty"`
 	// Documents to attach to the completed release. Existing documents with the same title are updated.
 	Documents []*ReleaseDocumentInput `json:"documents,omitempty"`
@@ -18064,6 +18548,8 @@ type ReleaseNote struct {
 	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
 	//     been updated after creation.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// The URL to the release note page in the Linear app.
+	URL string `json:"url"`
 }
 
 func (ReleaseNote) IsNode() {}
@@ -18099,6 +18585,28 @@ type ReleaseNoteEdge struct {
 	// Used in `before` and `after` args
 	Cursor string       `json:"cursor"`
 	Node   *ReleaseNote `json:"node"`
+}
+
+// Release note filtering options.
+type ReleaseNoteFilter struct {
+	// Compound filters, all of which need to be matched by the release note.
+	And []*ReleaseNoteFilter `json:"and,omitempty"`
+	// Comparator for the created at date.
+	CreatedAt *DateComparator `json:"createdAt,omitempty"`
+	// Comparator for the identifier.
+	ID *IDComparator `json:"id,omitempty"`
+	// Compound filters, one of which need to be matched by the release note.
+	Or []*ReleaseNoteFilter `json:"or,omitempty"`
+	// Filters that the release note's pipeline must satisfy.
+	Pipeline *ReleasePipelineFilter `json:"pipeline,omitempty"`
+	// Filters that a release covered by the release note must satisfy.
+	Release *ReleaseFilter `json:"release,omitempty"`
+	// Comparator for the release note slug ID.
+	SlugID *StringComparator `json:"slugId,omitempty"`
+	// Comparator for the release note title.
+	Title *StringComparator `json:"title,omitempty"`
+	// Comparator for the updated at date.
+	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
 
 // Release notes to attach to the release. Upserts the existing release notes that cover only this release. Bad input (empty title, oversized title/body) is skipped with a warning rather than failing the release command.
@@ -18275,6 +18783,8 @@ type ReleasePipelineCollectionFilter struct {
 	Some *ReleasePipelineFilter `json:"some,omitempty"`
 	// Filters that the release pipeline's teams must satisfy.
 	Teams *TeamCollectionFilter `json:"teams,omitempty"`
+	// Comparator for the pipeline type.
+	Type *ReleasePipelineTypeComparator `json:"type,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
@@ -18327,6 +18837,8 @@ type ReleasePipelineFilter struct {
 	Or []*ReleasePipelineFilter `json:"or,omitempty"`
 	// Filters that the release pipeline's teams must satisfy.
 	Teams *TeamCollectionFilter `json:"teams,omitempty"`
+	// Comparator for the pipeline type.
+	Type *ReleasePipelineTypeComparator `json:"type,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
 }
@@ -18353,6 +18865,20 @@ type ReleasePipelinePayload struct {
 type ReleasePipelineSortInput struct {
 	// Sort by release pipeline name.
 	Name *ReleasePipelineNameSort `json:"name,omitempty"`
+}
+
+// Comparator for release pipeline type.
+type ReleasePipelineTypeComparator struct {
+	// Equals constraint.
+	Eq *ReleasePipelineType `json:"eq,omitempty"`
+	// In-array constraint.
+	In []ReleasePipelineType `json:"in,omitempty"`
+	// Not-equals constraint.
+	Neq *ReleasePipelineType `json:"neq,omitempty"`
+	// Not-in-array constraint.
+	Nin []ReleasePipelineType `json:"nin,omitempty"`
+	// Null constraint. Matches any non-null values if the given value is false, otherwise it matches null values.
+	Null *bool `json:"null,omitempty"`
 }
 
 // Input for updating an existing release pipeline.
@@ -18649,7 +19175,7 @@ type ReleaseUpdateInput struct {
 	StartedAt *time.Time `json:"startedAt,omitempty"`
 	// The estimated completion date of the release.
 	TargetDate *string `json:"targetDate,omitempty"`
-	// Whether the release has been trashed.
+	// Whether the release has been trashed. Set to true to trash, or null to restore.
 	Trashed *bool `json:"trashed,omitempty"`
 	// The version of the release.
 	Version *string `json:"version,omitempty"`
@@ -19282,6 +19808,8 @@ type SlackPostSettingsInput struct {
 }
 
 type SlackSettingsInput struct {
+	// Whether Linear Agent may respond in private channels for this Slack integration.
+	AllowAgentInPrivateChannels *bool `json:"allowAgentInPrivateChannels,omitempty"`
 	// Whether Linear Agent should be enabled for this Slack integration.
 	EnableAgent *bool `json:"enableAgent,omitempty"`
 	// Whether Code Intelligence should be enabled for this Slack integration.
@@ -19300,6 +19828,8 @@ type SlackSettingsInput struct {
 	ShouldUnfurl *bool `json:"shouldUnfurl,omitempty"`
 	// Whether to show unfurls in the default style instead of Work Objects in Slack
 	ShouldUseDefaultUnfurl *bool `json:"shouldUseDefaultUnfurl,omitempty"`
+	// Whether Linear Agent should automatically sync threads in private channels for this Slack integration.
+	SyncAgentThreadsInPrivateChannels *bool `json:"syncAgentThreadsInPrivateChannels,omitempty"`
 	// Slack workspace id
 	TeamID *string `json:"teamId,omitempty"`
 	// Slack workspace name
@@ -19617,6 +20147,8 @@ type Team struct {
 	InheritSlackAutoCreateProjectChannel bool `json:"inheritSlackAutoCreateProjectChannel"`
 	// Whether the team should inherit its workflow statuses from its parent. Only applies to sub-teams.
 	InheritWorkflowStatuses bool `json:"inheritWorkflowStatuses"`
+	// [ALPHA] Whether team initiatives are enabled and shown in the team's sidebar.
+	InitiativesEnabled bool `json:"initiativesEnabled"`
 	// Settings for all integrations associated with that team.
 	IntegrationsSettings *IntegrationsSettings `json:"integrationsSettings,omitempty"`
 	// [DEPRECATED] Unique hash for the team to be used in invite URLs.
@@ -19641,6 +20173,8 @@ type Team struct {
 	Key string `json:"key"`
 	// Labels associated with the team.
 	Labels *IssueLabelConnection `json:"labels"`
+	// The number of initiatives led by this team that would be deleted along with it. Counts every led initiative, including ones not otherwise visible to the caller, to mirror what deleting the team cascades.
+	LedInitiativeCount int64 `json:"ledInitiativeCount"`
 	// [DEPRECATED] No longer in use. Duplicates are now system-managed via the native duplicate state.
 	MarkedAsDuplicateWorkflowState *WorkflowState `json:"markedAsDuplicateWorkflowState,omitempty"`
 	// Users who are members of this team. Supports filtering and pagination.
@@ -19900,6 +20434,8 @@ type TeamFilter struct {
 	Name *StringComparator `json:"name,omitempty"`
 	// Compound filters, one of which need to be matched by the team.
 	Or []*TeamFilter `json:"or,omitempty"`
+	// Filters that the team's owners must satisfy.
+	Owners *UserCollectionFilter `json:"owners,omitempty"`
 	// Filters that the team's parent must satisfy.
 	Parent *NullableTeamFilter `json:"parent,omitempty"`
 	// [DEPRECATED] Comparator for the team privacy.
@@ -19912,6 +20448,8 @@ type TeamFilter struct {
 	RetiredAt *NullableDateComparator `json:"retiredAt,omitempty"`
 	// Comparator for the updated at date.
 	UpdatedAt *DateComparator `json:"updatedAt,omitempty"`
+	// [Internal] Filters that the team's members must satisfy. Alias of `members` matching the filter shape produced by the app; prefer `members`.
+	Users *UserCollectionFilter `json:"users,omitempty"`
 	// Comparator for the team visibility.
 	Visibility *TeamVisibilityComparator `json:"visibility,omitempty"`
 }
@@ -20179,7 +20717,7 @@ func (this TeamResourceSection) GetID() string { return this.ID }
 type TeamSecuritySettingsInput struct {
 	// The minimum team role required to manage agent skills in the team.
 	AgentSkillsManagement *TeamRoleType `json:"agentSkillsManagement,omitempty"`
-	// The minimum team role required to manage automations in the team.
+	// The minimum team role required to manage loops in the team.
 	AutomationManagement *TeamRoleType `json:"automationManagement,omitempty"`
 	// The minimum team role required to share issues with non-team-members.
 	IssueSharing *TeamRoleType `json:"issueSharing,omitempty"`
@@ -20963,7 +21501,7 @@ type User struct {
 	Initials string `json:"initials"`
 	// [DEPRECATED] Unique hash for the user to be used in invite URLs.
 	InviteHash string `json:"inviteHash"`
-	// Whether the user can be assigned to issues. Regular users are always assignable; app users are assignable only if they have the app:assignable scope.
+	// Whether the user can be assigned to issues. Regular users are always assignable; app users are assignable only if they have the app:assignable scope. The Linear agent also requires coding sessions to be enabled.
 	IsAssignable bool `json:"isAssignable"`
 	// Whether the user is the currently authenticated user.
 	IsMe bool `json:"isMe"`
@@ -21508,6 +22046,8 @@ type ViewPreferencesCreateInput struct {
 	ID *string `json:"id,omitempty"`
 	// [Internal] The initiative these view preferences are associated with.
 	InitiativeID *string `json:"initiativeId,omitempty"`
+	// The initiative label these view preferences are associated with.
+	InitiativeLabelID *string `json:"initiativeLabelId,omitempty"`
 	// The default parameters for the insight on that view.
 	Insights map[string]any `json:"insights,omitempty"`
 	// The label these view preferences are associated with.
@@ -21566,21 +22106,21 @@ type ViewPreferencesUpdateInput struct {
 
 // The computed view preferences values for a view, containing all display settings such as layout mode, grouping, sorting, field visibility, and other visual configuration. These values represent the merged result of organization defaults and user overrides.
 type ViewPreferencesValues struct {
-	// Whether to show the automation last executed field.
+	// Whether to show the loop last executed field.
 	AutomationFieldLastExecuted *bool `json:"automationFieldLastExecuted,omitempty"`
-	// Whether to show the automation status field.
+	// Whether to show the loop status field.
 	AutomationFieldStats *bool `json:"automationFieldStats,omitempty"`
-	// Whether to show the automation team field.
+	// Whether to show the loop team field.
 	AutomationFieldTeam *bool `json:"automationFieldTeam,omitempty"`
-	// Whether to show the automation trigger field.
+	// Whether to show the loop trigger field.
 	AutomationFieldTrigger *bool `json:"automationFieldTrigger,omitempty"`
-	// The automation grouping.
+	// The loop grouping.
 	AutomationGrouping *string `json:"automationGrouping,omitempty"`
-	// The automation ordering.
+	// The loop ordering.
 	AutomationOrdering *string `json:"automationOrdering,omitempty"`
-	// Whether to show sub-team automations.
+	// Whether to show sub-team loops.
 	AutomationShowDescendants *bool `json:"automationShowDescendants,omitempty"`
-	// The automation stats period.
+	// The loop stats period.
 	AutomationStatsPeriod *string `json:"automationStatsPeriod,omitempty"`
 	// Whether issues in closed columns should be ordered by recency.
 	ClosedIssuesOrderedByRecency *bool `json:"closedIssuesOrderedByRecency,omitempty"`
@@ -21730,13 +22270,13 @@ type ViewPreferencesValues struct {
 	InitiativeFieldHealth *bool `json:"initiativeFieldHealth,omitempty"`
 	// Whether to show the initiative health field.
 	InitiativeFieldInitiativeHealth *bool `json:"initiativeFieldInitiativeHealth,omitempty"`
-	// [Internal] Whether to show the initiative labels field.
+	// Whether to show the initiative labels field.
 	InitiativeFieldLabels *bool `json:"initiativeFieldLabels,omitempty"`
 	// Whether to show the initiative lead team field.
 	InitiativeFieldLeadTeam *bool `json:"initiativeFieldLeadTeam,omitempty"`
 	// Whether to show the initiative owner field.
 	InitiativeFieldOwner *bool `json:"initiativeFieldOwner,omitempty"`
-	// [Internal] Whether to show the initiative priority field.
+	// Whether to show the initiative priority field.
 	InitiativeFieldPriority *bool `json:"initiativeFieldPriority,omitempty"`
 	// Whether to show the initiative projects field.
 	InitiativeFieldProjects *bool `json:"initiativeFieldProjects,omitempty"`
@@ -21750,9 +22290,9 @@ type ViewPreferencesValues struct {
 	InitiativeFieldTeams *bool `json:"initiativeFieldTeams,omitempty"`
 	// The initiative grouping.
 	InitiativeGrouping *string `json:"initiativeGrouping,omitempty"`
-	// [Internal] The label group ID used for initiative grouping.
+	// The label group ID used for initiative grouping.
 	InitiativeGroupingLabelGroupID *string `json:"initiativeGroupingLabelGroupId,omitempty"`
-	// [Internal] The initiative label group columns configuration.
+	// The initiative label group columns configuration.
 	InitiativeLabelGroupColumns []*ViewPreferencesInitiativeLabelGroupColumn `json:"initiativeLabelGroupColumns,omitempty"`
 	// The initiative ordering.
 	InitiativesViewOrdering *string `json:"initiativesViewOrdering,omitempty"`
@@ -21986,6 +22526,10 @@ type ViewPreferencesValues struct {
 	ShowSubTeamProjects *bool `json:"showSubTeamProjects,omitempty"`
 	// Whether to show supervised issues.
 	ShowSupervisedIssues *bool `json:"showSupervisedIssues,omitempty"`
+	// [ALPHA] Whether to show team-level initiatives in the workspace.
+	ShowTeamInitiatives *bool `json:"showTeamInitiatives,omitempty"`
+	// Whether team reviews are shown in the reviews list.
+	ShowTeamReviews *bool `json:"showTeamReviews,omitempty"`
 	// Whether to show triage issues.
 	ShowTriageIssues *bool `json:"showTriageIssues,omitempty"`
 	// Whether to show unread items first.
@@ -22006,6 +22550,8 @@ type ViewPreferencesValues struct {
 	TeamFieldOwner *bool `json:"teamFieldOwner,omitempty"`
 	// Whether to show the team projects field.
 	TeamFieldProjects *bool `json:"teamFieldProjects,omitempty"`
+	// [Internal] On the team initiatives page, whether sub-initiatives the team only contributes to are shown.
+	TeamInitiativesShowContributing *bool `json:"teamInitiativesShowContributing,omitempty"`
 	// The team view ordering.
 	TeamViewOrdering *string `json:"teamViewOrdering,omitempty"`
 	// Selected team IDs to show cycles for in timeline chronology bar.
@@ -22377,6 +22923,8 @@ func (this WorkflowCronJobDefinition) GetID() string { return this.ID }
 type WorkflowDefinition struct {
 	// The ordered list of activities (actions) that are executed when the workflow triggers, such as updating issue properties, sending notifications, or calling webhooks.
 	Activities map[string]any `json:"activities"`
+	// Whether the workflow should apply to sub teams.
+	ApplyToSubTeams bool `json:"applyToSubTeams"`
 	// The time at which the entity was archived. Null if the entity has not been archived.
 	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 	// The color of the workflow as a HEX string. Used in the UI to visually identify the workflow.
@@ -22413,6 +22961,8 @@ type WorkflowDefinition struct {
 	LastUpdatedBy *User `json:"lastUpdatedBy,omitempty"`
 	// The name of the workflow.
 	Name string `json:"name"`
+	// The user who owns the workflow. If not defined, it means the creator should be considered as the owner.
+	Owner *User `json:"owner,omitempty"`
 	// The contextual project view associated with the workflow.
 	Project *Project `json:"project,omitempty"`
 	// Whether the workflow should only execute once per entity. When true, the workflow is excluded from matching automations for an entity if it has already been executed for that entity.
@@ -22446,6 +22996,177 @@ func (WorkflowDefinition) IsNode() {}
 
 // The unique identifier of the entity.
 func (this WorkflowDefinition) GetID() string { return this.ID }
+
+// A notification related to an automation workflow definition (loop), such as runs that failed to start.
+type WorkflowDefinitionNotification struct {
+	// The user that caused the notification. Null if the notification was triggered by a non-user actor such as an integration, external user, or system event.
+	Actor *User `json:"actor,omitempty"`
+	// [Internal] Notification actor initials if avatar is not available.
+	ActorAvatarColor string `json:"actorAvatarColor"`
+	// [Internal] Notification avatar URL.
+	ActorAvatarURL *string `json:"actorAvatarUrl,omitempty"`
+	// [Internal] Notification actor initials if avatar is not available.
+	ActorInitials *string `json:"actorInitials,omitempty"`
+	// The time at which the entity was archived. Null if the entity has not been archived.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+	// The bot that caused the notification.
+	BotActor *ActorBot `json:"botActor,omitempty"`
+	// The category of the notification.
+	Category NotificationCategory `json:"category"`
+	// The time at which the entity was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// The time at which an email reminder for this notification was sent to the user. Null if no email reminder has been sent.
+	EmailedAt *time.Time `json:"emailedAt,omitempty"`
+	// The external user that caused the notification. Populated when the notification was triggered by an external user (e.g., a commenter from a connected integration like Slack or GitHub) rather than a Linear workspace member.
+	ExternalUserActor *ExternalUser `json:"externalUserActor,omitempty"`
+	// [Internal] Notifications with the same grouping key will be grouped together in the UI.
+	GroupingKey string `json:"groupingKey"`
+	// [Internal] Priority of the notification with the same grouping key. Higher number means higher priority. If priority is the same, notifications should be sorted by `createdAt`.
+	GroupingPriority float64 `json:"groupingPriority"`
+	// The unique identifier of the entity.
+	ID string `json:"id"`
+	// [Internal] Inbox URL for the notification.
+	InboxURL string `json:"inboxUrl"`
+	// [Internal] Initiative update health for new updates.
+	InitiativeUpdateHealth *string `json:"initiativeUpdateHealth,omitempty"`
+	// [Internal] If notification actor was Linear.
+	IsLinearActor bool `json:"isLinearActor"`
+	// [Internal] Issue's status type for issue notifications.
+	IssueStatusType *string `json:"issueStatusType,omitempty"`
+	// [Internal] Project update health for new updates.
+	ProjectUpdateHealth *string `json:"projectUpdateHealth,omitempty"`
+	// The time at which the user marked the notification as read. Null if the notification is unread.
+	ReadAt *time.Time `json:"readAt,omitempty"`
+	// The time until which a notification is snoozed. After this time, the notification reappears in the user's inbox. Null if the notification is not currently snoozed.
+	SnoozedUntilAt *time.Time `json:"snoozedUntilAt,omitempty"`
+	// [Internal] Notification subtitle.
+	Subtitle string `json:"subtitle"`
+	// [Internal] Notification title.
+	Title string `json:"title"`
+	// Notification type. Determines the kind of event that triggered this notification and which associated entity fields will be populated.
+	Type string `json:"type"`
+	// The time at which a notification was unsnoozed. Null if the notification has not been unsnoozed.
+	UnsnoozedAt *time.Time `json:"unsnoozedAt,omitempty"`
+	// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+	//     been updated after creation.
+	UpdatedAt time.Time `json:"updatedAt"`
+	// [Internal] URL to the target of the notification.
+	URL string `json:"url"`
+	// The recipient user of this notification.
+	User *User `json:"user"`
+	// The workflow definition (loop) related to the notification.
+	WorkflowDefinition *WorkflowDefinition `json:"workflowDefinition"`
+	// Identifier of the associated workflow definition (loop).
+	WorkflowDefinitionID string `json:"workflowDefinitionId"`
+}
+
+func (WorkflowDefinitionNotification) IsEntity() {}
+
+// The time at which the entity was archived. Null if the entity has not been archived.
+func (this WorkflowDefinitionNotification) GetArchivedAt() *time.Time { return this.ArchivedAt }
+
+// The time at which the entity was created.
+func (this WorkflowDefinitionNotification) GetCreatedAt() time.Time { return this.CreatedAt }
+
+// The unique identifier of the entity.
+func (this WorkflowDefinitionNotification) GetID() string { return this.ID }
+
+// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+//
+//	been updated after creation.
+func (this WorkflowDefinitionNotification) GetUpdatedAt() time.Time { return this.UpdatedAt }
+
+func (WorkflowDefinitionNotification) IsNode() {}
+
+// The unique identifier of the entity.
+
+func (WorkflowDefinitionNotification) IsNotification() {}
+
+// The user that caused the notification. Null if the notification was triggered by a non-user actor such as an integration, external user, or system event.
+func (this WorkflowDefinitionNotification) GetActor() *User { return this.Actor }
+
+// [Internal] Notification actor initials if avatar is not available.
+func (this WorkflowDefinitionNotification) GetActorAvatarColor() string { return this.ActorAvatarColor }
+
+// [Internal] Notification avatar URL.
+func (this WorkflowDefinitionNotification) GetActorAvatarURL() *string { return this.ActorAvatarURL }
+
+// [Internal] Notification actor initials if avatar is not available.
+func (this WorkflowDefinitionNotification) GetActorInitials() *string { return this.ActorInitials }
+
+// The time at which the entity was archived. Null if the entity has not been archived.
+
+// The bot that caused the notification.
+func (this WorkflowDefinitionNotification) GetBotActor() *ActorBot { return this.BotActor }
+
+// The category of the notification.
+func (this WorkflowDefinitionNotification) GetCategory() NotificationCategory { return this.Category }
+
+// The time at which the entity was created.
+
+// The time at which an email reminder for this notification was sent to the user. Null if no email reminder has been sent.
+func (this WorkflowDefinitionNotification) GetEmailedAt() *time.Time { return this.EmailedAt }
+
+// The external user that caused the notification. Populated when the notification was triggered by an external user (e.g., a commenter from a connected integration like Slack or GitHub) rather than a Linear workspace member.
+func (this WorkflowDefinitionNotification) GetExternalUserActor() *ExternalUser {
+	return this.ExternalUserActor
+}
+
+// [Internal] Notifications with the same grouping key will be grouped together in the UI.
+func (this WorkflowDefinitionNotification) GetGroupingKey() string { return this.GroupingKey }
+
+// [Internal] Priority of the notification with the same grouping key. Higher number means higher priority. If priority is the same, notifications should be sorted by `createdAt`.
+func (this WorkflowDefinitionNotification) GetGroupingPriority() float64 {
+	return this.GroupingPriority
+}
+
+// The unique identifier of the entity.
+
+// [Internal] Inbox URL for the notification.
+func (this WorkflowDefinitionNotification) GetInboxURL() string { return this.InboxURL }
+
+// [Internal] Initiative update health for new updates.
+func (this WorkflowDefinitionNotification) GetInitiativeUpdateHealth() *string {
+	return this.InitiativeUpdateHealth
+}
+
+// [Internal] If notification actor was Linear.
+func (this WorkflowDefinitionNotification) GetIsLinearActor() bool { return this.IsLinearActor }
+
+// [Internal] Issue's status type for issue notifications.
+func (this WorkflowDefinitionNotification) GetIssueStatusType() *string { return this.IssueStatusType }
+
+// [Internal] Project update health for new updates.
+func (this WorkflowDefinitionNotification) GetProjectUpdateHealth() *string {
+	return this.ProjectUpdateHealth
+}
+
+// The time at which the user marked the notification as read. Null if the notification is unread.
+func (this WorkflowDefinitionNotification) GetReadAt() *time.Time { return this.ReadAt }
+
+// The time until which a notification is snoozed. After this time, the notification reappears in the user's inbox. Null if the notification is not currently snoozed.
+func (this WorkflowDefinitionNotification) GetSnoozedUntilAt() *time.Time { return this.SnoozedUntilAt }
+
+// [Internal] Notification subtitle.
+func (this WorkflowDefinitionNotification) GetSubtitle() string { return this.Subtitle }
+
+// [Internal] Notification title.
+func (this WorkflowDefinitionNotification) GetTitle() string { return this.Title }
+
+// Notification type. Determines the kind of event that triggered this notification and which associated entity fields will be populated.
+func (this WorkflowDefinitionNotification) GetType() string { return this.Type }
+
+// The time at which a notification was unsnoozed. Null if the notification has not been unsnoozed.
+func (this WorkflowDefinitionNotification) GetUnsnoozedAt() *time.Time { return this.UnsnoozedAt }
+
+// The last time at which the entity was meaningfully updated. This is the same as the creation time if the entity hasn't
+//     been updated after creation.
+
+// [Internal] URL to the target of the notification.
+func (this WorkflowDefinitionNotification) GetURL() string { return this.URL }
+
+// The recipient user of this notification.
+func (this WorkflowDefinitionNotification) GetUser() *User { return this.User }
 
 // A state in a team's workflow, representing an issue status such as Triage, Backlog, Todo, In Progress, In Review, Done, or Canceled. Each team has its own set of workflow states that define the progression of issues through the team's process. Workflow states have a type that categorizes them (triage, backlog, unstarted, started, completed, canceled), a position that determines their display order, and a color for visual identification. States can be inherited from parent teams to sub-teams.
 type WorkflowState struct {
@@ -22758,6 +23479,62 @@ func (e AgentActivityType) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// The outcome of reconsidering a loop run blocked by its trusted-source policy.
+type AgentAutomationRetryResolutionStatus string
+
+const (
+	AgentAutomationRetryResolutionStatusNotScheduled AgentAutomationRetryResolutionStatus = "notScheduled"
+	AgentAutomationRetryResolutionStatusScheduled    AgentAutomationRetryResolutionStatus = "scheduled"
+)
+
+var AllAgentAutomationRetryResolutionStatus = []AgentAutomationRetryResolutionStatus{
+	AgentAutomationRetryResolutionStatusNotScheduled,
+	AgentAutomationRetryResolutionStatusScheduled,
+}
+
+func (e AgentAutomationRetryResolutionStatus) IsValid() bool {
+	switch e {
+	case AgentAutomationRetryResolutionStatusNotScheduled, AgentAutomationRetryResolutionStatusScheduled:
+		return true
+	}
+	return false
+}
+
+func (e AgentAutomationRetryResolutionStatus) String() string {
+	return string(e)
+}
+
+func (e *AgentAutomationRetryResolutionStatus) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AgentAutomationRetryResolutionStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AgentAutomationRetryResolutionStatus", str)
+	}
+	return nil
+}
+
+func (e AgentAutomationRetryResolutionStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AgentAutomationRetryResolutionStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AgentAutomationRetryResolutionStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 // The status of an agent session.
 type AgentSessionStatus string
 
@@ -22871,6 +23648,64 @@ func (e *AgentSessionType) UnmarshalJSON(b []byte) error {
 }
 
 func (e AgentSessionType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The kind of acknowledgement the agent expresses when it has nothing meaningful to reply.
+type AiConversationAckKind string
+
+const (
+	AiConversationAckKindDone    AiConversationAckKind = "done"
+	AiConversationAckKindIgnored AiConversationAckKind = "ignored"
+	AiConversationAckKindWaiting AiConversationAckKind = "waiting"
+)
+
+var AllAiConversationAckKind = []AiConversationAckKind{
+	AiConversationAckKindDone,
+	AiConversationAckKindIgnored,
+	AiConversationAckKindWaiting,
+}
+
+func (e AiConversationAckKind) IsValid() bool {
+	switch e {
+	case AiConversationAckKindDone, AiConversationAckKindIgnored, AiConversationAckKindWaiting:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationAckKind) String() string {
+	return string(e)
+}
+
+func (e *AiConversationAckKind) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationAckKind(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationAckKind", str)
+	}
+	return nil
+}
+
+func (e AiConversationAckKind) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationAckKind) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationAckKind) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -23061,6 +23896,8 @@ const (
 	AiConversationEntityCardWidgetArgsTypeIssue              AiConversationEntityCardWidgetArgsType = "Issue"
 	AiConversationEntityCardWidgetArgsTypeIssueDraft         AiConversationEntityCardWidgetArgsType = "IssueDraft"
 	AiConversationEntityCardWidgetArgsTypeProject            AiConversationEntityCardWidgetArgsType = "Project"
+	AiConversationEntityCardWidgetArgsTypeProjectDraft       AiConversationEntityCardWidgetArgsType = "ProjectDraft"
+	AiConversationEntityCardWidgetArgsTypeProjectMilestone   AiConversationEntityCardWidgetArgsType = "ProjectMilestone"
 	AiConversationEntityCardWidgetArgsTypeProjectUpdate      AiConversationEntityCardWidgetArgsType = "ProjectUpdate"
 	AiConversationEntityCardWidgetArgsTypePullRequest        AiConversationEntityCardWidgetArgsType = "PullRequest"
 	AiConversationEntityCardWidgetArgsTypeRelease            AiConversationEntityCardWidgetArgsType = "Release"
@@ -23085,6 +23922,8 @@ var AllAiConversationEntityCardWidgetArgsType = []AiConversationEntityCardWidget
 	AiConversationEntityCardWidgetArgsTypeIssue,
 	AiConversationEntityCardWidgetArgsTypeIssueDraft,
 	AiConversationEntityCardWidgetArgsTypeProject,
+	AiConversationEntityCardWidgetArgsTypeProjectDraft,
+	AiConversationEntityCardWidgetArgsTypeProjectMilestone,
 	AiConversationEntityCardWidgetArgsTypeProjectUpdate,
 	AiConversationEntityCardWidgetArgsTypePullRequest,
 	AiConversationEntityCardWidgetArgsTypeRelease,
@@ -23097,7 +23936,7 @@ var AllAiConversationEntityCardWidgetArgsType = []AiConversationEntityCardWidget
 
 func (e AiConversationEntityCardWidgetArgsType) IsValid() bool {
 	switch e {
-	case AiConversationEntityCardWidgetArgsTypeAgentSession, AiConversationEntityCardWidgetArgsTypeAiPrompt, AiConversationEntityCardWidgetArgsTypeCustomView, AiConversationEntityCardWidgetArgsTypeCustomer, AiConversationEntityCardWidgetArgsTypeCustomerNeed, AiConversationEntityCardWidgetArgsTypeDashboard, AiConversationEntityCardWidgetArgsTypeDocument, AiConversationEntityCardWidgetArgsTypeDraft, AiConversationEntityCardWidgetArgsTypeInitiative, AiConversationEntityCardWidgetArgsTypeInitiativeUpdate, AiConversationEntityCardWidgetArgsTypeIssue, AiConversationEntityCardWidgetArgsTypeIssueDraft, AiConversationEntityCardWidgetArgsTypeProject, AiConversationEntityCardWidgetArgsTypeProjectUpdate, AiConversationEntityCardWidgetArgsTypePullRequest, AiConversationEntityCardWidgetArgsTypeRelease, AiConversationEntityCardWidgetArgsTypeReleaseNote, AiConversationEntityCardWidgetArgsTypeReleasePipeline, AiConversationEntityCardWidgetArgsTypeTeam, AiConversationEntityCardWidgetArgsTypeTemplate, AiConversationEntityCardWidgetArgsTypeWorkflowDefinition:
+	case AiConversationEntityCardWidgetArgsTypeAgentSession, AiConversationEntityCardWidgetArgsTypeAiPrompt, AiConversationEntityCardWidgetArgsTypeCustomView, AiConversationEntityCardWidgetArgsTypeCustomer, AiConversationEntityCardWidgetArgsTypeCustomerNeed, AiConversationEntityCardWidgetArgsTypeDashboard, AiConversationEntityCardWidgetArgsTypeDocument, AiConversationEntityCardWidgetArgsTypeDraft, AiConversationEntityCardWidgetArgsTypeInitiative, AiConversationEntityCardWidgetArgsTypeInitiativeUpdate, AiConversationEntityCardWidgetArgsTypeIssue, AiConversationEntityCardWidgetArgsTypeIssueDraft, AiConversationEntityCardWidgetArgsTypeProject, AiConversationEntityCardWidgetArgsTypeProjectDraft, AiConversationEntityCardWidgetArgsTypeProjectMilestone, AiConversationEntityCardWidgetArgsTypeProjectUpdate, AiConversationEntityCardWidgetArgsTypePullRequest, AiConversationEntityCardWidgetArgsTypeRelease, AiConversationEntityCardWidgetArgsTypeReleaseNote, AiConversationEntityCardWidgetArgsTypeReleasePipeline, AiConversationEntityCardWidgetArgsTypeTeam, AiConversationEntityCardWidgetArgsTypeTemplate, AiConversationEntityCardWidgetArgsTypeWorkflowDefinition:
 		return true
 	}
 	return false
@@ -23209,6 +24048,8 @@ const (
 	AiConversationEntityListWidgetArgsEntitiesTypeIssue              AiConversationEntityListWidgetArgsEntitiesType = "Issue"
 	AiConversationEntityListWidgetArgsEntitiesTypeIssueDraft         AiConversationEntityListWidgetArgsEntitiesType = "IssueDraft"
 	AiConversationEntityListWidgetArgsEntitiesTypeProject            AiConversationEntityListWidgetArgsEntitiesType = "Project"
+	AiConversationEntityListWidgetArgsEntitiesTypeProjectDraft       AiConversationEntityListWidgetArgsEntitiesType = "ProjectDraft"
+	AiConversationEntityListWidgetArgsEntitiesTypeProjectMilestone   AiConversationEntityListWidgetArgsEntitiesType = "ProjectMilestone"
 	AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate      AiConversationEntityListWidgetArgsEntitiesType = "ProjectUpdate"
 	AiConversationEntityListWidgetArgsEntitiesTypePullRequest        AiConversationEntityListWidgetArgsEntitiesType = "PullRequest"
 	AiConversationEntityListWidgetArgsEntitiesTypeRelease            AiConversationEntityListWidgetArgsEntitiesType = "Release"
@@ -23231,6 +24072,8 @@ var AllAiConversationEntityListWidgetArgsEntitiesType = []AiConversationEntityLi
 	AiConversationEntityListWidgetArgsEntitiesTypeIssue,
 	AiConversationEntityListWidgetArgsEntitiesTypeIssueDraft,
 	AiConversationEntityListWidgetArgsEntitiesTypeProject,
+	AiConversationEntityListWidgetArgsEntitiesTypeProjectDraft,
+	AiConversationEntityListWidgetArgsEntitiesTypeProjectMilestone,
 	AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate,
 	AiConversationEntityListWidgetArgsEntitiesTypePullRequest,
 	AiConversationEntityListWidgetArgsEntitiesTypeRelease,
@@ -23243,7 +24086,7 @@ var AllAiConversationEntityListWidgetArgsEntitiesType = []AiConversationEntityLi
 
 func (e AiConversationEntityListWidgetArgsEntitiesType) IsValid() bool {
 	switch e {
-	case AiConversationEntityListWidgetArgsEntitiesTypeAiPrompt, AiConversationEntityListWidgetArgsEntitiesTypeCustomView, AiConversationEntityListWidgetArgsEntitiesTypeCustomer, AiConversationEntityListWidgetArgsEntitiesTypeCustomerNeed, AiConversationEntityListWidgetArgsEntitiesTypeDashboard, AiConversationEntityListWidgetArgsEntitiesTypeDocument, AiConversationEntityListWidgetArgsEntitiesTypeInitiative, AiConversationEntityListWidgetArgsEntitiesTypeInitiativeUpdate, AiConversationEntityListWidgetArgsEntitiesTypeIssue, AiConversationEntityListWidgetArgsEntitiesTypeIssueDraft, AiConversationEntityListWidgetArgsEntitiesTypeProject, AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate, AiConversationEntityListWidgetArgsEntitiesTypePullRequest, AiConversationEntityListWidgetArgsEntitiesTypeRelease, AiConversationEntityListWidgetArgsEntitiesTypeReleaseNote, AiConversationEntityListWidgetArgsEntitiesTypeReleasePipeline, AiConversationEntityListWidgetArgsEntitiesTypeTeam, AiConversationEntityListWidgetArgsEntitiesTypeTemplate, AiConversationEntityListWidgetArgsEntitiesTypeWorkflowDefinition:
+	case AiConversationEntityListWidgetArgsEntitiesTypeAiPrompt, AiConversationEntityListWidgetArgsEntitiesTypeCustomView, AiConversationEntityListWidgetArgsEntitiesTypeCustomer, AiConversationEntityListWidgetArgsEntitiesTypeCustomerNeed, AiConversationEntityListWidgetArgsEntitiesTypeDashboard, AiConversationEntityListWidgetArgsEntitiesTypeDocument, AiConversationEntityListWidgetArgsEntitiesTypeInitiative, AiConversationEntityListWidgetArgsEntitiesTypeInitiativeUpdate, AiConversationEntityListWidgetArgsEntitiesTypeIssue, AiConversationEntityListWidgetArgsEntitiesTypeIssueDraft, AiConversationEntityListWidgetArgsEntitiesTypeProject, AiConversationEntityListWidgetArgsEntitiesTypeProjectDraft, AiConversationEntityListWidgetArgsEntitiesTypeProjectMilestone, AiConversationEntityListWidgetArgsEntitiesTypeProjectUpdate, AiConversationEntityListWidgetArgsEntitiesTypePullRequest, AiConversationEntityListWidgetArgsEntitiesTypeRelease, AiConversationEntityListWidgetArgsEntitiesTypeReleaseNote, AiConversationEntityListWidgetArgsEntitiesTypeReleasePipeline, AiConversationEntityListWidgetArgsEntitiesTypeTeam, AiConversationEntityListWidgetArgsEntitiesTypeTemplate, AiConversationEntityListWidgetArgsEntitiesTypeWorkflowDefinition:
 		return true
 	}
 	return false
@@ -23348,6 +24191,7 @@ type AiConversationInitialSource string
 const (
 	AiConversationInitialSourceComment            AiConversationInitialSource = "comment"
 	AiConversationInitialSourceDirectChat         AiConversationInitialSource = "directChat"
+	AiConversationInitialSourceEntityChat         AiConversationInitialSource = "entityChat"
 	AiConversationInitialSourceMcp                AiConversationInitialSource = "mcp"
 	AiConversationInitialSourceMicrosoftTeams     AiConversationInitialSource = "microsoftTeams"
 	AiConversationInitialSourceOnboarding         AiConversationInitialSource = "onboarding"
@@ -23359,6 +24203,7 @@ const (
 var AllAiConversationInitialSource = []AiConversationInitialSource{
 	AiConversationInitialSourceComment,
 	AiConversationInitialSourceDirectChat,
+	AiConversationInitialSourceEntityChat,
 	AiConversationInitialSourceMcp,
 	AiConversationInitialSourceMicrosoftTeams,
 	AiConversationInitialSourceOnboarding,
@@ -23369,7 +24214,7 @@ var AllAiConversationInitialSource = []AiConversationInitialSource{
 
 func (e AiConversationInitialSource) IsValid() bool {
 	switch e {
-	case AiConversationInitialSourceComment, AiConversationInitialSourceDirectChat, AiConversationInitialSourceMcp, AiConversationInitialSourceMicrosoftTeams, AiConversationInitialSourceOnboarding, AiConversationInitialSourcePullRequestComment, AiConversationInitialSourceSlack, AiConversationInitialSourceWorkflow:
+	case AiConversationInitialSourceComment, AiConversationInitialSourceDirectChat, AiConversationInitialSourceEntityChat, AiConversationInitialSourceMcp, AiConversationInitialSourceMicrosoftTeams, AiConversationInitialSourceOnboarding, AiConversationInitialSourcePullRequestComment, AiConversationInitialSourceSlack, AiConversationInitialSourceWorkflow:
 		return true
 	}
 	return false
@@ -23470,6 +24315,7 @@ func (e AiConversationPartPhase) MarshalJSON() ([]byte, error) {
 type AiConversationPartType string
 
 const (
+	AiConversationPartTypeAck               AiConversationPartType = "ack"
 	AiConversationPartTypeElicitation       AiConversationPartType = "elicitation"
 	AiConversationPartTypeError             AiConversationPartType = "error"
 	AiConversationPartTypeEvent             AiConversationPartType = "event"
@@ -23482,6 +24328,7 @@ const (
 )
 
 var AllAiConversationPartType = []AiConversationPartType{
+	AiConversationPartTypeAck,
 	AiConversationPartTypeElicitation,
 	AiConversationPartTypeError,
 	AiConversationPartTypeEvent,
@@ -23495,7 +24342,7 @@ var AllAiConversationPartType = []AiConversationPartType{
 
 func (e AiConversationPartType) IsValid() bool {
 	switch e {
-	case AiConversationPartTypeElicitation, AiConversationPartTypeError, AiConversationPartTypeEvent, AiConversationPartTypePrompt, AiConversationPartTypeReasoning, AiConversationPartTypeText, AiConversationPartTypeToolCall, AiConversationPartTypeWidget, AiConversationPartTypeWidgetPlaceholder:
+	case AiConversationPartTypeAck, AiConversationPartTypeElicitation, AiConversationPartTypeError, AiConversationPartTypeEvent, AiConversationPartTypePrompt, AiConversationPartTypeReasoning, AiConversationPartTypeText, AiConversationPartTypeToolCall, AiConversationPartTypeWidget, AiConversationPartTypeWidgetPlaceholder:
 		return true
 	}
 	return false
@@ -23641,6 +24488,61 @@ func (e *AiConversationQueryViewToolCallArgsMode) UnmarshalJSON(b []byte) error 
 }
 
 func (e AiConversationQueryViewToolCallArgsMode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type AiConversationReadFileToolCallArgsMode string
+
+const (
+	AiConversationReadFileToolCallArgsModeRead   AiConversationReadFileToolCallArgsMode = "read"
+	AiConversationReadFileToolCallArgsModeSearch AiConversationReadFileToolCallArgsMode = "search"
+)
+
+var AllAiConversationReadFileToolCallArgsMode = []AiConversationReadFileToolCallArgsMode{
+	AiConversationReadFileToolCallArgsModeRead,
+	AiConversationReadFileToolCallArgsModeSearch,
+}
+
+func (e AiConversationReadFileToolCallArgsMode) IsValid() bool {
+	switch e {
+	case AiConversationReadFileToolCallArgsModeRead, AiConversationReadFileToolCallArgsModeSearch:
+		return true
+	}
+	return false
+}
+
+func (e AiConversationReadFileToolCallArgsMode) String() string {
+	return string(e)
+}
+
+func (e *AiConversationReadFileToolCallArgsMode) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiConversationReadFileToolCallArgsMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AiConversationReadFileToolCallArgsMode", str)
+	}
+	return nil
+}
+
+func (e AiConversationReadFileToolCallArgsMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiConversationReadFileToolCallArgsMode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiConversationReadFileToolCallArgsMode) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -23838,10 +24740,12 @@ const (
 	AiConversationToolInvokeMcpTool                        AiConversationTool = "InvokeMcpTool"
 	AiConversationToolListCodingSessions                   AiConversationTool = "ListCodingSessions"
 	AiConversationToolNavigateToPage                       AiConversationTool = "NavigateToPage"
+	AiConversationToolNotifyUsers                          AiConversationTool = "NotifyUsers"
 	AiConversationToolPromptCodingSession                  AiConversationTool = "PromptCodingSession"
 	AiConversationToolQueryActivity                        AiConversationTool = "QueryActivity"
 	AiConversationToolQueryUpdates                         AiConversationTool = "QueryUpdates"
 	AiConversationToolQueryView                            AiConversationTool = "QueryView"
+	AiConversationToolReadFile                             AiConversationTool = "ReadFile"
 	AiConversationToolReadSandboxFile                      AiConversationTool = "ReadSandboxFile"
 	AiConversationToolResearch                             AiConversationTool = "Research"
 	AiConversationToolRestoreEntity                        AiConversationTool = "RestoreEntity"
@@ -23875,10 +24779,12 @@ var AllAiConversationTool = []AiConversationTool{
 	AiConversationToolInvokeMcpTool,
 	AiConversationToolListCodingSessions,
 	AiConversationToolNavigateToPage,
+	AiConversationToolNotifyUsers,
 	AiConversationToolPromptCodingSession,
 	AiConversationToolQueryActivity,
 	AiConversationToolQueryUpdates,
 	AiConversationToolQueryView,
+	AiConversationToolReadFile,
 	AiConversationToolReadSandboxFile,
 	AiConversationToolResearch,
 	AiConversationToolRestoreEntity,
@@ -23899,7 +24805,7 @@ var AllAiConversationTool = []AiConversationTool{
 
 func (e AiConversationTool) IsValid() bool {
 	switch e {
-	case AiConversationToolBash, AiConversationToolCodeIntelligence, AiConversationToolCreateEntity, AiConversationToolCreateSandbox, AiConversationToolDeleteEntity, AiConversationToolGetMicrosoftTeamsConversationHistory, AiConversationToolGetPullRequestCheckLogs, AiConversationToolGetPullRequestDiff, AiConversationToolGetPullRequestFile, AiConversationToolGetSlackConversationHistory, AiConversationToolHandoffToCodingSession, AiConversationToolInvokeMcpTool, AiConversationToolListCodingSessions, AiConversationToolNavigateToPage, AiConversationToolPromptCodingSession, AiConversationToolQueryActivity, AiConversationToolQueryUpdates, AiConversationToolQueryView, AiConversationToolReadSandboxFile, AiConversationToolResearch, AiConversationToolRestoreEntity, AiConversationToolRetrieveEntities, AiConversationToolRetryPullRequestCheck, AiConversationToolSearchDocumentation, AiConversationToolSearchEntities, AiConversationToolStartCodingSession, AiConversationToolSubscribeToEvent, AiConversationToolSuggestRepository, AiConversationToolSuggestValues, AiConversationToolTranscribeMedia, AiConversationToolTranscribeVideo, AiConversationToolUnsubscribeFromEvent, AiConversationToolUpdateEntity, AiConversationToolWebSearch:
+	case AiConversationToolBash, AiConversationToolCodeIntelligence, AiConversationToolCreateEntity, AiConversationToolCreateSandbox, AiConversationToolDeleteEntity, AiConversationToolGetMicrosoftTeamsConversationHistory, AiConversationToolGetPullRequestCheckLogs, AiConversationToolGetPullRequestDiff, AiConversationToolGetPullRequestFile, AiConversationToolGetSlackConversationHistory, AiConversationToolHandoffToCodingSession, AiConversationToolInvokeMcpTool, AiConversationToolListCodingSessions, AiConversationToolNavigateToPage, AiConversationToolNotifyUsers, AiConversationToolPromptCodingSession, AiConversationToolQueryActivity, AiConversationToolQueryUpdates, AiConversationToolQueryView, AiConversationToolReadFile, AiConversationToolReadSandboxFile, AiConversationToolResearch, AiConversationToolRestoreEntity, AiConversationToolRetrieveEntities, AiConversationToolRetryPullRequestCheck, AiConversationToolSearchDocumentation, AiConversationToolSearchEntities, AiConversationToolStartCodingSession, AiConversationToolSubscribeToEvent, AiConversationToolSuggestRepository, AiConversationToolSuggestValues, AiConversationToolTranscribeMedia, AiConversationToolTranscribeVideo, AiConversationToolUnsubscribeFromEvent, AiConversationToolUpdateEntity, AiConversationToolWebSearch:
 		return true
 	}
 	return false
@@ -24551,6 +25457,74 @@ func (e Day) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// [Internal] The kind of change for a file in a diff.
+type DiffFileState string
+
+const (
+	DiffFileStateAdded       DiffFileState = "added"
+	DiffFileStateCopied      DiffFileState = "copied"
+	DiffFileStateDeleted     DiffFileState = "deleted"
+	DiffFileStateModified    DiffFileState = "modified"
+	DiffFileStateRenamed     DiffFileState = "renamed"
+	DiffFileStateTypeChanged DiffFileState = "type_changed"
+	DiffFileStateUnknown     DiffFileState = "unknown"
+	DiffFileStateUnmerged    DiffFileState = "unmerged"
+)
+
+var AllDiffFileState = []DiffFileState{
+	DiffFileStateAdded,
+	DiffFileStateCopied,
+	DiffFileStateDeleted,
+	DiffFileStateModified,
+	DiffFileStateRenamed,
+	DiffFileStateTypeChanged,
+	DiffFileStateUnknown,
+	DiffFileStateUnmerged,
+}
+
+func (e DiffFileState) IsValid() bool {
+	switch e {
+	case DiffFileStateAdded, DiffFileStateCopied, DiffFileStateDeleted, DiffFileStateModified, DiffFileStateRenamed, DiffFileStateTypeChanged, DiffFileStateUnknown, DiffFileStateUnmerged:
+		return true
+	}
+	return false
+}
+
+func (e DiffFileState) String() string {
+	return string(e)
+}
+
+func (e *DiffFileState) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DiffFileState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DiffFileState", str)
+	}
+	return nil
+}
+
+func (e DiffFileState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *DiffFileState) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e DiffFileState) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 // Whether the checkpoint belongs to a draft-only or live document agent flow.
 type DocumentContentAgentCheckpointMode string
 
@@ -25185,6 +26159,62 @@ func (e IdentityProviderType) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// [Internal] Determines how a lead team change is applied to an initiative hierarchy.
+type InitiativeLeadTeamChangeMode string
+
+const (
+	InitiativeLeadTeamChangeModeIncludeDescendants InitiativeLeadTeamChangeMode = "includeDescendants"
+	InitiativeLeadTeamChangeModeSelectedOnly       InitiativeLeadTeamChangeMode = "selectedOnly"
+)
+
+var AllInitiativeLeadTeamChangeMode = []InitiativeLeadTeamChangeMode{
+	InitiativeLeadTeamChangeModeIncludeDescendants,
+	InitiativeLeadTeamChangeModeSelectedOnly,
+}
+
+func (e InitiativeLeadTeamChangeMode) IsValid() bool {
+	switch e {
+	case InitiativeLeadTeamChangeModeIncludeDescendants, InitiativeLeadTeamChangeModeSelectedOnly:
+		return true
+	}
+	return false
+}
+
+func (e InitiativeLeadTeamChangeMode) String() string {
+	return string(e)
+}
+
+func (e *InitiativeLeadTeamChangeMode) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = InitiativeLeadTeamChangeMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid InitiativeLeadTeamChangeMode", str)
+	}
+	return nil
+}
+
+func (e InitiativeLeadTeamChangeMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *InitiativeLeadTeamChangeMode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e InitiativeLeadTeamChangeMode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 type InitiativeStatus string
 
 const (
@@ -25357,6 +26387,64 @@ func (e *InitiativeUpdateHealthType) UnmarshalJSON(b []byte) error {
 }
 
 func (e InitiativeUpdateHealthType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The visibility of an initiative. Derived from its lead team; public when no lead team is assigned.
+type InitiativeVisibility string
+
+const (
+	InitiativeVisibilityPrivate    InitiativeVisibility = "private"
+	InitiativeVisibilityPublic     InitiativeVisibility = "public"
+	InitiativeVisibilityRestricted InitiativeVisibility = "restricted"
+)
+
+var AllInitiativeVisibility = []InitiativeVisibility{
+	InitiativeVisibilityPrivate,
+	InitiativeVisibilityPublic,
+	InitiativeVisibilityRestricted,
+}
+
+func (e InitiativeVisibility) IsValid() bool {
+	switch e {
+	case InitiativeVisibilityPrivate, InitiativeVisibilityPublic, InitiativeVisibilityRestricted:
+		return true
+	}
+	return false
+}
+
+func (e InitiativeVisibility) String() string {
+	return string(e)
+}
+
+func (e *InitiativeVisibility) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = InitiativeVisibility(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid InitiativeVisibility", str)
+	}
+	return nil
+}
+
+func (e InitiativeVisibility) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *InitiativeVisibility) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e InitiativeVisibility) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -25860,7 +26948,7 @@ func (e LinearAgentMcpServersMode) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// How workspace trusted source access is restricted for agent automations.
+// How workspace trusted source access is restricted for loops.
 type LinearAgentTrustedSourcesMode string
 
 const (
@@ -26055,6 +27143,82 @@ func (e *NotificationChannel) UnmarshalJSON(b []byte) error {
 }
 
 func (e NotificationChannel) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// The delivery target type that caused a notification to be sent.
+type NotificationSubscriptionType string
+
+const (
+	NotificationSubscriptionTypeCustomView          NotificationSubscriptionType = "customView"
+	NotificationSubscriptionTypeCustomer            NotificationSubscriptionType = "customer"
+	NotificationSubscriptionTypeCycle               NotificationSubscriptionType = "cycle"
+	NotificationSubscriptionTypeDocument            NotificationSubscriptionType = "document"
+	NotificationSubscriptionTypeInitiative          NotificationSubscriptionType = "initiative"
+	NotificationSubscriptionTypeIssue               NotificationSubscriptionType = "issue"
+	NotificationSubscriptionTypeLabel               NotificationSubscriptionType = "label"
+	NotificationSubscriptionTypeOauthClientApproval NotificationSubscriptionType = "oauthClientApproval"
+	NotificationSubscriptionTypeProject             NotificationSubscriptionType = "project"
+	NotificationSubscriptionTypePullRequest         NotificationSubscriptionType = "pullRequest"
+	NotificationSubscriptionTypeTeam                NotificationSubscriptionType = "team"
+	NotificationSubscriptionTypeUser                NotificationSubscriptionType = "user"
+)
+
+var AllNotificationSubscriptionType = []NotificationSubscriptionType{
+	NotificationSubscriptionTypeCustomView,
+	NotificationSubscriptionTypeCustomer,
+	NotificationSubscriptionTypeCycle,
+	NotificationSubscriptionTypeDocument,
+	NotificationSubscriptionTypeInitiative,
+	NotificationSubscriptionTypeIssue,
+	NotificationSubscriptionTypeLabel,
+	NotificationSubscriptionTypeOauthClientApproval,
+	NotificationSubscriptionTypeProject,
+	NotificationSubscriptionTypePullRequest,
+	NotificationSubscriptionTypeTeam,
+	NotificationSubscriptionTypeUser,
+}
+
+func (e NotificationSubscriptionType) IsValid() bool {
+	switch e {
+	case NotificationSubscriptionTypeCustomView, NotificationSubscriptionTypeCustomer, NotificationSubscriptionTypeCycle, NotificationSubscriptionTypeDocument, NotificationSubscriptionTypeInitiative, NotificationSubscriptionTypeIssue, NotificationSubscriptionTypeLabel, NotificationSubscriptionTypeOauthClientApproval, NotificationSubscriptionTypeProject, NotificationSubscriptionTypePullRequest, NotificationSubscriptionTypeTeam, NotificationSubscriptionTypeUser:
+		return true
+	}
+	return false
+}
+
+func (e NotificationSubscriptionType) String() string {
+	return string(e)
+}
+
+func (e *NotificationSubscriptionType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NotificationSubscriptionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NotificationSubscriptionType", str)
+	}
+	return nil
+}
+
+func (e NotificationSubscriptionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *NotificationSubscriptionType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e NotificationSubscriptionType) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -26348,6 +27512,7 @@ func (e OrganizationInviteStatus) MarshalJSON() ([]byte, error) {
 type OtherNotificationType string
 
 const (
+	OtherNotificationTypeAgentConversationMention                 OtherNotificationType = "agentConversationMention"
 	OtherNotificationTypeCustomerAddedAsOwner                     OtherNotificationType = "customerAddedAsOwner"
 	OtherNotificationTypeCustomerNeedCreated                      OtherNotificationType = "customerNeedCreated"
 	OtherNotificationTypeCustomerNeedMarkedAsImportant            OtherNotificationType = "customerNeedMarkedAsImportant"
@@ -26438,6 +27603,7 @@ const (
 )
 
 var AllOtherNotificationType = []OtherNotificationType{
+	OtherNotificationTypeAgentConversationMention,
 	OtherNotificationTypeCustomerAddedAsOwner,
 	OtherNotificationTypeCustomerNeedCreated,
 	OtherNotificationTypeCustomerNeedMarkedAsImportant,
@@ -26529,7 +27695,7 @@ var AllOtherNotificationType = []OtherNotificationType{
 
 func (e OtherNotificationType) IsValid() bool {
 	switch e {
-	case OtherNotificationTypeCustomerAddedAsOwner, OtherNotificationTypeCustomerNeedCreated, OtherNotificationTypeCustomerNeedMarkedAsImportant, OtherNotificationTypeCustomerNeedResolved, OtherNotificationTypeDocumentCommentMention, OtherNotificationTypeDocumentCommentReaction, OtherNotificationTypeDocumentContentChange, OtherNotificationTypeDocumentDeleted, OtherNotificationTypeDocumentMention, OtherNotificationTypeDocumentMoved, OtherNotificationTypeDocumentNewComment, OtherNotificationTypeDocumentReminder, OtherNotificationTypeDocumentRestored, OtherNotificationTypeDocumentSubscribed, OtherNotificationTypeDocumentThreadResolved, OtherNotificationTypeDocumentUnsubscribed, OtherNotificationTypeFeedSummaryGenerated, OtherNotificationTypeInitiativeAddedAsOwner, OtherNotificationTypeInitiativeCommentMention, OtherNotificationTypeInitiativeCommentReaction, OtherNotificationTypeInitiativeDescriptionContentChange, OtherNotificationTypeInitiativeMention, OtherNotificationTypeInitiativeNewComment, OtherNotificationTypeInitiativeReminder, OtherNotificationTypeInitiativeThreadResolved, OtherNotificationTypeInitiativeUpdateCommentMention, OtherNotificationTypeInitiativeUpdateCommentReaction, OtherNotificationTypeInitiativeUpdateCreated, OtherNotificationTypeInitiativeUpdateMention, OtherNotificationTypeInitiativeUpdateNewComment, OtherNotificationTypeInitiativeUpdatePrompt, OtherNotificationTypeInitiativeUpdateReaction, OtherNotificationTypeIssueAddedToTriage, OtherNotificationTypeIssueAddedToView, OtherNotificationTypeIssueBlocking, OtherNotificationTypeIssueCreated, OtherNotificationTypeIssueDue, OtherNotificationTypeIssuePriorityUrgent, OtherNotificationTypeIssueReminder, OtherNotificationTypeIssueReopened, OtherNotificationTypeIssueSLABreached, OtherNotificationTypeIssueSLAHighRisk, OtherNotificationTypeIssueStatusChangedAll, OtherNotificationTypeIssueSubscribed, OtherNotificationTypeIssueThreadResolved, OtherNotificationTypeIssueUnblocked, OtherNotificationTypeIssueUnsubscribed, OtherNotificationTypeOauthClientApprovalCreated, OtherNotificationTypeProjectAddedAsLead, OtherNotificationTypeProjectAddedAsMember, OtherNotificationTypeProjectCommentMention, OtherNotificationTypeProjectCommentReaction, OtherNotificationTypeProjectDescriptionContentChange, OtherNotificationTypeProjectMention, OtherNotificationTypeProjectMilestoneCommentMention, OtherNotificationTypeProjectMilestoneCommentReaction, OtherNotificationTypeProjectMilestoneDescriptionContentChange, OtherNotificationTypeProjectMilestoneMention, OtherNotificationTypeProjectMilestoneNewComment, OtherNotificationTypeProjectMilestoneThreadResolved, OtherNotificationTypeProjectNewComment, OtherNotificationTypeProjectReminder, OtherNotificationTypeProjectThreadResolved, OtherNotificationTypeProjectUpdateCommentMention, OtherNotificationTypeProjectUpdateCommentReaction, OtherNotificationTypeProjectUpdateCreated, OtherNotificationTypeProjectUpdateMention, OtherNotificationTypeProjectUpdateNewComment, OtherNotificationTypeProjectUpdatePrompt, OtherNotificationTypeProjectUpdateReaction, OtherNotificationTypePullRequestApproved, OtherNotificationTypePullRequestChangesRequested, OtherNotificationTypePullRequestChecksFailed, OtherNotificationTypePullRequestCommentMention, OtherNotificationTypePullRequestCommented, OtherNotificationTypePullRequestMention, OtherNotificationTypePullRequestRemovedFromMergeQueue, OtherNotificationTypePullRequestReviewRequested, OtherNotificationTypePullRequestReviewRerequested, OtherNotificationTypeSystem, OtherNotificationTypeTeamUpdateCommentMention, OtherNotificationTypeTeamUpdateCommentReaction, OtherNotificationTypeTeamUpdateCreated, OtherNotificationTypeTeamUpdateMention, OtherNotificationTypeTeamUpdateNewComment, OtherNotificationTypeTeamUpdateReaction, OtherNotificationTypeTriageResponsibilityIssueAddedToTriage:
+	case OtherNotificationTypeAgentConversationMention, OtherNotificationTypeCustomerAddedAsOwner, OtherNotificationTypeCustomerNeedCreated, OtherNotificationTypeCustomerNeedMarkedAsImportant, OtherNotificationTypeCustomerNeedResolved, OtherNotificationTypeDocumentCommentMention, OtherNotificationTypeDocumentCommentReaction, OtherNotificationTypeDocumentContentChange, OtherNotificationTypeDocumentDeleted, OtherNotificationTypeDocumentMention, OtherNotificationTypeDocumentMoved, OtherNotificationTypeDocumentNewComment, OtherNotificationTypeDocumentReminder, OtherNotificationTypeDocumentRestored, OtherNotificationTypeDocumentSubscribed, OtherNotificationTypeDocumentThreadResolved, OtherNotificationTypeDocumentUnsubscribed, OtherNotificationTypeFeedSummaryGenerated, OtherNotificationTypeInitiativeAddedAsOwner, OtherNotificationTypeInitiativeCommentMention, OtherNotificationTypeInitiativeCommentReaction, OtherNotificationTypeInitiativeDescriptionContentChange, OtherNotificationTypeInitiativeMention, OtherNotificationTypeInitiativeNewComment, OtherNotificationTypeInitiativeReminder, OtherNotificationTypeInitiativeThreadResolved, OtherNotificationTypeInitiativeUpdateCommentMention, OtherNotificationTypeInitiativeUpdateCommentReaction, OtherNotificationTypeInitiativeUpdateCreated, OtherNotificationTypeInitiativeUpdateMention, OtherNotificationTypeInitiativeUpdateNewComment, OtherNotificationTypeInitiativeUpdatePrompt, OtherNotificationTypeInitiativeUpdateReaction, OtherNotificationTypeIssueAddedToTriage, OtherNotificationTypeIssueAddedToView, OtherNotificationTypeIssueBlocking, OtherNotificationTypeIssueCreated, OtherNotificationTypeIssueDue, OtherNotificationTypeIssuePriorityUrgent, OtherNotificationTypeIssueReminder, OtherNotificationTypeIssueReopened, OtherNotificationTypeIssueSLABreached, OtherNotificationTypeIssueSLAHighRisk, OtherNotificationTypeIssueStatusChangedAll, OtherNotificationTypeIssueSubscribed, OtherNotificationTypeIssueThreadResolved, OtherNotificationTypeIssueUnblocked, OtherNotificationTypeIssueUnsubscribed, OtherNotificationTypeOauthClientApprovalCreated, OtherNotificationTypeProjectAddedAsLead, OtherNotificationTypeProjectAddedAsMember, OtherNotificationTypeProjectCommentMention, OtherNotificationTypeProjectCommentReaction, OtherNotificationTypeProjectDescriptionContentChange, OtherNotificationTypeProjectMention, OtherNotificationTypeProjectMilestoneCommentMention, OtherNotificationTypeProjectMilestoneCommentReaction, OtherNotificationTypeProjectMilestoneDescriptionContentChange, OtherNotificationTypeProjectMilestoneMention, OtherNotificationTypeProjectMilestoneNewComment, OtherNotificationTypeProjectMilestoneThreadResolved, OtherNotificationTypeProjectNewComment, OtherNotificationTypeProjectReminder, OtherNotificationTypeProjectThreadResolved, OtherNotificationTypeProjectUpdateCommentMention, OtherNotificationTypeProjectUpdateCommentReaction, OtherNotificationTypeProjectUpdateCreated, OtherNotificationTypeProjectUpdateMention, OtherNotificationTypeProjectUpdateNewComment, OtherNotificationTypeProjectUpdatePrompt, OtherNotificationTypeProjectUpdateReaction, OtherNotificationTypePullRequestApproved, OtherNotificationTypePullRequestChangesRequested, OtherNotificationTypePullRequestChecksFailed, OtherNotificationTypePullRequestCommentMention, OtherNotificationTypePullRequestCommented, OtherNotificationTypePullRequestMention, OtherNotificationTypePullRequestRemovedFromMergeQueue, OtherNotificationTypePullRequestReviewRequested, OtherNotificationTypePullRequestReviewRerequested, OtherNotificationTypeSystem, OtherNotificationTypeTeamUpdateCommentMention, OtherNotificationTypeTeamUpdateCommentReaction, OtherNotificationTypeTeamUpdateCreated, OtherNotificationTypeTeamUpdateMention, OtherNotificationTypeTeamUpdateNewComment, OtherNotificationTypeTeamUpdateReaction, OtherNotificationTypeTriageResponsibilityIssueAddedToTriage:
 		return true
 	}
 	return false
@@ -28448,6 +29614,7 @@ const (
 	UserFlagTypeAgentExamplesDismissed                   UserFlagType = "agentExamplesDismissed"
 	UserFlagTypeAgentHomeHeadlineSeen                    UserFlagType = "agentHomeHeadlineSeen"
 	UserFlagTypeAgentHomePageNotice                      UserFlagType = "agentHomePageNotice"
+	UserFlagTypeAgentLoopsPromoShown                     UserFlagType = "agentLoopsPromoShown"
 	UserFlagTypeAgentSharedSkillsPromoDismissed          UserFlagType = "agentSharedSkillsPromoDismissed"
 	UserFlagTypeAgentSharedSkillsSplashAnimationSeen     UserFlagType = "agentSharedSkillsSplashAnimationSeen"
 	UserFlagTypeAll                                      UserFlagType = "all"
@@ -28510,6 +29677,7 @@ var AllUserFlagType = []UserFlagType{
 	UserFlagTypeAgentExamplesDismissed,
 	UserFlagTypeAgentHomeHeadlineSeen,
 	UserFlagTypeAgentHomePageNotice,
+	UserFlagTypeAgentLoopsPromoShown,
 	UserFlagTypeAgentSharedSkillsPromoDismissed,
 	UserFlagTypeAgentSharedSkillsSplashAnimationSeen,
 	UserFlagTypeAll,
@@ -28570,7 +29738,7 @@ var AllUserFlagType = []UserFlagType{
 
 func (e UserFlagType) IsValid() bool {
 	switch e {
-	case UserFlagTypeAgentExamplesDismissed, UserFlagTypeAgentHomeHeadlineSeen, UserFlagTypeAgentHomePageNotice, UserFlagTypeAgentSharedSkillsPromoDismissed, UserFlagTypeAgentSharedSkillsSplashAnimationSeen, UserFlagTypeAll, UserFlagTypeAnalyticsWelcomeDismissed, UserFlagTypeCanPlaySnake, UserFlagTypeCanPlayTetris, UserFlagTypeCommandMenuClearShortcutTip, UserFlagTypeCompletedOnboarding, UserFlagTypeCycleWelcomeDismissed, UserFlagTypeDesktopDownloadToastDismissed, UserFlagTypeDesktopInstalled, UserFlagTypeDesktopTabsOnboardingDismissed, UserFlagTypeDueDateShortcutMigration, UserFlagTypeEditorSlashCommandUsed, UserFlagTypeEmptyActiveIssuesDismissed, UserFlagTypeEmptyBacklogDismissed, UserFlagTypeEmptyCustomViewsDismissed, UserFlagTypeEmptyMyIssuesDismissed, UserFlagTypeEmptyParagraphSlashCommandTip, UserFlagTypeFigmaPluginBannerDismissed, UserFlagTypeFigmaPromptDismissed, UserFlagTypeHelpIslandFeatureInsightsDismissed, UserFlagTypeImportBannerDismissed, UserFlagTypeInitiativesBannerDismissed, UserFlagTypeInsightsHelpDismissed, UserFlagTypeInsightsWelcomeDismissed, UserFlagTypeIssueLabelSuggestionUsed, UserFlagTypeIssueMovePromptCompleted, UserFlagTypeJoinTeamIntroductionDismissed, UserFlagTypeListSelectionTip, UserFlagTypeMigrateThemePreference, UserFlagTypeMilestoneOnboardingIsSeenAndDismissed, UserFlagTypeProjectBacklogWelcomeDismissed, UserFlagTypeProjectBoardOnboardingIsSeenAndDismissed, UserFlagTypeProjectUpdatesWelcomeDismissed, UserFlagTypeProjectWelcomeDismissed, UserFlagTypePulseWelcomeDismissed, UserFlagTypeReviewsPromptToConnectGithubDismissed, UserFlagTypeRewindBannerDismissed, UserFlagTypeSlackAgentPromoFromCreateNewIssueShown, UserFlagTypeSlackBotWelcomeMessageShown, UserFlagTypeSlackCommentReactionTipShown, UserFlagTypeSlackProjectChannelsPromoDismissed, UserFlagTypeSlackProjectChannelsPromoShown, UserFlagTypeTeamsBotWelcomeMessageShown, UserFlagTypeTeamsPageIntroductionDismissed, UserFlagTypeThreadedCommentsNudgeIsSeen, UserFlagTypeTriageWelcomeDismissed, UserFlagTypeTryCodexDismissed, UserFlagTypeTryCursorDismissed, UserFlagTypeTryCyclesDismissed, UserFlagTypeTryGithubDismissed, UserFlagTypeTryInvitePeopleDismissed, UserFlagTypeTryRoadmapsDismissed, UserFlagTypeTryTriageDismissed, UserFlagTypeUpdatedSlackThreadSyncIntegration:
+	case UserFlagTypeAgentExamplesDismissed, UserFlagTypeAgentHomeHeadlineSeen, UserFlagTypeAgentHomePageNotice, UserFlagTypeAgentLoopsPromoShown, UserFlagTypeAgentSharedSkillsPromoDismissed, UserFlagTypeAgentSharedSkillsSplashAnimationSeen, UserFlagTypeAll, UserFlagTypeAnalyticsWelcomeDismissed, UserFlagTypeCanPlaySnake, UserFlagTypeCanPlayTetris, UserFlagTypeCommandMenuClearShortcutTip, UserFlagTypeCompletedOnboarding, UserFlagTypeCycleWelcomeDismissed, UserFlagTypeDesktopDownloadToastDismissed, UserFlagTypeDesktopInstalled, UserFlagTypeDesktopTabsOnboardingDismissed, UserFlagTypeDueDateShortcutMigration, UserFlagTypeEditorSlashCommandUsed, UserFlagTypeEmptyActiveIssuesDismissed, UserFlagTypeEmptyBacklogDismissed, UserFlagTypeEmptyCustomViewsDismissed, UserFlagTypeEmptyMyIssuesDismissed, UserFlagTypeEmptyParagraphSlashCommandTip, UserFlagTypeFigmaPluginBannerDismissed, UserFlagTypeFigmaPromptDismissed, UserFlagTypeHelpIslandFeatureInsightsDismissed, UserFlagTypeImportBannerDismissed, UserFlagTypeInitiativesBannerDismissed, UserFlagTypeInsightsHelpDismissed, UserFlagTypeInsightsWelcomeDismissed, UserFlagTypeIssueLabelSuggestionUsed, UserFlagTypeIssueMovePromptCompleted, UserFlagTypeJoinTeamIntroductionDismissed, UserFlagTypeListSelectionTip, UserFlagTypeMigrateThemePreference, UserFlagTypeMilestoneOnboardingIsSeenAndDismissed, UserFlagTypeProjectBacklogWelcomeDismissed, UserFlagTypeProjectBoardOnboardingIsSeenAndDismissed, UserFlagTypeProjectUpdatesWelcomeDismissed, UserFlagTypeProjectWelcomeDismissed, UserFlagTypePulseWelcomeDismissed, UserFlagTypeReviewsPromptToConnectGithubDismissed, UserFlagTypeRewindBannerDismissed, UserFlagTypeSlackAgentPromoFromCreateNewIssueShown, UserFlagTypeSlackBotWelcomeMessageShown, UserFlagTypeSlackCommentReactionTipShown, UserFlagTypeSlackProjectChannelsPromoDismissed, UserFlagTypeSlackProjectChannelsPromoShown, UserFlagTypeTeamsBotWelcomeMessageShown, UserFlagTypeTeamsPageIntroductionDismissed, UserFlagTypeThreadedCommentsNudgeIsSeen, UserFlagTypeTriageWelcomeDismissed, UserFlagTypeTryCodexDismissed, UserFlagTypeTryCursorDismissed, UserFlagTypeTryCyclesDismissed, UserFlagTypeTryGithubDismissed, UserFlagTypeTryInvitePeopleDismissed, UserFlagTypeTryRoadmapsDismissed, UserFlagTypeTryTriageDismissed, UserFlagTypeUpdatedSlackThreadSyncIntegration:
 		return true
 	}
 	return false
@@ -28997,6 +30165,7 @@ const (
 	ViewTypeInboxOther                       ViewType = "inboxOther"
 	ViewTypeInboxPriority                    ViewType = "inboxPriority"
 	ViewTypeInitiative                       ViewType = "initiative"
+	ViewTypeInitiativeLabel                  ViewType = "initiativeLabel"
 	ViewTypeInitiativeOverview               ViewType = "initiativeOverview"
 	ViewTypeInitiativeOverviewSubInitiatives ViewType = "initiativeOverviewSubInitiatives"
 	ViewTypeInitiatives                      ViewType = "initiatives"
@@ -29069,6 +30238,7 @@ var AllViewType = []ViewType{
 	ViewTypeInboxOther,
 	ViewTypeInboxPriority,
 	ViewTypeInitiative,
+	ViewTypeInitiativeLabel,
 	ViewTypeInitiativeOverview,
 	ViewTypeInitiativeOverviewSubInitiatives,
 	ViewTypeInitiatives,
@@ -29116,7 +30286,7 @@ var AllViewType = []ViewType{
 
 func (e ViewType) IsValid() bool {
 	switch e {
-	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeAutomations, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeContinuousPipelineReleases, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeFocus, ViewTypeInbox, ViewTypeInboxOther, ViewTypeInboxPriority, ViewTypeInitiative, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesAll, ViewTypeInitiativesCanceled, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeInitiativesProposed, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReleaseOverviewIssues, ViewTypeReleasePipelines, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeScheduledPipelineReleases, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
+	case ViewTypeActiveIssues, ViewTypeAgents, ViewTypeAllIssues, ViewTypeArchive, ViewTypeAutomations, ViewTypeBacklog, ViewTypeBoard, ViewTypeCompletedCycle, ViewTypeContinuousPipelineReleases, ViewTypeCreatedReviews, ViewTypeCustomView, ViewTypeCustomViews, ViewTypeCustomer, ViewTypeCustomers, ViewTypeCycle, ViewTypeDashboards, ViewTypeEmbeddedCustomerNeeds, ViewTypeFeedAll, ViewTypeFeedCreated, ViewTypeFeedFollowing, ViewTypeFeedPopular, ViewTypeFocus, ViewTypeInbox, ViewTypeInboxOther, ViewTypeInboxPriority, ViewTypeInitiative, ViewTypeInitiativeLabel, ViewTypeInitiativeOverview, ViewTypeInitiativeOverviewSubInitiatives, ViewTypeInitiatives, ViewTypeInitiativesAll, ViewTypeInitiativesCanceled, ViewTypeInitiativesCompleted, ViewTypeInitiativesPlanned, ViewTypeInitiativesProposed, ViewTypeIssueIdentifiers, ViewTypeLabel, ViewTypeMyIssues, ViewTypeMyIssuesActivity, ViewTypeMyIssuesCreatedByMe, ViewTypeMyIssuesSharedWithMe, ViewTypeMyIssuesSubscribedTo, ViewTypeMyReviews, ViewTypeProject, ViewTypeProjectCustomerNeeds, ViewTypeProjectDocuments, ViewTypeProjectLabel, ViewTypeProjects, ViewTypeProjectsAll, ViewTypeProjectsBacklog, ViewTypeProjectsClosed, ViewTypeQuickView, ViewTypeRelease, ViewTypeReleaseOverviewIssues, ViewTypeReleasePipelines, ViewTypeReviews, ViewTypeRoadmap, ViewTypeRoadmapAll, ViewTypeRoadmapBacklog, ViewTypeRoadmapClosed, ViewTypeRoadmaps, ViewTypeScheduledPipelineReleases, ViewTypeSearch, ViewTypeSplitSearch, ViewTypeSubIssues, ViewTypeTeams, ViewTypeTriage, ViewTypeUserProfile, ViewTypeUserProfileCreatedByUser, ViewTypeWorkspaceMembers:
 		return true
 	}
 	return false
@@ -29317,22 +30487,28 @@ func (e WorkflowTrigger) MarshalJSON() ([]byte, error) {
 type WorkflowTriggerType string
 
 const (
-	WorkflowTriggerTypeIssue    WorkflowTriggerType = "issue"
-	WorkflowTriggerTypeProject  WorkflowTriggerType = "project"
-	WorkflowTriggerTypeRelease  WorkflowTriggerType = "release"
-	WorkflowTriggerTypeSchedule WorkflowTriggerType = "schedule"
+	WorkflowTriggerTypeDocument   WorkflowTriggerType = "document"
+	WorkflowTriggerTypeInitiative WorkflowTriggerType = "initiative"
+	WorkflowTriggerTypeIssue      WorkflowTriggerType = "issue"
+	WorkflowTriggerTypeProject    WorkflowTriggerType = "project"
+	WorkflowTriggerTypeRelease    WorkflowTriggerType = "release"
+	WorkflowTriggerTypeSchedule   WorkflowTriggerType = "schedule"
+	WorkflowTriggerTypeTeam       WorkflowTriggerType = "team"
 )
 
 var AllWorkflowTriggerType = []WorkflowTriggerType{
+	WorkflowTriggerTypeDocument,
+	WorkflowTriggerTypeInitiative,
 	WorkflowTriggerTypeIssue,
 	WorkflowTriggerTypeProject,
 	WorkflowTriggerTypeRelease,
 	WorkflowTriggerTypeSchedule,
+	WorkflowTriggerTypeTeam,
 }
 
 func (e WorkflowTriggerType) IsValid() bool {
 	switch e {
-	case WorkflowTriggerTypeIssue, WorkflowTriggerTypeProject, WorkflowTriggerTypeRelease, WorkflowTriggerTypeSchedule:
+	case WorkflowTriggerTypeDocument, WorkflowTriggerTypeInitiative, WorkflowTriggerTypeIssue, WorkflowTriggerTypeProject, WorkflowTriggerTypeRelease, WorkflowTriggerTypeSchedule, WorkflowTriggerTypeTeam:
 		return true
 	}
 	return false

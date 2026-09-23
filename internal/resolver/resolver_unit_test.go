@@ -452,8 +452,7 @@ func TestResolveState_MultiTeamAmbiguous(t *testing.T) {
 				return
 			}
 			if tt.wantErr && err != nil {
-				var resErr *ResolutionError
-				if errors.As(err, &resErr) {
+				if resErr, ok := errors.AsType[*ResolutionError](err); ok {
 					if len(resErr.Suggestions) == 0 {
 						t.Errorf("ResolveState(%q) error has no suggestions", tt.input)
 					}

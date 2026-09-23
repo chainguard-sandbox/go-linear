@@ -41,6 +41,31 @@ type entityMatcher[T any] struct {
 	formatName  func(entity T) string
 }
 
+// fetchAllPages drains a paginated connection by calling fetchPage with the
+// cursor from the previous page until the server reports no further pages.
+// fetchPage returns the page's nodes, hasNextPage, and endCursor. Resolution
+// must see the full entity set: matching on a truncated list reports
+// "not found" for entities past the first page.
+func fetchAllPages[T any](ctx context.Context, fetchPage func(ctx context.Context, after *string) ([]T, bool, *string, error)) ([]T, error) {
+	var all []T
+	var after *string
+	for {
+		nodes, hasNext, endCursor, err := fetchPage(ctx, after)
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, nodes...)
+		if !hasNext || endCursor == nil || *endCursor == "" {
+			return all, nil
+		}
+		if after != nil && *endCursor == *after {
+			// A server echoing the same cursor would otherwise loop forever.
+			return all, nil
+		}
+		after = endCursor
+	}
+}
+
 // resolve is a generic helper that implements the common resolution pattern:
 // 1. Empty check
 // 2. UUID passthrough
@@ -120,11 +145,13 @@ func (r *Resolver) ResolveTeam(ctx context.Context, nameOrID string) (string, er
 		entityName:  "team",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListTeams_Teams_Nodes, error) {
 			first := int64(100)
-			resp, err := r.client.Teams(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListTeams_Teams_Nodes, bool, *string, error) {
+				resp, err := r.client.Teams(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(team *intgraphql.ListTeams_Teams_Nodes, query string) bool {
 			return strings.EqualFold(team.Name, query) || strings.EqualFold(team.Key, query)
@@ -158,11 +185,13 @@ func (r *Resolver) ResolveUser(ctx context.Context, nameOrEmailOrID string) (str
 		entityName:  "user",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListUsers_Users_Nodes, error) {
 			first := int64(250)
-			resp, err := r.client.Users(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListUsers_Users_Nodes, bool, *string, error) {
+				resp, err := r.client.Users(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(user *intgraphql.ListUsers_Users_Nodes, query string) bool {
 			return strings.EqualFold(user.Name, query) ||
@@ -222,7 +251,13 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 
 	// Fetch all states
 	first := int64(100)
-	resp, err := r.client.WorkflowStates(ctx, &first, nil)
+	states, err := fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListWorkflowStates_WorkflowStates_Nodes, bool, *string, error) {
+		resp, err := r.client.WorkflowStates(ctx, &first, after)
+		if err != nil {
+			return nil, false, nil, err
+		}
+		return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+	})
 	if err != nil {
 		return "", newFetchError("workflow state", err)
 	}
@@ -232,7 +267,7 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 	// Check for exact name match first (case-insensitive)
 	// Collect all matches in case of duplicates across teams
 	var nameMatches []*intgraphql.ListWorkflowStates_WorkflowStates_Nodes
-	for _, state := range resp.Nodes {
+	for _, state := range states {
 		if strings.EqualFold(state.Name, nameOrID) {
 			nameMatches = append(nameMatches, state)
 		}
@@ -274,7 +309,7 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 	// If we have a target type, find all matching states
 	if targetType != "" {
 		var typeMatches []*intgraphql.ListWorkflowStates_WorkflowStates_Nodes
-		for _, state := range resp.Nodes {
+		for _, state := range states {
 			if strings.EqualFold(state.Type, targetType) {
 				typeMatches = append(typeMatches, state)
 			}
@@ -310,9 +345,9 @@ func (r *Resolver) ResolveState(ctx context.Context, nameOrID string) (string, e
 	}
 
 	// Collect available state names for helpful error
-	available := make([]string, 0, len(resp.Nodes))
+	available := make([]string, 0, len(states))
 	seen := make(map[string]bool)
-	for _, state := range resp.Nodes {
+	for _, state := range states {
 		if !seen[state.Name] {
 			available = append(available, state.Name)
 			seen[state.Name] = true
@@ -329,11 +364,13 @@ func (r *Resolver) ResolveLabel(ctx context.Context, nameOrID string) (string, e
 		entityName:  "label",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListLabels_IssueLabels_Nodes, error) {
 			first := int64(250)
-			resp, err := r.client.IssueLabels(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListLabels_IssueLabels_Nodes, bool, *string, error) {
+				resp, err := r.client.IssueLabels(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(label *intgraphql.ListLabels_IssueLabels_Nodes, query string) bool {
 			return strings.EqualFold(label.Name, query)
@@ -389,11 +426,13 @@ func (r *Resolver) ResolveProject(ctx context.Context, nameOrID string) (string,
 		entityName:  "project",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListProjects_Projects_Nodes, error) {
 			first := int64(100)
-			resp, err := r.client.Projects(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListProjects_Projects_Nodes, bool, *string, error) {
+				resp, err := r.client.Projects(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(project *intgraphql.ListProjects_Projects_Nodes, query string) bool {
 			return strings.EqualFold(project.Name, query)
@@ -411,11 +450,13 @@ func (r *Resolver) ResolveCycle(ctx context.Context, nameOrID string) (string, e
 		entityName:  "cycle",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListCycles_Cycles_Nodes, error) {
 			first := int64(100)
-			resp, err := r.client.Cycles(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListCycles_Cycles_Nodes, bool, *string, error) {
+				resp, err := r.client.Cycles(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(cycle *intgraphql.ListCycles_Cycles_Nodes, query string) bool {
 			return cycle.Name != nil && strings.EqualFold(*cycle.Name, query)
@@ -438,11 +479,13 @@ func (r *Resolver) ResolveInitiative(ctx context.Context, nameOrID string) (stri
 		entityName:  "initiative",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListInitiatives_Initiatives_Nodes, error) {
 			first := int64(100)
-			resp, err := r.client.Initiatives(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListInitiatives_Initiatives_Nodes, bool, *string, error) {
+				resp, err := r.client.Initiatives(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(initiative *intgraphql.ListInitiatives_Initiatives_Nodes, query string) bool {
 			return strings.EqualFold(initiative.Name, query)
@@ -460,11 +503,13 @@ func (r *Resolver) ResolveDocument(ctx context.Context, titleOrID string) (strin
 		entityName:  "document",
 		fetch: func(ctx context.Context) ([]*intgraphql.ListDocuments_Documents_Nodes, error) {
 			first := int64(100)
-			resp, err := r.client.Documents(ctx, &first, nil)
-			if err != nil {
-				return nil, err
-			}
-			return resp.Nodes, nil
+			return fetchAllPages(ctx, func(ctx context.Context, after *string) ([]*intgraphql.ListDocuments_Documents_Nodes, bool, *string, error) {
+				resp, err := r.client.Documents(ctx, &first, after)
+				if err != nil {
+					return nil, false, nil, err
+				}
+				return resp.Nodes, resp.PageInfo.HasNextPage, resp.PageInfo.EndCursor, nil
+			})
 		},
 		matches: func(doc *intgraphql.ListDocuments_Documents_Nodes, query string) bool {
 			return strings.EqualFold(doc.Title, query)
