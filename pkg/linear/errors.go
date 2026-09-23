@@ -238,6 +238,48 @@ func wrapGraphQLError(operation string, err error) error {
 	}
 }
 
+// wrapNetworkStatus classifies a non-2xx HTTP failure by its status code rather
+// than by string-matching the error text. The raw executor embeds the full
+// response body in the network error message, so pattern matching on the string
+// (wrapGraphQLError) can misfire — e.g. a 500 whose body contains "FORBIDDEN"
+// would be mistaken for a 403. Keying on the actual status code avoids that.
+func wrapNetworkStatus(code int, err error) error {
+	switch code {
+	case 401:
+		return &AuthenticationError{
+			LinearError: &LinearError{
+				Type:       ErrorTypeAuthenticationError,
+				Message:    "invalid or expired API key",
+				StatusCode: 401,
+				wrapped:    err,
+			},
+		}
+	case 403:
+		return &ForbiddenError{
+			LinearError: &LinearError{
+				Type:       ErrorTypeForbidden,
+				Message:    "permission denied - check API key scopes",
+				StatusCode: 403,
+				wrapped:    err,
+			},
+		}
+	case 429:
+		return &LinearError{
+			Type:       ErrorTypeRateLimited,
+			Message:    "rate limit exceeded",
+			StatusCode: 429,
+			wrapped:    err,
+		}
+	default:
+		return &LinearError{
+			Type:       ErrorTypeGraphQLError,
+			Message:    fmt.Sprintf("graphql request failed (HTTP %d)", code),
+			StatusCode: code,
+			wrapped:    err,
+		}
+	}
+}
+
 // errMutationFailed creates an error for mutations that return success=false.
 func errMutationFailed(operation string) error {
 	return &LinearError{
