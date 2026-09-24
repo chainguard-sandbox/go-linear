@@ -73,8 +73,8 @@ func TestClient_Execute_GraphQLError(t *testing.T) {
 		t.Fatal("Execute() expected error, got nil")
 	}
 
-	var gqlErr *GraphQLResponseError
-	if !errors.As(err, &gqlErr) {
+	gqlErr, ok := errors.AsType[*GraphQLResponseError](err)
+	if !ok {
 		t.Fatalf("error is not *GraphQLResponseError: %T (%v)", err, err)
 	}
 	if len(gqlErr.Errors) != 1 {
@@ -193,12 +193,11 @@ func TestClient_Execute_GraphQLErrorWithStatusToken(t *testing.T) {
 		t.Fatal("Execute() expected error, got nil")
 	}
 
-	var forbidden *ForbiddenError
-	if errors.As(err, &forbidden) {
+	if _, ok := errors.AsType[*ForbiddenError](err); ok {
 		t.Fatalf("200 GraphQL error misclassified as *ForbiddenError: %v", err)
 	}
-	var gqlErr *GraphQLResponseError
-	if !errors.As(err, &gqlErr) {
+	gqlErr, ok := errors.AsType[*GraphQLResponseError](err)
+	if !ok {
 		t.Fatalf("error is not *GraphQLResponseError: %T (%v)", err, err)
 	}
 	if len(gqlErr.Errors) != 1 || gqlErr.Errors[0].Extensions["code"] != "FORBIDDEN" {
@@ -237,13 +236,11 @@ func TestClient_Execute_5xxWithForbiddenTokenNotMisclassified(t *testing.T) {
 	if err == nil {
 		t.Fatal("Execute() expected error, got nil")
 	}
-	var forbidden *ForbiddenError
-	if errors.As(err, &forbidden) {
+	if _, ok := errors.AsType[*ForbiddenError](err); ok {
 		t.Fatalf("500 with FORBIDDEN in body misclassified as *ForbiddenError: %v", err)
 	}
 	// It should surface the structured GraphQL errors (non-auth non-2xx with errors[]).
-	var gqlErr *GraphQLResponseError
-	if !errors.As(err, &gqlErr) {
+	if _, ok := errors.AsType[*GraphQLResponseError](err); !ok {
 		t.Fatalf("want *GraphQLResponseError, got %T (%v)", err, err)
 	}
 }
@@ -294,8 +291,7 @@ func TestClient_Execute_AuthErrorClassified(t *testing.T) {
 	if err == nil {
 		t.Fatal("Execute() expected error, got nil")
 	}
-	var authErr *AuthenticationError
-	if !errors.As(err, &authErr) {
+	if _, ok := errors.AsType[*AuthenticationError](err); !ok {
 		t.Fatalf("error is not *AuthenticationError: %T (%v)", err, err)
 	}
 }

@@ -32,8 +32,8 @@ func TestParseRawResponse_GraphQLErrors(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	var er *clientv2.ErrorResponse
-	if !errors.As(err, &er) {
+	er, ok := errors.AsType[*clientv2.ErrorResponse](err)
+	if !ok {
 		t.Fatalf("error is not *clientv2.ErrorResponse: %T", err)
 	}
 	if er.NetworkError != nil {
@@ -50,8 +50,8 @@ func TestParseRawResponse_NonJSONBodyNonOK(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	var er *clientv2.ErrorResponse
-	if !errors.As(err, &er) {
+	er, ok := errors.AsType[*clientv2.ErrorResponse](err)
+	if !ok {
 		t.Fatalf("error is not *clientv2.ErrorResponse: %T (%v)", err, err)
 	}
 	if er.NetworkError == nil || er.NetworkError.Code != 502 {
@@ -68,8 +68,7 @@ func TestParseRawResponse_NonJSONBodyOK(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected decode error")
 	}
-	var er *clientv2.ErrorResponse
-	if errors.As(err, &er) {
+	if _, ok := errors.AsType[*clientv2.ErrorResponse](err); ok {
 		t.Fatalf("expected a plain decode error, got *clientv2.ErrorResponse: %v", err)
 	}
 }
@@ -89,8 +88,8 @@ func TestParseRawResponse_MalformedErrorsNonOKPreservesNetworkError(t *testing.T
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	var er *clientv2.ErrorResponse
-	if !errors.As(err, &er) {
+	er, ok := errors.AsType[*clientv2.ErrorResponse](err)
+	if !ok {
 		t.Fatalf("want *clientv2.ErrorResponse (NetworkError preserved), got %T (%v)", err, err)
 	}
 	if er.NetworkError == nil || er.NetworkError.Code != 403 {

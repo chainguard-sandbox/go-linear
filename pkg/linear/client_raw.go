@@ -119,8 +119,7 @@ func (c *Client) Execute(ctx context.Context, query string, vars map[string]any,
 		// body text, which would mistake a 500 whose body says "FORBIDDEN" for a
 		// 403). A 2xx response carrying only errors[] is a GraphQL-level failure
 		// and keeps its structured detail even when a message contains such a token.
-		var er *clientv2.ErrorResponse
-		if errors.As(err, &er) {
+		if er, ok := errors.AsType[*clientv2.ErrorResponse](err); ok {
 			if er.NetworkError != nil {
 				code := er.NetworkError.Code
 				// Auth/permission/rate-limit are security-relevant: classify by code.
