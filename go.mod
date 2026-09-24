@@ -11,6 +11,7 @@ require (
 	github.com/njayp/ophis v1.1.4
 	github.com/prometheus/client_golang v1.24.1
 	github.com/spf13/cobra v1.10.2
+	github.com/vektah/gqlparser/v2 v2.5.32
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
 	golang.org/x/sync v0.23.0
@@ -45,7 +46,6 @@ require (
 	github.com/sosodev/duration v1.4.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/urfave/cli/v2 v2.27.6 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.32 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

@@ -171,6 +171,32 @@ func TestSanitizeError_GenericError(t *testing.T) {
 	}
 }
 
+func TestSanitizeError_GraphQLResponseError(t *testing.T) {
+	gqlErr := &GraphQLResponseError{Errors: []GraphQLError{
+		{Message: "Field 'bogus' doesn't exist", Path: []any{"viewer", "bogus"}},
+	}}
+
+	// Directly and when wrapped, it must classify as a user error and surface
+	// the first GraphQL message (not the generic "Operation failed").
+	for name, err := range map[string]error{
+		"direct":  gqlErr,
+		"wrapped": fmt.Errorf("execute: %w", gqlErr),
+	} {
+		t.Run(name, func(t *testing.T) {
+			result := SanitizeError("graphql", err)
+			if result.Class != ErrorClassUser {
+				t.Errorf("Class = %v, want %v", result.Class, ErrorClassUser)
+			}
+			if result.Message != "Field 'bogus' doesn't exist" {
+				t.Errorf("Message = %q, want the first GraphQL error message", result.Message)
+			}
+			if !errors.Is(result.Internal, gqlErr) {
+				t.Error("should preserve the underlying *GraphQLResponseError")
+			}
+		})
+	}
+}
+
 func TestSanitizeError_AlreadySanitized(t *testing.T) {
 	original := &ErrorContext{
 		Class:     ErrorClassUser,
