@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
@@ -46,6 +47,9 @@ func (c *Client) Raw(ctx context.Context, opName, query string, vars map[string]
 	limit := maxResponseBytes
 	if limit <= 0 {
 		limit = defaultMaxRawResponseSize
+	}
+	if limit == math.MaxInt64 {
+		limit = math.MaxInt64 - 1 // avoid overflow on the limit+1 read below
 	}
 
 	reqPayload := &clientv2.Request{
@@ -138,6 +142,12 @@ func parseRawResponse(body []byte, httpCode int, out any) error {
 	if len(envelope.Errors) > 0 {
 		var list gqlerror.List
 		if err := json.Unmarshal(envelope.Errors, &list); err != nil {
+			// A malformed "errors" value (e.g. an object rather than the spec's
+			// array, from an intermediary). Don't abandon a non-2xx NetworkError:
+			// fall through to HasErrors() so status classification is preserved.
+			if errResponse.HasErrors() {
+				return errResponse
+			}
 			return fmt.Errorf("failed to parse graphql errors %s: %w", truncateForError(body), err)
 		}
 		errResponse.GqlErrors = &list

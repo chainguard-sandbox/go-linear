@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -74,10 +75,45 @@ func TestParseRawResponse_NonJSONBodyOK(t *testing.T) {
 }
 
 func TestParseRawResponse_MalformedErrors(t *testing.T) {
-	// "errors" present but not an array → parse error.
+	// "errors" present but not an array on a 2xx → parse error.
 	err := parseRawResponse([]byte(`{"errors":{"message":"oops"}}`), 200, nil)
 	if err == nil {
 		t.Fatal("expected error for malformed errors array")
+	}
+}
+
+func TestParseRawResponse_MalformedErrorsNonOKPreservesNetworkError(t *testing.T) {
+	// A non-2xx response whose "errors" is a malformed object (not the spec's
+	// array) must still surface the NetworkError, not drop it (S-1).
+	err := parseRawResponse([]byte(`{"errors":{"message":"forbidden"}}`), 403, nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var er *clientv2.ErrorResponse
+	if !errors.As(err, &er) {
+		t.Fatalf("want *clientv2.ErrorResponse (NetworkError preserved), got %T (%v)", err, err)
+	}
+	if er.NetworkError == nil || er.NetworkError.Code != 403 {
+		t.Fatalf("NetworkError = %+v, want code 403", er.NetworkError)
+	}
+}
+
+func TestRaw_MaxInt64LimitDoesNotOverflow(t *testing.T) {
+	// WithMaxResponseBytes(math.MaxInt64) must not overflow limit+1 into a
+	// negative LimitReader bound that reads zero bytes (S-4).
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":{"x":"ok"}}`))
+	}))
+	defer srv.Close()
+
+	c := &Client{Client: clientv2.NewClient(http.DefaultClient, srv.URL, nil)}
+	var out json.RawMessage
+	if err := c.Raw(context.Background(), "", `query { x }`, nil, &out, math.MaxInt64); err != nil {
+		t.Fatalf("Raw() error = %v", err)
+	}
+	if string(out) != `{"x":"ok"}` {
+		t.Errorf("out = %s", out)
 	}
 }
 

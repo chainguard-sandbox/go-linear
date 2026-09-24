@@ -285,6 +285,9 @@ func checkOperation(query, operationName string, allowMutation bool) error {
 	case ast.Subscription:
 		return errors.New("subscriptions are not supported")
 	case ast.Query:
+	default:
+		// Backstop: a future gqlparser operation type is not implicitly allowed.
+		return fmt.Errorf("unsupported operation type %q", op.Operation)
 	}
 
 	return nil

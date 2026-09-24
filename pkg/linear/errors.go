@@ -272,7 +272,7 @@ func wrapNetworkStatus(code int, err error) error {
 		}
 	default:
 		return &LinearError{
-			Type:       ErrorTypeGraphQLError,
+			Type:       ErrorTypeNetworkError,
 			Message:    fmt.Sprintf("graphql request failed (HTTP %d)", code),
 			StatusCode: code,
 			wrapped:    err,
