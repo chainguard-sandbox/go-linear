@@ -118,6 +118,57 @@ for _, issue := range issues.Nodes {
 
 See [SDK Documentation](docs/SDK.md) for production configuration.
 
+### Raw GraphQL (escape hatch)
+
+When a query needs un-modeled nested fields, a filter beyond the builders, or
+brand-new API surface, run an arbitrary GraphQL document through the same
+authenticated, resilient client:
+
+```bash
+# A query selecting fields absent from any built-in selection set:
+go-linear graphql --query 'query { viewer { organization { id name } } }'
+
+# Typed variables (never string-concatenated into the query):
+go-linear graphql \
+  --query 'query($id:String!){ issue(id:$id){ title project { lead { email } } } }' \
+  --var id=abc-123
+
+# Document from a file or stdin; variables from a JSON file:
+go-linear graphql --query @query.graphql --vars-file @vars.json --var first:int=50
+
+# Mutations must be opted into explicitly:
+go-linear graphql --allow-mutation \
+  --query 'mutation { issueUpdate(id:"abc", input:{priority:1}){ success } }'
+```
+
+From Go, the equivalent is `(*linear.Client).Execute`:
+
+```go
+var data json.RawMessage
+err := client.Execute(ctx, `query { viewer { id email } }`, nil, &data)
+```
+
+`--var` supports typed values: `name=str`, `name:int=42`, `name:float=1.5`,
+`name:bool=true`, `name:json=[1,2,3]`. When a document defines more than one
+operation, select which to run with `--operation-name`. Use `--compact` for
+single-line JSON output, and `--max-response-bytes` to raise the response-size
+limit (default 10MB) for a query returning a large result set. Mutations are
+rejected unless `--allow-mutation` is passed; the check runs before any network
+call by parsing the document. GraphQL errors exit non-zero and print to stderr.
+
+```bash
+# Pick one operation from a multi-operation document:
+go-linear graphql --operation-name GetTeam \
+  --query 'query GetTeam { team(id:"T"){ name } } query GetViewer { viewer { id } }'
+```
+
+**Non-guarantees.** This is a raw passthrough: no name→ID resolution (pass real
+IDs), no field defaults or `--fields` pruning, no response-shape stability (output
+tracks Linear's API verbatim), and no query-complexity reduction. For everyday
+work prefer the higher-altitude commands above. To avoid an unrestricted-mutation
+footgun for agents, `graphql` is a CLI-only command and is **not** exposed as an
+MCP tool.
+
 ---
 
 ## Design Philosophy

@@ -145,6 +145,35 @@ All errors preserve underlying errors for `errors.Unwrap()`.
 
 ---
 
+## Raw GraphQL (escape hatch)
+
+`Execute` runs an arbitrary GraphQL document through the fully-configured client
+(auth, retries, rate limiting, metrics, credential rotation) — an escape hatch for
+un-modeled fields, filters beyond the builders, or brand-new API surface.
+
+```go
+var data json.RawMessage
+err := client.Execute(ctx, `query { viewer { organization { id name } } }`, nil, &data)
+
+// Select an operation in a multi-operation document and cap the response size:
+err = client.Execute(ctx, doc, vars, &out,
+    linear.WithOperationName("GetTeam"),
+    linear.WithMaxResponseBytes(64<<20))
+```
+
+`out` is unmarshaled from the response `data` object (pass `*json.RawMessage`,
+`*map[string]any`, or a struct; `nil` discards it). Response-level GraphQL errors
+surface as `*linear.GraphQLResponseError` (message, path, extensions);
+network/auth (401) / forbidden (403) / rate-limit (429) failures surface as the
+usual typed errors above.
+
+This is a raw passthrough: **no** name→ID resolution, **no** field defaults, **no**
+field pruning, and **no** response-shape stability. Prefer the typed methods for
+everyday work. `Execute` is available on the SDK and CLI (`linear graphql`) but is
+deliberately **not** exposed as an MCP tool.
+
+---
+
 ## Transport Behavior
 
 ### Retry

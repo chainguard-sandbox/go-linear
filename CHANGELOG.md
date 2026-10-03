@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Raw GraphQL passthrough escape hatch. New SDK method `(*Client).Execute` runs an arbitrary GraphQL document through the fully-configured client (auth, retries, rate limiting, metrics), with `WithOperationName` and `WithMaxResponseBytes` options and a typed `GraphQLResponseError`. New `linear graphql` CLI command (`--query` inline/`@file`/stdin, typed `--var`, `--vars-file`, `--operation-name`, `--allow-mutation`, `--compact`, `--max-response-bytes`); mutations are rejected unless `--allow-mutation` (enforced pre-network by parsing the document with gqlparser). The command is CLI-only and excluded from the MCP tool set.
+
 ## [2.2.1] - 2026-03-20
 
 ### Fixed

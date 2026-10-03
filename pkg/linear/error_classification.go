@@ -241,6 +241,22 @@ func SanitizeError(operation string, err error) *ErrorContext {
 		}
 	}
 
+	// Handle raw GraphQL response errors: these are query-level failures
+	// (validation, not-found, etc.), so surface their messages to the user.
+	if gqlErr, ok := errors.AsType[*GraphQLResponseError](err); ok {
+		message := "GraphQL request failed"
+		if len(gqlErr.Errors) > 0 {
+			message = gqlErr.Errors[0].Message
+		}
+		return &ErrorContext{
+			Class:     ErrorClassUser,
+			Severity:  SeverityError,
+			Message:   message,
+			Operation: operation,
+			Internal:  err,
+		}
+	}
+
 	// Default: classify as internal error with generic message
 	return &ErrorContext{
 		Class:     ErrorClassInternal,
