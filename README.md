@@ -198,7 +198,7 @@ make sync-upstream  # Fetch latest schema + regenerate
 
 **Not official**: This is a third-party client. Official Linear SDKs at https://github.com/linear
 
-**Security**: mark.esler@chainguard.dev (72-hour acknowledgment). See [SECURITY.md](SECURITY.md).
+**Security**: security@chainguard.dev (72-hour acknowledgment). See the [security policy](https://github.com/chainguard-sandbox/go-linear/security/policy).
 
 **License**: Apache 2.0
 
