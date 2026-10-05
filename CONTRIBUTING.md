@@ -102,4 +102,4 @@ Related: {entity}_{related-actions}
 
 ## Security
 
-Report vulnerabilities privately to mark.esler@chainguard.dev. See [SECURITY.md](SECURITY.md).
+Report vulnerabilities privately to security@chainguard.dev. See the [security policy](https://github.com/chainguard-sandbox/go-linear/security/policy).
