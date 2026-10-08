@@ -41,11 +41,11 @@ jobs:
         run: go test -race -cover ./...
 
       - name: Run tests with coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.26'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.27'
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.26'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.27'
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: ./coverage.out
