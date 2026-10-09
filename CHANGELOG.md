@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Sync upstream schema to `@linear/sdk@97.1.0` (was 88.3.0)
+- Go 1.27.2 (was 1.27.0; fixes GO-2026-6603 and other stdlib vulns in crypto/tls, net/http, net/textproto)
 - **Breaking:** `ProjectFilter.ID`, `NullableProjectFilter.ID`, and `InitiativeFilter.ID` are now `*EntityIdentifierIDComparator` (was `*IDComparator`). The new comparator has the same `Eq`/`In`/`Neq`/`Nin` fields and also accepts human-readable identifiers (e.g. `PROJ-123`).
 
 ### Added
