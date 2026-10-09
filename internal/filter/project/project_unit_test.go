@@ -603,7 +603,7 @@ func TestFilterBuilder_Build_WithFilters(t *testing.T) {
 			name: "with ID",
 			setup: func(b *FilterBuilder) {
 				id := "test"
-				b.filter.ID = &intgraphql.IDComparator{Eq: &id}
+				b.filter.ID = &intgraphql.EntityIdentifierIDComparator{Eq: &id}
 			},
 			wantNil: false,
 		},

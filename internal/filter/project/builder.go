@@ -92,7 +92,7 @@ func (b *FilterBuilder) TargetDateComparator() *intgraphql.NullableDateComparato
 
 // SetID sets the ID comparator. Implements common.IDFilterable.
 func (b *FilterBuilder) SetID(comp *intgraphql.IDComparator) {
-	b.filter.ID = comp
+	b.filter.ID = (*intgraphql.EntityIdentifierIDComparator)(comp)
 }
 
 // Build returns the filter if any fields are set, nil otherwise.
