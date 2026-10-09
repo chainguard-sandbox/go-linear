@@ -7,16 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-09
+
+This release ships one small breaking SDK change as a minor version. Linear changed the `id` filter type on projects and initiatives upstream. A major version would require moving the module path to `/v3`, which is out of proportion to a one-line migration (see below).
+
 ### Changed
-- Sync upstream schema to `@linear/sdk@97.1.0` (was 88.3.0)
-- Go 1.27.2 (was 1.27.0; fixes GO-2026-6603 and other stdlib vulns in crypto/tls, net/http, net/textproto)
 - **Breaking:** `ProjectFilter.ID`, `NullableProjectFilter.ID`, and `InitiativeFilter.ID` are now `*EntityIdentifierIDComparator` (was `*IDComparator`). The new comparator has the same `Eq`/`In`/`Neq`/`Nin` fields and also accepts human-readable identifiers (e.g. `PROJ-123`).
+- Sync upstream schema to `@linear/sdk@97.1.0` (was 87.0.0, via 88.3.0)
+- Go 1.27.2 (was 1.26.4; fixes GO-2026-6603 and other stdlib vulns in crypto/tls, net/http, net/textproto). `go.mod` now requires Go >= 1.27.
+- User resolver no longer lists workspace members in "not found" errors (prevents leaking the member roster into terminal output and logs). Other entity types still suggest names.
 
 ### Added
 - `linear.EntityIdentifierIDComparator` public alias
+- `linear.TeamFilter` public alias (#146)
+- `issue get`, `issue list`, and `issue search` now return `creator` and `botActor` fields (#133)
+
+### Fixed
+- Resolvers for users, teams, labels, projects, cycles, initiatives, documents, and workflow states now paginate. Previously they fetched only the first 250 entities, so names past the first page could not be resolved (#133)
+- `issue update --link-pr` works without other update fields (#124), converts the short `owner/repo#N` format to a canonical PR URL (#123), and runs in the nullable update path (#113)
+- MCP: `asJSONObjectMap` and `asJSONString` return `ok=false` for JSON `null` (#114)
+
+### Security
+- Bumped `golang.org/x/text` to v0.42.0 (CVE-2026-56851)
+- Go 1.26.5 then 1.27.2 to clear stdlib vulnerabilities (#125)
+- Schema acquisition pinned to `@linear/sdk` release tags; `make schema` and `sync-check` no longer curl from the upstream `master` branch (#128)
+- `sync-check` workflow enforces an egress allowlist via harden-runner block mode (#129)
+- Use the org-wide security policy instead of a repo `SECURITY.md` (#163)
+
+### CI
+- Add advanced-setup CodeQL workflow (#145)
+- Bump golangci-lint to v2.14 for Go 1.27 support and fix the coverage step condition (#144, #165)
+- Pin gosec to a commit that supports Go 1.27.2
+
+### Dependencies
+- Bumped `github.com/modelcontextprotocol/go-sdk`, `github.com/chainguard-dev/clog`, `github.com/prometheus/client_golang` (1.24.1), `golang.org/x/sync` (0.22.0), and the minor-and-patch group
+- Bumped GitHub Actions: `actions/checkout`, `actions/setup-go`, `github/codeql-action` (v4), `codecov/codecov-action`, `golangci/golangci-lint-action`, `step-security/harden-runner`, `step-security/action-actionlint`, `zizmorcore/zizmor-action`
 
 ### Migration
 - Replace `&linear.IDComparator{...}` with `&linear.EntityIdentifierIDComparator{...}` when filtering projects or initiatives by ID
+- Building from source requires Go 1.27 or newer
+
+## [2.3.0] - 2026-06-29
+
+### Added
+- `audit list` and `audit types` commands (#66)
+- `project` label and relation CRUD commands (#65)
+- Bulk notification operations: `notification archive-all`, `mark-read-all`, `mark-unread-all`, `snooze-all`, `unsnooze-all` (#63)
+- `issue subscribe` and `issue unsubscribe` commands (#62)
+- `issue search --team` and structured filters (#61)
+- `issue update --estimate`, with float values and `--estimate=none` to clear (#68)
+- Re-export server-side filter and result types from `pkg/linear` (#102)
+
+### Changed
+- Sync upstream schema to `@linear/sdk@87.0.0` (was 77.0.0, via 80.0.0) (#48, #108)
+- Go 1.26.4 (was 1.26.1; fixes stdlib vulnerabilities) (#69, #96, #98)
+- CLI confirmation prompts read from `cmd.InOrStdin()` (#101)
+
+### Fixed
+- MCP: normalize double-encoded flags from MCP clients (#76)
+- MCP: preserve `_meta`, restrict flags to objects, and propagate parse errors (#86)
+- `dateparser` rejects overflowing duration amounts (#99)
+- `notification update --snooze-until` parses relative dates as future (#100)
+- `make generate` runs gqlgenc from the repo root (#47)
+
+### Security
+- GitHub Actions hardening: deny-by-default workflow token grants, quoted shell variables, zizmor and actionlint linters (#70, #95)
+- Dependabot cooldown settings (#89)
+
+### CI
+- Improve release workflow reliability (#49)
+
+### Testing
+- Property and fuzz tests for `Nullable`, `dateparser`, and `fieldfilter` (#87, #107)
 
 ## [2.2.1] - 2026-03-20
 
@@ -66,7 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 - Clean up for public release
 
-## [2.0.0] - Unreleased
+## [2.0.0] - 2026-02-25
 
 ### Breaking Changes
 - **JSON-only output**: Dropped table output — all commands output JSON exclusively. The `--output` flag is removed (~4,000 lines removed). See [docs/MIGRATION.md](docs/MIGRATION.md).
@@ -480,5 +542,12 @@ First stable release of go-linear, a production-ready Go client for the Linear A
 
 **License**: Apache 2.0
 
+[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.3.0...v2.4.0
+[2.3.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.2.1...v2.3.0
+[2.2.1]: https://github.com/chainguard-sandbox/go-linear/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/chainguard-sandbox/go-linear/compare/v1.4.1...v2.0.0
 [1.1.0]: https://github.com/eslerm/go-linear/releases/tag/v1.1.0
 [1.0.0]: https://github.com/eslerm/go-linear/releases/tag/v1.0.0
