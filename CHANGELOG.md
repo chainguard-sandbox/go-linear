@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Sync upstream schema to `@linear/sdk@97.1.0` (was 88.3.0)
+- Go 1.27.2 (was 1.27.0; fixes GO-2026-6603 and other stdlib vulns in crypto/tls, net/http, net/textproto)
+- **Breaking:** `ProjectFilter.ID`, `NullableProjectFilter.ID`, and `InitiativeFilter.ID` are now `*EntityIdentifierIDComparator` (was `*IDComparator`). The new comparator has the same `Eq`/`In`/`Neq`/`Nin` fields and also accepts human-readable identifiers (e.g. `PROJ-123`).
+
+### Added
+- `linear.EntityIdentifierIDComparator` public alias
+
+### Migration
+- Replace `&linear.IDComparator{...}` with `&linear.EntityIdentifierIDComparator{...}` when filtering projects or initiatives by ID
+
 ## [2.2.1] - 2026-03-20
 
 ### Fixed

@@ -22,7 +22,7 @@ func ApplyProject(ctx context.Context, cmd *cobra.Command, b *FilterBuilder) err
 	}
 
 	b.Filter().Project = &intgraphql.ProjectFilter{
-		ID: &intgraphql.IDComparator{Eq: &projectID},
+		ID: &intgraphql.EntityIdentifierIDComparator{Eq: &projectID},
 	}
 	return nil
 }

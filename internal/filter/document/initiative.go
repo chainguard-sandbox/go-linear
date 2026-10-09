@@ -22,7 +22,7 @@ func ApplyInitiative(ctx context.Context, cmd *cobra.Command, b *FilterBuilder) 
 	}
 
 	b.Filter().Initiative = &intgraphql.InitiativeFilter{
-		ID: &intgraphql.IDComparator{Eq: &initiativeID},
+		ID: &intgraphql.EntityIdentifierIDComparator{Eq: &initiativeID},
 	}
 	return nil
 }

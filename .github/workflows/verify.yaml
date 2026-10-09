@@ -117,7 +117,9 @@ jobs:
           check-latest: true
 
       - name: Install gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+        # Pinned to master: v2.29.0 can't load Go 1.27.2 export data
+        # (securego/gosec#1771). Move back to a release once v2.29.1+ is tagged.
+        run: go install github.com/securego/gosec/v2/cmd/gosec@7b1b5cebe007d62fb58eacb90fc571112939ec30
 
       - name: Run gosec
         run: gosec -conf .gosec.json -exclude-dir=examples -exclude-dir=internal/graphql ./...

@@ -22,7 +22,7 @@ func TestFilterTypesUsableExternally(t *testing.T) {
 	// A consumer can build a *populated* issue filter — project + state +
 	// assignee + priority — without touching internal/graphql.
 	filter := linear.IssueFilter{
-		Project:  &linear.NullableProjectFilter{ID: &linear.IDComparator{Eq: &projectID}},
+		Project:  &linear.NullableProjectFilter{ID: &linear.EntityIdentifierIDComparator{Eq: &projectID}},
 		State:    &linear.WorkflowStateFilter{Type: &linear.StringComparator{Eq: &stateType}},
 		Assignee: &linear.NullableUserFilter{IsMe: &linear.BooleanComparator{Eq: &assignedToMe}},
 		Priority: &linear.NullableNumberComparator{Gte: &minPriority},

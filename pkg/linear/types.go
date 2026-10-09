@@ -221,13 +221,14 @@ type (
 	NullableProjectFilter = intgraphql.NullableProjectFilter // IssueFilter.Project
 	NullableUserFilter    = intgraphql.NullableUserFilter    // IssueFilter.Assignee / Creator / ...
 
-	IDComparator             = intgraphql.IDComparator
-	IssueIDComparator        = intgraphql.IssueIDComparator
-	NumberComparator         = intgraphql.NumberComparator
-	NullableNumberComparator = intgraphql.NullableNumberComparator
-	StringComparator         = intgraphql.StringComparator
-	NullableStringComparator = intgraphql.NullableStringComparator
-	DateComparator           = intgraphql.DateComparator
-	NullableDateComparator   = intgraphql.NullableDateComparator
-	BooleanComparator        = intgraphql.BooleanComparator
+	IDComparator                 = intgraphql.IDComparator
+	IssueIDComparator            = intgraphql.IssueIDComparator
+	EntityIdentifierIDComparator = intgraphql.EntityIdentifierIDComparator // ProjectFilter.ID / InitiativeFilter.ID
+	NumberComparator             = intgraphql.NumberComparator
+	NullableNumberComparator     = intgraphql.NullableNumberComparator
+	StringComparator             = intgraphql.StringComparator
+	NullableStringComparator     = intgraphql.NullableStringComparator
+	DateComparator               = intgraphql.DateComparator
+	NullableDateComparator       = intgraphql.NullableDateComparator
+	BooleanComparator            = intgraphql.BooleanComparator
 )

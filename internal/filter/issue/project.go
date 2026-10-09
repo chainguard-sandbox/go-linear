@@ -16,7 +16,7 @@ func ApplyProject(ctx context.Context, cmd *cobra.Command, b *IssueFilterBuilder
 	}
 
 	b.Filter().Project = &intgraphql.NullableProjectFilter{
-		ID: &intgraphql.IDComparator{Eq: &project},
+		ID: &intgraphql.EntityIdentifierIDComparator{Eq: &project},
 	}
 	return nil
 }
