@@ -48,5 +48,11 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    # CodeQL fails when init and analyze run different versions, so bump
+    # every github/codeql-action sub-action in a single PR.
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
     cooldown:
       default-days: 3
