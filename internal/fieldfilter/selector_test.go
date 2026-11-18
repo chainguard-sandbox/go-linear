@@ -153,3 +153,47 @@ func TestFilter(t *testing.T) {
 		})
 	}
 }
+
+func TestWithNullable(t *testing.T) {
+	input := []byte(`{"nodes":[{"id":"a","slaBreachesAt":"2026-01-01T00:00:00Z"},{"id":"b"}]}`)
+
+	t.Run("pads selected nullable fields in list items only", func(t *testing.T) {
+		fs, err := NewForList("id,slaBreachesAt,completedAt", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// completedAt is nullable and selected; slaStartedAt is nullable but not selected.
+		fs = fs.WithNullable("slaBreachesAt", "completedAt", "slaStartedAt")
+
+		out, err := fs.Filter(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := `{"nodes":[{"completedAt":null,"id":"a","slaBreachesAt":"2026-01-01T00:00:00Z"},{"completedAt":null,"id":"b","slaBreachesAt":null}]}`
+		if string(out) != want {
+			t.Errorf("Filter() =\n%s\nwant\n%s", out, want)
+		}
+	})
+
+	t.Run("without WithNullable absent fields stay omitted", func(t *testing.T) {
+		fs, err := NewForList("id,slaBreachesAt", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		out, err := fs.Filter(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := `{"nodes":[{"id":"a","slaBreachesAt":"2026-01-01T00:00:00Z"},{"id":"b"}]}`
+		if string(out) != want {
+			t.Errorf("Filter() =\n%s\nwant\n%s", out, want)
+		}
+	})
+
+	t.Run("nil selector", func(t *testing.T) {
+		var fs *FieldSelector
+		if got := fs.WithNullable("completedAt"); got != nil {
+			t.Errorf("WithNullable on nil = %v, want nil", got)
+		}
+	})
+}

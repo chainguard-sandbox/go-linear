@@ -3304,6 +3304,35 @@ func (t *GetIssue_Issue) GetURL() string {
 	return t.URL
 }
 
+type ListIssues_Issues_Nodes_Labels_Nodes struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssues_Issues_Nodes_Labels_Nodes) GetID() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Labels_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListIssues_Issues_Nodes_Labels_Nodes) GetName() string {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Labels_Nodes{}
+	}
+	return t.Name
+}
+
+type ListIssues_Issues_Nodes_Labels struct {
+	Nodes []*ListIssues_Issues_Nodes_Labels_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *ListIssues_Issues_Nodes_Labels) GetNodes() []*ListIssues_Issues_Nodes_Labels_Nodes {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes_Labels{}
+	}
+	return t.Nodes
+}
+
 type ListIssues_Issues_Nodes_State struct {
 	ID   string "json:\"id\" graphql:\"id\""
 	Name string "json:\"name\" graphql:\"name\""
@@ -3451,15 +3480,19 @@ type ListIssues_Issues_Nodes struct {
 	ArchivedAt       *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
 	Assignee         *ListIssues_Issues_Nodes_Assignee         "json:\"assignee,omitempty\" graphql:\"assignee\""
 	BotActor         *ListIssues_Issues_Nodes_BotActor         "json:\"botActor,omitempty\" graphql:\"botActor\""
+	CompletedAt      *time.Time                                "json:\"completedAt,omitempty\" graphql:\"completedAt\""
 	CreatedAt        time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
 	Creator          *ListIssues_Issues_Nodes_Creator          "json:\"creator,omitempty\" graphql:\"creator\""
 	Description      *string                                   "json:\"description,omitempty\" graphql:\"description\""
 	DueDate          *string                                   "json:\"dueDate,omitempty\" graphql:\"dueDate\""
 	ID               string                                    "json:\"id\" graphql:\"id\""
 	Identifier       string                                    "json:\"identifier\" graphql:\"identifier\""
+	Labels           ListIssues_Issues_Nodes_Labels            "json:\"labels\" graphql:\"labels\""
 	Number           float64                                   "json:\"number\" graphql:\"number\""
 	Priority         float64                                   "json:\"priority\" graphql:\"priority\""
 	ProjectMilestone *ListIssues_Issues_Nodes_ProjectMilestone "json:\"projectMilestone,omitempty\" graphql:\"projectMilestone\""
+	SLABreachesAt    *time.Time                                "json:\"slaBreachesAt,omitempty\" graphql:\"slaBreachesAt\""
+	SLAStartedAt     *time.Time                                "json:\"slaStartedAt,omitempty\" graphql:\"slaStartedAt\""
 	State            ListIssues_Issues_Nodes_State             "json:\"state\" graphql:\"state\""
 	Team             ListIssues_Issues_Nodes_Team              "json:\"team\" graphql:\"team\""
 	Title            string                                    "json:\"title\" graphql:\"title\""
@@ -3485,6 +3518,12 @@ func (t *ListIssues_Issues_Nodes) GetBotActor() *ListIssues_Issues_Nodes_BotActo
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return t.BotActor
+}
+func (t *ListIssues_Issues_Nodes) GetCompletedAt() *time.Time {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.CompletedAt
 }
 func (t *ListIssues_Issues_Nodes) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -3522,6 +3561,12 @@ func (t *ListIssues_Issues_Nodes) GetIdentifier() string {
 	}
 	return t.Identifier
 }
+func (t *ListIssues_Issues_Nodes) GetLabels() *ListIssues_Issues_Nodes_Labels {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return &t.Labels
+}
 func (t *ListIssues_Issues_Nodes) GetNumber() float64 {
 	if t == nil {
 		t = &ListIssues_Issues_Nodes{}
@@ -3539,6 +3584,18 @@ func (t *ListIssues_Issues_Nodes) GetProjectMilestone() *ListIssues_Issues_Nodes
 		t = &ListIssues_Issues_Nodes{}
 	}
 	return t.ProjectMilestone
+}
+func (t *ListIssues_Issues_Nodes) GetSLABreachesAt() *time.Time {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.SLABreachesAt
+}
+func (t *ListIssues_Issues_Nodes) GetSLAStartedAt() *time.Time {
+	if t == nil {
+		t = &ListIssues_Issues_Nodes{}
+	}
+	return t.SLAStartedAt
 }
 func (t *ListIssues_Issues_Nodes) GetState() *ListIssues_Issues_Nodes_State {
 	if t == nil {
@@ -3611,6 +3668,35 @@ func (t *ListIssues_Issues) GetPageInfo() *ListIssues_Issues_PageInfo {
 		t = &ListIssues_Issues{}
 	}
 	return &t.PageInfo
+}
+
+type ListIssuesFiltered_Issues_Nodes_Labels_Nodes struct {
+	ID   string "json:\"id\" graphql:\"id\""
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_Labels_Nodes) GetID() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Labels_Nodes{}
+	}
+	return t.ID
+}
+func (t *ListIssuesFiltered_Issues_Nodes_Labels_Nodes) GetName() string {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Labels_Nodes{}
+	}
+	return t.Name
+}
+
+type ListIssuesFiltered_Issues_Nodes_Labels struct {
+	Nodes []*ListIssuesFiltered_Issues_Nodes_Labels_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *ListIssuesFiltered_Issues_Nodes_Labels) GetNodes() []*ListIssuesFiltered_Issues_Nodes_Labels_Nodes {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes_Labels{}
+	}
+	return t.Nodes
 }
 
 type ListIssuesFiltered_Issues_Nodes_State struct {
@@ -3739,22 +3825,26 @@ func (t *ListIssuesFiltered_Issues_Nodes_BotActor) GetName() *string {
 }
 
 type ListIssuesFiltered_Issues_Nodes struct {
-	ArchivedAt  *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
-	Assignee    *ListIssuesFiltered_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
-	BotActor    *ListIssuesFiltered_Issues_Nodes_BotActor "json:\"botActor,omitempty\" graphql:\"botActor\""
-	CreatedAt   time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
-	Creator     *ListIssuesFiltered_Issues_Nodes_Creator  "json:\"creator,omitempty\" graphql:\"creator\""
-	Description *string                                   "json:\"description,omitempty\" graphql:\"description\""
-	ID          string                                    "json:\"id\" graphql:\"id\""
-	Identifier  string                                    "json:\"identifier\" graphql:\"identifier\""
-	Number      float64                                   "json:\"number\" graphql:\"number\""
-	Priority    float64                                   "json:\"priority\" graphql:\"priority\""
-	State       ListIssuesFiltered_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
-	Team        ListIssuesFiltered_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
-	Title       string                                    "json:\"title\" graphql:\"title\""
-	Trashed     *bool                                     "json:\"trashed,omitempty\" graphql:\"trashed\""
-	UpdatedAt   time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
-	URL         string                                    "json:\"url\" graphql:\"url\""
+	ArchivedAt    *time.Time                                "json:\"archivedAt,omitempty\" graphql:\"archivedAt\""
+	Assignee      *ListIssuesFiltered_Issues_Nodes_Assignee "json:\"assignee,omitempty\" graphql:\"assignee\""
+	BotActor      *ListIssuesFiltered_Issues_Nodes_BotActor "json:\"botActor,omitempty\" graphql:\"botActor\""
+	CompletedAt   *time.Time                                "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	CreatedAt     time.Time                                 "json:\"createdAt\" graphql:\"createdAt\""
+	Creator       *ListIssuesFiltered_Issues_Nodes_Creator  "json:\"creator,omitempty\" graphql:\"creator\""
+	Description   *string                                   "json:\"description,omitempty\" graphql:\"description\""
+	ID            string                                    "json:\"id\" graphql:\"id\""
+	Identifier    string                                    "json:\"identifier\" graphql:\"identifier\""
+	Labels        ListIssuesFiltered_Issues_Nodes_Labels    "json:\"labels\" graphql:\"labels\""
+	Number        float64                                   "json:\"number\" graphql:\"number\""
+	Priority      float64                                   "json:\"priority\" graphql:\"priority\""
+	SLABreachesAt *time.Time                                "json:\"slaBreachesAt,omitempty\" graphql:\"slaBreachesAt\""
+	SLAStartedAt  *time.Time                                "json:\"slaStartedAt,omitempty\" graphql:\"slaStartedAt\""
+	State         ListIssuesFiltered_Issues_Nodes_State     "json:\"state\" graphql:\"state\""
+	Team          ListIssuesFiltered_Issues_Nodes_Team      "json:\"team\" graphql:\"team\""
+	Title         string                                    "json:\"title\" graphql:\"title\""
+	Trashed       *bool                                     "json:\"trashed,omitempty\" graphql:\"trashed\""
+	UpdatedAt     time.Time                                 "json:\"updatedAt\" graphql:\"updatedAt\""
+	URL           string                                    "json:\"url\" graphql:\"url\""
 }
 
 func (t *ListIssuesFiltered_Issues_Nodes) GetArchivedAt() *time.Time {
@@ -3774,6 +3864,12 @@ func (t *ListIssuesFiltered_Issues_Nodes) GetBotActor() *ListIssuesFiltered_Issu
 		t = &ListIssuesFiltered_Issues_Nodes{}
 	}
 	return t.BotActor
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetCompletedAt() *time.Time {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.CompletedAt
 }
 func (t *ListIssuesFiltered_Issues_Nodes) GetCreatedAt() *time.Time {
 	if t == nil {
@@ -3805,6 +3901,12 @@ func (t *ListIssuesFiltered_Issues_Nodes) GetIdentifier() string {
 	}
 	return t.Identifier
 }
+func (t *ListIssuesFiltered_Issues_Nodes) GetLabels() *ListIssuesFiltered_Issues_Nodes_Labels {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return &t.Labels
+}
 func (t *ListIssuesFiltered_Issues_Nodes) GetNumber() float64 {
 	if t == nil {
 		t = &ListIssuesFiltered_Issues_Nodes{}
@@ -3816,6 +3918,18 @@ func (t *ListIssuesFiltered_Issues_Nodes) GetPriority() float64 {
 		t = &ListIssuesFiltered_Issues_Nodes{}
 	}
 	return t.Priority
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetSLABreachesAt() *time.Time {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.SLABreachesAt
+}
+func (t *ListIssuesFiltered_Issues_Nodes) GetSLAStartedAt() *time.Time {
+	if t == nil {
+		t = &ListIssuesFiltered_Issues_Nodes{}
+	}
+	return t.SLAStartedAt
 }
 func (t *ListIssuesFiltered_Issues_Nodes) GetState() *ListIssuesFiltered_Issues_Nodes_State {
 	if t == nil {
@@ -12571,6 +12685,15 @@ const ListIssuesDocument = `query ListIssues ($first: Int, $after: String) {
 			url
 			trashed
 			archivedAt
+			completedAt
+			slaBreachesAt
+			slaStartedAt
+			labels {
+				nodes {
+					id
+					name
+				}
+			}
 			state {
 				id
 				name
@@ -12641,6 +12764,15 @@ const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $afte
 			url
 			trashed
 			archivedAt
+			completedAt
+			slaBreachesAt
+			slaStartedAt
+			labels {
+				nodes {
+					id
+					name
+				}
+			}
 			state {
 				id
 				name

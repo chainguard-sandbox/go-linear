@@ -16,6 +16,10 @@ import (
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
 
+// issueListNullableFields are optional timestamp fields reported as null (not
+// omitted) when selected via --fields and unset on an issue.
+var issueListNullableFields = []string{"completedAt", "slaBreachesAt", "slaStartedAt"}
+
 // NewListCommand creates the issue list command.
 func NewListCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	fieldFlags := &cli.FieldFlags{}
@@ -31,6 +35,7 @@ Advanced: --creator, --cycle, --project, --comment-by, --has-suggested-teams (64
 
 Pagination: --limit (default 50), --after (cursor from pageInfo.endCursor)
 Count: --count returns {"count": N} instead of full results
+Extra fields: --fields=defaults,completedAt,slaBreachesAt,slaStartedAt,labels (unset timestamps are null; labels is {nodes: [{id, name}]})
 
 Example: go-linear issue list --team=ENG --assignee=me --priority=1
 
@@ -224,6 +229,7 @@ func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFla
 		if err != nil {
 			return fmt.Errorf("invalid --fields: %w", err)
 		}
+		fieldSelector = fieldSelector.WithNullable(issueListNullableFields...)
 
 		return formatter.FormatJSONFiltered(cmd.OutOrStdout(), filteredResult, true, fieldSelector)
 	}
@@ -250,6 +256,7 @@ func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFla
 	if err != nil {
 		return fmt.Errorf("invalid --fields: %w", err)
 	}
+	fieldSelector = fieldSelector.WithNullable(issueListNullableFields...)
 
 	return formatter.FormatJSONFiltered(cmd.OutOrStdout(), issues, true, fieldSelector)
 }
