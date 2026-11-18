@@ -44,7 +44,6 @@ jobs:
       - name: Release
         uses: chainguard-actions/goreleaser-goreleaser-action@0e236da93b36df8d970858ee54627745eb28fa62 # v7.3.0
         with:
-          version: v2.19.0
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ github.token }}
