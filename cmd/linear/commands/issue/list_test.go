@@ -282,3 +282,130 @@ func TestRunList_FieldsFiltering(t *testing.T) {
 		}
 	})
 }
+
+func TestRunList_CompletedSLAAndLabelFields(t *testing.T) {
+	// One issue has completedAt, SLA timestamps, and labels; the other has none.
+	// The API omits nothing here, but gqlgenc's omitempty drops nil pointers on
+	// re-marshal, which is what the null padding has to undo.
+	const response = `{
+		"data": {
+			"issues": {
+				"nodes": [
+					{
+						"id": "issue-1",
+						"identifier": "ENG-1",
+						"title": "Has SLA",
+						"priority": 1,
+						"url": "https://linear.app/x/issue/ENG-1",
+						"state": {"id": "state-1", "name": "Done"},
+						"team": {"id": "team-1", "key": "ENG"},
+						"createdAt": "2026-01-01T00:00:00.000Z",
+						"updatedAt": "2026-01-03T00:00:00.000Z",
+						"completedAt": "2026-01-02T00:00:00.000Z",
+						"slaStartedAt": "2026-01-01T00:00:00.000Z",
+						"slaBreachesAt": "2026-01-05T00:00:00.000Z",
+						"labels": {"nodes": [{"id": "label-1", "name": "p1"}, {"id": "label-2", "name": "bug"}]}
+					},
+					{
+						"id": "issue-2",
+						"identifier": "ENG-2",
+						"title": "No SLA",
+						"priority": 1,
+						"url": "https://linear.app/x/issue/ENG-2",
+						"state": {"id": "state-2", "name": "Todo"},
+						"team": {"id": "team-1", "key": "ENG"},
+						"createdAt": "2026-01-01T00:00:00.000Z",
+						"updatedAt": "2026-01-01T00:00:00.000Z",
+						"completedAt": null,
+						"slaStartedAt": null,
+						"slaBreachesAt": null,
+						"labels": {"nodes": []}
+					}
+				],
+				"pageInfo": {"hasNextPage": false, "endCursor": null}
+			}
+		}
+	}`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	factory := func() (*linear.Client, error) {
+		return linear.NewClient("lin_api_test", linear.WithBaseURL(server.URL))
+	}
+
+	run := func(t *testing.T, args ...string) []map[string]any {
+		t.Helper()
+		cmd := NewListCommand(factory)
+		var buf bytes.Buffer
+		cmd.SetOut(&buf)
+		cmd.SetArgs(args)
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("Execute() error = %v", err)
+		}
+		var result struct {
+			Nodes    []map[string]any `json:"nodes"`
+			PageInfo map[string]any   `json:"pageInfo"`
+		}
+		if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+			t.Fatalf("invalid JSON: %v\n%s", err, buf.String())
+		}
+		if len(result.Nodes) != 2 {
+			t.Fatalf("got %d nodes, want 2", len(result.Nodes))
+		}
+		if _, ok := result.PageInfo["completedAt"]; ok {
+			t.Error("pageInfo must not be padded with nullable fields")
+		}
+		return result.Nodes
+	}
+
+	const extra = "--fields=defaults,completedAt,slaBreachesAt,slaStartedAt,labels"
+
+	// --priority routes through ListIssuesFiltered; no filter uses ListIssues.
+	for name, args := range map[string][]string{
+		"unfiltered": {extra},
+		"filtered":   {extra, "--priority=1"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			nodes := run(t, args...)
+
+			withSLA, noSLA := nodes[0], nodes[1]
+			for field, want := range map[string]string{
+				"completedAt":   "2026-01-02T00:00:00Z",
+				"slaStartedAt":  "2026-01-01T00:00:00Z",
+				"slaBreachesAt": "2026-01-05T00:00:00Z",
+			} {
+				if got := withSLA[field]; got != want {
+					t.Errorf("ENG-1 %s = %v, want %s", field, got, want)
+				}
+				got, ok := noSLA[field]
+				if !ok {
+					t.Errorf("ENG-2 %s missing, want explicit null", field)
+				} else if got != nil {
+					t.Errorf("ENG-2 %s = %v, want null", field, got)
+				}
+			}
+
+			labels, _ := withSLA["labels"].(map[string]any)
+			labelNodes, _ := labels["nodes"].([]any)
+			if len(labelNodes) != 2 {
+				t.Fatalf("ENG-1 labels.nodes = %v, want 2 labels", withSLA["labels"])
+			}
+			if name := labelNodes[0].(map[string]any)["name"]; name != "p1" {
+				t.Errorf("first label name = %v, want p1", name)
+			}
+		})
+	}
+
+	t.Run("default output unchanged", func(t *testing.T) {
+		nodes := run(t)
+		for _, field := range []string{"completedAt", "slaBreachesAt", "slaStartedAt", "labels"} {
+			if _, ok := nodes[1][field]; ok {
+				t.Errorf("default output contains %q; new fields must be opt-in", field)
+			}
+		}
+	})
+}

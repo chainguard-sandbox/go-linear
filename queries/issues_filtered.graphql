@@ -12,6 +12,15 @@ query ListIssuesFiltered($first: Int, $after: String, $filter: IssueFilter) {
       url
       trashed
       archivedAt
+      completedAt
+      slaBreachesAt
+      slaStartedAt
+      labels {
+        nodes {
+          id
+          name
+        }
+      }
       state {
         id
         name

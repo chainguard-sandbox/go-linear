@@ -10,6 +10,26 @@ import (
 type FieldSelector struct {
 	fields         map[string]bool // "id", "title", "assignee.name"
 	preserveFields map[string]bool // Always preserve these (e.g., "nodes", "pageInfo")
+	nullable       map[string]bool // Selected fields emitted as null when absent from a list item
+}
+
+// WithNullable marks fields that should be emitted as JSON null when they are
+// selected but absent from a list item. Generated types omit nil pointers
+// (omitempty), so without this an issue with no SLA would drop slaBreachesAt
+// entirely rather than report it as null. Only items inside arrays are
+// affected, so pagination wrappers like pageInfo are never padded.
+// Safe to call on a nil selector (no filtering means nothing to pad).
+func (fs *FieldSelector) WithNullable(fields ...string) *FieldSelector {
+	if fs == nil {
+		return nil
+	}
+	if fs.nullable == nil {
+		fs.nullable = make(map[string]bool, len(fields))
+	}
+	for _, f := range fields {
+		fs.nullable[f] = true
+	}
+	return fs
 }
 
 // New creates a FieldSelector from comma-separated field specification.
@@ -187,12 +207,29 @@ func (fs *FieldSelector) filterValue(val any) any {
 	case []any:
 		result := make([]any, len(v))
 		for i, item := range v {
+			if obj, ok := item.(map[string]any); ok {
+				result[i] = fs.padNullable(fs.filterObject(obj))
+				continue
+			}
 			result[i] = fs.filterValue(item)
 		}
 		return result
 	default:
 		return v
 	}
+}
+
+// padNullable adds a null entry for each selected nullable field missing from obj.
+func (fs *FieldSelector) padNullable(obj map[string]any) map[string]any {
+	for field := range fs.nullable {
+		if !fs.fields[field] {
+			continue
+		}
+		if _, ok := obj[field]; !ok {
+			obj[field] = nil
+		}
+	}
+	return obj
 }
 
 // filterObject filters a single object to include only selected fields

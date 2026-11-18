@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `issue list` can return `completedAt`, `slaBreachesAt`, `slaStartedAt`, and `labels` (id and name) via `--fields`. They are not in the default field set. Unset timestamps come back as `null` (#136)
+
+### Changed
+- Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field)
+
 ## [2.4.0] - 2026-10-09
 
 This release ships one small breaking SDK change as a minor version. Linear changed the `id` filter type on projects and initiatives upstream. A major version would require moving the module path to `/v3`, which is out of proportion to a one-line migration (see below).

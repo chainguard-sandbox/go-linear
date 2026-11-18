@@ -64,6 +64,15 @@ query ListIssues($first: Int, $after: String) {
       url
       trashed
       archivedAt
+      completedAt
+      slaBreachesAt
+      slaStartedAt
+      labels {
+        nodes {
+          id
+          name
+        }
+      }
       state {
         id
         name
