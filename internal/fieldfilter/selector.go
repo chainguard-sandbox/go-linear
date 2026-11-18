@@ -2,6 +2,7 @@
 package fieldfilter
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 )
@@ -11,17 +12,25 @@ type FieldSelector struct {
 	fields         map[string]bool // "id", "title", "assignee.name"
 	preserveFields map[string]bool // Always preserve these (e.g., "nodes", "pageInfo")
 	nullable       map[string]bool // Selected fields emitted as null when absent from a list item
+	passAll        bool            // Keep every field; only pad nullable fields in top-level nodes
 }
 
 // WithNullable marks fields that should be emitted as JSON null when they are
-// selected but absent from a list item. Generated types omit nil pointers
-// (omitempty), so without this an issue with no SLA would drop slaBreachesAt
-// entirely rather than report it as null. Only items inside arrays are
-// affected, so pagination wrappers like pageInfo are never padded.
-// Safe to call on a nil selector (no filtering means nothing to pad).
+// absent from a list item. Generated types omit nil pointers (omitempty), so
+// without this an issue with no SLA would drop slaBreachesAt entirely rather
+// than report it as null. Pagination wrappers like pageInfo are never padded.
+//
+// On a selector built from a field list, only selected nullable fields are
+// padded, in items inside arrays. On a nil selector ("none", or no defaults),
+// every field is kept and all nullable fields are padded in the items of the
+// top-level "nodes" array, so "none" reports unset fields the same way an
+// explicit field list does.
 func (fs *FieldSelector) WithNullable(fields ...string) *FieldSelector {
+	if len(fields) == 0 {
+		return fs
+	}
 	if fs == nil {
-		return nil
+		fs = &FieldSelector{passAll: true}
 	}
 	if fs.nullable == nil {
 		fs.nullable = make(map[string]bool, len(fields))
@@ -186,6 +195,9 @@ func (fs *FieldSelector) Filter(data []byte) ([]byte, error) {
 	if fs == nil {
 		return data, nil // No filtering
 	}
+	if fs.passAll {
+		return fs.padNodes(data)
+	}
 
 	var obj any
 	if err := json.Unmarshal(data, &obj); err != nil {
@@ -217,6 +229,41 @@ func (fs *FieldSelector) filterValue(val any) any {
 	default:
 		return v
 	}
+}
+
+// padNodes keeps every field and adds a null entry for each nullable field
+// missing from an item of the top-level "nodes" array. Nested arrays (such as
+// labels.nodes) are left alone. Indented input stays indented.
+func (fs *FieldSelector) padNodes(data []byte) ([]byte, error) {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	var obj any
+	if err := dec.Decode(&obj); err != nil {
+		return nil, err
+	}
+	wrapper, ok := obj.(map[string]any)
+	if !ok {
+		return data, nil
+	}
+	nodes, ok := wrapper["nodes"].([]any)
+	if !ok {
+		return data, nil
+	}
+	for _, item := range nodes {
+		node, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		for field := range fs.nullable {
+			if _, present := node[field]; !present {
+				node[field] = nil
+			}
+		}
+	}
+	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{\n")) {
+		return json.MarshalIndent(wrapper, "", "  ")
+	}
+	return json.Marshal(wrapper)
 }
 
 // padNullable adds a null entry for each selected nullable field missing from obj.

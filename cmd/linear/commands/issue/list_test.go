@@ -365,9 +365,12 @@ func TestRunList_CompletedSLAAndLabelFields(t *testing.T) {
 	const extra = "--fields=defaults,completedAt,slaBreachesAt,slaStartedAt,labels"
 
 	// --priority routes through ListIssuesFiltered; no filter uses ListIssues.
+	// --fields=none must report unset timestamps as null too (#193).
 	for name, args := range map[string][]string{
-		"unfiltered": {extra},
-		"filtered":   {extra, "--priority=1"},
+		"unfiltered":      {extra},
+		"filtered":        {extra, "--priority=1"},
+		"none/unfiltered": {"--fields=none"},
+		"none/filtered":   {"--fields=none", "--priority=1"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			nodes := run(t, args...)
@@ -394,8 +397,12 @@ func TestRunList_CompletedSLAAndLabelFields(t *testing.T) {
 			if len(labelNodes) != 2 {
 				t.Fatalf("ENG-1 labels.nodes = %v, want 2 labels", withSLA["labels"])
 			}
-			if name := labelNodes[0].(map[string]any)["name"]; name != "p1" {
+			firstLabel := labelNodes[0].(map[string]any)
+			if name := firstLabel["name"]; name != "p1" {
 				t.Errorf("first label name = %v, want p1", name)
+			}
+			if _, ok := firstLabel["completedAt"]; ok {
+				t.Error("nested label nodes must not be padded with nullable fields")
 			}
 		})
 	}

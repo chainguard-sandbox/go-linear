@@ -190,10 +190,54 @@ func TestWithNullable(t *testing.T) {
 		}
 	})
 
-	t.Run("nil selector", func(t *testing.T) {
+	t.Run("nil selector without fields stays nil", func(t *testing.T) {
 		var fs *FieldSelector
-		if got := fs.WithNullable("completedAt"); got != nil {
-			t.Errorf("WithNullable on nil = %v, want nil", got)
+		if got := fs.WithNullable(); got != nil {
+			t.Errorf("WithNullable() on nil = %v, want nil", got)
+		}
+	})
+
+	t.Run("nil selector keeps all fields and pads top-level nodes only", func(t *testing.T) {
+		fs, err := NewForList("none", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fs = fs.WithNullable("completedAt", "slaBreachesAt")
+
+		in := []byte(`{"nodes":[{"id":"a","n":12345678901234567890,"labels":{"nodes":[{"id":"l"}]}},{"id":"b","completedAt":"x"}],"pageInfo":{"hasNextPage":false}}`)
+		out, err := fs.Filter(in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := `{"nodes":[{"completedAt":null,"id":"a","labels":{"nodes":[{"id":"l"}]},"n":12345678901234567890,"slaBreachesAt":null},{"completedAt":"x","id":"b","slaBreachesAt":null}],"pageInfo":{"hasNextPage":false}}`
+		if string(out) != want {
+			t.Errorf("Filter() =\n%s\nwant\n%s", out, want)
+		}
+	})
+
+	t.Run("nil selector keeps indented input indented", func(t *testing.T) {
+		var fs *FieldSelector
+		fs = fs.WithNullable("completedAt")
+		out, err := fs.Filter([]byte("{\n  \"nodes\": [\n    {\n      \"id\": \"a\"\n    }\n  ]\n}"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := "{\n  \"nodes\": [\n    {\n      \"completedAt\": null,\n      \"id\": \"a\"\n    }\n  ]\n}"
+		if string(out) != want {
+			t.Errorf("Filter() =\n%s\nwant\n%s", out, want)
+		}
+	})
+
+	t.Run("nil selector leaves non-list output alone", func(t *testing.T) {
+		var fs *FieldSelector
+		fs = fs.WithNullable("completedAt")
+		in := []byte(`{"id":"a"}`)
+		out, err := fs.Filter(in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(out, in) {
+			t.Errorf("Filter() = %s, want %s", out, in)
 		}
 	})
 }
