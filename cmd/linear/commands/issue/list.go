@@ -17,7 +17,8 @@ import (
 )
 
 // issueListNullableFields are optional timestamp fields reported as null (not
-// omitted) when selected via --fields and unset on an issue.
+// omitted) when unset on an issue: when selected via --fields, and always with
+// --fields=none.
 var issueListNullableFields = []string{"completedAt", "slaBreachesAt", "slaStartedAt"}
 
 // NewListCommand creates the issue list command.

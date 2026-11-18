@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field)
+- `issue list --fields=none` now reports unset `completedAt`, `slaBreachesAt`, and `slaStartedAt` as `null` instead of omitting them, matching `--fields=...` (#193)
 
 ## [2.4.0] - 2026-10-09
 
