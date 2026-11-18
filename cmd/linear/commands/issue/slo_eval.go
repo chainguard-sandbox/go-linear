@@ -352,7 +352,10 @@ func medianDuration(ds []time.Duration) time.Duration {
 	if len(ds) == 0 {
 		return 0
 	}
-	sorted := slices.Clone(ds)
+	// make+copy rather than slices.Clone: nilaway treats Clone's result as
+	// possibly nil even though ds is non-empty here.
+	sorted := make([]time.Duration, len(ds))
+	copy(sorted, ds)
 	slices.Sort(sorted)
 	mid := len(sorted) / 2
 	if len(sorted)%2 == 1 {
