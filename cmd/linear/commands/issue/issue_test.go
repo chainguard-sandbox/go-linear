@@ -32,7 +32,7 @@ func TestNewIssueCommand(t *testing.T) {
 		expectedSubcommands := []string{
 			"list", "get", "search", "create", "update",
 			"batch-update", "delete", "relate", "update-relation",
-			"unrelate", "add-label", "remove-label",
+			"unrelate", "add-label", "remove-label", "slo-report",
 		}
 
 		subcommandNames := make(map[string]bool)

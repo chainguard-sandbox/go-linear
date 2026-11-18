@@ -35,6 +35,7 @@ func NewIssueCommand(clientFactory cli.ClientFactory) *cobra.Command {
 	cmd.AddCommand(NewRemoveLabelCommand(clientFactory))
 	cmd.AddCommand(NewSubscribeCommand(clientFactory))
 	cmd.AddCommand(NewUnsubscribeCommand(clientFactory))
+	cmd.AddCommand(NewSLOReportCommand(clientFactory))
 
 	return cmd
 }

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `issue list` can return `completedAt`, `slaBreachesAt`, `slaStartedAt`, and `labels` (id and name) via `--fields`. They are not in the default field set. Unset timestamps come back as `null` (#136)
+- `issue slo-report` evaluates issues against a label-to-target policy (`--policy "p1=2d,p2=14d"` or `--policy-file`) and reports met, missed, at-risk, and open-within-target counts plus median and max time-to-resolution, grouped by team, assignee, or label. Runs client-side on the existing issues query; JSON and table output (#137)
 
 ### Changed
 - Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field)
