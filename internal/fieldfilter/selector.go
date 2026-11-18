@@ -237,9 +237,15 @@ func (fs *FieldSelector) filterObject(obj map[string]any) map[string]any {
 	result := make(map[string]any)
 
 	for key, value := range obj {
-		// Always preserve fields (like "nodes", "pageInfo" for list commands)
+		// Always preserve list wrapper fields. Field selection applies to the
+		// items in "nodes"; pageInfo and totalCount pass through untouched so
+		// pagination cursors survive --fields.
 		if fs.preserveFields != nil && fs.preserveFields[key] {
-			result[key] = fs.filterValue(value)
+			if key == "nodes" {
+				result[key] = fs.filterValue(value)
+			} else {
+				result[key] = value
+			}
 			continue
 		}
 
