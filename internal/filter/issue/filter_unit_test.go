@@ -223,6 +223,30 @@ func TestDateFilters(t *testing.T) {
 			afterVal:   "2025-01-01",
 			wantNil:    false,
 		},
+		// sla-breaches-at
+		{
+			name:       "sla-breaches-at with range",
+			filterFunc: ApplySLABreachesAt,
+			afterFlag:  "sla-breaches-after",
+			afterVal:   "2025-01-01",
+			beforeFlag: "sla-breaches-before",
+			beforeVal:  "7d",
+			wantNil:    false,
+		},
+		{
+			name:       "sla-breaches-at invalid",
+			filterFunc: ApplySLABreachesAt,
+			beforeFlag: "sla-breaches-before",
+			beforeVal:  "soon",
+			wantErr:    true,
+		},
+		{
+			name:       "sla-breaches-at empty",
+			filterFunc: ApplySLABreachesAt,
+			afterFlag:  "sla-breaches-after",
+			afterVal:   "",
+			wantNil:    true,
+		},
 		// due-date
 		{
 			name:       "due-date with date",
@@ -1145,7 +1169,7 @@ func TestFromFlagsRegistry(t *testing.T) {
 			"has-duplicate", "has-related", "has-suggested-assignees", "has-suggested-labels",
 			"has-suggested-projects", "has-suggested-teams", "id", "labels",
 			"last-applied-template", "needs", "number", "parent", "priority", "project",
-			"project-milestone", "reactions", "sla-status", "snoozed-by", "snoozed-until-at",
+			"project-milestone", "reactions", "sla-breaches-at", "sla-status", "snoozed-by", "snoozed-until-at",
 			"state", "subscribers", "team", "title", "triaged-at",
 		}
 

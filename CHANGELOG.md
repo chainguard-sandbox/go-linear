@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Releases include `.tar.gz` archives (`.zip` on Windows) next to the raw binaries, which keep their old names. `checksums.txt` is signed with keyless cosign (`checksums.txt.sigstore.json`)
 - `issue list` can return `completedAt`, `slaBreachesAt`, `slaStartedAt`, and `labels` (id and name) via `--fields`. They are not in the default field set. Unset timestamps come back as `null` (#136)
 - `issue slo-report` evaluates issues against a label-to-target policy (`--policy "p1=2d,p2=14d"` or `--policy-file`) and reports met, missed, at-risk, and open-within-target counts plus median and max time-to-resolution, grouped by team, assignee, or label. Runs client-side on the existing issues query; JSON and table output (#137)
+- Native SLA support for workspaces with SLAs enabled (#138):
+  - `issue list --sla-breaches-after/--sla-breaches-before` filter by SLA breach time. Relative values count forward (`--sla-breaches-before=7d` = breaching within the next week)
+  - `issue list --sort=sla-status[:asc|:desc]` orders results by SLA status, with issues without an SLA last
+  - `issue update --sla-breaches-at/--sla-started-at/--sla-type` and `issue batch-update --set-sla-breaches-at/--set-sla-started-at/--set-sla-type` set an issue's SLA. `--sla-type` takes `all` or `onlyBusinessDays`. An empty value or `none` clears the field, and clearing the breach time removes the SLA
+  - API errors that mention SLAs get a hint about the plan and enablement prerequisite
+  - SDK: `Client.IssuesFilteredSorted` with the `IssueSortInput`/`SLAStatusSort` aliases, `Client.IssueBatchUpdateNullable`, and `TeamID`, `SLABreachesAt`, `SLAStartedAt`, `SLAType` on `IssueUpdateNullableInput`
 
 ### Changed
 - Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field)

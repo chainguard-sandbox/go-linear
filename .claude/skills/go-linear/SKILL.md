@@ -305,6 +305,10 @@ go-linear notification subscribe --team=ENG --output=json
 ### SLA & Customer
 ```bash
 --sla-status=Breached      # SLA status: Breached/HighRisk/MediumRisk/OnTrack
+--sla-breaches-before=7d   # Breaching within the next 7 days (relative = from now)
+--sort=sla-status[:desc]   # Order by SLA status, issues without an SLA last
+# Set/clear SLA: issue update --sla-breaches-at=24h|ISO8601|'' --sla-type=all|onlyBusinessDays
+#                issue batch-update --set-sla-breaches-at=... (empty or 'none' clears)
 --has-needs                # Has customer needs
 --customer-count=5         # Affected customer count
 ```

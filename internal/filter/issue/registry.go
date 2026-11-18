@@ -55,6 +55,7 @@ var IssueFilters = map[string]IssueFilterFunc{
 	"project":                  ApplyProject,
 	"project-milestone":        ApplyProjectMilestone,
 	"reactions":                ApplyReactions,
+	"sla-breaches-at":          ApplySLABreachesAt,
 	"sla-status":               ApplySLAStatus,
 	"snoozed-by":               ApplySnoozedBy,
 	"snoozed-until-at":         ApplySnoozedUntilAt,

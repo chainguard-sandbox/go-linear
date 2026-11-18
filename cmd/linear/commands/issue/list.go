@@ -96,6 +96,8 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().String("due-before", "", "Due before date")
 	cmd.Flags().String("snoozed-until-after", "", "Snoozed until after date")
 	cmd.Flags().String("snoozed-until-before", "", "Snoozed until before date")
+	cmd.Flags().String("sla-breaches-after", "", "SLA breaches at or after date (ISO8601, or relative from now: '3d'); requires SLAs enabled")
+	cmd.Flags().String("sla-breaches-before", "", "SLA breaches before date (ISO8601, or relative from now: '7d' = within the next week)")
 
 	// Entity filters (alphabetical)
 	cmd.Flags().String("added-to-cycle-period", "", "When added to cycle: before, during, after")
@@ -131,6 +133,9 @@ Related: issue_get, issue_create, team_list, user_list`,
 	cmd.Flags().Bool("has-suggested-projects", false, "Has AI project suggestions")
 	cmd.Flags().Bool("has-suggested-teams", false, "Has AI team suggestions")
 
+	// Sorting
+	cmd.Flags().String("sort", "", "Sort order: sla-status[:asc|:desc] (issues without an SLA last)")
+
 	// Output
 	cmd.Flags().Bool("count", false, "Return only count, not results (99% token reduction)")
 
@@ -150,6 +155,12 @@ func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFla
 		return err
 	}
 	issueFilter := filterBuilder.Build()
+
+	sortFlag, _ := cmd.Flags().GetString("sort")
+	issueSort, err := parseIssueSort(sortFlag)
+	if err != nil {
+		return err
+	}
 
 	// Check if count mode
 	countMode, _ := cmd.Flags().GetBool("count")
@@ -206,10 +217,10 @@ func runList(cmd *cobra.Command, client *linear.Client, fieldFlags *cli.FieldFla
 		afterPtr = &paginationFlags.After
 	}
 
-	// Query issues - use IssuesFiltered if we have filters, otherwise use Issues
-	if issueFilter != nil {
-		// Use IssuesFiltered with filters (no search term required)
-		filteredResult, err := client.IssuesFiltered(ctx, first, afterPtr, issueFilter)
+	// Query issues - use IssuesFiltered if we have filters or a sort order,
+	// otherwise use Issues
+	if issueFilter != nil || issueSort != nil {
+		filteredResult, err := client.IssuesFilteredSorted(ctx, first, afterPtr, issueFilter, issueSort)
 		if err != nil {
 			return fmt.Errorf("failed to filter issues: %w", err)
 		}

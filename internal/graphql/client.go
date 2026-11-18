@@ -36,7 +36,7 @@ type LinearGraphQLClient interface {
 	GetIssueSuggestionsForIssue(ctx context.Context, issueID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*GetIssueSuggestionsForIssue, error)
 	GetIssue(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetIssue, error)
 	ListIssues(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListIssues, error)
-	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
+	ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, sort []*IssueSortInput, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error)
 	GetLabel(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetLabel, error)
 	ListLabels(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListLabels, error)
 	ListLabelsFiltered(ctx context.Context, first *int64, after *string, filter *IssueLabelFilter, interceptors ...clientv2.RequestInterceptor) (*ListLabelsFiltered, error)
@@ -12750,8 +12750,8 @@ func (c *Client) ListIssues(ctx context.Context, first *int64, after *string, in
 	return &res, nil
 }
 
-const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $after: String, $filter: IssueFilter) {
-	issues(first: $first, after: $after, filter: $filter) {
+const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $after: String, $filter: IssueFilter, $sort: [IssueSortInput!]) {
+	issues(first: $first, after: $after, filter: $filter, sort: $sort) {
 		nodes {
 			id
 			identifier
@@ -12807,11 +12807,12 @@ const ListIssuesFilteredDocument = `query ListIssuesFiltered ($first: Int, $afte
 }
 `
 
-func (c *Client) ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error) {
+func (c *Client) ListIssuesFiltered(ctx context.Context, first *int64, after *string, filter *IssueFilter, sort []*IssueSortInput, interceptors ...clientv2.RequestInterceptor) (*ListIssuesFiltered, error) {
 	vars := map[string]any{
 		"first":  first,
 		"after":  after,
 		"filter": filter,
+		"sort":   sort,
 	}
 
 	var res ListIssuesFiltered

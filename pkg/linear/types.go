@@ -180,6 +180,27 @@ type ProjectUpdateInput = intgraphql.ProjectUpdateInput
 // per-field comparators).
 type IssueFilter = intgraphql.IssueFilter
 
+// IssueSortInput is one sort criterion for IssuesFilteredSorted.
+// See internal/graphql/models.go for the complete field list.
+type IssueSortInput = intgraphql.IssueSortInput
+
+// SLAStatusSort sorts issues by SLA status (IssueSortInput.SLAStatus).
+type SLAStatusSort = intgraphql.SLAStatusSort
+
+// PaginationSortOrder is the direction of a sort criterion.
+type PaginationSortOrder = intgraphql.PaginationSortOrder
+
+// PaginationNulls places null values first or last in a sort.
+type PaginationNulls = intgraphql.PaginationNulls
+
+// Sort directions and null placement for sort criteria.
+const (
+	PaginationSortOrderAscending  = intgraphql.PaginationSortOrderAscending
+	PaginationSortOrderDescending = intgraphql.PaginationSortOrderDescending
+	PaginationNullsFirst          = intgraphql.PaginationNullsFirst
+	PaginationNullsLast           = intgraphql.PaginationNullsLast
+)
+
 // ProjectFilter is the server-side filter for ProjectsFiltered.
 // See internal/graphql/models.go for the complete field list.
 type ProjectFilter = intgraphql.ProjectFilter

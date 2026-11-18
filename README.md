@@ -138,6 +138,30 @@ Elapsed time is `completedAt - createdAt`, or `now - createdAt` for open issues.
 
 See [CLI Quick Start](docs/CLI-QUICK-START.md) for all commands and [Filters Guide](docs/FILTERS.md) for filter options.
 
+#### Native SLAs
+
+These flags read and write Linear's native SLA fields. They only work in workspaces that use SLAs: the feature is available on Linear's Business and Enterprise plans, and a workspace admin must turn it on in **Settings > Issues > SLAs**. If SLAs are off, the command fails with the API's error message, and the CLI adds a hint when that message mentions SLAs.
+
+| Command | Flag | Meaning |
+|---------|------|---------|
+| `issue list` | `--sla-breaches-after`, `--sla-breaches-before` | Filter by SLA breach time (`after` is inclusive, `before` exclusive) |
+| `issue list` | `--sort=sla-status[:asc\|:desc]` | Order by SLA status (default ascending); issues without an SLA come last |
+| `issue update` | `--sla-breaches-at` | Set the breach time |
+| `issue update` | `--sla-started-at` | Set the time the SLA clock started |
+| `issue update` | `--sla-type` | `all` (calendar days) or `onlyBusinessDays` |
+| `issue batch-update` | `--set-sla-breaches-at`, `--set-sla-started-at`, `--set-sla-type` | Same as above, applied to every matched issue (max 50 per run) |
+
+Breach times are deadlines, so relative values count forward from now: `--sla-breaches-before=7d` means "breaching within the next 7 days" (already-breached issues match too), and `--sla-breaches-at=24h` sets a breach 24 hours from now. `--sla-started-at=2d` counts back, like other date flags. ISO 8601 dates and timestamps work everywhere.
+
+To clear a field, pass an empty value or `none`. Clearing the breach time removes the SLA from the issue:
+
+```bash
+go-linear issue list --sla-breaches-before=7d --sort=sla-status
+go-linear issue update ENG-123 --sla-breaches-at=2026-12-01T17:00:00Z --sla-type=onlyBusinessDays
+go-linear issue update ENG-123 --sla-breaches-at=          # remove the SLA
+go-linear issue batch-update --team=ENG --priority=1 --set-sla-breaches-at=24h --dry-run
+```
+
 ### SDK (Go Developers)
 
 ```go
