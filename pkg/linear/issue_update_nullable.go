@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
@@ -46,10 +47,103 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 		"input": input.ToMap(),
 	}
 
-	// Make request
+	body, err := c.postRawGraphQL(ctx, "IssueUpdateNullable", "UpdateIssue", mutation, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data struct {
+			IssueUpdate struct {
+				Success bool
+				Issue   intgraphql.UpdateIssue_IssueUpdate_Issue
+			}
+		}
+		Errors []map[string]any
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	if len(result.Errors) > 0 {
+		return nil, fmt.Errorf("GraphQL error: %v", result.Errors[0])
+	}
+
+	if !result.Data.IssueUpdate.Success {
+		return nil, errMutationFailed("IssueUpdateNullable")
+	}
+
+	return &result.Data.IssueUpdate.Issue, nil
+}
+
+// IssueBatchUpdateNullable updates multiple issues with the same input, with
+// support for explicit null values. It is the batch counterpart of
+// IssueUpdateNullable; use it to clear fields such as an SLA across issues.
+// The Linear API accepts at most 50 issue IDs per call.
+//
+// Example clearing the SLA on two issues:
+//
+//	input := linear.IssueUpdateNullableInput{
+//	    SLABreachesAt: linear.NewNull[time.Time](),
+//	}
+//	result, err := client.IssueBatchUpdateNullable(ctx, []string{"id-1", "id-2"}, input)
+func (c *Client) IssueBatchUpdateNullable(ctx context.Context, ids []string, input IssueUpdateNullableInput) (*intgraphql.BatchUpdateIssues_IssueBatchUpdate, error) {
+	// Same selection set as the generated BatchUpdateIssues mutation.
+	mutation := `mutation BatchUpdateIssues($ids: [UUID!]!, $input: IssueUpdateInput!) {
+		issueBatchUpdate(ids: $ids, input: $input) {
+			success
+			lastSyncId
+			issues {
+				id
+				identifier
+				title
+				state { name }
+				assignee { name }
+			}
+		}
+	}`
+
+	variables := map[string]any{
+		"ids":   ids,
+		"input": input.ToMap(),
+	}
+
+	body, err := c.postRawGraphQL(ctx, "IssueBatchUpdateNullable", "BatchUpdateIssues", mutation, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Data struct {
+			IssueBatchUpdate intgraphql.BatchUpdateIssues_IssueBatchUpdate
+		}
+		Errors []map[string]any
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	if len(result.Errors) > 0 {
+		return nil, fmt.Errorf("GraphQL error: %v", result.Errors[0])
+	}
+
+	if !result.Data.IssueBatchUpdate.Success {
+		return nil, errMutationFailed("IssueBatchUpdateNullable")
+	}
+
+	return &result.Data.IssueBatchUpdate, nil
+}
+
+// postRawGraphQL sends a hand-built GraphQL request through the client's
+// HTTP stack and returns the raw response body. The nullable mutations use it
+// because the generated client cannot send explicit null for omitempty fields.
+// label prefixes HTTP status errors (e.g. "IssueUpdateNullable: HTTP 500").
+func (c *Client) postRawGraphQL(ctx context.Context, label, operationName, query string, variables map[string]any) ([]byte, error) {
 	reqBody := map[string]any{
-		"query":         mutation,
-		"operationName": "UpdateIssue",
+		"query":         query,
+		"operationName": operationName,
 		"variables":     variables,
 	}
 
@@ -85,46 +179,21 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("IssueUpdateNullable: HTTP %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+		return nil, fmt.Errorf("%s: HTTP %d: %s", label, resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 
 	// Limit response body to prevent OOM from oversized responses
 	const maxResponseSize = 10 * 1024 * 1024 // 10MB
-	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		Data struct {
-			IssueUpdate struct {
-				Success bool
-				Issue   intgraphql.UpdateIssue_IssueUpdate_Issue
-			}
-		}
-		Errors []map[string]any
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
-	}
-
-	if len(result.Errors) > 0 {
-		return nil, fmt.Errorf("GraphQL error: %v", result.Errors[0])
-	}
-
-	if !result.Data.IssueUpdate.Success {
-		return nil, errMutationFailed("IssueUpdateNullable")
-	}
-
-	return &result.Data.IssueUpdate.Issue, nil
+	return io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
 }
 
-// IssueUpdateNullableInput is the input for IssueUpdateNullable.
+// IssueUpdateNullableInput is the input for IssueUpdateNullable and
+// IssueBatchUpdateNullable.
 type IssueUpdateNullableInput struct {
 	Title           *string
 	Description     *string
 	StateID         *string
+	TeamID          *string
 	Priority        *int64
 	Estimate        Nullable[float64]
 	AddedLabelIds   []string
@@ -137,6 +206,14 @@ type IssueUpdateNullableInput struct {
 	ProjectID          Nullable[string]
 	DueDate            Nullable[string]
 	ProjectMilestoneID Nullable[string]
+
+	// SLA fields. They require Linear's SLA feature to be enabled for the
+	// workspace. Setting SLABreachesAt to null removes the SLA from the issue.
+	SLABreachesAt Nullable[time.Time]
+	SLAStartedAt  Nullable[time.Time]
+	// SLAType is the SLA day count type: "all" (calendar days) or
+	// "onlyBusinessDays". See intgraphql.SLADayCountType.
+	SLAType Nullable[string]
 }
 
 // ToMap converts to map for JSON encoding with explicit null support.
@@ -160,6 +237,9 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 	}
 	if i.StateID != nil {
 		m["stateId"] = *i.StateID
+	}
+	if i.TeamID != nil {
+		m["teamId"] = *i.TeamID
 	}
 	if i.Priority != nil {
 		m["priority"] = *i.Priority
@@ -230,5 +310,29 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 		}
 	}
 
+	if i.SLABreachesAt.IsSet() {
+		m["slaBreachesAt"] = nullableTime(i.SLABreachesAt)
+	}
+	if i.SLAStartedAt.IsSet() {
+		m["slaStartedAt"] = nullableTime(i.SLAStartedAt)
+	}
+	if i.SLAType.IsSet() {
+		if val, _ := i.SLAType.Get(); val == nil {
+			m["slaType"] = nil
+		} else {
+			m["slaType"] = *val
+		}
+	}
+
 	return m
+}
+
+// nullableTime renders a set Nullable[time.Time] as an RFC3339 UTC string, or
+// nil for an explicit null.
+func nullableTime(n Nullable[time.Time]) any {
+	val, _ := n.Get()
+	if val == nil {
+		return nil
+	}
+	return val.UTC().Format(time.RFC3339)
 }

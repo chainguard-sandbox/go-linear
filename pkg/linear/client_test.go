@@ -2,9 +2,11 @@ package linear
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -896,6 +898,75 @@ func TestClient_IssueUpdateNullable_Failure(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("Expected error for failed mutation")
+	}
+}
+
+func TestClient_IssueBatchUpdateNullableMock(t *testing.T) {
+	var gotOp string
+	var gotVars map[string]any
+	client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			OperationName string         `json:"operationName"`
+			Variables     map[string]any `json:"variables"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		gotOp = body.OperationName
+		gotVars = body.Variables
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":{"issueBatchUpdate":{"success":true,"lastSyncId":7,"issues":[{"id":"iss-1","identifier":"ENG-1","title":"A"},{"id":"iss-2","identifier":"ENG-2","title":"B"}]}}}`))
+	})
+
+	result, err := client.IssueBatchUpdateNullable(context.Background(), []string{"iss-1", "iss-2"}, IssueUpdateNullableInput{
+		SLABreachesAt: NewNull[time.Time](),
+		SLAType:       NewNull[string](),
+	})
+	if err != nil {
+		t.Fatalf("IssueBatchUpdateNullable() error = %v", err)
+	}
+	if len(result.Issues) != 2 || result.LastSyncID != 7 {
+		t.Errorf("result = %+v, want 2 issues and lastSyncId 7", result)
+	}
+	if gotOp != "BatchUpdateIssues" {
+		t.Errorf("operationName = %q, want BatchUpdateIssues", gotOp)
+	}
+	ids, _ := gotVars["ids"].([]any)
+	if len(ids) != 2 {
+		t.Errorf("ids = %v, want 2 ids", gotVars["ids"])
+	}
+	input, _ := gotVars["input"].(map[string]any)
+	for _, k := range []string{"slaBreachesAt", "slaType"} {
+		v, ok := input[k]
+		if !ok || v != nil {
+			t.Errorf("input[%q] = %v (present=%v), want explicit null", k, v, ok)
+		}
+	}
+	if _, ok := input["slaStartedAt"]; ok {
+		t.Error("slaStartedAt should be omitted when unset")
+	}
+}
+
+func TestClient_IssueBatchUpdateNullable_Errors(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want string
+	}{
+		{"graphql error", `{"errors":[{"message":"SLAs are not enabled"}]}`, "SLAs are not enabled"},
+		{"success false", `{"data":{"issueBatchUpdate":{"success":false}}}`, "success=false"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(tt.body))
+			})
+			_, err := client.IssueBatchUpdateNullable(context.Background(), []string{"iss-1"}, IssueUpdateNullableInput{
+				SLABreachesAt: NewNull[time.Time](),
+			})
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("error = %v, want containing %q", err, tt.want)
+			}
+		})
 	}
 }
 

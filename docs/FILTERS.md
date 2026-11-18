@@ -40,6 +40,7 @@ All support relative dates (yesterday, 7d, 2w) and ISO8601.
 - `--triaged-after`, `--triaged-before`
 - `--due-after`, `--due-before`
 - `--snoozed-until-after`, `--snoozed-until-before`
+- `--sla-breaches-after`, `--sla-breaches-before` (relative values count forward: `7d` = 7 days from now; needs native SLAs, see README)
 - `--added-to-cycle-after`, `--added-to-cycle-before`
 
 #### Entity Filters (12)

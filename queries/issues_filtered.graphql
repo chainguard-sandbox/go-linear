@@ -1,5 +1,5 @@
-query ListIssuesFiltered($first: Int, $after: String, $filter: IssueFilter) {
-  issues(first: $first, after: $after, filter: $filter) {
+query ListIssuesFiltered($first: Int, $after: String, $filter: IssueFilter, $sort: [IssueSortInput!]) {
+  issues(first: $first, after: $after, filter: $filter, sort: $sort) {
     nodes {
       id
       identifier

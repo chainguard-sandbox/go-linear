@@ -104,7 +104,24 @@ func (c *Client) Issues(ctx context.Context, first *int64, after *string) (*intg
 //
 // Related: [Issues], [SearchIssues], [Issue]
 func (c *Client) IssuesFiltered(ctx context.Context, first *int64, after *string, filter *intgraphql.IssueFilter) (*intgraphql.ListIssuesFiltered_Issues, error) {
-	resp, err := c.gqlClient.ListIssuesFiltered(ctx, first, after, filter)
+	return c.IssuesFilteredSorted(ctx, first, after, filter, nil)
+}
+
+// IssuesFilteredSorted is IssuesFiltered with an explicit sort order.
+//
+// Parameters:
+//   - filter: Issue filter (nil = all issues)
+//   - sort: Sort criteria applied in order (nil = server default order)
+//
+// Example sorting by SLA status:
+//
+//	order := linear.PaginationSortOrderAscending
+//	sort := []*linear.IssueSortInput{{SLAStatus: &linear.SLAStatusSort{Order: &order}}}
+//	issues, err := client.IssuesFilteredSorted(ctx, nil, nil, nil, sort)
+//
+// Related: [IssuesFiltered]
+func (c *Client) IssuesFilteredSorted(ctx context.Context, first *int64, after *string, filter *intgraphql.IssueFilter, sort []*intgraphql.IssueSortInput) (*intgraphql.ListIssuesFiltered_Issues, error) {
+	resp, err := c.gqlClient.ListIssuesFiltered(ctx, first, after, filter, sort)
 	if err != nil {
 		return nil, wrapGraphQLError("issues filtered query", err)
 	}

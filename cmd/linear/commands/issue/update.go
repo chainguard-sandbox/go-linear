@@ -23,8 +23,11 @@ func NewUpdateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Long: `Update issue. Modifies existing data.
 
 Fields: --title, --description, --assignee (name/email/ID/'me'/'none'), --state, --priority (0-4), --estimate (number or 'none' to clear), --cycle, --project, --parent, --due-date (YYYY-MM-DD or 'none'), --milestone (uuid or 'none'), --add-label, --remove-label, --link-pr
+SLA (needs SLAs enabled; Business/Enterprise plans): --sla-breaches-at (ISO8601 or '3d' from now), --sla-started-at, --sla-type (all|onlyBusinessDays); an empty value or 'none' clears the field, and clearing --sla-breaches-at removes the SLA
 
 Example: go-linear issue update ENG-123 --state=Done --due-date=2025-03-01
+Example: go-linear issue update ENG-123 --sla-breaches-at=2025-03-01T17:00:00Z --sla-type=onlyBusinessDays
+Example: go-linear issue update ENG-123 --sla-breaches-at=
 
 Related: issue_get, issue_create`,
 		Args: cobra.ExactArgs(1),
@@ -54,6 +57,7 @@ Related: issue_get, issue_create`,
 	cmd.Flags().String("link-pr", "", "Link GitHub PR (format: owner/repo#number or full URL)")
 	cmd.Flags().String("due-date", "", "Due date (YYYY-MM-DD, use 'none' to remove)")
 	cmd.Flags().String("milestone", "", "Project milestone UUID (use 'none' to remove)")
+	updateSLAFlags.bind(cmd)
 
 	return cmd
 }
@@ -65,6 +69,10 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 	// Validate --link-pr before any API call so an invalid value cannot
 	// leave the issue partially updated.
 	if _, err := resolveLinkPRURL(cmd); err != nil {
+		return err
+	}
+	// Same for the SLA flags: reject bad dates or types before any API call.
+	if err := applySLAFlags(cmd, updateSLAFlags, &linear.IssueUpdateNullableInput{}); err != nil {
 		return err
 	}
 
@@ -105,6 +113,12 @@ func runUpdate(cmd *cobra.Command, client *linear.Client, issueID string) error 
 		}
 	}
 	if cmd.Flags().Changed("estimate") {
+		needsNullable = true
+	}
+	// SLA writes always use the nullable path: it can send explicit null to
+	// clear an SLA, and it reports the API's error message verbatim (useful
+	// when the workspace has no SLAs enabled).
+	if updateSLAFlags.changed(cmd) {
 		needsNullable = true
 	}
 
@@ -511,10 +525,14 @@ func runUpdateWithNullable(cmd *cobra.Command, client *linear.Client, issueID st
 		}
 	}
 
+	if err := applySLAFlags(cmd, updateSLAFlags, &input); err != nil {
+		return err
+	}
+
 	// Use nullable update method
 	result, err := client.IssueUpdateNullable(ctx, issueID, input)
 	if err != nil {
-		return fmt.Errorf("failed to update issue: %w", err)
+		return fmt.Errorf("failed to update issue: %w", withSLAHint(err))
 	}
 
 	// Link GitHub PR if specified

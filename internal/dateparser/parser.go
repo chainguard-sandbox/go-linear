@@ -170,6 +170,20 @@ func (p Parser) ParseFuture(input string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("invalid date format: %s (supported: ISO8601, 'tomorrow', '4h', '3d', '2w', '3m')", input)
 }
 
+// ParseDeadline parses a date string for a deadline that may lie in either
+// the past or the future, such as an SLA breach time.
+//
+// Relative inputs point forward: durations ("4h", "3d", "2w", "3m") are added
+// to now, and "tomorrow" means tomorrow, as in ParseFuture. Absolute inputs
+// (ISO 8601 dates, RFC3339 timestamps) and "today"/"yesterday" are accepted
+// as-is, past or future, as in Parse.
+func (p Parser) ParseDeadline(input string) (time.Time, error) {
+	if durationRegex.MatchString(input) || strings.EqualFold(input, "tomorrow") {
+		return p.ParseFuture(input)
+	}
+	return p.Parse(input)
+}
+
 // MustParse parses a date string and panics on error.
 // Useful for testing and initialization.
 func (p Parser) MustParse(input string) time.Time {

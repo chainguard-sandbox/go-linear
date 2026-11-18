@@ -266,6 +266,62 @@ func TestParseFuture(t *testing.T) {
 	}
 }
 
+func TestParseDeadline(t *testing.T) {
+	p := New()
+	now := time.Now().UTC()
+
+	near := func(t *testing.T, got, want time.Time) {
+		t.Helper()
+		if d := got.Sub(want); d < -time.Minute || d > time.Minute {
+			t.Errorf("got %v, want ~%v", got, want)
+		}
+	}
+
+	t.Run("durations point forward", func(t *testing.T) {
+		got, err := p.ParseDeadline("3d")
+		if err != nil {
+			t.Fatal(err)
+		}
+		near(t, got, now.Add(3*24*time.Hour))
+	})
+
+	t.Run("tomorrow points forward", func(t *testing.T) {
+		got, err := p.ParseDeadline("Tomorrow")
+		if err != nil {
+			t.Fatal(err)
+		}
+		near(t, got, now.Add(24*time.Hour))
+	})
+
+	t.Run("past absolute dates are accepted", func(t *testing.T) {
+		got, err := p.ParseDeadline("2020-01-02")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !got.Equal(time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)) {
+			t.Errorf("got %v", got)
+		}
+	})
+
+	t.Run("today is accepted", func(t *testing.T) {
+		got, err := p.ParseDeadline("today")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !got.Equal(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)) {
+			t.Errorf("got %v", got)
+		}
+	})
+
+	for _, in := range []string{"", "soon", "-3d"} {
+		t.Run("rejects "+in, func(t *testing.T) {
+			if _, err := p.ParseDeadline(in); err == nil {
+				t.Errorf("ParseDeadline(%q) should fail", in)
+			}
+		})
+	}
+}
+
 func TestMustParse(t *testing.T) {
 	p := New()
 

@@ -26,8 +26,10 @@ Safety: --dry-run shows what would change, --yes skips confirmation
 
 Filters: Same as issue_list (--team, --state, --assignee, --priority, --label, etc.)
 Updates: --set-* flags (same fields as issue_update), --add-label, --remove-label
+SLA (needs SLAs enabled; Business/Enterprise plans): --set-sla-breaches-at, --set-sla-started-at, --set-sla-type (all|onlyBusinessDays); an empty value or 'none' clears the field, and clearing --set-sla-breaches-at removes the SLA
 
 Example: go-linear issue batch-update --state=Triage --set-state=Backlog --dry-run
+Example: go-linear issue batch-update --team=ENG --priority=1 --set-sla-breaches-at=24h --set-sla-type=all --yes
 
 Related: issue_list, issue_update`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -70,6 +72,8 @@ Related: issue_list, issue_update`,
 	cmd.Flags().Int("estimate", -1, "Estimate filter")
 	cmd.Flags().Int("number", -1, "Issue number filter")
 	cmd.Flags().Bool("has-children", false, "Has sub-issues")
+	cmd.Flags().String("sla-breaches-after", "", "SLA breaches after (ISO8601, or relative from now: '3d')")
+	cmd.Flags().String("sla-breaches-before", "", "SLA breaches before (ISO8601, or relative from now: '3d')")
 	// (Filter builder supports all 64 flags even if not listed here)
 
 	// Update flags (--set-* to distinguish from filter flags)
@@ -86,6 +90,7 @@ Related: issue_list, issue_update`,
 	cmd.Flags().Int("set-estimate", -1, "New estimate")
 	cmd.Flags().String("set-due-date", "", "New due date (YYYY-MM-DD, use 'none' to remove)")
 	cmd.Flags().String("set-milestone", "", "New milestone UUID (use 'none' to remove)")
+	batchUpdateSLAFlags.bind(cmd)
 
 	// Safety flags
 	cmd.Flags().Bool("dry-run", false, "Show what would change without applying")
@@ -98,6 +103,13 @@ Related: issue_list, issue_update`,
 func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	ctx := cmd.Context()
 	res := resolver.New(client)
+
+	// Parse SLA flags up front so a bad value fails before any API call.
+	var slaInput linear.IssueUpdateNullableInput
+	if err := applySLAFlags(cmd, batchUpdateSLAFlags, &slaInput); err != nil {
+		return err
+	}
+	useSLA := batchUpdateSLAFlags.changed(cmd)
 
 	// Build filter from flags
 	filterBuilder := issuefilter.NewIssueFilterBuilder(res)
@@ -303,6 +315,10 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 		updateCount++
 	}
 
+	if useSLA {
+		updateCount++
+	}
+
 	if updateCount == 0 {
 		return fmt.Errorf("no update flags specified (use --set-state, --set-assignee, etc.)")
 	}
@@ -337,6 +353,22 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 		ids[i] = issue.ID
 	}
 
+	// SLA writes use the nullable mutation: it can send explicit null to
+	// clear an SLA, and it reports the API's error message verbatim. The ids
+	// are the same batch (at most 50) as the regular path.
+	if useSLA {
+		nullable := nullableFromUpdateInput(input)
+		nullable.SLABreachesAt = slaInput.SLABreachesAt
+		nullable.SLAStartedAt = slaInput.SLAStartedAt
+		nullable.SLAType = slaInput.SLAType
+
+		result, err := client.IssueBatchUpdateNullable(ctx, ids, nullable)
+		if err != nil {
+			return fmt.Errorf("failed to batch update: %w", withSLAHint(err))
+		}
+		return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
+	}
+
 	// Call batch update
 	result, err := client.IssueBatchUpdate(ctx, ids, input)
 	if err != nil {
@@ -344,4 +376,33 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	return formatter.FormatJSON(cmd.OutOrStdout(), result, true)
+}
+
+// nullableFromUpdateInput copies the fields batch-update sets on an
+// IssueUpdateInput into an IssueUpdateNullableInput, preserving values as-is
+// (including the empty strings batch-update uses to clear IDs and due dates).
+func nullableFromUpdateInput(in intgraphql.IssueUpdateInput) linear.IssueUpdateNullableInput {
+	out := linear.IssueUpdateNullableInput{
+		Title:           in.Title,
+		Description:     in.Description,
+		StateID:         in.StateID,
+		TeamID:          in.TeamID,
+		Priority:        in.Priority,
+		AddedLabelIds:   in.AddedLabelIds,
+		RemovedLabelIds: in.RemovedLabelIds,
+	}
+	if in.Estimate != nil {
+		out.Estimate = linear.NewValue(float64(*in.Estimate))
+	}
+	setString := func(dst *linear.Nullable[string], src *string) {
+		if src != nil {
+			*dst = linear.NewValue(*src)
+		}
+	}
+	setString(&out.AssigneeID, in.AssigneeID)
+	setString(&out.CycleID, in.CycleID)
+	setString(&out.ProjectID, in.ProjectID)
+	setString(&out.DueDate, in.DueDate)
+	setString(&out.ProjectMilestoneID, in.ProjectMilestoneID)
+	return out
 }

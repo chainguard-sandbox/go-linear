@@ -135,6 +135,7 @@ func (b *IssueFilterBuilder) Build() *intgraphql.IssueFilter {
 		b.filter.HasDuplicateRelations,
 		b.filter.HasRelatedRelations,
 		b.filter.SLAStatus,
+		b.filter.SLABreachesAt,
 	) {
 		return nil
 	}
