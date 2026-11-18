@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Homebrew formula: `brew install chainguard-dev/tap/go-linear`. Releases are built with GoReleaser, which updates the formula in `chainguard-dev/homebrew-tap` on each stable tag (#59)
+- Releases include `.tar.gz` archives (`.zip` on Windows) next to the raw binaries, which keep their old names. `checksums.txt` is signed with keyless cosign (`checksums.txt.sigstore.json`)
 - `issue list` can return `completedAt`, `slaBreachesAt`, `slaStartedAt`, and `labels` (id and name) via `--fields`. They are not in the default field set. Unset timestamps come back as `null` (#136)
 
 ### Changed
