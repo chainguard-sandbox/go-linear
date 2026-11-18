@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field)
 
+### Fixed
+- List commands no longer empty `pageInfo` when `--fields` is set, so `pageInfo.endCursor` and `hasNextPage` are available for `--after` pagination
+
 ## [2.4.0] - 2026-10-09
 
 This release ships one small breaking SDK change as a minor version. Linear changed the `id` filter type on projects and initiatives upstream. A major version would require moving the module path to `/v3`, which is out of proportion to a one-line migration (see below).

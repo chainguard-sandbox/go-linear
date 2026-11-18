@@ -197,3 +197,23 @@ func TestWithNullable(t *testing.T) {
 		}
 	})
 }
+
+func TestNewForList_KeepsPaginationWrapperIntact(t *testing.T) {
+	input := []byte(`{"nodes":[{"id":"a","title":"x"}],"pageInfo":{"hasNextPage":true,"endCursor":"cur-1"},"totalCount":7}`)
+
+	fs, err := NewForList("id", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := fs.Filter(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Field selection applies to nodes items only; pageInfo must survive so
+	// callers can still page with --after.
+	want := `{"nodes":[{"id":"a"}],"pageInfo":{"endCursor":"cur-1","hasNextPage":true},"totalCount":7}`
+	if string(out) != want {
+		t.Errorf("Filter() =\n%s\nwant\n%s", out, want)
+	}
+}
