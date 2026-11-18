@@ -102,6 +102,26 @@ go-linear issue create --team=ENG --title="Fix bug" --priority=2
 | Filter by multiple criteria | `issue list --team=ENG --priority=1 --state="In Progress"` |
 | List with AI suggestions | `issue list --has-suggested-teams` |
 
+#### SLO report
+
+Measure time-to-resolution against your own label policy. It runs client-side, so Linear's SLA feature is not required:
+
+```bash
+go-linear issue slo-report \
+  --policy "p1=2d,p2=14d,p3=60d" \
+  --team=ENG --created-after=2026-01-01 \
+  --group-by=team -o table
+```
+
+```
+GROUP  TOTAL  MET  MISSED  AT-RISK  OPEN-OK  MEDIAN  MAX
+ENG    42     30   5       3        4        3d2h    41d
+OPS    10     8    1       0        1        1d6h    16d
+TOTAL  52     38   6       3        5        2d20h   41d
+```
+
+Elapsed time is `completedAt - createdAt`, or `now - createdAt` for open issues. If an issue has more than one policy label, the shortest target applies. Open issues past `--at-risk-threshold` percent of their target (default 80) count as at risk. Durations accept `w`, `d`, `h`, `m`, and `s`; days are calendar days, not business days. Use `--policy-file` for one `label=duration` per line, `--group-by=team|assignee|label`, and `-o json` (the default) for machine-readable output.
+
 See [CLI Quick Start](docs/CLI-QUICK-START.md) for all commands and [Filters Guide](docs/FILTERS.md) for filter options.
 
 ### SDK (Go Developers)

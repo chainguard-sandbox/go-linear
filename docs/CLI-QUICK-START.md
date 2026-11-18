@@ -143,6 +143,7 @@ go-linear document delete <uuid>
 - `go-linear issue update-relation <id>` - Change relationship type
 - `go-linear issue add-label <id>` - Add label to issue
 - `go-linear issue remove-label <id>` - Remove label from issue
+- `go-linear issue slo-report --policy "p1=2d,p2=14d"` - Time-to-resolution vs. a label policy (JSON or table)
 
 **Users (3)**:
 - `go-linear user list` - List all users
