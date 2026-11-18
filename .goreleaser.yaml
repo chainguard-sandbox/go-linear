@@ -84,26 +84,32 @@ changelog:
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
-brews:
+homebrew_casks:
   - name: go-linear
     ids: [archive]
+    binaries: [go-linear]
     repository:
       owner: chainguard-dev
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    url_template: "https://github.com/chainguard-sandbox/go-linear/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    directory: Formula
+    url:
+      template: "https://github.com/chainguard-sandbox/go-linear/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Casks
     commit_author:
       name: guardian
       email: guardian@chainguard.dev
-    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
     homepage: "https://github.com/chainguard-sandbox/go-linear"
     description: "CLI and Go SDK for Linear"
     license: "Apache-2.0"
-    # Prereleases (tags with a "-") don't update the formula.
+    # Prereleases (tags with a "-") don't update the cask.
     skip_upload: auto
-    install: |
-      bin.install "go-linear"
-    test: |
-      assert_match version.to_s, shell_output("#{bin}/go-linear --version")
+    # The binary isn't Apple-signed or notarized, so clear the quarantine bit
+    # or macOS refuses to run it ("is damaged and can't be opened").
+    hooks:
+      post:
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/go-linear"]
+          end

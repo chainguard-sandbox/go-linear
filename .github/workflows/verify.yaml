@@ -123,3 +123,26 @@ jobs:
 
       - name: Run gosec
         run: gosec -conf .gosec.json -exclude-dir=examples -exclude-dir=internal/graphql ./...
+
+  goreleaser:
+    name: GoReleaser Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # `goreleaser check` fails on deprecated config. A release only logs
+      # deprecations as warnings, so this catches them before a tag does.
+      - name: goreleaser check
+        uses: chainguard-actions/goreleaser-goreleaser-action@0e236da93b36df8d970858ee54627745eb28fa62 # v7.3.0
+        with:
+          args: check

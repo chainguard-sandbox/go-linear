@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Homebrew now installs go-linear as a cask (`Casks/go-linear.rb`) instead of a formula. GoReleaser has deprecated formulas for prebuilt binaries. The install command is unchanged: `brew install chainguard-dev/tap/go-linear`. If you installed the 2.5.1 formula, `brew upgrade` moves you to the cask once the tap adds the migration
+
 ## [2.5.1] - 2026-11-18
 
 Same code as 2.5.0. The v2.5.0 release job failed at the signing step, so 2.5.0 was never published: no release assets and no Homebrew formula. Use 2.5.1.
