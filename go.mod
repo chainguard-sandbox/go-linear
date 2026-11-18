@@ -1,6 +1,6 @@
 module github.com/chainguard-sandbox/go-linear/v2
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/Yamashou/gqlgenc v0.33.0
