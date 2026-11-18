@@ -7,24 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-11-18
+
 ### Added
-- Homebrew formula: `brew install chainguard-dev/tap/go-linear`. Releases are built with GoReleaser, which updates the formula in `chainguard-dev/homebrew-tap` on each stable tag (#59)
-- Releases include `.tar.gz` archives (`.zip` on Windows) next to the raw binaries, which keep their old names. `checksums.txt` is signed with keyless cosign (`checksums.txt.sigstore.json`)
-- `issue list` can return `completedAt`, `slaBreachesAt`, `slaStartedAt`, and `labels` (id and name) via `--fields`. They are not in the default field set. Unset timestamps come back as `null` (#136)
-- `issue slo-report` evaluates issues against a label-to-target policy (`--policy "p1=2d,p2=14d"` or `--policy-file`) and reports met, missed, at-risk, and open-within-target counts plus median and max time-to-resolution, grouped by team, assignee, or label. Runs client-side on the existing issues query; JSON and table output (#137)
-- Native SLA support for workspaces with SLAs enabled (#138):
+- `issue list` can return `completedAt`, `slaBreachesAt`, `slaStartedAt`, and `labels` (id and name) via `--fields`. They are not in the default field set. Unset timestamps come back as `null` (#136, #191)
+- `issue slo-report` checks issues against a policy that maps labels to target durations (`--policy "p1=2d,p2=14d"` or `--policy-file`). It reports met, missed, at-risk, and open-within-target counts, plus median and max time to resolution, grouped by team, assignee, or label. It runs client-side on the existing issues query and outputs JSON or a table (#137, #195)
+- Native SLA support for workspaces with SLAs enabled (#138, #196):
   - `issue list --sla-breaches-after/--sla-breaches-before` filter by SLA breach time. Relative values count forward (`--sla-breaches-before=7d` = breaching within the next week)
   - `issue list --sort=sla-status[:asc|:desc]` orders results by SLA status, with issues without an SLA last
   - `issue update --sla-breaches-at/--sla-started-at/--sla-type` and `issue batch-update --set-sla-breaches-at/--set-sla-started-at/--set-sla-type` set an issue's SLA. `--sla-type` takes `all` or `onlyBusinessDays`. An empty value or `none` clears the field, and clearing the breach time removes the SLA
   - API errors that mention SLAs get a hint about the plan and enablement prerequisite
   - SDK: `Client.IssuesFilteredSorted` with the `IssueSortInput`/`SLAStatusSort` aliases, `Client.IssueBatchUpdateNullable`, and `TeamID`, `SLABreachesAt`, `SLAStartedAt`, `SLAType` on `IssueUpdateNullableInput`
+- Homebrew formula: `brew install chainguard-dev/tap/go-linear`. GoReleaser updates the formula in `chainguard-dev/homebrew-tap` on each stable tag (#59, #197)
 
 ### Changed
-- Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field)
-- `issue list --fields=none` now reports unset `completedAt`, `slaBreachesAt`, and `slaStartedAt` as `null` instead of omitting them, matching `--fields=...` (#193)
+- Releases are built with GoReleaser. Each release now has `.tar.gz` archives (`.zip` on Windows) as well as the raw binaries, which keep their old names. `checksums.txt` is signed with keyless cosign (`checksums.txt.sigstore.json`) (#197)
+- `issue list --fields=none` now reports unset `completedAt`, `slaBreachesAt`, and `slaStartedAt` as `null` instead of omitting them, matching `--fields=...` (#193, #194)
 
 ### Fixed
-- List commands no longer empty `pageInfo` when `--fields` is set, so `pageInfo.endCursor` and `hasNextPage` are available for `--after` pagination
+- List commands no longer empty `pageInfo` when `--fields` is set, so `pageInfo.endCursor` and `hasNextPage` are available for `--after` pagination (#192)
+
+### Security
+- Go 1.27.3 then 1.27.4 to clear stdlib vulnerabilities GO-2026-6809 (crypto/x509) and GO-2026-6859 (net/http) (#180, #190)
+- Bumped `github.com/klauspost/compress` to v1.20.2 (GO-2026-6865) (#183)
+
+### CI
+- Swap step-security action forks for `chainguard-actions` mirrors (#182)
+- Group CodeQL Dependabot bumps and allow PyPI egress for zizmor-action; drop the unused ghcr egress (#175, #184)
+- Bump `golang.org/x/tools` to v0.52.0 so `make generate` works under Go 1.27 (v0.49.0 produced `invalid type` for every field) (#191)
+
+### Dependencies
+- Bumped `github.com/prometheus/client_golang` (1.25.0) and `golang.org/x/sync` (0.25.0) (#168, #186)
+- Bumped GitHub Actions: `github/codeql-action`, `step-security/harden-runner`, `zizmorcore/zizmor-action`, `chainguard-actions/reviewdog-action-actionlint`
 
 ## [2.4.0] - 2026-10-09
 
@@ -561,7 +575,8 @@ First stable release of go-linear, a production-ready Go client for the Linear A
 
 **License**: Apache 2.0
 
-[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/chainguard-sandbox/go-linear/compare/v2.2.0...v2.2.1
