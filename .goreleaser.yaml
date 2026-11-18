@@ -1,0 +1,111 @@
+# GoReleaser config for go-linear releases. See .github/workflows/release.yaml.
+# Validate locally: goreleaser check && goreleaser release --snapshot --clean --skip=sign
+version: 2
+
+project_name: go-linear
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: go-linear
+    main: ./cmd/linear
+    binary: go-linear
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    ldflags:
+      - -s -w -buildid=
+      - -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.Version={{ .Tag }}
+      - -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.GitCommit={{ .FullCommit }}
+      - -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.GitTreeState={{ .GitTreeState }}
+      - -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.BuildDate={{ .CommitDate }}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  # Archives for Homebrew and manual installs.
+  - id: archive
+    ids: [go-linear]
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+
+  # Raw binaries, named as before GoReleaser (go-linear-vX.Y.Z-os-arch[.exe]),
+  # so existing download links and scripts keep working.
+  - id: raw
+    ids: [go-linear]
+    formats: [binary]
+    name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+signs:
+  # Keyless cosign signature over checksums.txt, which covers every artifact.
+  - id: checksum
+    cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - --yes
+      - --output-signature=${signature}
+      - --output-certificate=${certificate}
+      - --bundle=${artifact}.sigstore.json
+      - ${artifact}
+
+release:
+  draft: false
+  prerelease: auto
+  name_template: "{{ .Tag }}"
+  extra_files:
+    - glob: dist/checksums.txt.sigstore.json
+
+changelog:
+  use: github-native
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+brews:
+  - name: go-linear
+    ids: [archive]
+    repository:
+      owner: chainguard-dev
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    url_template: "https://github.com/chainguard-sandbox/go-linear/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Formula
+    commit_author:
+      name: guardian
+      email: guardian@chainguard.dev
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/chainguard-sandbox/go-linear"
+    description: "CLI and Go SDK for Linear"
+    license: "Apache-2.0"
+    # Prereleases (tags with a "-") don't update the formula.
+    skip_upload: auto
+    install: |
+      bin.install "go-linear"
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/go-linear --version")

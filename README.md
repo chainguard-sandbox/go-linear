@@ -34,6 +34,12 @@ Each layer adds value:
 
 ## Installation
 
+### Homebrew (macOS and Linux)
+
+```bash
+brew install chainguard-dev/tap/go-linear
+```
+
 ### From Source
 
 ```bash
@@ -51,7 +57,15 @@ cd go-linear && make build
 
 ### Pre-built Binaries
 
-Download from [GitHub Releases](https://github.com/chainguard-sandbox/go-linear/releases).
+Download from [GitHub Releases](https://github.com/chainguard-sandbox/go-linear/releases). Each release has `.tar.gz` archives (`.zip` on Windows) and raw binaries (`go-linear-vX.Y.Z-<os>-<arch>`). `checksums.txt` covers every file and is signed with keyless cosign. To verify it:
+
+```bash
+cosign verify-blob checksums.txt \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp '^https://github.com/chainguard-sandbox/go-linear/.github/workflows/release.yaml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+sha256sum --ignore-missing -c checksums.txt
+```
 
 ### Go SDK
 

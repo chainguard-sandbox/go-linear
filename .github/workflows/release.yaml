@@ -11,7 +11,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # gh release create/upload/edit
+      contents: write  # create the GitHub release and upload artifacts
+      id-token: write  # keyless cosign signing, and octo-sts federation for the Homebrew tap
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -21,86 +22,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # GoReleaser needs tags and history for the changelog
           persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: false
+          cache: false  # clean build on the release path
 
-      - name: Build binaries
-        run: |
-          VERSION=${GITHUB_REF_NAME}
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
-          # Build matrix
-          platforms=(
-            "linux/amd64"
-            "linux/arm64"
-            "darwin/amd64"
-            "darwin/arm64"
-            "windows/amd64"
-          )
+      # Token for chainguard-dev/homebrew-tap, granted by the trust policy
+      # .github/chainguard/go-linear.sts.yaml in that repository.
+      - uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
+        id: octo-sts
+        with:
+          scope: chainguard-dev/homebrew-tap
+          identity: go-linear
 
-          mkdir -p dist
-
-          # Cache commit timestamp for reproducible BuildDate (GNU date -d, Linux only)
-          BUILD_DATE=$(date -u -d "@$(git log -1 --pretty=%ct)" +%Y-%m-%dT%H:%M:%SZ)
-
-          for platform in "${platforms[@]}"; do
-            GOOS="${platform%/*}"
-            GOARCH="${platform#*/}"
-            output="dist/go-linear-${VERSION}-${GOOS}-${GOARCH}"
-
-            if [ "$GOOS" = "windows" ]; then
-              output="${output}.exe"
-            fi
-
-            echo "Building ${GOOS}/${GOARCH}..."
-            GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
-              -trimpath \
-              -ldflags="-s -w -buildid= \
-                -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.Version=${VERSION} \
-                -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.GitCommit=${GITHUB_SHA} \
-                -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.GitTreeState=clean \
-                -X github.com/chainguard-sandbox/go-linear/v2/pkg/linear.BuildDate=${BUILD_DATE}" \
-              -o "$output" \
-              ./cmd/linear
-          done
-
-          # Create checksums
-          cd dist
-          sha256sum go-linear-* > checksums.txt
-
-      - name: Create Release
+      - name: Release
+        uses: chainguard-actions/goreleaser-goreleaser-action@0e236da93b36df8d970858ee54627745eb28fa62 # v7.3.0
+        with:
+          args: release --clean
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION=${GITHUB_REF_NAME}
-          PRERELEASE=""
-          if [[ "$VERSION" == *"-"* ]]; then
-            PRERELEASE="--prerelease"
-          fi
-
-          # Create draft release if it doesn't already exist (idempotent for re-runs).
-          if ! gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh release create "$VERSION" \
-              --repo "$GITHUB_REPOSITORY" \
-              --title "$VERSION" \
-              --generate-notes \
-              --draft \
-              ${PRERELEASE:+"$PRERELEASE"}
-          fi
-
-          # Upload artifacts to the draft release (--clobber handles re-runs).
-          gh release upload "$VERSION" \
-            --repo "$GITHUB_REPOSITORY" \
-            --clobber \
-            dist/go-linear-* \
-            dist/checksums.txt
-
-          # Publish the release.
-          gh release edit "$VERSION" \
-            --repo "$GITHUB_REPOSITORY" \
-            --draft=false
+          GITHUB_TOKEN: ${{ github.token }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
