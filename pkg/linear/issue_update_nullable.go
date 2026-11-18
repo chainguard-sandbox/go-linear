@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 )
@@ -79,13 +78,13 @@ func (c *Client) IssueUpdateNullable(ctx context.Context, id string, input Issue
 
 // IssueBatchUpdateNullable updates multiple issues with the same input, with
 // support for explicit null values. It is the batch counterpart of
-// IssueUpdateNullable; use it to clear fields such as an SLA across issues.
+// IssueUpdateNullable; use it to clear fields such as a cycle across issues.
 // The Linear API accepts at most 50 issue IDs per call.
 //
-// Example clearing the SLA on two issues:
+// Example removing two issues from their cycle:
 //
 //	input := linear.IssueUpdateNullableInput{
-//	    SLABreachesAt: linear.NewNull[time.Time](),
+//	    CycleID: linear.NewNull[string](),
 //	}
 //	result, err := client.IssueBatchUpdateNullable(ctx, []string{"id-1", "id-2"}, input)
 func (c *Client) IssueBatchUpdateNullable(ctx context.Context, ids []string, input IssueUpdateNullableInput) (*intgraphql.BatchUpdateIssues_IssueBatchUpdate, error) {
@@ -207,10 +206,9 @@ type IssueUpdateNullableInput struct {
 	DueDate            Nullable[string]
 	ProjectMilestoneID Nullable[string]
 
-	// SLA fields. They require Linear's SLA feature to be enabled for the
-	// workspace. Setting SLABreachesAt to null removes the SLA from the issue.
-	SLABreachesAt Nullable[time.Time]
-	SLAStartedAt  Nullable[time.Time]
+	// SLA field. It requires Linear's SLA feature to be enabled for the
+	// workspace. Linear sets the breach and start times from the SLA policy;
+	// @linear/sdk 103.0.0 removed them from IssueUpdateInput.
 	// SLAType is the SLA day count type: "all" (calendar days) or
 	// "onlyBusinessDays". See intgraphql.SLADayCountType.
 	SLAType Nullable[string]
@@ -310,12 +308,6 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 		}
 	}
 
-	if i.SLABreachesAt.IsSet() {
-		m["slaBreachesAt"] = nullableTime(i.SLABreachesAt)
-	}
-	if i.SLAStartedAt.IsSet() {
-		m["slaStartedAt"] = nullableTime(i.SLAStartedAt)
-	}
 	if i.SLAType.IsSet() {
 		if val, _ := i.SLAType.Get(); val == nil {
 			m["slaType"] = nil
@@ -325,14 +317,4 @@ func (i *IssueUpdateNullableInput) ToMap() map[string]any {
 	}
 
 	return m
-}
-
-// nullableTime renders a set Nullable[time.Time] as an RFC3339 UTC string, or
-// nil for an explicit null.
-func nullableTime(n Nullable[time.Time]) any {
-	val, _ := n.Get()
-	if val == nil {
-		return nil
-	}
-	return val.UTC().Format(time.RFC3339)
 }

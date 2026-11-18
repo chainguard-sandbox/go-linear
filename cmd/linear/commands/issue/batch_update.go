@@ -358,8 +358,6 @@ func runBatchUpdate(cmd *cobra.Command, client *linear.Client) error {
 	// are the same batch (at most 50) as the regular path.
 	if useSLA {
 		nullable := nullableFromUpdateInput(input)
-		nullable.SLABreachesAt = slaInput.SLABreachesAt
-		nullable.SLAStartedAt = slaInput.SLAStartedAt
 		nullable.SLAType = slaInput.SLAType
 
 		result, err := client.IssueBatchUpdateNullable(ctx, ids, nullable)

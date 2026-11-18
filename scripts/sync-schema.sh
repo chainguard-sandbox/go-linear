@@ -16,7 +16,7 @@ echo "Syncing schema from upstream..."
 cp "$UPSTREAM_SCHEMA" "$LOCAL_SCHEMA"
 
 # Get upstream version info
-UPSTREAM_VERSION=$(cd upstream && git describe --tags --always 2>/dev/null || echo "unknown")
+UPSTREAM_VERSION=$(cd upstream && git describe --tags --match "@linear/sdk@*" --always 2>/dev/null || echo "unknown")
 echo "Synced from upstream version: $UPSTREAM_VERSION"
 
 # Show diff summary
