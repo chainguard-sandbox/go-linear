@@ -60,25 +60,23 @@ checksum:
 
 signs:
   # Keyless cosign signature over checksums.txt, which covers every artifact.
+  # cosign v3 writes a single Sigstore bundle (signature + certificate + Rekor
+  # entry) and no longer writes separate .sig/.pem files, so the bundle is the
+  # signature artifact.
   - id: checksum
     cmd: cosign
     artifacts: checksum
-    signature: "${artifact}.sig"
-    certificate: "${artifact}.pem"
+    signature: "${artifact}.sigstore.json"
     args:
       - sign-blob
       - --yes
-      - --output-signature=${signature}
-      - --output-certificate=${certificate}
-      - --bundle=${artifact}.sigstore.json
+      - --bundle=${signature}
       - ${artifact}
 
 release:
   draft: false
   prerelease: auto
   name_template: "{{ .Tag }}"
-  extra_files:
-    - glob: dist/checksums.txt.sigstore.json
 
 changelog:
   use: github-native

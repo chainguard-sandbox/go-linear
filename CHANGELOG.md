@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-11-18
+
+Same code as 2.5.0. The v2.5.0 release job failed at the signing step, so 2.5.0 was never published: no release assets and no Homebrew formula. Use 2.5.1.
+
+### Fixed
+- Release signing works with cosign v3. cosign v3 writes only a Sigstore bundle, so `checksums.txt.sigstore.json` is now the signature artifact. The separate `checksums.txt.sig` and `.pem` files are gone. Verify with `cosign verify-blob --bundle` as shown in the README.
+
 ## [2.5.0] - 2026-11-18
 
 ### Added
@@ -575,7 +582,8 @@ First stable release of go-linear, a production-ready Go client for the Linear A
 
 **License**: Apache 2.0
 
-[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.1...HEAD
+[2.5.1]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.2.1...v2.3.0
