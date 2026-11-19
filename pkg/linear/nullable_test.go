@@ -3,7 +3,6 @@ package linear
 import (
 	"encoding/json"
 	"testing"
-	"time"
 )
 
 func TestNullable_MarshalJSON(t *testing.T) {
@@ -195,23 +194,13 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		}
 	})
 
-	t.Run("with SLA values", func(t *testing.T) {
-		breach := time.Date(2026, 12, 1, 9, 30, 0, 0, time.FixedZone("x", 3600))
-		start := time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC)
+	t.Run("with SLA type and team", func(t *testing.T) {
 		team := "team-1"
 		input := IssueUpdateNullableInput{
-			TeamID:        &team,
-			SLABreachesAt: NewValue(breach),
-			SLAStartedAt:  NewValue(start),
-			SLAType:       NewValue("onlyBusinessDays"),
+			TeamID:  &team,
+			SLAType: NewValue("onlyBusinessDays"),
 		}
 		m := input.ToMap()
-		if m["slaBreachesAt"] != "2026-12-01T08:30:00Z" {
-			t.Errorf("slaBreachesAt = %v, want 2026-12-01T08:30:00Z (UTC)", m["slaBreachesAt"])
-		}
-		if m["slaStartedAt"] != "2026-11-01T00:00:00Z" {
-			t.Errorf("slaStartedAt = %v", m["slaStartedAt"])
-		}
 		if m["slaType"] != "onlyBusinessDays" {
 			t.Errorf("slaType = %v", m["slaType"])
 		}
@@ -220,18 +209,11 @@ func TestIssueUpdateNullableInput_ToMap(t *testing.T) {
 		}
 	})
 
-	t.Run("with null SLA fields", func(t *testing.T) {
-		input := IssueUpdateNullableInput{
-			SLABreachesAt: NewNull[time.Time](),
-			SLAStartedAt:  NewNull[time.Time](),
-			SLAType:       NewNull[string](),
-		}
+	t.Run("with null SLA type", func(t *testing.T) {
+		input := IssueUpdateNullableInput{SLAType: NewNull[string]()}
 		m := input.ToMap()
-		for _, k := range []string{"slaBreachesAt", "slaStartedAt", "slaType"} {
-			v, ok := m[k]
-			if !ok || v != nil {
-				t.Errorf("%s = %v (present=%v), want explicit null", k, v, ok)
-			}
+		if v, ok := m["slaType"]; !ok || v != nil {
+			t.Errorf("slaType = %v (present=%v), want explicit null", v, ok)
 		}
 	})
 

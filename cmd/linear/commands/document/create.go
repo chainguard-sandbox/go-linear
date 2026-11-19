@@ -19,13 +19,17 @@ func NewCreateCommand(clientFactory cli.ClientFactory) *cobra.Command {
 		Short: "Create a new document",
 		Long: `Create knowledge base document. Safe operation.
 
-Required: --title, and exactly ONE of: --project, --initiative, --team, or --issue
+Required: --title, and exactly ONE of: --project or --issue
 Optional: --content
 
 Example: go-linear document create --title="API Guide" --project=<uuid> --content="# API Documentation..."
 
 Related: document_get, document_list`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := cli.RejectRemovedFlags(cmd, "link the document to a project (--project) or an issue (--issue) instead", "initiative", "team"); err != nil {
+				return err
+			}
+
 			client, err := clientFactory()
 			if err != nil {
 				return err
@@ -43,6 +47,10 @@ Related: document_get, document_list`,
 	cmd.Flags().String("initiative", "", "Initiative name or UUID to link")
 	cmd.Flags().String("team", "", "Team name or key to link")
 	cmd.Flags().String("issue", "", "Issue identifier or UUID to link")
+	// Linear removed initiativeId and teamId from DocumentCreateInput in
+	// @linear/sdk 103.0.0. Keep the flags, hidden, so they fail with an
+	// explanation.
+	cli.HideRemovedFlags(cmd, "initiative", "team")
 
 	return cmd
 }
@@ -60,20 +68,12 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 		input.Content = &content
 	}
 
-	// Validate exactly one of project/initiative/team/issue is set
+	// Validate exactly one of project/issue is set
 	project, _ := cmd.Flags().GetString("project")
-	initiative, _ := cmd.Flags().GetString("initiative")
-	team, _ := cmd.Flags().GetString("team")
 	issue, _ := cmd.Flags().GetString("issue")
 
 	setCount := 0
 	if project != "" {
-		setCount++
-	}
-	if initiative != "" {
-		setCount++
-	}
-	if team != "" {
 		setCount++
 	}
 	if issue != "" {
@@ -81,10 +81,10 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 	}
 
 	if setCount == 0 {
-		return fmt.Errorf("must specify exactly one of: --project, --initiative, --team, or --issue")
+		return fmt.Errorf("must specify exactly one of: --project or --issue")
 	}
 	if setCount > 1 {
-		return fmt.Errorf("must specify exactly one of: --project, --initiative, --team, or --issue (not multiple)")
+		return fmt.Errorf("must specify exactly one of: --project or --issue (not multiple)")
 	}
 
 	// Resolve and set the appropriate entity
@@ -94,22 +94,6 @@ func runCreate(cmd *cobra.Command, client *linear.Client) error {
 			return fmt.Errorf("failed to resolve project: %w", err)
 		}
 		input.ProjectID = &projectID
-	}
-
-	if initiative != "" {
-		initiativeID, err := res.ResolveInitiative(ctx, initiative)
-		if err != nil {
-			return fmt.Errorf("failed to resolve initiative: %w", err)
-		}
-		input.InitiativeID = &initiativeID
-	}
-
-	if team != "" {
-		teamID, err := res.ResolveTeam(ctx, team)
-		if err != nil {
-			return fmt.Errorf("failed to resolve team: %w", err)
-		}
-		input.TeamID = &teamID
 	}
 
 	if issue != "" {

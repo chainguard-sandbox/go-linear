@@ -7,8 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+This release syncs the schema to `@linear/sdk@103.0.0`, in which Linear removed parts of its public API. Those removals break some SDK fields and CLI flags. As in 2.4.0, this ships as a minor version: moving the module path to `/v3` would be out of proportion, and each change reflects something the Linear API itself no longer accepts.
+
 ### Changed
+- Sync upstream schema to `@linear/sdk@103.0.0` (was 97.1.0, via 100.0.0, 101.x and 102.0.0). Linear removed 336 schema types, mostly internal AI-conversation, agent-session and integration types, and added 35.
 - Homebrew now installs go-linear as a cask (`Casks/go-linear.rb`) instead of a formula. GoReleaser has deprecated formulas for prebuilt binaries. The install command is unchanged: `brew install chainguard-dev/tap/go-linear`. If you installed the 2.5.1 formula, `brew upgrade` moves you to the cask once the tap adds the migration
+- **Breaking (CLI):** `issue update --sla-breaches-at/--sla-started-at` and `issue batch-update --set-sla-breaches-at/--set-sla-started-at` are hidden and fail with an explanation. Linear now sets SLA breach and start times from the team's SLA policy, and `IssueUpdateInput` no longer accepts them. `--sla-type`/`--set-sla-type`, the `--sla-breaches-after/--sla-breaches-before` filters and `--sort=sla-status` still work.
+- **Breaking (CLI):** `document create --initiative` and `--team` are hidden and fail with an explanation. `DocumentCreateInput` no longer accepts `initiativeId` or `teamId`. Link documents to a project (`--project`) or an issue (`--issue`) instead. The `document list --initiative` filter still works.
+- **Breaking (CLI):** `issue suggestions` is hidden and fails with an explanation. Linear removed `Issue.incomingSuggestions` and the `IssueSuggestion` type. The `issue list --has-suggested-*` filters still work.
+- Removed CLI commands and flags are also gone from the MCP tool list, because MCP leaves hidden commands and flags out.
+- **Breaking (SDK):** removed `Client.IssueSuggestions`, and the `SLABreachesAt` and `SLAStartedAt` fields of `IssueUpdateNullableInput` (added in 2.5.0).
+- **Breaking (SDK):** generated input types lost the fields Linear removed. Setting any of them is now a compile error:
+  - `IssueCreateInput`: `DescriptionData`, `InheritsSharedAccess`, `SLABreachesAt`, `SLAStartedAt`, `SourcePullRequestCommentID`
+  - `IssueUpdateInput`: `DescriptionData`, `SLABreachesAt`, `SLAStartedAt`, `Trusted`
+  - `IssueSortInput`: `AccumulatedStateUpdatedAt`
+  - `DocumentCreateInput`: `CycleID`, `InitiativeID`, `ParentDocumentID`, `ResourceFolderID`, `SubDocumentSortOrder`, `SubscriberIds`, `TeamID`
+  - `DocumentUpdateInput`: the same fields, plus `PersonalUserID`
+  - `CommentCreateInput`: `BodyData`, `SubscriberIds`
+  - `CommentUpdateInput`: `BodyData`, `DoNotSubscribeToIssue`, `ResolvingCommentID`, `ResolvingUserID`, `SubscriberIds`
+  - `AttachmentCreateInput`: `CommentBodyData`
+  - `FavoriteCreateInput`: `AiConversationID`, `InitiativeID`, `InitiativeLabelID`
+  - `InitiativeUpdateInput`: `CustomIdentifier`
+  - `InitiativeUpdateCreateInput`, `ProjectUpdateCreateInput`: `BodyData`
+  - `ProjectCreateInput`, `ProjectUpdateInput`: `LeadTeamID`
+  - `ProjectMilestoneCreateInput`, `ProjectMilestoneUpdateInput`: `DescriptionData`
+  - `ReactionCreateInput`: `PostID`, `PullRequestCommentID`, `PullRequestID`
+  - `TeamCreateInput`, `TeamUpdateInput`: `InheritProductIntelligenceScope`, `InheritProjectStatuses`, `InheritSlackAutoCreateProjectChannel`, `InheritWorkflowStatuses`, `ProductIntelligenceScope`, `SlackAutoCreateProjectChannel`; also `Private` (create) and `HandleSubTeamsOnRetirement` (update)
+  - `TeamMembershipCreateInput`: `Owner`
+
+### Fixed
+- `make sync-schema` reports the `@linear/sdk` release it synced from. It used to print whichever tag `git describe` found first on that commit (e.g. `@linear/import@4.0.9`).
+
+### Migration
+- `*Data` fields (`DescriptionData`, `BodyData`, `CommentBodyData`): send markdown in `Description`/`Body` instead.
+- `SLABreachesAt`/`SLAStartedAt`: drop them. Linear computes them from the SLA policy, and `SLAType` still sets the day count.
+- Documents: set `ProjectID` or `IssueID` (or `ReleaseID`) instead of `InitiativeID`/`TeamID`.
+- `Client.IssueSuggestions`: no replacement in the API. Use `IssueFilter.Suggestions` (the `--has-suggested-*` filters) to find issues that have suggestions.
 
 ## [2.5.1] - 2026-11-18
 

@@ -3074,19 +3074,16 @@ func TestCLI_IssueSuggestions(t *testing.T) {
 	issue := nodes[0].(map[string]any)
 	issueID := issue["identifier"].(string)
 
-	t.Run("list_suggestions", func(t *testing.T) {
-		stdout, stderr, err := r.run("issue", "suggestions",
-			issueID,
-		)
-		if err != nil {
-			t.Fatalf("suggestions failed: %v\nstderr: %s", err, stderr)
+	// Linear removed Issue.incomingSuggestions in @linear/sdk 103.0.0. The
+	// --has-suggested-* filters above still work; the suggestions command
+	// now explains the removal.
+	t.Run("suggestions_removed", func(t *testing.T) {
+		_, stderr, err := r.run("issue", "suggestions", issueID)
+		if err == nil {
+			t.Fatal("issue suggestions should fail: Linear removed the API")
 		}
-
-		var suggestResult map[string]any
-		json.Unmarshal([]byte(stdout), &suggestResult)
-
-		if suggestions, ok := suggestResult["suggestions"].([]any); ok {
-			t.Logf("Issue %s has %d AI suggestions", issueID, len(suggestions))
+		if !strings.Contains(stderr+err.Error(), "removed from the Linear API") {
+			t.Errorf("error should explain the removal, got %v\nstderr: %s", err, stderr)
 		}
 	})
 }

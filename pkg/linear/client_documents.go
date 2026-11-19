@@ -84,7 +84,8 @@ func (c *Client) DocumentsFiltered(ctx context.Context, first *int64, after *str
 // Optional fields:
 //   - Content: Document content in markdown
 //   - ProjectID: Link to project
-//   - InitiativeID: Link to initiative
+//   - IssueID: Link to issue
+//   - ReleaseID: Link to release
 //   - Icon: Document icon
 //   - Color: Icon color
 //
@@ -116,7 +117,11 @@ func (c *Client) DocumentCreate(ctx context.Context, input intgraphql.DocumentCr
 //   - Title: Update document title
 //   - Content: Update document content
 //   - ProjectID: Update project link
-//   - InitiativeID: Update initiative link
+//   - IssueID: Update issue link
+//   - ReleaseID: Update release link
+//
+// Linear removed InitiativeID and TeamID from the document inputs in
+// @linear/sdk 103.0.0; documents link to a project, issue, or release.
 //
 // Returns:
 //   - Updated document with new values

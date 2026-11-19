@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -106,20 +107,6 @@ func assertNull(t *testing.T, m map[string]any, key string) {
 	}
 }
 
-// parseSent parses an RFC3339 timestamp sent in the variables.
-func parseSent(t *testing.T, v any) time.Time {
-	t.Helper()
-	s, ok := v.(string)
-	if !ok {
-		t.Fatalf("value %v (%T) is not a string", v, v)
-	}
-	ts, err := time.Parse(time.RFC3339, s)
-	if err != nil {
-		t.Fatalf("value %q is not RFC3339: %v", s, err)
-	}
-	return ts
-}
-
 func listFilteredHandlers() map[string]string {
 	h := defaultHandlers()
 	h["ListIssuesFiltered"] = mockIssuesResponse
@@ -185,42 +172,15 @@ func TestRunList_SLABreachesFilters(t *testing.T) {
 }
 
 func TestRunUpdate_SLAFields(t *testing.T) {
-	t.Run("sets breach, start and type", func(t *testing.T) {
+	t.Run("sets the SLA type", func(t *testing.T) {
 		server, captured := captureOpsServer(t, defaultHandlers())
 		cmd := NewUpdateCommand(testutil.TestFactory(t, server.URL))
-		_, err := runCmd(t, cmd, "ENG-123",
-			"--sla-breaches-at=2026-12-01T17:00:00+02:00",
-			"--sla-started-at=2026-11-01",
-			"--sla-type=onlyBusinessDays")
-		if err != nil {
+		if _, err := runCmd(t, cmd, "ENG-123", "--sla-type=onlyBusinessDays"); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
-
 		input := inputOf(t, captured.last("UpdateIssue"))
-		if input["slaBreachesAt"] != "2026-12-01T15:00:00Z" {
-			t.Errorf("slaBreachesAt = %v, want 2026-12-01T15:00:00Z", input["slaBreachesAt"])
-		}
-		if input["slaStartedAt"] != "2026-11-01T00:00:00Z" {
-			t.Errorf("slaStartedAt = %v, want 2026-11-01T00:00:00Z", input["slaStartedAt"])
-		}
-		if input["slaType"] != "onlyBusinessDays" {
-			t.Errorf("slaType = %v, want onlyBusinessDays", input["slaType"])
-		}
-		if len(input) != 3 {
-			t.Errorf("input = %v, want only the three SLA fields", input)
-		}
-	})
-
-	t.Run("relative breach time is in the future", func(t *testing.T) {
-		server, captured := captureOpsServer(t, defaultHandlers())
-		cmd := NewUpdateCommand(testutil.TestFactory(t, server.URL))
-		now := time.Now().UTC()
-		if _, err := runCmd(t, cmd, "ENG-123", "--sla-breaches-at=24h"); err != nil {
-			t.Fatalf("Execute() error = %v", err)
-		}
-		got := parseSent(t, inputOf(t, captured.last("UpdateIssue"))["slaBreachesAt"])
-		if d := got.Sub(now.Add(24 * time.Hour)); d < -time.Minute || d > time.Minute {
-			t.Errorf("slaBreachesAt = %v, want ~24h from now", got)
+		if input["slaType"] != "onlyBusinessDays" || len(input) != 1 {
+			t.Errorf("input = %v, want only slaType=onlyBusinessDays", input)
 		}
 	})
 
@@ -234,33 +194,19 @@ func TestRunUpdate_SLAFields(t *testing.T) {
 		if input["slaType"] != "all" || input["title"] != "New" {
 			t.Errorf("input = %v, want slaType=all and title=New", input)
 		}
-		if _, ok := input["slaBreachesAt"]; ok {
-			t.Error("slaBreachesAt should be omitted when its flag is not passed")
-		}
 	})
 
-	clearTests := []struct {
-		name string
-		args []string
-		keys []string
-	}{
-		{"empty breach value clears", []string{"--sla-breaches-at="}, []string{"slaBreachesAt"}},
-		{"none clears", []string{"--sla-breaches-at=none"}, []string{"slaBreachesAt"}},
-		{"clear all SLA fields", []string{"--sla-breaches-at=", "--sla-started-at=", "--sla-type="}, []string{"slaBreachesAt", "slaStartedAt", "slaType"}},
-	}
-	for _, tt := range clearTests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, v := range []string{"", "none"} {
+		t.Run("clear type with "+strconv.Quote(v), func(t *testing.T) {
 			server, captured := captureOpsServer(t, defaultHandlers())
 			cmd := NewUpdateCommand(testutil.TestFactory(t, server.URL))
-			if _, err := runCmd(t, cmd, append([]string{"ENG-123"}, tt.args...)...); err != nil {
+			if _, err := runCmd(t, cmd, "ENG-123", "--sla-type="+v); err != nil {
 				t.Fatalf("Execute() error = %v", err)
 			}
 			input := inputOf(t, captured.last("UpdateIssue"))
-			for _, k := range tt.keys {
-				assertNull(t, input, k)
-			}
-			if len(input) != len(tt.keys) {
-				t.Errorf("input = %v, want only %v", input, tt.keys)
+			assertNull(t, input, "slaType")
+			if len(input) != 1 {
+				t.Errorf("input = %v, want only slaType", input)
 			}
 		})
 	}
@@ -271,8 +217,10 @@ func TestRunUpdate_SLAFields(t *testing.T) {
 		wantErr string
 	}{
 		{"bad type", []string{"--sla-type=weekdays"}, "must be 'all' or 'onlyBusinessDays'"},
-		{"bad breach date", []string{"--sla-breaches-at=later"}, "invalid --sla-breaches-at"},
-		{"bad start date", []string{"--sla-started-at=later"}, "invalid --sla-started-at"},
+		// Linear removed slaBreachesAt/slaStartedAt from IssueUpdateInput.
+		{"removed breach flag", []string{"--sla-breaches-at=2026-12-01"}, "--sla-breaches-at was removed from the Linear API"},
+		{"removed breach flag, clear", []string{"--sla-breaches-at="}, "--sla-breaches-at was removed from the Linear API"},
+		{"removed start flag", []string{"--sla-started-at=2026-11-01", "--sla-type=all"}, "--sla-started-at was removed from the Linear API"},
 	}
 	for _, tt := range invalidTests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -283,10 +231,19 @@ func TestRunUpdate_SLAFields(t *testing.T) {
 				t.Fatalf("error = %v, want containing %q", err, tt.wantErr)
 			}
 			if captured.count("UpdateIssue") != 0 || captured.count("GetIssue") != 0 {
-				t.Error("no API call should be made for an invalid SLA flag")
+				t.Error("no API call should be made for an invalid or removed SLA flag")
 			}
 		})
 	}
+
+	t.Run("removed flags are hidden", func(t *testing.T) {
+		cmd := NewUpdateCommand(testutil.TestFactory(t, "http://unused"))
+		for _, name := range []string{"sla-breaches-at", "sla-started-at"} {
+			if f := cmd.Flags().Lookup(name); f == nil || !f.Hidden {
+				t.Errorf("--%s should exist and be hidden", name)
+			}
+		}
+	})
 }
 
 func TestRunUpdate_SLAErrorHint(t *testing.T) {
@@ -305,7 +262,7 @@ func TestRunUpdate_SLAErrorHint(t *testing.T) {
 			handlers["UpdateIssue"] = tt.apiError
 			server, _ := captureOpsServer(t, handlers)
 			cmd := NewUpdateCommand(testutil.TestFactory(t, server.URL))
-			_, err := runCmd(t, cmd, "ENG-123", "--sla-breaches-at=2026-12-01")
+			_, err := runCmd(t, cmd, "ENG-123", "--sla-type=all")
 			if err == nil {
 				t.Fatal("expected error")
 			}
@@ -347,14 +304,10 @@ func batchHandlers() map[string]string {
 }
 
 func TestRunBatchUpdate_SLAFields(t *testing.T) {
-	t.Run("sets SLA fields on every matched issue", func(t *testing.T) {
+	t.Run("sets SLA type on every matched issue", func(t *testing.T) {
 		server, captured := captureOpsServer(t, batchHandlers())
 		cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
-		out, err := runCmd(t, cmd, "--team=ENG", "--yes",
-			"--set-sla-breaches-at=2026-12-01T00:00:00Z",
-			"--set-sla-started-at=2026-11-01T00:00:00Z",
-			"--set-sla-type=all",
-			"--set-state=Done")
+		out, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-type=all", "--set-state=Done")
 		if err != nil {
 			t.Fatalf("Execute() error = %v\n%s", err, out)
 		}
@@ -365,12 +318,7 @@ func TestRunBatchUpdate_SLAFields(t *testing.T) {
 			t.Errorf("ids = %v, want [issue-123 issue-456]", vars["ids"])
 		}
 		input := inputOf(t, vars)
-		want := map[string]any{
-			"slaBreachesAt": "2026-12-01T00:00:00Z",
-			"slaStartedAt":  "2026-11-01T00:00:00Z",
-			"slaType":       "all",
-			"stateId":       "state-789",
-		}
+		want := map[string]any{"slaType": "all", "stateId": "state-789"}
 		for k, v := range want {
 			if input[k] != v {
 				t.Errorf("input[%s] = %v, want %v", k, input[k], v)
@@ -384,24 +332,23 @@ func TestRunBatchUpdate_SLAFields(t *testing.T) {
 		}
 	})
 
-	t.Run("empty value clears the SLA", func(t *testing.T) {
+	t.Run("none clears the SLA type", func(t *testing.T) {
 		server, captured := captureOpsServer(t, batchHandlers())
 		cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
-		if _, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-breaches-at=", "--set-sla-type=none"); err != nil {
+		if _, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-type=none"); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 		input := inputOf(t, captured.last("BatchUpdateIssues"))
-		assertNull(t, input, "slaBreachesAt")
 		assertNull(t, input, "slaType")
-		if len(input) != 2 {
-			t.Errorf("input = %v, want only slaBreachesAt and slaType", input)
+		if len(input) != 1 {
+			t.Errorf("input = %v, want only slaType", input)
 		}
 	})
 
 	t.Run("keeps other clears as empty strings", func(t *testing.T) {
 		server, captured := captureOpsServer(t, batchHandlers())
 		cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
-		if _, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-breaches-at=", "--set-cycle=none", "--set-estimate=3"); err != nil {
+		if _, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-type=", "--set-cycle=none", "--set-estimate=3"); err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
 		input := inputOf(t, captured.last("BatchUpdateIssues"))
@@ -411,7 +358,7 @@ func TestRunBatchUpdate_SLAFields(t *testing.T) {
 		if input["estimate"] != float64(3) {
 			t.Errorf("estimate = %v, want 3", input["estimate"])
 		}
-		assertNull(t, input, "slaBreachesAt")
+		assertNull(t, input, "slaType")
 	})
 
 	t.Run("stays within the 50-issue batch limit", func(t *testing.T) {
@@ -444,7 +391,7 @@ func TestRunBatchUpdate_SLAFields(t *testing.T) {
 	t.Run("dry run sends no mutation", func(t *testing.T) {
 		server, captured := captureOpsServer(t, batchHandlers())
 		cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
-		out, err := runCmd(t, cmd, "--team=ENG", "--dry-run", "--set-sla-breaches-at=")
+		out, err := runCmd(t, cmd, "--team=ENG", "--dry-run", "--set-sla-type=all")
 		if err != nil {
 			t.Fatalf("Execute() error = %v", err)
 		}
@@ -456,24 +403,34 @@ func TestRunBatchUpdate_SLAFields(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid type fails before any API call", func(t *testing.T) {
-		server, captured := captureOpsServer(t, batchHandlers())
-		cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
-		_, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-type=calendar")
-		if err == nil || !strings.Contains(err.Error(), "invalid --set-sla-type") {
-			t.Fatalf("error = %v, want invalid --set-sla-type", err)
-		}
-		if captured.count("ListIssuesFiltered") != 0 {
-			t.Error("no API call should be made for an invalid SLA flag")
-		}
-	})
+	for _, tt := range []struct {
+		name    string
+		arg     string
+		wantErr string
+	}{
+		{"invalid type", "--set-sla-type=calendar", "invalid --set-sla-type"},
+		{"removed breach flag", "--set-sla-breaches-at=2026-12-01", "--set-sla-breaches-at was removed from the Linear API"},
+		{"removed start flag", "--set-sla-started-at=", "--set-sla-started-at was removed from the Linear API"},
+	} {
+		t.Run(tt.name+" fails before any API call", func(t *testing.T) {
+			server, captured := captureOpsServer(t, batchHandlers())
+			cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
+			_, err := runCmd(t, cmd, "--team=ENG", "--yes", tt.arg)
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Fatalf("error = %v, want containing %q", err, tt.wantErr)
+			}
+			if captured.count("ListIssuesFiltered") != 0 {
+				t.Error("no API call should be made for an invalid or removed SLA flag")
+			}
+		})
+	}
 
 	t.Run("SLA API error is surfaced with hint", func(t *testing.T) {
 		handlers := batchHandlers()
 		handlers["BatchUpdateIssues"] = `{"errors":[{"message":"SLAs are not enabled"}]}`
 		server, _ := captureOpsServer(t, handlers)
 		cmd := NewBatchUpdateCommand(testutil.TestFactory(t, server.URL))
-		_, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-breaches-at=2026-12-01")
+		_, err := runCmd(t, cmd, "--team=ENG", "--yes", "--set-sla-type=all")
 		if err == nil {
 			t.Fatal("expected error")
 		}

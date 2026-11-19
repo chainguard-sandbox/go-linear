@@ -112,9 +112,6 @@ go-linear initiative remove-project --initiative="Shrink Wolfi" --project="Cloud
 
 ### Documents
 ```bash
-# Create team document
-go-linear document create --title="API Guide" --team=ENG --content="# Documentation..."
-
 # Create project document
 go-linear document create --title="Architecture" --project="Q1 Platform" --content="## Design..."
 
@@ -131,7 +128,6 @@ go-linear document delete <uuid>
 - `go-linear issue list` - List with 64 filters, --count mode
 - `go-linear issue get <id>` - Get single issue
 - `go-linear issue search <query>` - Full-text search, --count mode
-- `go-linear issue suggestions <id>` - View AI suggestions
 - `go-linear issue create` - Create issue. Supports --template
 - `go-linear issue update <id>` - Update issue
 - `go-linear issue batch-update` - Update multiple (max 50) ⭐

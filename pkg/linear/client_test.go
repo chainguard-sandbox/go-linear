@@ -917,8 +917,8 @@ func TestClient_IssueBatchUpdateNullableMock(t *testing.T) {
 	})
 
 	result, err := client.IssueBatchUpdateNullable(context.Background(), []string{"iss-1", "iss-2"}, IssueUpdateNullableInput{
-		SLABreachesAt: NewNull[time.Time](),
-		SLAType:       NewNull[string](),
+		CycleID: NewNull[string](),
+		SLAType: NewNull[string](),
 	})
 	if err != nil {
 		t.Fatalf("IssueBatchUpdateNullable() error = %v", err)
@@ -934,14 +934,16 @@ func TestClient_IssueBatchUpdateNullableMock(t *testing.T) {
 		t.Errorf("ids = %v, want 2 ids", gotVars["ids"])
 	}
 	input, _ := gotVars["input"].(map[string]any)
-	for _, k := range []string{"slaBreachesAt", "slaType"} {
+	for _, k := range []string{"cycleId", "slaType"} {
 		v, ok := input[k]
 		if !ok || v != nil {
 			t.Errorf("input[%q] = %v (present=%v), want explicit null", k, v, ok)
 		}
 	}
-	if _, ok := input["slaStartedAt"]; ok {
-		t.Error("slaStartedAt should be omitted when unset")
+	for _, k := range []string{"slaBreachesAt", "slaStartedAt"} {
+		if _, ok := input[k]; ok {
+			t.Errorf("input has %q; Linear removed it from IssueUpdateInput", k)
+		}
 	}
 }
 
@@ -961,7 +963,7 @@ func TestClient_IssueBatchUpdateNullable_Errors(t *testing.T) {
 				_, _ = w.Write([]byte(tt.body))
 			})
 			_, err := client.IssueBatchUpdateNullable(context.Background(), []string{"iss-1"}, IssueUpdateNullableInput{
-				SLABreachesAt: NewNull[time.Time](),
+				SLAType: NewNull[string](),
 			})
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("error = %v, want containing %q", err, tt.want)

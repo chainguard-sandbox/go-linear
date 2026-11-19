@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
-	"github.com/chainguard-sandbox/go-linear/v2/internal/dateparser"
+	"github.com/chainguard-sandbox/go-linear/v2/internal/cli"
 	intgraphql "github.com/chainguard-sandbox/go-linear/v2/internal/graphql"
 	"github.com/chainguard-sandbox/go-linear/v2/pkg/linear"
 )
@@ -35,17 +34,23 @@ var (
 	}
 )
 
-// bind registers the SLA setter flags on cmd.
+// slaRemovedHint explains the removed SLA time setters.
+const slaRemovedHint = "Linear now sets SLA breach and start times from the team's SLA policy; --sla-type (--set-sla-type for batch-update) still sets the day count"
+
+// bind registers the SLA setter flags on cmd. Linear removed slaBreachesAt
+// and slaStartedAt from IssueUpdateInput in @linear/sdk 103.0.0, so those two
+// flags stay registered but hidden, and applySLAFlags rejects them.
 func (n slaFlagNames) bind(cmd *cobra.Command) {
-	cmd.Flags().String(n.breachesAt, "", "SLA breach time (ISO8601, or relative from now: '24h', '3d', '1w'; empty or 'none' removes the SLA; requires SLAs enabled)")
-	cmd.Flags().String(n.startedAt, "", "SLA start time (ISO8601, 'today', or relative ago: '2d'; empty or 'none' clears)")
-	cmd.Flags().String(n.slaType, "", "SLA day count: all (calendar days) or onlyBusinessDays (empty or 'none' clears)")
+	cmd.Flags().String(n.breachesAt, "", "")
+	cmd.Flags().String(n.startedAt, "", "")
+	cmd.Flags().String(n.slaType, "", "SLA day count: all (calendar days) or onlyBusinessDays (empty or 'none' clears; requires SLAs enabled)")
+	cli.HideRemovedFlags(cmd, n.breachesAt, n.startedAt)
 }
 
-// changed reports whether any SLA flag was passed, including with an empty
-// value (an explicit clear).
+// changed reports whether the SLA type flag was passed, including with an
+// empty value (an explicit clear).
 func (n slaFlagNames) changed(cmd *cobra.Command) bool {
-	return cmd.Flags().Changed(n.breachesAt) || cmd.Flags().Changed(n.startedAt) || cmd.Flags().Changed(n.slaType)
+	return cmd.Flags().Changed(n.slaType)
 }
 
 // isSLAClear reports whether a flag value means "clear this field".
@@ -53,39 +58,12 @@ func isSLAClear(v string) bool {
 	return v == "" || v == "none"
 }
 
-// applySLAFlags parses the SLA flags that were passed and sets the matching
-// fields on input. An empty value or 'none' sends an explicit null.
-//
-// Breach times are deadlines, so relative values point forward ("3d" = three
-// days from now). Start times point back ("2d" = two days ago), like other
-// date flags. Absolute dates are accepted as given.
+// applySLAFlags rejects the removed SLA time flags, then parses the SLA type
+// flag if it was passed and sets it on input. An empty value or 'none' sends
+// an explicit null. It makes no API request, so callers run it before any.
 func applySLAFlags(cmd *cobra.Command, names slaFlagNames, input *linear.IssueUpdateNullableInput) error {
-	parser := dateparser.New()
-
-	if cmd.Flags().Changed(names.breachesAt) {
-		v, _ := cmd.Flags().GetString(names.breachesAt)
-		if isSLAClear(v) {
-			input.SLABreachesAt = linear.NewNull[time.Time]()
-		} else {
-			t, err := parser.ParseDeadline(v)
-			if err != nil {
-				return fmt.Errorf("invalid --%s: %w", names.breachesAt, err)
-			}
-			input.SLABreachesAt = linear.NewValue(t)
-		}
-	}
-
-	if cmd.Flags().Changed(names.startedAt) {
-		v, _ := cmd.Flags().GetString(names.startedAt)
-		if isSLAClear(v) {
-			input.SLAStartedAt = linear.NewNull[time.Time]()
-		} else {
-			t, err := parser.Parse(v)
-			if err != nil {
-				return fmt.Errorf("invalid --%s: %w", names.startedAt, err)
-			}
-			input.SLAStartedAt = linear.NewValue(t)
-		}
+	if err := cli.RejectRemovedFlags(cmd, slaRemovedHint, names.breachesAt, names.startedAt); err != nil {
+		return err
 	}
 
 	if cmd.Flags().Changed(names.slaType) {
@@ -104,7 +82,7 @@ func applySLAFlags(cmd *cobra.Command, names slaFlagNames, input *linear.IssueUp
 }
 
 // slaErrorPattern matches API error text that refers to SLAs: the acronym
-// itself or one of the SLA input field names. It is case-sensitive so that
+// itself or one of the SLA field names. It is case-sensitive so that
 // words like "Slack" do not match.
 var slaErrorPattern = regexp.MustCompile(`SLA|sla(BreachesAt|StartedAt|Type)`)
 
