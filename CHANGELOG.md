@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-11-19
+
 This release syncs the schema to `@linear/sdk@103.0.0`, in which Linear removed parts of its public API. Those removals break some SDK fields and CLI flags. As in 2.4.0, this ships as a minor version: moving the module path to `/v3` would be out of proportion, and each change reflects something the Linear API itself no longer accepts.
 
 ### Changed
@@ -619,7 +621,8 @@ First stable release of go-linear, a production-ready Go client for the Linear A
 
 **License**: Apache 2.0
 
-[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.1...HEAD
+[Unreleased]: https://github.com/chainguard-sandbox/go-linear/compare/v2.6.0...HEAD
+[2.6.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.1...v2.6.0
 [2.5.1]: https://github.com/chainguard-sandbox/go-linear/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/chainguard-sandbox/go-linear/compare/v2.3.0...v2.4.0
