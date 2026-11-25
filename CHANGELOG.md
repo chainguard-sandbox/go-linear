@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- SDK: five read-only queries for planning and delivery tracking: `Client.PlanningProjects`, `PlanningInitiatives`, `PlanningTeams`, `PlanningProjectRelations` and `PlanningProjectMilestones`. They return fields the existing list queries do not: a project's status type, `startedAt`, `completedAt`, latest status update and team IDs; an initiative's visibility, parent, latest status update and whether it has sub-initiatives; a team's visibility; the milestone at each end of a project relation; and a workspace-wide list of project milestones with status. Linked records are returned by ID only. The existing `Projects`, `Initiatives`, `Teams` and `ProjectRelations` queries are unchanged, so their fields and query cost are the same.
+
 ## [2.6.0] - 2026-11-19
 
 This release syncs the schema to `@linear/sdk@103.0.0`, in which Linear removed parts of its public API. Those removals break some SDK fields and CLI flags. As in 2.4.0, this ships as a minor version: moving the module path to `/v3` would be out of proportion, and each change reflects something the Linear API itself no longer accepts.

@@ -117,6 +117,11 @@ type LinearGraphQLClient interface {
 	ListNotifications(ctx context.Context, first *int64, after *string, filter *NotificationFilter, interceptors ...clientv2.RequestInterceptor) (*ListNotifications, error)
 	GetNotification(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetNotification, error)
 	GetOrganization(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganization, error)
+	PlanningProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningProjects, error)
+	PlanningInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningInitiatives, error)
+	PlanningTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningTeams, error)
+	PlanningProjectRelations(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningProjectRelations, error)
+	PlanningProjectMilestones(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningProjectMilestones, error)
 	ListProjectStatuses(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*ListProjectStatuses, error)
 	GetProjectUpdate(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetProjectUpdate, error)
 	ListProjectUpdates(ctx context.Context, projectID string, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*ListProjectUpdates, error)
@@ -7409,6 +7414,640 @@ func (t *GetOrganization_Organization) GetURLKey() string {
 	return t.URLKey
 }
 
+type PlanningProjects_Projects_Nodes_Status struct {
+	Type ProjectStatusType "json:\"type\" graphql:\"type\""
+}
+
+func (t *PlanningProjects_Projects_Nodes_Status) GetType() *ProjectStatusType {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_Status{}
+	}
+	return &t.Type
+}
+
+type PlanningProjects_Projects_Nodes_LastUpdate struct {
+	CreatedAt time.Time               "json:\"createdAt\" graphql:\"createdAt\""
+	Health    ProjectUpdateHealthType "json:\"health\" graphql:\"health\""
+}
+
+func (t *PlanningProjects_Projects_Nodes_LastUpdate) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_LastUpdate{}
+	}
+	return &t.CreatedAt
+}
+func (t *PlanningProjects_Projects_Nodes_LastUpdate) GetHealth() *ProjectUpdateHealthType {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_LastUpdate{}
+	}
+	return &t.Health
+}
+
+type PlanningProjects_Projects_Nodes_Teams_Nodes struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningProjects_Projects_Nodes_Teams_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_Teams_Nodes{}
+	}
+	return t.ID
+}
+
+type PlanningProjects_Projects_Nodes_Teams_PageInfo struct {
+	HasNextPage bool "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *PlanningProjects_Projects_Nodes_Teams_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_Teams_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type PlanningProjects_Projects_Nodes_Teams struct {
+	Nodes    []*PlanningProjects_Projects_Nodes_Teams_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo PlanningProjects_Projects_Nodes_Teams_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *PlanningProjects_Projects_Nodes_Teams) GetNodes() []*PlanningProjects_Projects_Nodes_Teams_Nodes {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_Teams{}
+	}
+	return t.Nodes
+}
+func (t *PlanningProjects_Projects_Nodes_Teams) GetPageInfo() *PlanningProjects_Projects_Nodes_Teams_PageInfo {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes_Teams{}
+	}
+	return &t.PageInfo
+}
+
+type PlanningProjects_Projects_Nodes struct {
+	CanceledAt  *time.Time                                  "json:\"canceledAt,omitempty\" graphql:\"canceledAt\""
+	CompletedAt *time.Time                                  "json:\"completedAt,omitempty\" graphql:\"completedAt\""
+	ID          string                                      "json:\"id\" graphql:\"id\""
+	LastUpdate  *PlanningProjects_Projects_Nodes_LastUpdate "json:\"lastUpdate,omitempty\" graphql:\"lastUpdate\""
+	Name        string                                      "json:\"name\" graphql:\"name\""
+	StartedAt   *time.Time                                  "json:\"startedAt,omitempty\" graphql:\"startedAt\""
+	Status      PlanningProjects_Projects_Nodes_Status      "json:\"status\" graphql:\"status\""
+	TargetDate  *string                                     "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	Teams       PlanningProjects_Projects_Nodes_Teams       "json:\"teams\" graphql:\"teams\""
+	UpdatedAt   time.Time                                   "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *PlanningProjects_Projects_Nodes) GetCanceledAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.CanceledAt
+}
+func (t *PlanningProjects_Projects_Nodes) GetCompletedAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.CompletedAt
+}
+func (t *PlanningProjects_Projects_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.ID
+}
+func (t *PlanningProjects_Projects_Nodes) GetLastUpdate() *PlanningProjects_Projects_Nodes_LastUpdate {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.LastUpdate
+}
+func (t *PlanningProjects_Projects_Nodes) GetName() string {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.Name
+}
+func (t *PlanningProjects_Projects_Nodes) GetStartedAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.StartedAt
+}
+func (t *PlanningProjects_Projects_Nodes) GetStatus() *PlanningProjects_Projects_Nodes_Status {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return &t.Status
+}
+func (t *PlanningProjects_Projects_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return t.TargetDate
+}
+func (t *PlanningProjects_Projects_Nodes) GetTeams() *PlanningProjects_Projects_Nodes_Teams {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return &t.Teams
+}
+func (t *PlanningProjects_Projects_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjects_Projects_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type PlanningProjects_Projects_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *PlanningProjects_Projects_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &PlanningProjects_Projects_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *PlanningProjects_Projects_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &PlanningProjects_Projects_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type PlanningProjects_Projects struct {
+	Nodes    []*PlanningProjects_Projects_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo PlanningProjects_Projects_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *PlanningProjects_Projects) GetNodes() []*PlanningProjects_Projects_Nodes {
+	if t == nil {
+		t = &PlanningProjects_Projects{}
+	}
+	return t.Nodes
+}
+func (t *PlanningProjects_Projects) GetPageInfo() *PlanningProjects_Projects_PageInfo {
+	if t == nil {
+		t = &PlanningProjects_Projects{}
+	}
+	return &t.PageInfo
+}
+
+type PlanningInitiatives_Initiatives_Nodes_ParentInitiative struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningInitiatives_Initiatives_Nodes_ParentInitiative) GetID() string {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes_ParentInitiative{}
+	}
+	return t.ID
+}
+
+type PlanningInitiatives_Initiatives_Nodes_SubInitiatives_Nodes struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningInitiatives_Initiatives_Nodes_SubInitiatives_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes_SubInitiatives_Nodes{}
+	}
+	return t.ID
+}
+
+type PlanningInitiatives_Initiatives_Nodes_SubInitiatives struct {
+	Nodes []*PlanningInitiatives_Initiatives_Nodes_SubInitiatives_Nodes "json:\"nodes\" graphql:\"nodes\""
+}
+
+func (t *PlanningInitiatives_Initiatives_Nodes_SubInitiatives) GetNodes() []*PlanningInitiatives_Initiatives_Nodes_SubInitiatives_Nodes {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes_SubInitiatives{}
+	}
+	return t.Nodes
+}
+
+type PlanningInitiatives_Initiatives_Nodes_LastUpdate struct {
+	CreatedAt time.Time                  "json:\"createdAt\" graphql:\"createdAt\""
+	Health    InitiativeUpdateHealthType "json:\"health\" graphql:\"health\""
+}
+
+func (t *PlanningInitiatives_Initiatives_Nodes_LastUpdate) GetCreatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes_LastUpdate{}
+	}
+	return &t.CreatedAt
+}
+func (t *PlanningInitiatives_Initiatives_Nodes_LastUpdate) GetHealth() *InitiativeUpdateHealthType {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes_LastUpdate{}
+	}
+	return &t.Health
+}
+
+type PlanningInitiatives_Initiatives_Nodes struct {
+	ID               string                                                  "json:\"id\" graphql:\"id\""
+	LastUpdate       *PlanningInitiatives_Initiatives_Nodes_LastUpdate       "json:\"lastUpdate,omitempty\" graphql:\"lastUpdate\""
+	Name             string                                                  "json:\"name\" graphql:\"name\""
+	ParentInitiative *PlanningInitiatives_Initiatives_Nodes_ParentInitiative "json:\"parentInitiative,omitempty\" graphql:\"parentInitiative\""
+	Status           InitiativeStatus                                        "json:\"status\" graphql:\"status\""
+	SubInitiatives   PlanningInitiatives_Initiatives_Nodes_SubInitiatives    "json:\"subInitiatives\" graphql:\"subInitiatives\""
+	TargetDate       *string                                                 "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt        time.Time                                               "json:\"updatedAt\" graphql:\"updatedAt\""
+	Visibility       InitiativeVisibility                                    "json:\"visibility\" graphql:\"visibility\""
+}
+
+func (t *PlanningInitiatives_Initiatives_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return t.ID
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetLastUpdate() *PlanningInitiatives_Initiatives_Nodes_LastUpdate {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return t.LastUpdate
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetName() string {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return t.Name
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetParentInitiative() *PlanningInitiatives_Initiatives_Nodes_ParentInitiative {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return t.ParentInitiative
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetStatus() *InitiativeStatus {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return &t.Status
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetSubInitiatives() *PlanningInitiatives_Initiatives_Nodes_SubInitiatives {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return &t.SubInitiatives
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return t.TargetDate
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *PlanningInitiatives_Initiatives_Nodes) GetVisibility() *InitiativeVisibility {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_Nodes{}
+	}
+	return &t.Visibility
+}
+
+type PlanningInitiatives_Initiatives_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *PlanningInitiatives_Initiatives_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *PlanningInitiatives_Initiatives_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type PlanningInitiatives_Initiatives struct {
+	Nodes    []*PlanningInitiatives_Initiatives_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo PlanningInitiatives_Initiatives_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *PlanningInitiatives_Initiatives) GetNodes() []*PlanningInitiatives_Initiatives_Nodes {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives{}
+	}
+	return t.Nodes
+}
+func (t *PlanningInitiatives_Initiatives) GetPageInfo() *PlanningInitiatives_Initiatives_PageInfo {
+	if t == nil {
+		t = &PlanningInitiatives_Initiatives{}
+	}
+	return &t.PageInfo
+}
+
+type PlanningTeams_Teams_Nodes struct {
+	ID         string         "json:\"id\" graphql:\"id\""
+	UpdatedAt  time.Time      "json:\"updatedAt\" graphql:\"updatedAt\""
+	Visibility TeamVisibility "json:\"visibility\" graphql:\"visibility\""
+}
+
+func (t *PlanningTeams_Teams_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningTeams_Teams_Nodes{}
+	}
+	return t.ID
+}
+func (t *PlanningTeams_Teams_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningTeams_Teams_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+func (t *PlanningTeams_Teams_Nodes) GetVisibility() *TeamVisibility {
+	if t == nil {
+		t = &PlanningTeams_Teams_Nodes{}
+	}
+	return &t.Visibility
+}
+
+type PlanningTeams_Teams_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *PlanningTeams_Teams_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &PlanningTeams_Teams_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *PlanningTeams_Teams_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &PlanningTeams_Teams_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type PlanningTeams_Teams struct {
+	Nodes    []*PlanningTeams_Teams_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo PlanningTeams_Teams_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *PlanningTeams_Teams) GetNodes() []*PlanningTeams_Teams_Nodes {
+	if t == nil {
+		t = &PlanningTeams_Teams{}
+	}
+	return t.Nodes
+}
+func (t *PlanningTeams_Teams) GetPageInfo() *PlanningTeams_Teams_PageInfo {
+	if t == nil {
+		t = &PlanningTeams_Teams{}
+	}
+	return &t.PageInfo
+}
+
+type PlanningProjectRelations_ProjectRelations_Nodes_Project struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations_Nodes_Project) GetID() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes_Project{}
+	}
+	return t.ID
+}
+
+type PlanningProjectRelations_ProjectRelations_Nodes_RelatedProject struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations_Nodes_RelatedProject) GetID() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes_RelatedProject{}
+	}
+	return t.ID
+}
+
+type PlanningProjectRelations_ProjectRelations_Nodes_ProjectMilestone struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations_Nodes_ProjectMilestone) GetID() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes_ProjectMilestone{}
+	}
+	return t.ID
+}
+
+type PlanningProjectRelations_ProjectRelations_Nodes_RelatedProjectMilestone struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations_Nodes_RelatedProjectMilestone) GetID() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes_RelatedProjectMilestone{}
+	}
+	return t.ID
+}
+
+type PlanningProjectRelations_ProjectRelations_Nodes struct {
+	AnchorType              string                                                                   "json:\"anchorType\" graphql:\"anchorType\""
+	ID                      string                                                                   "json:\"id\" graphql:\"id\""
+	Project                 PlanningProjectRelations_ProjectRelations_Nodes_Project                  "json:\"project\" graphql:\"project\""
+	ProjectMilestone        *PlanningProjectRelations_ProjectRelations_Nodes_ProjectMilestone        "json:\"projectMilestone,omitempty\" graphql:\"projectMilestone\""
+	RelatedAnchorType       string                                                                   "json:\"relatedAnchorType\" graphql:\"relatedAnchorType\""
+	RelatedProject          PlanningProjectRelations_ProjectRelations_Nodes_RelatedProject           "json:\"relatedProject\" graphql:\"relatedProject\""
+	RelatedProjectMilestone *PlanningProjectRelations_ProjectRelations_Nodes_RelatedProjectMilestone "json:\"relatedProjectMilestone,omitempty\" graphql:\"relatedProjectMilestone\""
+	Type                    string                                                                   "json:\"type\" graphql:\"type\""
+	UpdatedAt               time.Time                                                                "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetAnchorType() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.AnchorType
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.ID
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetProject() *PlanningProjectRelations_ProjectRelations_Nodes_Project {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return &t.Project
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetProjectMilestone() *PlanningProjectRelations_ProjectRelations_Nodes_ProjectMilestone {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.ProjectMilestone
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetRelatedAnchorType() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.RelatedAnchorType
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetRelatedProject() *PlanningProjectRelations_ProjectRelations_Nodes_RelatedProject {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return &t.RelatedProject
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetRelatedProjectMilestone() *PlanningProjectRelations_ProjectRelations_Nodes_RelatedProjectMilestone {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.RelatedProjectMilestone
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetType() string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return t.Type
+}
+func (t *PlanningProjectRelations_ProjectRelations_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type PlanningProjectRelations_ProjectRelations_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *PlanningProjectRelations_ProjectRelations_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type PlanningProjectRelations_ProjectRelations struct {
+	Nodes    []*PlanningProjectRelations_ProjectRelations_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo PlanningProjectRelations_ProjectRelations_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *PlanningProjectRelations_ProjectRelations) GetNodes() []*PlanningProjectRelations_ProjectRelations_Nodes {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations{}
+	}
+	return t.Nodes
+}
+func (t *PlanningProjectRelations_ProjectRelations) GetPageInfo() *PlanningProjectRelations_ProjectRelations_PageInfo {
+	if t == nil {
+		t = &PlanningProjectRelations_ProjectRelations{}
+	}
+	return &t.PageInfo
+}
+
+type PlanningProjectMilestones_ProjectMilestones_Nodes_Project struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes_Project) GetID() string {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes_Project{}
+	}
+	return t.ID
+}
+
+type PlanningProjectMilestones_ProjectMilestones_Nodes struct {
+	ID         string                                                    "json:\"id\" graphql:\"id\""
+	Name       string                                                    "json:\"name\" graphql:\"name\""
+	Project    PlanningProjectMilestones_ProjectMilestones_Nodes_Project "json:\"project\" graphql:\"project\""
+	Status     ProjectMilestoneStatus                                    "json:\"status\" graphql:\"status\""
+	TargetDate *string                                                   "json:\"targetDate,omitempty\" graphql:\"targetDate\""
+	UpdatedAt  time.Time                                                 "json:\"updatedAt\" graphql:\"updatedAt\""
+}
+
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes) GetID() string {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes{}
+	}
+	return t.ID
+}
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes) GetName() string {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes{}
+	}
+	return t.Name
+}
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes) GetProject() *PlanningProjectMilestones_ProjectMilestones_Nodes_Project {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes{}
+	}
+	return &t.Project
+}
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes) GetStatus() *ProjectMilestoneStatus {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes{}
+	}
+	return &t.Status
+}
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes) GetTargetDate() *string {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes{}
+	}
+	return t.TargetDate
+}
+func (t *PlanningProjectMilestones_ProjectMilestones_Nodes) GetUpdatedAt() *time.Time {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_Nodes{}
+	}
+	return &t.UpdatedAt
+}
+
+type PlanningProjectMilestones_ProjectMilestones_PageInfo struct {
+	EndCursor   *string "json:\"endCursor,omitempty\" graphql:\"endCursor\""
+	HasNextPage bool    "json:\"hasNextPage\" graphql:\"hasNextPage\""
+}
+
+func (t *PlanningProjectMilestones_ProjectMilestones_PageInfo) GetEndCursor() *string {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_PageInfo{}
+	}
+	return t.EndCursor
+}
+func (t *PlanningProjectMilestones_ProjectMilestones_PageInfo) GetHasNextPage() bool {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones_PageInfo{}
+	}
+	return t.HasNextPage
+}
+
+type PlanningProjectMilestones_ProjectMilestones struct {
+	Nodes    []*PlanningProjectMilestones_ProjectMilestones_Nodes "json:\"nodes\" graphql:\"nodes\""
+	PageInfo PlanningProjectMilestones_ProjectMilestones_PageInfo "json:\"pageInfo\" graphql:\"pageInfo\""
+}
+
+func (t *PlanningProjectMilestones_ProjectMilestones) GetNodes() []*PlanningProjectMilestones_ProjectMilestones_Nodes {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones{}
+	}
+	return t.Nodes
+}
+func (t *PlanningProjectMilestones_ProjectMilestones) GetPageInfo() *PlanningProjectMilestones_ProjectMilestones_PageInfo {
+	if t == nil {
+		t = &PlanningProjectMilestones_ProjectMilestones{}
+	}
+	return &t.PageInfo
+}
+
 type ListProjectStatuses_Organization_ProjectStatuses struct {
 	Color       string            "json:\"color\" graphql:\"color\""
 	CreatedAt   time.Time         "json:\"createdAt\" graphql:\"createdAt\""
@@ -11067,6 +11706,61 @@ func (t *GetOrganization) GetOrganization() *GetOrganization_Organization {
 		t = &GetOrganization{}
 	}
 	return &t.Organization
+}
+
+type PlanningProjects struct {
+	Projects PlanningProjects_Projects "json:\"projects\" graphql:\"projects\""
+}
+
+func (t *PlanningProjects) GetProjects() *PlanningProjects_Projects {
+	if t == nil {
+		t = &PlanningProjects{}
+	}
+	return &t.Projects
+}
+
+type PlanningInitiatives struct {
+	Initiatives PlanningInitiatives_Initiatives "json:\"initiatives\" graphql:\"initiatives\""
+}
+
+func (t *PlanningInitiatives) GetInitiatives() *PlanningInitiatives_Initiatives {
+	if t == nil {
+		t = &PlanningInitiatives{}
+	}
+	return &t.Initiatives
+}
+
+type PlanningTeams struct {
+	Teams PlanningTeams_Teams "json:\"teams\" graphql:\"teams\""
+}
+
+func (t *PlanningTeams) GetTeams() *PlanningTeams_Teams {
+	if t == nil {
+		t = &PlanningTeams{}
+	}
+	return &t.Teams
+}
+
+type PlanningProjectRelations struct {
+	ProjectRelations PlanningProjectRelations_ProjectRelations "json:\"projectRelations\" graphql:\"projectRelations\""
+}
+
+func (t *PlanningProjectRelations) GetProjectRelations() *PlanningProjectRelations_ProjectRelations {
+	if t == nil {
+		t = &PlanningProjectRelations{}
+	}
+	return &t.ProjectRelations
+}
+
+type PlanningProjectMilestones struct {
+	ProjectMilestones PlanningProjectMilestones_ProjectMilestones "json:\"projectMilestones\" graphql:\"projectMilestones\""
+}
+
+func (t *PlanningProjectMilestones) GetProjectMilestones() *PlanningProjectMilestones_ProjectMilestones {
+	if t == nil {
+		t = &PlanningProjectMilestones{}
+	}
+	return &t.ProjectMilestones
 }
 
 type ListProjectStatuses struct {
@@ -14909,6 +15603,224 @@ func (c *Client) GetOrganization(ctx context.Context, interceptors ...clientv2.R
 	return &res, nil
 }
 
+const PlanningProjectsDocument = `query PlanningProjects ($first: Int, $after: String) {
+	projects(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			status {
+				type
+			}
+			startedAt
+			completedAt
+			canceledAt
+			targetDate
+			updatedAt
+			lastUpdate {
+				createdAt
+				health
+			}
+			teams(first: 50) {
+				nodes {
+					id
+				}
+				pageInfo {
+					hasNextPage
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) PlanningProjects(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningProjects, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res PlanningProjects
+	if err := c.Client.Post(ctx, "PlanningProjects", PlanningProjectsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const PlanningInitiativesDocument = `query PlanningInitiatives ($first: Int, $after: String) {
+	initiatives(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			status
+			visibility
+			targetDate
+			updatedAt
+			parentInitiative {
+				id
+			}
+			subInitiatives(first: 1) {
+				nodes {
+					id
+				}
+			}
+			lastUpdate {
+				createdAt
+				health
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) PlanningInitiatives(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningInitiatives, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res PlanningInitiatives
+	if err := c.Client.Post(ctx, "PlanningInitiatives", PlanningInitiativesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const PlanningTeamsDocument = `query PlanningTeams ($first: Int, $after: String) {
+	teams(first: $first, after: $after) {
+		nodes {
+			id
+			visibility
+			updatedAt
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) PlanningTeams(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningTeams, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res PlanningTeams
+	if err := c.Client.Post(ctx, "PlanningTeams", PlanningTeamsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const PlanningProjectRelationsDocument = `query PlanningProjectRelations ($first: Int, $after: String) {
+	projectRelations(first: $first, after: $after) {
+		nodes {
+			id
+			type
+			anchorType
+			relatedAnchorType
+			updatedAt
+			project {
+				id
+			}
+			relatedProject {
+				id
+			}
+			projectMilestone {
+				id
+			}
+			relatedProjectMilestone {
+				id
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) PlanningProjectRelations(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningProjectRelations, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res PlanningProjectRelations
+	if err := c.Client.Post(ctx, "PlanningProjectRelations", PlanningProjectRelationsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const PlanningProjectMilestonesDocument = `query PlanningProjectMilestones ($first: Int, $after: String) {
+	projectMilestones(first: $first, after: $after) {
+		nodes {
+			id
+			name
+			targetDate
+			status
+			updatedAt
+			project {
+				id
+			}
+		}
+		pageInfo {
+			hasNextPage
+			endCursor
+		}
+	}
+}
+`
+
+func (c *Client) PlanningProjectMilestones(ctx context.Context, first *int64, after *string, interceptors ...clientv2.RequestInterceptor) (*PlanningProjectMilestones, error) {
+	vars := map[string]any{
+		"first": first,
+		"after": after,
+	}
+
+	var res PlanningProjectMilestones
+	if err := c.Client.Post(ctx, "PlanningProjectMilestones", PlanningProjectMilestonesDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const ListProjectStatusesDocument = `query ListProjectStatuses {
 	organization {
 		projectStatuses {
@@ -15970,6 +16882,11 @@ var DocumentOperationNames = map[string]string{
 	ListNotificationsDocument:              "ListNotifications",
 	GetNotificationDocument:                "GetNotification",
 	GetOrganizationDocument:                "GetOrganization",
+	PlanningProjectsDocument:               "PlanningProjects",
+	PlanningInitiativesDocument:            "PlanningInitiatives",
+	PlanningTeamsDocument:                  "PlanningTeams",
+	PlanningProjectRelationsDocument:       "PlanningProjectRelations",
+	PlanningProjectMilestonesDocument:      "PlanningProjectMilestones",
 	ListProjectStatusesDocument:            "ListProjectStatuses",
 	GetProjectUpdateDocument:               "GetProjectUpdate",
 	ListProjectUpdatesDocument:             "ListProjectUpdates",

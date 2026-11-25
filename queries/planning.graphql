@@ -1,0 +1,132 @@
+# Read-only lists for planning and delivery tracking.
+#
+# Each query selects the fields needed to join projects, initiatives, teams,
+# milestones and project relations to one another and to see where each stands:
+# status type, start and completion times, the latest status update, and
+# visibility. Linked records are selected by ID only, to keep complexity low.
+#
+# These are separate from ListProjects, ListInitiatives, ListTeams and
+# ListProjectRelations so that the cost of those queries does not change.
+
+query PlanningProjects($first: Int, $after: String) {
+  projects(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      status {
+        type
+      }
+      startedAt
+      completedAt
+      canceledAt
+      targetDate
+      updatedAt
+      lastUpdate {
+        createdAt
+        health
+      }
+      teams(first: 50) {
+        nodes {
+          id
+        }
+        pageInfo {
+          hasNextPage
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query PlanningInitiatives($first: Int, $after: String) {
+  initiatives(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      status
+      visibility
+      targetDate
+      updatedAt
+      parentInitiative {
+        id
+      }
+      subInitiatives(first: 1) {
+        nodes {
+          id
+        }
+      }
+      lastUpdate {
+        createdAt
+        health
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query PlanningTeams($first: Int, $after: String) {
+  teams(first: $first, after: $after) {
+    nodes {
+      id
+      visibility
+      updatedAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query PlanningProjectRelations($first: Int, $after: String) {
+  projectRelations(first: $first, after: $after) {
+    nodes {
+      id
+      type
+      anchorType
+      relatedAnchorType
+      updatedAt
+      project {
+        id
+      }
+      relatedProject {
+        id
+      }
+      projectMilestone {
+        id
+      }
+      relatedProjectMilestone {
+        id
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query PlanningProjectMilestones($first: Int, $after: String) {
+  projectMilestones(first: $first, after: $after) {
+    nodes {
+      id
+      name
+      targetDate
+      status
+      updatedAt
+      project {
+        id
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

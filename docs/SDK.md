@@ -339,6 +339,18 @@ func (c *Client) DocumentUnarchive(ctx context.Context, id string) error
 
 Special: `Viewer(ctx)` - authenticated user, `Organization(ctx)` - workspace info
 
+### Planning Queries
+
+Read-only lists for planning and delivery tracking. Each takes `(ctx, first, after)` and returns the fields needed to join projects, initiatives, teams, milestones and project relations, with linked records by ID only. The list methods above are unchanged.
+
+| Method | Adds to the plain list |
+|--------|------------------------|
+| `PlanningProjects` | Status type, `startedAt`, `completedAt`, `canceledAt`, latest status update, team IDs (up to 50, with `hasNextPage`) |
+| `PlanningInitiatives` | Visibility, parent ID, latest status update, whether it has sub-initiatives |
+| `PlanningTeams` | Visibility (replaces the deprecated `private` flag), `updatedAt` |
+| `PlanningProjectRelations` | The milestone at each end of the relation, `updatedAt` |
+| `PlanningProjectMilestones` | A workspace-wide list of project milestones with status, target date and project ID |
+
 ### Mutation Methods
 
 | Resource | Create | Update | Delete |
